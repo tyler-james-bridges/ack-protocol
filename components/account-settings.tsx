@@ -13,8 +13,7 @@ import {
   Lock, 
   Unlock,
   Clock,
-  CheckCircle,
-  XCircle
+  CheckCircle
 } from 'lucide-react';
 
 interface AccountSettingsProps {
@@ -28,7 +27,6 @@ export function AccountSettings({ userData, onDataUpdate }: AccountSettingsProps
     cancelAccountDeletion,
     executeAccountDeletion,
     setProfilePrivacy,
-    getAccountStatus,
     isPending,
     isSuccess,
     error,
@@ -43,7 +41,7 @@ export function AccountSettings({ userData, onDataUpdate }: AccountSettingsProps
     if (userData?.deletionRequestedAt && userData.deletionRequestedAt > 0) {
       const interval = setInterval(() => {
         const now = Date.now() / 1000;
-        const deletionTime = userData.deletionRequestedAt + (7 * 24 * 60 * 60); // 7 days
+        const deletionTime = (userData.deletionRequestedAt || 0) + (7 * 24 * 60 * 60); // 7 days
         const remaining = deletionTime - now;
         
         if (remaining <= 0) {
@@ -84,8 +82,8 @@ export function AccountSettings({ userData, onDataUpdate }: AccountSettingsProps
       await requestAccountDeletion();
       setShowDeleteConfirm(false);
       toast.info('Account deletion requested. You have 7 days to cancel.');
-    } catch (err: any) {
-      toast.error(`Failed to request deletion: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Failed to request deletion: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -93,8 +91,8 @@ export function AccountSettings({ userData, onDataUpdate }: AccountSettingsProps
     try {
       await cancelAccountDeletion();
       toast.success('Account deletion cancelled');
-    } catch (err: any) {
-      toast.error(`Failed to cancel deletion: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Failed to cancel deletion: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -103,16 +101,16 @@ export function AccountSettings({ userData, onDataUpdate }: AccountSettingsProps
     try {
       await executeAccountDeletion(userData.walletAddress);
       toast.success('Account deleted successfully');
-    } catch (err: any) {
-      toast.error(`Failed to execute deletion: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Failed to execute deletion: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
   const handleTogglePrivacy = async () => {
     try {
       await setProfilePrivacy(!userData?.isPrivate);
-    } catch (err: any) {
-      toast.error(`Failed to update privacy: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Failed to update privacy: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -191,7 +189,7 @@ export function AccountSettings({ userData, onDataUpdate }: AccountSettingsProps
               variant={userData.isPrivate ? 'default' : 'outline'}
               size="sm"
               onClick={handleTogglePrivacy}
-              disabled={isPending || isPendingDeletion}
+              disabled={isPending || !!isPendingDeletion}
             >
               {userData.isPrivate ? 'Make Public' : 'Make Private'}
             </Button>
@@ -250,7 +248,7 @@ export function AccountSettings({ userData, onDataUpdate }: AccountSettingsProps
                   </p>
                   <ul className="text-xs text-red-700 dark:text-red-300 mt-2 space-y-1">
                     <li>• Your handle will be permanently retired</li>
-                    <li>• You\'ll have 7 days to cancel this request</li>
+                    <li>• You&apos;ll have 7 days to cancel this request</li>
                     <li>• You cannot re-register for 30 days after deletion</li>
                     <li>• Your kudos history will be preserved</li>
                   </ul>

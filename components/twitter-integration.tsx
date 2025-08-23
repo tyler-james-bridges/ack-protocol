@@ -30,8 +30,8 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
   const [simulatedTweets, setSimulatedTweets] = useState<SimulatedTweet[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchHandle, setSearchHandle] = useState('');
-  const [foundTweets, setFoundTweets] = useState<any[]>([]);
-  const { giveKudos, isLoading } = useKudos();
+  const [foundTweets, setFoundTweets] = useState<unknown[]>([]);
+  const { giveKudos } = useKudos();
 
   useEffect(() => {
     if (registeredHandle) {
@@ -78,14 +78,16 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
 
   const processTweet = async (tweet: SimulatedTweet) => {
     setIsProcessing(true);
+    const tweetUrl = `https://twitter.com/${tweet.author}/status/${tweet.id}`;
+    
+    const recipient = tweet.text.match(/@(\w+)\s*\+\+/)?.[1];
+    if (!recipient) {
+      toast.error('Could not extract recipient from tweet');
+      setIsProcessing(false);
+      return;
+    }
+    
     try {
-      const tweetUrl = `https://twitter.com/${tweet.author}/status/${tweet.id}`;
-      
-      const recipient = tweet.text.match(/@(\w+)\s*\+\+/)?.[1];
-      if (!recipient) {
-        toast.error('Could not extract recipient from tweet');
-        return;
-      }
 
       // For demo purposes - simulate success for common test handles
       const testHandles = ['alice_dev', 'bob_builder', 'charlie_coder', 'vitalik'];
@@ -120,8 +122,8 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
       );
       
       toast.success(`Kudos given to @${recipient}!`);
-    } catch (error: any) {
-      const errorMsg = error.message || 'Failed to process kudos';
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to process kudos';
       if (errorMsg.includes('Recipient not registered')) {
         toast.error(`❌ @${recipient} is not registered. For testing, try: @alice_dev, @bob_builder, or @vitalik (demo mode will simulate success)`, {
           duration: 6000
@@ -151,7 +153,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
       } else {
         toast.error(data.error || 'Failed to search tweets');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to search for kudos');
     } finally {
       setIsProcessing(false);
@@ -185,7 +187,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
       } else {
         toast.error(data.error || 'Failed to verify tweet');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to process tweet');
     } finally {
       setIsProcessing(false);
@@ -200,7 +202,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
           X (Twitter) Integration
         </CardTitle>
         <CardDescription>
-          Give kudos directly from X by tweeting "@username ++"
+          Give kudos directly from X by tweeting &quot;@username ++&quot;
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -216,9 +218,9 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
               <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
                 <h3 className="font-semibold mb-2">How Testing Works:</h3>
                 <ol className="list-decimal list-inside space-y-1 text-sm">
-                  <li>You're connected as <strong>@{twitterHandle}</strong></li>
-                  <li>Enter a DIFFERENT recipient handle (e.g., "alice_dev", "bob_builder")</li>
-                  <li>Create a test tweet with the "@username ++" format</li>
+                  <li>You&apos;re connected as <strong>@{twitterHandle}</strong></li>
+                  <li>Enter a DIFFERENT recipient handle (e.g., &quot;alice_dev&quot;, &quot;bob_builder&quot;)</li>
+                  <li>Create a test tweet with the &quot;@username ++&quot; format</li>
                   <li>Process the simulated tweet to give kudos on-chain</li>
                   <li>Check the leaderboard to see the results!</li>
                 </ol>
@@ -325,7 +327,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
                           <Button
                             size="sm"
                             onClick={() => processTweet(tweet)}
-                            disabled={isProcessing || isLoading}
+                            disabled={isProcessing}
                           >
                             {isProcessing ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -353,7 +355,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
                   <div className="space-y-1">
                     <p className="font-semibold">Real Tweet Processing</p>
                     <p className="text-sm">
-                      Paste a real X/Twitter URL that contains "@username ++" to process kudos.
+                      Paste a real X/Twitter URL that contains &quot;@username ++&quot; to process kudos.
                       Note: Requires Twitter API access to verify tweets.
                     </p>
                   </div>
@@ -426,12 +428,14 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
               {foundTweets.length > 0 && (
                 <div className="space-y-2">
                   <h3 className="font-semibold">Found Kudos Tweets:</h3>
-                  {foundTweets.map((tweet: any) => (
-                    <div key={tweet.id} className="p-3 border rounded-lg">
-                      <p className="text-sm font-medium">@{tweet.authorUsername}</p>
-                      <p className="text-sm">{tweet.text}</p>
+                  {foundTweets.map((tweet) => {
+                    const t = tweet as { id: string; authorUsername: string; text: string; url: string };
+                    return (
+                    <div key={t.id} className="p-3 border rounded-lg">
+                      <p className="text-sm font-medium">@{t.authorUsername}</p>
+                      <p className="text-sm">{t.text}</p>
                       <a
-                        href={tweet.url}
+                        href={t.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-blue-600 hover:underline"
@@ -439,7 +443,8 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
                         View on X
                       </a>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

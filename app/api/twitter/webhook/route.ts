@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
+import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { chain } from '@/config/chain';
 import contractAbi from '@/artifacts/contracts/KudosTracker.sol/KudosTracker.json';
@@ -92,13 +92,13 @@ export async function POST(request: NextRequest) {
             transactionHash: hash,
             status: 'success'
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error processing kudos:', error);
           processedTweets.push({
             tweetId: tweet.id_str,
             giver: kudos.giver,
             recipient: kudos.recipient,
-            error: error.message,
+            error: error instanceof Error ? error.message : 'Unknown error',
             status: 'failed'
           });
         }
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
   const crcToken = searchParams.get('crc_token');
   
   if (crcToken) {
-    const crypto = require('crypto');
+    const crypto = await import('crypto');
     const hmac = crypto
       .createHmac('sha256', process.env.TWITTER_WEBHOOK_SECRET || '')
       .update(crcToken)

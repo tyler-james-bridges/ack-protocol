@@ -1,12 +1,12 @@
 // Utility function to parse contract errors and provide user-friendly messages
-export function parseContractError(error: any): string {
+export function parseContractError(error: unknown): string {
   // Handle string errors
   if (typeof error === 'string') {
     return error;
   }
 
   // Handle error objects with message
-  if (error?.message) {
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
     const message = error.message.toLowerCase();
     
     // Check for common revert reasons
@@ -51,12 +51,12 @@ export function parseContractError(error: any): string {
   }
   
   // Handle errors with reason
-  if (error?.reason) {
+  if (error && typeof error === 'object' && 'reason' in error) {
     return parseContractError({ message: error.reason });
   }
   
   // Handle errors with cause
-  if (error?.cause) {
+  if (error && typeof error === 'object' && 'cause' in error) {
     return parseContractError(error.cause);
   }
   
@@ -74,7 +74,6 @@ export function decodeRevertReason(data: string): string | null {
     const bytes = Buffer.from(cleanData, 'hex');
     
     // Skip the first 64 bytes (offset and length) and read the actual message
-    const messageStart = 64;
     const messageLength = parseInt(cleanData.slice(56, 64), 16);
     const messageBytes = bytes.slice(32, 32 + messageLength);
     

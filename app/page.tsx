@@ -40,7 +40,6 @@ export default function KudosApp() {
     giveKudos, 
     checkUserRegistration, 
     checkHandleAvailability,
-    getAccountStatus,
     isPending, 
     isSuccess, 
     error 
@@ -67,6 +66,7 @@ export default function KudosApp() {
     if (isConnected) {
       checkRegistrationStatus();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected]);
 
   useEffect(() => {
@@ -160,7 +160,7 @@ export default function KudosApp() {
     try {
       await login();
       toast.success('Wallet connected successfully!');
-    } catch (error) {
+    } catch {
       toast.error('Failed to connect wallet');
     }
   };
@@ -175,7 +175,7 @@ export default function KudosApp() {
       setKudosStats({ received: 0, given: 0 });
       setUserData(null);
       toast.success('Wallet disconnected');
-    } catch (error) {
+    } catch {
       toast.error('Failed to disconnect wallet');
     }
   };
@@ -220,7 +220,7 @@ export default function KudosApp() {
       });
       setKudosStats({ received: 0, given: 0 });
       toast.success(`Successfully registered as @${xHandle}! You can now give and receive kudos.`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = parseContractError(error);
       toast.error(errorMessage);
       console.error('Registration error:', error);
@@ -267,8 +267,8 @@ export default function KudosApp() {
       setKudosRecipient('');
       setKudosTweetUrl('');
       
-      toast.success(`🎉 Kudos successfully sent to @${kudosRecipient}! This recognition is now permanently recorded on the blockchain.`);
-    } catch (error: any) {
+      toast.success(`Kudos successfully sent to @${kudosRecipient}! This recognition is now permanently recorded on the blockchain.`);
+    } catch (error: unknown) {
       const errorMessage = parseContractError(error);
       toast.error(errorMessage);
       console.error('Kudos error:', error);

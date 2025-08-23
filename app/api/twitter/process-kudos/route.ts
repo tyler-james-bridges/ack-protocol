@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
       recipient: recipientHandle,
       verified: true
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error processing kudos:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to process kudos' },
+      { error: error instanceof Error ? error.message : 'Failed to process kudos' },
       { status: 500 }
     );
   }
@@ -69,10 +69,10 @@ export async function GET(request: NextRequest) {
       tweets: kudosTweets,
       count: kudosTweets.length
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching kudos tweets:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch tweets' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch tweets' },
       { status: 500 }
     );
   }

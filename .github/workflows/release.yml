@@ -1,17 +1,9 @@
 name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      release_type:
-        description: 'Release type'
-        required: true
-        default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -42,19 +34,20 @@ jobs:
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
 
-      - name: Bump version
+      - name: Bump version and release
         id: version
         run: |
-          npm version ${{ github.event.inputs.release_type }} --no-git-tag-version
+          npm version patch --no-git-tag-version
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           git add package.json package-lock.json
           git commit -m "chore: release v$VERSION"
           git push
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: v${{ steps.version.outputs.version }}
           generate_release_notes: true

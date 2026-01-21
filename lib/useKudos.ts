@@ -203,6 +203,11 @@ export function useKudos() {
       }
       return [];
     } catch (error) {
+      // Silently handle underflow error when leaderboard is empty (known contract bug)
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('underflow') || errorMessage.includes('overflow')) {
+        return [];
+      }
       console.error('Error fetching leaderboard:', error);
       return [];
     }

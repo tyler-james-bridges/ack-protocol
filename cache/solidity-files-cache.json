@@ -1,9 +1,9 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/tylerjames-bridges/code/kudos-app/contracts/KudosTracker.sol": {
-      "lastModificationDate": 1755907857573,
-      "contentHash": "0dddd68fc195cf450445d50f6467a9a8",
+    "/Users/tylerjames-bridges/code/onchain-kudos-app/contracts/KudosTracker.sol": {
+      "lastModificationDate": 1769028657693,
+      "contentHash": "9e6e165639e17c06435c5385f8330e2b",
       "sourceName": "contracts/KudosTracker.sol",
       "solcConfig": {
         "version": "0.8.19",

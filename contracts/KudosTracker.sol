@@ -313,7 +313,12 @@ contract KudosTracker {
         ) 
     {
         uint256 historyLength = kudosHistory.length;
-        
+
+        // Return empty arrays if no history
+        if (historyLength == 0) {
+            return (new string[](0), new uint256[](0), new address[](0));
+        }
+
         // Get unique users from history
         address[] memory uniqueUsers = new address[](historyLength * 2);
         uint256 uniqueCount = 0;
@@ -343,9 +348,9 @@ contract KudosTracker {
             }
         }
         
-        // Sort users by kudos received
-        for (uint256 i = 0; i < uniqueCount - 1; i++) {
-            for (uint256 j = 0; j < uniqueCount - i - 1; j++) {
+        // Sort users by kudos received (skip if 0 or 1 users)
+        for (uint256 i = 0; i + 1 < uniqueCount; i++) {
+            for (uint256 j = 0; j + i + 1 < uniqueCount; j++) {
                 if (users[uniqueUsers[j]].kudosReceived < users[uniqueUsers[j + 1]].kudosReceived) {
                     address temp = uniqueUsers[j];
                     uniqueUsers[j] = uniqueUsers[j + 1];

@@ -26,9 +26,9 @@ async function main() {
       console.log("❌ No signers available!");
     }
     
-  } catch (error: any) {
-    console.error("❌ Connection test failed:");
-    console.error(error.message);
+  } catch (error: unknown) {
+    console.error("Connection test failed:");
+    console.error(error instanceof Error ? error.message : String(error));
   }
 }
 

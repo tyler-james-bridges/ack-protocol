@@ -75,3 +75,13 @@ export function getErrorMessage(error: unknown): string {
   }
   return String(error);
 }
+
+/**
+ * Extracts error reason from unknown error type with a fallback
+ */
+export function getErrorReason(error: unknown, fallback: string): string {
+  if (isContractError(error)) {
+    return error.reason || fallback;
+  }
+  return fallback;
+}

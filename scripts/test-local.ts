@@ -48,8 +48,8 @@ async function main() {
   console.log("Charlie:", charlie.address);
   console.log("Dana:", dana.address);
 
-  // Cast to any to bypass TypeScript checking
-  const contract = kudosTracker as any;
+  // Use the deployed contract instance directly
+  const contract = kudosTracker;
 
   console.log("\n📝 USER REGISTRATION");
   console.log("-".repeat(50));
@@ -76,17 +76,17 @@ async function main() {
   try {
     await contract.connect(alice).registerUser("alice_dev_2");
     console.log("❌ FAILED: User was able to register twice!");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.log("✅ Correctly prevented double registration");
-    console.log(`   Error: "${error.reason || "User already registered"}"`);
+    console.log(`   Error: "${getErrorReason(error, "User already registered")}"`);
   }
 
   try {
     await contract.connect(owner).registerUser("alice_dev");
     console.log("❌ FAILED: Handle collision not detected!");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.log("✅ Correctly prevented handle collision");
-    console.log(`   Error: "${error.reason || "Handle already taken"}"`);
+    console.log(`   Error: "${getErrorReason(error, "Handle already taken")}"`);
   }
 
   console.log("\n⭐ KUDOS TRANSACTIONS");
@@ -161,10 +161,10 @@ async function main() {
       .connect(alice)
       .giveKudos("alice_dev", "https://x.com/alice_dev/status/999");
     console.log("❌ FAILED: User was able to give kudos to themselves!");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.log("✅ Correctly prevented self-kudos");
     console.log(
-      `   Error: "${error.reason || "Cannot give kudos to yourself"}"`
+      `   Error: "${getErrorReason(error, "Cannot give kudos to yourself")}"`
     );
   }
 
@@ -175,9 +175,9 @@ async function main() {
       .connect(alice)
       .giveKudos("bob_builder", kudosTransactions[0].tweet);
     console.log("❌ FAILED: Same tweet was processed twice!");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.log("✅ Correctly prevented duplicate tweet processing");
-    console.log(`   Error: "${error.reason || "Tweet already processed"}"`);
+    console.log(`   Error: "${getErrorReason(error, "Tweet already processed")}"`);
   }
 
   console.log("\n📊 USER STATISTICS");

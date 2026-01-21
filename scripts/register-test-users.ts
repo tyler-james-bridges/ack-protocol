@@ -68,11 +68,12 @@ async function registerTestUsers() {
       await publicClient.waitForTransactionReceipt({ hash });
       
       console.log(`✅ Successfully registered ${handle}`);
-    } catch (error: any) {
-      if (error.message?.includes('already registered')) {
-        console.log(`✅ ${handle} is already registered`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('already registered')) {
+        console.log(`${handle} is already registered`);
       } else {
-        console.error(`❌ Failed to register ${handle}:`, error.message);
+        console.error(`Failed to register ${handle}:`, errorMessage);
       }
     }
   }

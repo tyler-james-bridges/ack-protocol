@@ -131,6 +131,36 @@ const KUDOS_CONTRACT_ABI = [
     "outputs": [{"name": "", "type": "uint256"}],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {"name": "_offset", "type": "uint256"},
+      {"name": "_limit", "type": "uint256"}
+    ],
+    "name": "getKudosHistoryPage",
+    "outputs": [
+      {
+        "components": [
+          {"name": "from", "type": "address"},
+          {"name": "to", "type": "address"},
+          {"name": "fromHandle", "type": "string"},
+          {"name": "toHandle", "type": "string"},
+          {"name": "timestamp", "type": "uint256"},
+          {"name": "tweetUrl", "type": "string"}
+        ],
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getKudosHistoryLength",
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
   }
 ] as const;
 
@@ -153,6 +183,21 @@ export interface AccountStatus {
   isPendingDeletion: boolean;
   deletionTime: number;
   canReregister: boolean;
+}
+
+export interface KudosTransaction {
+  from: Address;
+  to: Address;
+  fromHandle: string;
+  toHandle: string;
+  timestamp: number;
+  tweetUrl: string;
+}
+
+export interface LeaderboardEntry {
+  handle: string;
+  kudosReceived: number;
+  address: Address;
 }
 
 export function useKudos() {
@@ -269,6 +314,80 @@ export function useKudos() {
     } catch (error) {
       console.error('Error checking handle availability:', error);
       return false;
+    }
+  }, []);
+
+  const getKudosHistory = useCallback(async (offset: number = 0, limit: number = 10): Promise<KudosTransaction[]> => {
+    try {
+      const contractAddress = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address;
+
+      // If contract not deployed, return empty array
+      if (contractAddress === '0x0000000000000000000000000000000000000000') {
+        return [];
+      }
+
+      const publicClient = createPublicClient({
+        chain: chain,
+        transport: http()
+      });
+
+      const result = await publicClient.readContract({
+        address: contractAddress,
+        abi: KUDOS_CONTRACT_ABI,
+        functionName: 'getKudosHistoryPage',
+        args: [BigInt(offset), BigInt(limit)]
+      });
+
+      if (result && Array.isArray(result)) {
+        return result.map((tx) => ({
+          from: tx.from as Address,
+          to: tx.to as Address,
+          fromHandle: tx.fromHandle as string,
+          toHandle: tx.toHandle as string,
+          timestamp: Number(tx.timestamp),
+          tweetUrl: tx.tweetUrl as string
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching kudos history:', error);
+      return [];
+    }
+  }, []);
+
+  const getLeaderboardData = useCallback(async (limit: number = 10): Promise<LeaderboardEntry[]> => {
+    try {
+      const contractAddress = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address;
+
+      // If contract not deployed, return empty array
+      if (contractAddress === '0x0000000000000000000000000000000000000000') {
+        return [];
+      }
+
+      const publicClient = createPublicClient({
+        chain: chain,
+        transport: http()
+      });
+
+      const result = await publicClient.readContract({
+        address: contractAddress,
+        abi: KUDOS_CONTRACT_ABI,
+        functionName: 'getLeaderboard',
+        args: [BigInt(limit)]
+      });
+
+      if (result && Array.isArray(result) && result.length === 3) {
+        const [handles, kudosReceived, addresses] = result as [string[], bigint[], Address[]];
+        return handles.map((handle, index) => ({
+          handle,
+          kudosReceived: Number(kudosReceived[index]),
+          address: addresses[index]
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      return [];
     }
   }, []);
 
@@ -396,6 +515,8 @@ export function useKudos() {
     checkUserRegistration,
     getAccountStatus,
     checkHandleAvailability,
+    getKudosHistory,
+    getLeaderboardData,
     isConnected: !!abstractClient,
     isPending,
     isSuccess,

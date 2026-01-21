@@ -2,7 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { chain } from '@/config/chain';
-import contractAbi from '@/artifacts/contracts/KudosTracker.sol/KudosTracker.json';
+
+// Inline ABI for contract functions used by the webhook
+const KUDOS_ABI = [
+  {
+    inputs: [
+      { name: 'recipientHandle', type: 'string' },
+      { name: 'tweetUrl', type: 'string' }
+    ],
+    name: 'giveKudos',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
+    inputs: [{ name: 'handle', type: 'string' }],
+    name: 'handleToAddress',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function'
+  }
+] as const;
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
 const WEBHOOK_PRIVATE_KEY = process.env.WEBHOOK_PRIVATE_KEY as `0x${string}`;
@@ -71,17 +91,38 @@ export async function POST(request: NextRequest) {
             transport: http()
           });
 
+          // Check if giver is registered
+          const giverAddress = await publicClient.readContract({
+            address: CONTRACT_ADDRESS,
+            abi: KUDOS_ABI,
+            functionName: 'handleToAddress',
+            args: [kudos.giver]
+          });
+
+          // Skip if giver is not registered (zero address)
+          if (giverAddress === '0x0000000000000000000000000000000000000000') {
+            console.log(`Skipping kudos from unregistered user: @${kudos.giver}`);
+            processedTweets.push({
+              tweetId: tweet.id_str,
+              giver: kudos.giver,
+              recipient: kudos.recipient,
+              status: 'skipped',
+              reason: 'giver not registered'
+            });
+            continue;
+          }
+
           const tweetUrl = `https://twitter.com/${kudos.giver}/status/${tweet.id_str}`;
 
-          const { request } = await publicClient.simulateContract({
+          const { request: contractRequest } = await publicClient.simulateContract({
             address: CONTRACT_ADDRESS,
-            abi: contractAbi.abi,
+            abi: KUDOS_ABI,
             functionName: 'giveKudos',
             args: [kudos.recipient, tweetUrl],
             account
           });
 
-          const hash = await walletClient.writeContract(request);
+          const hash = await walletClient.writeContract(contractRequest);
           
           await publicClient.waitForTransactionReceipt({ hash });
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { useAccount } from 'wagmi';
-import { useKudos, type UserData } from '@/lib/useKudos';
+import { useKudos, type UserData, type KudosTransaction, type LeaderboardEntry } from '@/lib/useKudos';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,14 +35,16 @@ interface UserProfile {
 export default function KudosApp() {
   const { login, logout } = useLoginWithAbstract();
   const { isConnected } = useAccount();
-  const { 
-    registerUser, 
-    giveKudos, 
-    checkUserRegistration, 
+  const {
+    registerUser,
+    giveKudos,
+    checkUserRegistration,
     checkHandleAvailability,
-    isPending, 
-    isSuccess, 
-    error 
+    getKudosHistory,
+    getLeaderboardData,
+    isPending,
+    isSuccess,
+    error
   } = useKudos();
   
   const [xHandle, setXHandle] = useState('');
@@ -57,9 +59,63 @@ export default function KudosApp() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [handleAvailable, setHandleAvailable] = useState<boolean | null>(null);
   const [checkingHandle, setCheckingHandle] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadBlockchainData = async () => {
+    setIsLoading(true);
+    try {
+      const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000';
+
+      // If contract not deployed (zero address), use mock data for demo
+      if (contractAddress === '0x0000000000000000000000000000000000000000') {
+        loadMockData();
+        return;
+      }
+
+      // Fetch real blockchain data
+      const [historyData, leaderboardData] = await Promise.all([
+        getKudosHistory(0, 10),
+        getLeaderboardData(10)
+      ]);
+
+      // Transform kudos history to KudosEntry format
+      if (historyData.length > 0) {
+        const transformedKudos: KudosEntry[] = historyData.map((tx: KudosTransaction, index: number) => ({
+          id: `${tx.timestamp}-${index}`,
+          fromHandle: tx.fromHandle,
+          toHandle: tx.toHandle,
+          tweetUrl: tx.tweetUrl,
+          timestamp: tx.timestamp * 1000, // Convert seconds to milliseconds
+        }));
+        setRecentKudos(transformedKudos);
+      } else {
+        setRecentKudos([]);
+      }
+
+      // Transform leaderboard data to UserProfile format
+      if (leaderboardData.length > 0) {
+        const transformedLeaderboard: UserProfile[] = leaderboardData.map((entry: LeaderboardEntry) => ({
+          handle: entry.handle,
+          kudosReceived: entry.kudosReceived,
+          kudosGiven: 0, // Not available from leaderboard call
+          walletAddress: entry.address
+        }));
+        setLeaderboard(transformedLeaderboard);
+      } else {
+        setLeaderboard([]);
+      }
+    } catch (error) {
+      console.error('Error loading blockchain data:', error);
+      // Fall back to mock data on error
+      loadMockData();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    loadMockData();
+    loadBlockchainData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -72,8 +128,9 @@ export default function KudosApp() {
   useEffect(() => {
     if (isSuccess) {
       toast.success('Transaction successful!');
-      loadMockData();
+      loadBlockchainData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuccess]);
 
   useEffect(() => {
@@ -120,6 +177,7 @@ export default function KudosApp() {
 
     setRecentKudos(mockKudos);
     setLeaderboard(mockLeaderboard);
+    setIsLoading(false);
   };
 
   const checkRegistrationStatus = async () => {
@@ -436,36 +494,57 @@ export default function KudosApp() {
                 <CardDescription>Latest kudos given across the network</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentKudos.map((kudos) => (
-                    <div key={kudos.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                      <div className="flex items-center gap-4">
-                        <Avatar>
-                          <AvatarFallback>{kudos.fromHandle[0].toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">
-                            @{kudos.fromHandle} → @{kudos.toHandle}
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-muted" />
+                          <div className="space-y-2">
+                            <div className="h-4 w-32 bg-muted rounded" />
+                            <div className="h-3 w-24 bg-muted rounded" />
                           </div>
-                          {kudos.message && (
-                            <div className="text-sm text-muted-foreground">{kudos.message}</div>
-                          )}
+                        </div>
+                        <div className="h-6 w-16 bg-muted rounded" />
+                      </div>
+                    ))}
+                  </div>
+                ) : recentKudos.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No kudos yet. Be the first to give kudos!
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentKudos.map((kudos) => (
+                      <div key={kudos.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-4">
+                          <Avatar>
+                            <AvatarFallback>{kudos.fromHandle[0].toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">
+                              @{kudos.fromHandle} → @{kudos.toHandle}
+                            </div>
+                            {kudos.message && (
+                              <div className="text-sm text-muted-foreground">{kudos.message}</div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={kudos.tweetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-500 hover:underline"
+                          >
+                            View Tweet
+                          </a>
+                          <Badge variant="outline">{formatTimestamp(kudos.timestamp)}</Badge>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={kudos.tweetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-500 hover:underline"
-                        >
-                          View Tweet
-                        </a>
-                        <Badge variant="outline">{formatTimestamp(kudos.timestamp)}</Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -477,27 +556,49 @@ export default function KudosApp() {
                 <CardDescription>Top kudos receivers and givers</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {leaderboard.map((user, index) => (
-                    <div key={user.handle} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                      <div className="flex items-center gap-4">
-                        <div className="text-2xl font-bold text-muted-foreground">#{index + 1}</div>
-                        <Avatar>
-                          <AvatarFallback>{user.handle[0].toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">@{user.handle}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {user.kudosGiven} given
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="animate-pulse flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-4">
+                          <div className="h-8 w-8 bg-muted rounded" />
+                          <div className="h-10 w-10 rounded-full bg-muted" />
+                          <div className="space-y-2">
+                            <div className="h-4 w-24 bg-muted rounded" />
+                            <div className="h-3 w-16 bg-muted rounded" />
                           </div>
                         </div>
+                        <div className="h-8 w-20 bg-muted rounded" />
                       </div>
-                      <Badge variant="default" className="text-lg px-3 py-1">
-                        {user.kudosReceived} kudos
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : leaderboard.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No leaderboard data yet. Start giving kudos to populate the leaderboard!
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {leaderboard.map((user, index) => (
+                      <div key={user.handle} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-4">
+                          <div className="text-2xl font-bold text-muted-foreground">#{index + 1}</div>
+                          <Avatar>
+                            <AvatarFallback>{user.handle[0].toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">@{user.handle}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {user.kudosGiven} given
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant="default" className="text-lg px-3 py-1">
+                          {user.kudosReceived} kudos
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

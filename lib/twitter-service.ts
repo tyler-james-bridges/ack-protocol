@@ -132,7 +132,7 @@ export class TwitterService {
   }
 
   extractTweetIdFromUrl(url: string): string | null {
-    const pattern = /twitter\.com\/\w+\/status\/(\d+)/;
+    const pattern = /(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/;
     const match = url.match(pattern);
     return match ? match[1] : null;
   }

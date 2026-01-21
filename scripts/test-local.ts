@@ -1,4 +1,26 @@
 import hre from "hardhat";
+import type { ContractError } from "../lib/types";
+
+/**
+ * Type guard to check if an error has a reason property (contract error)
+ */
+function isContractError(error: unknown): error is ContractError {
+  return (
+    error instanceof Error &&
+    (typeof (error as ContractError).reason === 'string' ||
+      typeof (error as ContractError).reason === 'undefined')
+  );
+}
+
+/**
+ * Extracts error reason from unknown error type
+ */
+function getErrorReason(error: unknown, fallback: string): string {
+  if (isContractError(error)) {
+    return error.reason || fallback;
+  }
+  return fallback;
+}
 
 async function main() {
   console.log("🚀 Testing KudosTracker Smart Contract\n");

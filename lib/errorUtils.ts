@@ -63,22 +63,3 @@ export function parseContractError(error: unknown): string {
   // Default fallback
   return 'An unexpected error occurred. Please try again.';
 }
-
-// Helper to extract common error patterns from hex data
-export function decodeRevertReason(data: string): string | null {
-  try {
-    // Remove 0x prefix and error selector (first 8 chars)
-    const cleanData = data.replace('0x', '').slice(8);
-    
-    // Convert hex to string
-    const bytes = Buffer.from(cleanData, 'hex');
-    
-    // Skip the first 64 bytes (offset and length) and read the actual message
-    const messageLength = parseInt(cleanData.slice(56, 64), 16);
-    const messageBytes = bytes.slice(32, 32 + messageLength);
-    
-    return messageBytes.toString('utf8');
-  } catch {
-    return null;
-  }
-}

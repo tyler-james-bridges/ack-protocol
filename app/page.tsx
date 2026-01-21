@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { useAccount } from 'wagmi';
 import { useKudos, type UserData, type KudosTransaction, type LeaderboardEntry } from '@/lib/useKudos';
@@ -15,22 +15,8 @@ import { AccountSettings } from '@/components/account-settings';
 import { toast } from 'sonner';
 import { parseContractError } from '@/lib/errorUtils';
 import { AlertTriangle, Lock, Clock } from 'lucide-react';
-
-interface KudosEntry {
-  id: string;
-  fromHandle: string;
-  toHandle: string;
-  tweetUrl: string;
-  timestamp: number;
-  message?: string;
-}
-
-interface UserProfile {
-  handle: string;
-  kudosReceived: number;
-  kudosGiven: number;
-  walletAddress?: string;
-}
+import type { KudosEntry, UserProfile } from '@/lib/types';
+import { isContractDeployed } from '@/config/contract';
 
 export default function KudosApp() {
   const { login, logout } = useLoginWithAbstract();
@@ -61,13 +47,52 @@ export default function KudosApp() {
   const [checkingHandle, setCheckingHandle] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadBlockchainData = async () => {
+  const loadMockData = useCallback(() => {
+    const mockKudos: KudosEntry[] = [
+      {
+        id: '1',
+        fromHandle: 'alice_dev',
+        toHandle: 'bob_builder',
+        tweetUrl: 'https://x.com/alice_dev/status/123',
+        timestamp: Date.now() - 3600000,
+        message: 'Great work on the API!'
+      },
+      {
+        id: '2',
+        fromHandle: 'charlie_coder',
+        toHandle: 'alice_dev',
+        tweetUrl: 'https://x.com/charlie_coder/status/456',
+        timestamp: Date.now() - 7200000,
+        message: 'Thanks for the help debugging!'
+      },
+      {
+        id: '3',
+        fromHandle: 'bob_builder',
+        toHandle: 'dana_designer',
+        tweetUrl: 'https://x.com/bob_builder/status/789',
+        timestamp: Date.now() - 10800000,
+        message: 'Amazing UI design!'
+      }
+    ];
+
+    const mockLeaderboard: UserProfile[] = [
+      { handle: 'alice_dev', kudosReceived: 42, kudosGiven: 38 },
+      { handle: 'bob_builder', kudosReceived: 35, kudosGiven: 40 },
+      { handle: 'charlie_coder', kudosReceived: 28, kudosGiven: 25 },
+      { handle: 'dana_designer', kudosReceived: 25, kudosGiven: 22 },
+      { handle: 'eve_engineer', kudosReceived: 20, kudosGiven: 18 }
+    ];
+
+    setRecentKudos(mockKudos);
+    setLeaderboard(mockLeaderboard);
+    setIsLoading(false);
+  }, []);
+
+  const loadBlockchainData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000';
-
       // If contract not deployed (zero address), use mock data for demo
-      if (contractAddress === '0x0000000000000000000000000000000000000000') {
+      if (!isContractDeployed()) {
         loadMockData();
         return;
       }
@@ -111,76 +136,9 @@ export default function KudosApp() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [getKudosHistory, getLeaderboardData, loadMockData]);
 
-  useEffect(() => {
-    loadBlockchainData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (isConnected) {
-      checkRegistrationStatus();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected]);
-
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success('Transaction successful!');
-      loadBlockchainData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSuccess]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(`Transaction failed: ${error.message}`);
-    }
-  }, [error]);
-
-  const loadMockData = () => {
-    const mockKudos: KudosEntry[] = [
-      {
-        id: '1',
-        fromHandle: 'alice_dev',
-        toHandle: 'bob_builder',
-        tweetUrl: 'https://x.com/alice_dev/status/123',
-        timestamp: Date.now() - 3600000,
-        message: 'Great work on the API!'
-      },
-      {
-        id: '2',
-        fromHandle: 'charlie_coder',
-        toHandle: 'alice_dev',
-        tweetUrl: 'https://x.com/charlie_coder/status/456',
-        timestamp: Date.now() - 7200000,
-        message: 'Thanks for the help debugging!'
-      },
-      {
-        id: '3',
-        fromHandle: 'bob_builder',
-        toHandle: 'dana_designer',
-        tweetUrl: 'https://x.com/bob_builder/status/789',
-        timestamp: Date.now() - 10800000,
-        message: 'Amazing UI design!'
-      }
-    ];
-
-    const mockLeaderboard: UserProfile[] = [
-      { handle: 'alice_dev', kudosReceived: 42, kudosGiven: 38 },
-      { handle: 'bob_builder', kudosReceived: 35, kudosGiven: 40 },
-      { handle: 'charlie_coder', kudosReceived: 28, kudosGiven: 25 },
-      { handle: 'dana_designer', kudosReceived: 25, kudosGiven: 22 },
-      { handle: 'eve_engineer', kudosReceived: 20, kudosGiven: 18 }
-    ];
-
-    setRecentKudos(mockKudos);
-    setLeaderboard(mockLeaderboard);
-    setIsLoading(false);
-  };
-
-  const checkRegistrationStatus = async () => {
+  const checkRegistrationStatus = useCallback(async () => {
     try {
       const registration = await checkUserRegistration();
       if (registration && registration.isRegistered) {
@@ -197,7 +155,7 @@ export default function KudosApp() {
           kudosReceived: registration.kudosReceived,
           kudosGiven: registration.kudosGiven
         });
-        
+
         // Check if account is pending deletion
         if (registration.deletionRequestedAt && registration.deletionRequestedAt > 0) {
           const remainingTime = (registration.deletionRequestedAt + 7 * 24 * 60 * 60) - (Date.now() / 1000);
@@ -212,7 +170,30 @@ export default function KudosApp() {
     } catch (error) {
       console.error('Error checking registration:', error);
     }
-  };
+  }, [checkUserRegistration]);
+
+  useEffect(() => {
+    loadBlockchainData();
+  }, [loadBlockchainData]);
+
+  useEffect(() => {
+    if (isConnected) {
+      checkRegistrationStatus();
+    }
+  }, [isConnected, checkRegistrationStatus]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success('Transaction successful!');
+      loadBlockchainData();
+    }
+  }, [isSuccess, loadBlockchainData]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(`Transaction failed: ${error.message}`);
+    }
+  }, [error]);
 
   const handleConnect = async () => {
     try {

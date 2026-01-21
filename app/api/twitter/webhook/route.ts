@@ -6,7 +6,7 @@ import { CONTRACT_ADDRESS, ZERO_ADDRESS } from '@/config/contract';
 import { KUDOS_CONTRACT_ABI } from '@/config/abi';
 import crypto from 'crypto';
 
-// SECURITY: Validate private key format before use
+// SECURITY: Validate private key format at startup
 function validatePrivateKey(key: string | undefined): `0x${string}` {
   if (!key) {
     throw new Error('WEBHOOK_PRIVATE_KEY environment variable is not configured');
@@ -83,14 +83,14 @@ interface TwitterWebhookPayload {
 function parseKudosFromTweet(text: string): { giver: string; recipient: string } | null {
   const kudosPattern = /@(\w+)\s*\+\+/;
   const match = text.match(kudosPattern);
-  
+
   if (match && match[1]) {
     return {
       giver: '',
       recipient: match[1]
     };
   }
-  
+
   return null;
 }
 
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
 
         try {
           const account = privateKeyToAccount(validatedPrivateKey);
-          
+
           const walletClient = createWalletClient({
             account,
             chain: chain,
@@ -162,13 +162,13 @@ export async function POST(request: NextRequest) {
           // Check if giver is registered
           const giverAddress = await publicClient.readContract({
             address: CONTRACT_ADDRESS,
-            abi: KUDOS_ABI,
+            abi: KUDOS_CONTRACT_ABI,
             functionName: 'handleToAddress',
             args: [kudos.giver]
           });
 
           // Skip if giver is not registered (zero address)
-          if (giverAddress === '0x0000000000000000000000000000000000000000') {
+          if (giverAddress === ZERO_ADDRESS) {
             console.log(`Skipping kudos from unregistered user: @${kudos.giver}`);
             processedTweets.push({
               tweetId: tweet.id_str,
@@ -184,14 +184,14 @@ export async function POST(request: NextRequest) {
 
           const { request: contractRequest } = await publicClient.simulateContract({
             address: CONTRACT_ADDRESS,
-            abi: KUDOS_ABI,
+            abi: KUDOS_CONTRACT_ABI,
             functionName: 'giveKudos',
             args: [kudos.recipient, tweetUrl],
             account
           });
 
           const hash = await walletClient.writeContract(contractRequest);
-          
+
           await publicClient.waitForTransactionReceipt({ hash });
 
           processedTweets.push({
@@ -231,18 +231,17 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const crcToken = searchParams.get('crc_token');
-  
+
   if (crcToken) {
-    const crypto = await import('crypto');
     const hmac = crypto
       .createHmac('sha256', process.env.TWITTER_WEBHOOK_SECRET || '')
       .update(crcToken)
       .digest('base64');
-    
+
     return NextResponse.json({
       response_token: `sha256=${hmac}`
     });
   }
-  
+
   return NextResponse.json({ status: 'webhook endpoint active' });
 }

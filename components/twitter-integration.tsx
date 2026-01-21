@@ -9,14 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Twitter, CheckCircle, AlertCircle, Loader2, Plus, Send, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useKudos } from '@/lib/useKudos';
-
-interface SimulatedTweet {
-  id: string;
-  text: string;
-  author: string;
-  timestamp: Date;
-  processed: boolean;
-}
+import type { SimulatedTweet, FoundTweet } from '@/lib/types';
 
 interface TwitterIntegrationProps {
   registeredHandle?: string;
@@ -30,7 +23,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
   const [simulatedTweets, setSimulatedTweets] = useState<SimulatedTweet[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchHandle, setSearchHandle] = useState('');
-  const [foundTweets, setFoundTweets] = useState<unknown[]>([]);
+  const [foundTweets, setFoundTweets] = useState<FoundTweet[]>([]);
   const { giveKudos } = useKudos();
 
   useEffect(() => {
@@ -47,7 +40,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
   };
 
   const generateTweetId = () => {
-    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    return Date.now().toString() + Math.random().toString(36).substring(2, 11);
   };
 
   const simulateTweet = () => {
@@ -100,16 +93,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
         toast.success(`🎉 DEMO MODE: Kudos successfully simulated for @${recipient}! In production, they would need to be registered first.`, {
           duration: 5000
         });
-        
-        // Add to a mock leaderboard or activity feed
-        const mockActivity = {
-          from: tweet.author,
-          to: recipient,
-          timestamp: new Date(),
-          tweetUrl
-        };
-        console.log('Mock kudos activity:', mockActivity);
-        
+
         setIsProcessing(false);
         return;
       }
@@ -428,14 +412,12 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
               {foundTweets.length > 0 && (
                 <div className="space-y-2">
                   <h3 className="font-semibold">Found Kudos Tweets:</h3>
-                  {foundTweets.map((tweet) => {
-                    const t = tweet as { id: string; authorUsername: string; text: string; url: string };
-                    return (
-                    <div key={t.id} className="p-3 border rounded-lg">
-                      <p className="text-sm font-medium">@{t.authorUsername}</p>
-                      <p className="text-sm">{t.text}</p>
+                  {foundTweets.map((tweet) => (
+                    <div key={tweet.id} className="p-3 border rounded-lg">
+                      <p className="text-sm font-medium">@{tweet.authorUsername}</p>
+                      <p className="text-sm">{tweet.text}</p>
                       <a
-                        href={t.url}
+                        href={tweet.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-blue-600 hover:underline"
@@ -443,8 +425,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
                         View on X
                       </a>
                     </div>
-                    );
-                  })}
+                  ))}
                 </div>
               )}
             </div>

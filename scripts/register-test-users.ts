@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
+import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { abstractTestnet } from 'viem/chains';
 import contractAbi from '../artifacts/contracts/KudosTracker.sol/KudosTracker.json';

@@ -1,171 +1,13 @@
 'use client';
 
 import { useWriteContractSponsored, useAbstractClient } from '@abstract-foundation/agw-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { type Address, createPublicClient, http } from 'viem';
 import { getGeneralPaymasterInput } from 'viem/zksync';
 import { chain } from '@/config/chain';
+import { CONTRACT_ADDRESS, PAYMASTER_ADDRESS, isContractDeployed } from '@/config/contract';
+import { KUDOS_CONTRACT_ABI } from '@/config/abi';
 import { useAccount } from 'wagmi';
-
-const KUDOS_CONTRACT_ABI = [
-  {
-    "inputs": [{"name": "_xHandle", "type": "string"}],
-    "name": "registerUser",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "requestAccountDeletion",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "cancelAccountDeletion",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "_user", "type": "address"}],
-    "name": "executeAccountDeletion",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "_isPrivate", "type": "bool"}],
-    "name": "setProfilePrivacy",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"name": "_toHandle", "type": "string"},
-      {"name": "_tweetUrl", "type": "string"}
-    ],
-    "name": "giveKudos", 
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "_handle", "type": "string"}],
-    "name": "getUserKudos",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "_handle", "type": "string"}],
-    "name": "isHandleAvailable",
-    "outputs": [{"name": "", "type": "bool"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "_user", "type": "address"}],
-    "name": "getAccountStatus",
-    "outputs": [
-      {"name": "isRegistered", "type": "bool"},
-      {"name": "isPendingDeletion", "type": "bool"},
-      {"name": "deletionTime", "type": "uint256"},
-      {"name": "canReregister", "type": "bool"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "_limit", "type": "uint256"}],
-    "name": "getLeaderboard",
-    "outputs": [
-      {"name": "handles", "type": "string[]"},
-      {"name": "kudosReceived", "type": "uint256[]"},
-      {"name": "addresses", "type": "address[]"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "", "type": "address"}],
-    "name": "users",
-    "outputs": [
-      {"name": "xHandle", "type": "string"},
-      {"name": "kudosReceived", "type": "uint256"},
-      {"name": "kudosGiven", "type": "uint256"},
-      {"name": "isRegistered", "type": "bool"},
-      {"name": "registeredAt", "type": "uint256"},
-      {"name": "deletionRequestedAt", "type": "uint256"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "", "type": "string"}],
-    "name": "handleToAddress",
-    "outputs": [{"name": "", "type": "address"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "", "type": "address"}],
-    "name": "privateProfiles",
-    "outputs": [{"name": "", "type": "bool"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "DELETION_GRACE_PERIOD",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "REREGISTRATION_COOLDOWN",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"name": "_offset", "type": "uint256"},
-      {"name": "_limit", "type": "uint256"}
-    ],
-    "name": "getKudosHistoryPage",
-    "outputs": [
-      {
-        "components": [
-          {"name": "from", "type": "address"},
-          {"name": "to", "type": "address"},
-          {"name": "fromHandle", "type": "string"},
-          {"name": "toHandle", "type": "string"},
-          {"name": "timestamp", "type": "uint256"},
-          {"name": "tweetUrl", "type": "string"}
-        ],
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getKudosHistoryLength",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
-  }
-] as const;
-
-// Abstract testnet paymaster address
-const PAYMASTER_ADDRESS = "0x5407B5040dec3D339A9247f3654E59EEccbb6391" as Address;
 
 export interface UserData {
   xHandle: string;
@@ -203,31 +45,30 @@ export interface LeaderboardEntry {
 export function useKudos() {
   const { data: abstractClient } = useAbstractClient();
   const { address } = useAccount();
-  const { 
+  const {
     writeContractSponsoredAsync,
     data,
     error,
     isPending,
-    isSuccess 
+    isSuccess
   } = useWriteContractSponsored();
 
   const [lastAction, setLastAction] = useState<'register' | 'kudos' | 'delete' | 'privacy' | null>(null);
+
+  // Create a single publicClient instance for the hook
+  const publicClient = useMemo(() => createPublicClient({
+    chain: chain,
+    transport: http()
+  }), []);
 
   const checkUserRegistration = useCallback(async (userAddress?: Address): Promise<UserData | null> => {
     const addressToCheck = userAddress || address;
     if (!addressToCheck) return null;
 
     try {
-      const publicClient = createPublicClient({
-        chain: chain,
-        transport: http()
-      });
-
-      const contractAddress = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address;
-
       // Get user data
       const result = await publicClient.readContract({
-        address: contractAddress,
+        address: CONTRACT_ADDRESS,
         abi: KUDOS_CONTRACT_ABI,
         functionName: 'users',
         args: [addressToCheck]
@@ -235,7 +76,7 @@ export function useKudos() {
 
       // Get privacy status
       const isPrivate = await publicClient.readContract({
-        address: contractAddress,
+        address: CONTRACT_ADDRESS,
         abi: KUDOS_CONTRACT_ABI,
         functionName: 'privateProfiles',
         args: [addressToCheck]
@@ -261,20 +102,15 @@ export function useKudos() {
       console.error('Error checking registration:', error);
       return null;
     }
-  }, [address]);
+  }, [address, publicClient]);
 
   const getAccountStatus = useCallback(async (userAddress?: Address): Promise<AccountStatus | null> => {
     const addressToCheck = userAddress || address;
     if (!addressToCheck) return null;
 
     try {
-      const publicClient = createPublicClient({
-        chain: chain,
-        transport: http()
-      });
-
       const result = await publicClient.readContract({
-        address: (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address,
+        address: CONTRACT_ADDRESS,
         abi: KUDOS_CONTRACT_ABI,
         functionName: 'getAccountStatus',
         args: [addressToCheck]
@@ -294,17 +130,12 @@ export function useKudos() {
       console.error('Error checking account status:', error);
       return null;
     }
-  }, [address]);
+  }, [address, publicClient]);
 
   const checkHandleAvailability = useCallback(async (handle: string): Promise<boolean> => {
     try {
-      const publicClient = createPublicClient({
-        chain: chain,
-        transport: http()
-      });
-
       const result = await publicClient.readContract({
-        address: (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address,
+        address: CONTRACT_ADDRESS,
         abi: KUDOS_CONTRACT_ABI,
         functionName: 'isHandleAvailable',
         args: [handle]
@@ -315,24 +146,17 @@ export function useKudos() {
       console.error('Error checking handle availability:', error);
       return false;
     }
-  }, []);
+  }, [publicClient]);
 
   const getKudosHistory = useCallback(async (offset: number = 0, limit: number = 10): Promise<KudosTransaction[]> => {
     try {
-      const contractAddress = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address;
-
       // If contract not deployed, return empty array
-      if (contractAddress === '0x0000000000000000000000000000000000000000') {
+      if (!isContractDeployed()) {
         return [];
       }
 
-      const publicClient = createPublicClient({
-        chain: chain,
-        transport: http()
-      });
-
       const result = await publicClient.readContract({
-        address: contractAddress,
+        address: CONTRACT_ADDRESS,
         abi: KUDOS_CONTRACT_ABI,
         functionName: 'getKudosHistoryPage',
         args: [BigInt(offset), BigInt(limit)]
@@ -353,24 +177,17 @@ export function useKudos() {
       console.error('Error fetching kudos history:', error);
       return [];
     }
-  }, []);
+  }, [publicClient]);
 
   const getLeaderboardData = useCallback(async (limit: number = 10): Promise<LeaderboardEntry[]> => {
     try {
-      const contractAddress = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address;
-
       // If contract not deployed, return empty array
-      if (contractAddress === '0x0000000000000000000000000000000000000000') {
+      if (!isContractDeployed()) {
         return [];
       }
 
-      const publicClient = createPublicClient({
-        chain: chain,
-        transport: http()
-      });
-
       const result = await publicClient.readContract({
-        address: contractAddress,
+        address: CONTRACT_ADDRESS,
         abi: KUDOS_CONTRACT_ABI,
         functionName: 'getLeaderboard',
         args: [BigInt(limit)]
@@ -389,15 +206,15 @@ export function useKudos() {
       console.error('Error fetching leaderboard:', error);
       return [];
     }
-  }, []);
+  }, [publicClient]);
 
   const registerUser = useCallback(async (xHandle: string) => {
     if (!abstractClient) throw new Error('Wallet not connected');
-    
+
     setLastAction('register');
-    
+
     const tx = await writeContractSponsoredAsync({
-      address: (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address,
+      address: CONTRACT_ADDRESS,
       abi: KUDOS_CONTRACT_ABI,
       functionName: 'registerUser',
       args: [xHandle],
@@ -406,17 +223,17 @@ export function useKudos() {
         innerInput: '0x',
       }),
     });
-    
+
     return tx;
   }, [abstractClient, writeContractSponsoredAsync]);
 
   const requestAccountDeletion = useCallback(async () => {
     if (!abstractClient) throw new Error('Wallet not connected');
-    
+
     setLastAction('delete');
-    
+
     const tx = await writeContractSponsoredAsync({
-      address: (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address,
+      address: CONTRACT_ADDRESS,
       abi: KUDOS_CONTRACT_ABI,
       functionName: 'requestAccountDeletion',
       args: [],
@@ -425,17 +242,17 @@ export function useKudos() {
         innerInput: '0x',
       }),
     });
-    
+
     return tx;
   }, [abstractClient, writeContractSponsoredAsync]);
 
   const cancelAccountDeletion = useCallback(async () => {
     if (!abstractClient) throw new Error('Wallet not connected');
-    
+
     setLastAction('delete');
-    
+
     const tx = await writeContractSponsoredAsync({
-      address: (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address,
+      address: CONTRACT_ADDRESS,
       abi: KUDOS_CONTRACT_ABI,
       functionName: 'cancelAccountDeletion',
       args: [],
@@ -444,17 +261,17 @@ export function useKudos() {
         innerInput: '0x',
       }),
     });
-    
+
     return tx;
   }, [abstractClient, writeContractSponsoredAsync]);
 
   const executeAccountDeletion = useCallback(async (userAddress: Address) => {
     if (!abstractClient) throw new Error('Wallet not connected');
-    
+
     setLastAction('delete');
-    
+
     const tx = await writeContractSponsoredAsync({
-      address: (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address,
+      address: CONTRACT_ADDRESS,
       abi: KUDOS_CONTRACT_ABI,
       functionName: 'executeAccountDeletion',
       args: [userAddress],
@@ -463,17 +280,17 @@ export function useKudos() {
         innerInput: '0x',
       }),
     });
-    
+
     return tx;
   }, [abstractClient, writeContractSponsoredAsync]);
 
   const setProfilePrivacy = useCallback(async (isPrivate: boolean) => {
     if (!abstractClient) throw new Error('Wallet not connected');
-    
+
     setLastAction('privacy');
-    
+
     const tx = await writeContractSponsoredAsync({
-      address: (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address,
+      address: CONTRACT_ADDRESS,
       abi: KUDOS_CONTRACT_ABI,
       functionName: 'setProfilePrivacy',
       args: [isPrivate],
@@ -482,17 +299,17 @@ export function useKudos() {
         innerInput: '0x',
       }),
     });
-    
+
     return tx;
   }, [abstractClient, writeContractSponsoredAsync]);
 
   const giveKudos = useCallback(async (toHandle: string, tweetUrl: string) => {
     if (!abstractClient) throw new Error('Wallet not connected');
-    
+
     setLastAction('kudos');
-    
+
     const tx = await writeContractSponsoredAsync({
-      address: (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as Address,
+      address: CONTRACT_ADDRESS,
       abi: KUDOS_CONTRACT_ABI,
       functionName: 'giveKudos',
       args: [toHandle, tweetUrl],
@@ -501,7 +318,7 @@ export function useKudos() {
         innerInput: '0x',
       }),
     });
-    
+
     return tx;
   }, [abstractClient, writeContractSponsoredAsync]);
 

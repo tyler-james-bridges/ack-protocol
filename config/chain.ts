@@ -1,6 +1,7 @@
 import { abstractTestnet } from "viem/chains";
 
-export const chain =
-  process.env.NODE_ENV === "development"
-    ? abstractTestnet // Local development: Use Abstract Testnet
-    : abstractTestnet; // Production: Use Abstract Testnet (change to mainnet when ready)
+/**
+ * Chain configuration for the Kudos application.
+ * Currently using Abstract Testnet. Change to abstractMainnet when ready for production.
+ */
+export const chain = abstractTestnet;

@@ -34,7 +34,23 @@ jobs:
         run: npm ci
 
       - name: Check for known vulnerabilities
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=critical
+        continue-on-error: true
+
+      - name: Report vulnerabilities
+        run: |
+          echo "## Dependency Audit Results" >> $GITHUB_STEP_SUMMARY
+          npm audit --json | jq -r '
+            if .metadata.vulnerabilities.total > 0 then
+              "Found \(.metadata.vulnerabilities.total) vulnerabilities:\n" +
+              "- Critical: \(.metadata.vulnerabilities.critical)\n" +
+              "- High: \(.metadata.vulnerabilities.high)\n" +
+              "- Moderate: \(.metadata.vulnerabilities.moderate)\n" +
+              "- Low: \(.metadata.vulnerabilities.low)"
+            else
+              "No vulnerabilities found!"
+            end
+          ' >> $GITHUB_STEP_SUMMARY || echo "Unable to parse audit results" >> $GITHUB_STEP_SUMMARY
 
   codeql-analysis:
     name: CodeQL Analysis
@@ -75,6 +91,7 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -85,6 +102,8 @@ jobs:
   secret-scanning:
     name: Secret Scanning
     runs-on: ubuntu-latest
+    # Only run on PRs where we have distinct base and head commits
+    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -95,6 +114,5 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --debug
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}

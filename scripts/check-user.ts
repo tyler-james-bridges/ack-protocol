@@ -6,7 +6,14 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
-const USER_ADDRESS = '0x18F0C9445faDa8D2F4a962d538b8cDD44b2f9BD6' as `0x${string}`;
+// Get user address from CLI argument or environment variable
+const addressArg = process.argv[2] || process.env.CHECK_USER_ADDRESS;
+if (!addressArg) {
+  console.error('Usage: npx ts-node scripts/check-user.ts <address>');
+  console.error('  Or set CHECK_USER_ADDRESS environment variable');
+  process.exit(1);
+}
+const USER_ADDRESS = addressArg as `0x${string}`;
 
 async function checkUser() {
   const publicClient = createPublicClient({

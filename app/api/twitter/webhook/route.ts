@@ -169,7 +169,6 @@ export async function POST(request: NextRequest) {
 
           // Skip if giver is not registered (zero address)
           if (giverAddress === ZERO_ADDRESS) {
-            console.log(`Skipping kudos from unregistered user: @${kudos.giver}`);
             processedTweets.push({
               tweetId: tweet.id_str,
               giver: kudos.giver,

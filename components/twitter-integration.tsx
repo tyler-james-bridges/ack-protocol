@@ -24,6 +24,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchHandle, setSearchHandle] = useState('');
   const [foundTweets, setFoundTweets] = useState<FoundTweet[]>([]);
+  const [tweetUrlInput, setTweetUrlInput] = useState('');
   const { giveKudos } = useKudos();
 
   useEffect(() => {
@@ -58,59 +59,42 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
     const tweetId = generateTweetId();
     const tweet: SimulatedTweet = {
       id: tweetId,
-      text: `@${recipientHandle} ++ for being awesome! 🎉`,
+      text: `@${recipientHandle} ++ for being awesome!`,
       author: twitterHandle,
       timestamp: new Date(),
       processed: false
     };
 
     setSimulatedTweets(prev => [tweet, ...prev]);
-    setTweetText(`@${recipientHandle} ++ for being awesome! 🎉`);
+    setTweetText(`@${recipientHandle} ++ for being awesome!`);
     toast.success('Tweet simulated! Now process it to give kudos.');
   };
 
   const processTweet = async (tweet: SimulatedTweet) => {
     setIsProcessing(true);
     const tweetUrl = `https://twitter.com/${tweet.author}/status/${tweet.id}`;
-    
+
     const recipient = tweet.text.match(/@(\w+)\s*\+\+/)?.[1];
     if (!recipient) {
       toast.error('Could not extract recipient from tweet');
       setIsProcessing(false);
       return;
     }
-    
+
     try {
-
-      // For demo purposes - simulate success for common test handles
-      const testHandles = ['alice_dev', 'bob_builder', 'charlie_coder', 'vitalik'];
-      if (testHandles.includes(recipient.toLowerCase())) {
-        // Simulate a successful transaction
-        setSimulatedTweets(prev => 
-          prev.map(t => t.id === tweet.id ? { ...t, processed: true } : t)
-        );
-        
-        toast.success(`🎉 DEMO MODE: Kudos successfully simulated for @${recipient}! In production, they would need to be registered first.`, {
-          duration: 5000
-        });
-
-        setIsProcessing(false);
-        return;
-      }
-
-      // Try real transaction
+      // Execute real transaction
       await giveKudos(recipient, tweetUrl);
-      
-      setSimulatedTweets(prev => 
+
+      setSimulatedTweets(prev =>
         prev.map(t => t.id === tweet.id ? { ...t, processed: true } : t)
       );
-      
+
       toast.success(`Kudos given to @${recipient}!`);
     } catch (error: unknown) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to process kudos';
       if (errorMsg.includes('Recipient not registered')) {
-        toast.error(`❌ @${recipient} is not registered. For testing, try: @alice_dev, @bob_builder, or @vitalik (demo mode will simulate success)`, {
-          duration: 6000
+        toast.error(`@${recipient} is not registered. They need to register before receiving kudos.`, {
+          duration: 5000
         });
       } else {
         toast.error(errorMsg);
@@ -130,7 +114,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
     try {
       const response = await fetch(`/api/twitter/process-kudos?username=${searchHandle}`);
       const data = await response.json();
-      
+
       if (response.ok) {
         setFoundTweets(data.tweets || []);
         toast.success(`Found ${data.count || 0} kudos tweets`);
@@ -164,7 +148,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.verified) {
         await giveKudos(recipientHandle, tweetUrl);
         toast.success('Kudos processed from real tweet!');
@@ -203,38 +187,13 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
                 <h3 className="font-semibold mb-2">How Testing Works:</h3>
                 <ol className="list-decimal list-inside space-y-1 text-sm">
                   <li>You&apos;re connected as <strong>@{twitterHandle}</strong></li>
-                  <li>Enter a DIFFERENT recipient handle (e.g., &quot;alice_dev&quot;, &quot;bob_builder&quot;)</li>
+                  <li>Enter a recipient handle who is registered on the platform</li>
                   <li>Create a test tweet with the &quot;@username ++&quot; format</li>
                   <li>Process the simulated tweet to give kudos on-chain</li>
                   <li>Check the leaderboard to see the results!</li>
                 </ol>
                 <div className="mt-2 p-2 bg-amber-100 dark:bg-amber-900 rounded text-sm">
                   <strong>Important:</strong> You cannot give kudos to yourself!
-                </div>
-                <div className="mt-2 p-3 bg-green-50 dark:bg-green-950 rounded">
-                  <p className="text-sm font-semibold mb-1">🎯 Demo Mode Test Handles:</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">These handles will simulate success for testing (click to use):</p>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    <button 
-                      onClick={() => setRecipientHandle('vitalik')}
-                      className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded text-xs hover:bg-gray-100 border border-green-300"
-                    >
-                      @vitalik ✨
-                    </button>
-                    <button 
-                      onClick={() => setRecipientHandle('alice_dev')}
-                      className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded text-xs hover:bg-gray-100 border border-green-300"
-                    >
-                      @alice_dev ✨
-                    </button>
-                    <button 
-                      onClick={() => setRecipientHandle('bob_builder')}
-                      className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded text-xs hover:bg-gray-100 border border-green-300"
-                    >
-                      @bob_builder ✨
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">✨ = Demo mode (simulated success)</p>
                 </div>
               </div>
 
@@ -269,7 +228,7 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
                     />
                   </div>
 
-                  <Button 
+                  <Button
                     onClick={simulateTweet}
                     className="w-full"
                     disabled={!recipientHandle}
@@ -350,7 +309,8 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
                 <label className="text-sm font-medium">Tweet URL:</label>
                 <Input
                   placeholder="https://twitter.com/username/status/..."
-                  id="tweet-url"
+                  value={tweetUrlInput}
+                  onChange={(e) => setTweetUrlInput(e.target.value)}
                 />
               </div>
 
@@ -366,10 +326,9 @@ export function TwitterIntegration({ registeredHandle }: TwitterIntegrationProps
               <Button
                 className="w-full"
                 onClick={() => {
-                  const url = (document.getElementById('tweet-url') as HTMLInputElement)?.value;
-                  if (url) processRealTweet(url);
+                  if (tweetUrlInput) processRealTweet(tweetUrlInput);
                 }}
-                disabled={isProcessing || !recipientHandle}
+                disabled={isProcessing || !recipientHandle || !tweetUrlInput}
               >
                 {isProcessing ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

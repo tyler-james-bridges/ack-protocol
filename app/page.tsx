@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { useAccount } from 'wagmi';
 import { useKudos, type UserData, type KudosTransaction, type LeaderboardEntry } from '@/lib/useKudos';
@@ -18,6 +18,9 @@ import { AlertTriangle, Lock, Clock } from 'lucide-react';
 import type { KudosEntry, UserProfile } from '@/lib/types';
 import { isContractDeployed } from '@/config/contract';
 
+// Debounce delay for handle availability check (in milliseconds)
+const DEBOUNCE_DELAY = 300;
+
 export default function KudosApp() {
   const { login, logout } = useLoginWithAbstract();
   const { isConnected } = useAccount();
@@ -32,7 +35,7 @@ export default function KudosApp() {
     isSuccess,
     error
   } = useKudos();
-  
+
   const [xHandle, setXHandle] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
   const [recentKudos, setRecentKudos] = useState<KudosEntry[]>([]);
@@ -46,6 +49,9 @@ export default function KudosApp() {
   const [handleAvailable, setHandleAvailable] = useState<boolean | null>(null);
   const [checkingHandle, setCheckingHandle] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Ref for debounce timer
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadMockData = useCallback(() => {
     const mockKudos: KudosEntry[] = [
@@ -172,6 +178,15 @@ export default function KudosApp() {
     }
   }, [checkUserRegistration]);
 
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     loadBlockchainData();
   }, [loadBlockchainData]);
@@ -240,7 +255,7 @@ export default function KudosApp() {
       toast.error('Handle can only contain letters, numbers, and underscores');
       return;
     }
-    
+
     // Check handle availability
     const available = await checkHandleAvailability(xHandle);
     if (!available) {
@@ -292,7 +307,7 @@ export default function KudosApp() {
 
     try {
       await giveKudos(kudosRecipient, kudosTweetUrl);
-      
+
       const newKudos: KudosEntry = {
         id: Date.now().toString(),
         fromHandle: xHandle,
@@ -301,11 +316,11 @@ export default function KudosApp() {
         timestamp: Date.now(),
         message: 'Kudos sent!'
       };
-      
+
       setRecentKudos([newKudos, ...recentKudos]);
       setKudosRecipient('');
       setKudosTweetUrl('');
-      
+
       toast.success(`Kudos successfully sent to @${kudosRecipient}! This recognition is now permanently recorded on the blockchain.`);
     } catch (error: unknown) {
       const errorMessage = parseContractError(error);
@@ -320,6 +335,38 @@ export default function KudosApp() {
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
+  };
+
+  // Debounced handle change handler
+  const handleXHandleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handle = e.target.value;
+    setXHandle(handle);
+
+    // Clear any existing debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Reset availability state while typing
+    setHandleAvailable(null);
+
+    // Check availability with debounce
+    if (handle.length >= 3 && /^[a-zA-Z0-9_]+$/.test(handle)) {
+      setCheckingHandle(true);
+      debounceTimerRef.current = setTimeout(async () => {
+        try {
+          const available = await checkHandleAvailability(handle);
+          setHandleAvailable(available);
+        } catch (err) {
+          console.error('Error checking handle availability:', err);
+          setHandleAvailable(null);
+        } finally {
+          setCheckingHandle(false);
+        }
+      }, DEBOUNCE_DELAY);
+    } else {
+      setCheckingHandle(false);
+    }
   };
 
   return (
@@ -372,25 +419,15 @@ export default function KudosApp() {
                   <Input
                     placeholder="e.g. john_doe (without @, 3-15 chars)"
                     value={xHandle}
-                    onChange={async (e) => {
-                      const handle = e.target.value;
-                      setXHandle(handle);
-                      
-                      // Check availability as user types
-                      if (handle.length >= 3 && /^[a-zA-Z0-9_]+$/.test(handle)) {
-                        setCheckingHandle(true);
-                        const available = await checkHandleAvailability(handle);
-                        setHandleAvailable(available);
-                        setCheckingHandle(false);
-                      } else {
-                        setHandleAvailable(null);
-                      }
-                    }}
+                    onChange={handleXHandleChange}
                     maxLength={15}
                   />
+                  {checkingHandle && (
+                    <p className="text-xs text-muted-foreground">Checking availability...</p>
+                  )}
                   {xHandle.length >= 3 && handleAvailable !== null && !checkingHandle && (
                     <p className={`text-xs ${handleAvailable ? 'text-green-600' : 'text-red-600'}`}>
-                      {handleAvailable ? '✓ Handle available' : '✗ Handle not available'}
+                      {handleAvailable ? 'Handle available' : 'Handle not available'}
                     </p>
                   )}
                 </div>
@@ -423,7 +460,7 @@ export default function KudosApp() {
         {isRegistered && (
           <>
             <TwitterIntegration registeredHandle={registeredHandle || xHandle} />
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Manual Kudos Entry</CardTitle>
@@ -504,7 +541,7 @@ export default function KudosApp() {
                           </Avatar>
                           <div>
                             <div className="font-medium">
-                              @{kudos.fromHandle} → @{kudos.toHandle}
+                              @{kudos.fromHandle} - @{kudos.toHandle}
                             </div>
                             {kudos.message && (
                               <div className="text-sm text-muted-foreground">{kudos.message}</div>
@@ -642,8 +679,8 @@ export default function KudosApp() {
 
           {isRegistered && (
             <TabsContent value="settings">
-              <AccountSettings 
-                userData={userData} 
+              <AccountSettings
+                userData={userData}
                 onDataUpdate={checkRegistrationStatus}
               />
             </TabsContent>

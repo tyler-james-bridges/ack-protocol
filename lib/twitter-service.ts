@@ -18,10 +18,6 @@ export class TwitterService {
     }
   }
 
-  async initializeWithUserAuth(accessToken: string) {
-    this.client = new TwitterApi(accessToken);
-  }
-
   parseKudosFromText(text: string): { recipient: string; isValid: boolean } | null {
     const kudosPattern = /@(\w+)\s*\+\+/g;
     const match = kudosPattern.exec(text);
@@ -72,47 +68,6 @@ export class TwitterService {
       return kudosTweets;
     } catch (error) {
       console.error('Error searching tweets:', error);
-      throw error;
-    }
-  }
-
-  async getUserTimeline(username: string, count: number = 20): Promise<KudosTweet[]> {
-    if (!this.client) {
-      throw new Error('Twitter client not initialized');
-    }
-
-    try {
-      const user = await this.client.v2.userByUsername(username);
-      if (!user.data) {
-        throw new Error('User not found');
-      }
-
-      const timeline = await this.client.v2.userTimeline(user.data.id, {
-        'tweet.fields': ['created_at', 'entities'],
-        'user.fields': ['username'],
-        expansions: ['entities.mentions.username'],
-        max_results: count
-      });
-
-      const kudosTweets: KudosTweet[] = [];
-
-      for (const tweet of timeline.data.data || []) {
-        const kudos = this.parseKudosFromText(tweet.text);
-        if (kudos) {
-          kudosTweets.push({
-            id: tweet.id,
-            text: tweet.text,
-            authorUsername: username,
-            createdAt: new Date(tweet.created_at || Date.now()),
-            mentionedUsers: tweet.entities?.mentions?.map(m => m.username) || [],
-            url: `https://twitter.com/${username}/status/${tweet.id}`
-          });
-        }
-      }
-
-      return kudosTweets;
-    } catch (error) {
-      console.error('Error fetching timeline:', error);
       throw error;
     }
   }

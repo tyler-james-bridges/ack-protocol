@@ -4,18 +4,24 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'package.json'
 
 permissions:
   contents: write
+  pull-requests: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  release:
+  validate:
+    name: Validate Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -26,28 +32,77 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run linting
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
       - name: Build project
         run: npm run build
+
+  release:
+    name: Create Release
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event.head_commit.message != 'chore: release' || github.event.head_commit == null
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Configure Git
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
 
-      - name: Bump version and release
+      - name: Detect version change
         id: version
         run: |
-          npm version patch --no-git-tag-version
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          git add package.json package-lock.json
-          git commit -m "chore: release v$VERSION"
-          git push
-          git tag "v$VERSION"
-          git push origin "v$VERSION"
+          # Get the version from package.json
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+
+          # Check if there's a previous version in git history
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            PREVIOUS_VERSION=$(git show HEAD~1:package.json | node -p "require('fs').readFileSync('/dev/stdin', 'utf8'); require('path'); JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version" 2>/dev/null || echo "")
+
+            if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+              echo "version_changed=true" >> $GITHUB_OUTPUT
+              echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+              echo "Version changed from $PREVIOUS_VERSION to $CURRENT_VERSION"
+            else
+              echo "version_changed=false" >> $GITHUB_OUTPUT
+              echo "Version did not change"
+            fi
+          else
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+            echo "Initial version: $CURRENT_VERSION"
+          fi
 
       - name: Create Release
+        if: steps.version.outputs.version_changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           generate_release_notes: true
+          draft: false
+          prerelease: false
+
+      - name: Release Summary
+        if: steps.version.outputs.version_changed == 'true'
+        run: |
+          echo "Release created successfully!"
+          echo "Version: v${{ steps.version.outputs.version }}"
+          echo "Release Notes: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.version }}"

@@ -51,13 +51,6 @@ export const KUDOS_CONTRACT_ABI = [
   },
   {
     inputs: [{ name: '_handle', type: 'string' }],
-    name: 'getUserKudos',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [{ name: '_handle', type: 'string' }],
     name: 'isHandleAvailable',
     outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'view',
@@ -115,20 +108,6 @@ export const KUDOS_CONTRACT_ABI = [
     type: 'function'
   },
   {
-    inputs: [],
-    name: 'DELETION_GRACE_PERIOD',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'REREGISTRATION_COOLDOWN',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
     inputs: [
       { name: '_offset', type: 'uint256' },
       { name: '_limit', type: 'uint256' }
@@ -148,13 +127,6 @@ export const KUDOS_CONTRACT_ABI = [
         type: 'tuple[]'
       }
     ],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'getKudosHistoryLength',
-    outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function'
   }

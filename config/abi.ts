@@ -33,6 +33,13 @@ export const KUDOS_CONTRACT_ABI = [
     type: 'function'
   },
   {
+    inputs: [],
+    name: 'deleteAccountImmediately',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
     inputs: [{ name: '_isPrivate', type: 'bool' }],
     name: 'setProfilePrivacy',
     outputs: [],

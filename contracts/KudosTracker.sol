@@ -144,21 +144,44 @@ contract KudosTracker {
             block.timestamp >= users[_user].deletionRequestedAt + DELETION_GRACE_PERIOD,
             "Grace period not expired"
         );
-        
+
         string memory handle = users[_user].xHandle;
-        
+
         // Mark handle as permanently retired (prevents hijacking)
         deletedHandles[handle] = true;
-        
+
         // Track deletion time for cooldown period
         lastDeletionTime[_user] = block.timestamp;
-        
+
         // Clear mappings
         delete handleToAddress[handle];
         delete users[_user];
         delete privateProfiles[_user];
-        
+
         emit UserDeleted(_user, handle, block.timestamp);
+    }
+
+    /**
+     * @notice Delete account immediately (no grace period)
+     * @dev Single-transaction deletion for streamlined UX
+     */
+    function deleteAccountImmediately() external {
+        require(users[msg.sender].isRegistered, "User not registered");
+
+        string memory handle = users[msg.sender].xHandle;
+
+        // Mark handle as permanently retired
+        deletedHandles[handle] = true;
+
+        // Track deletion time for cooldown period
+        lastDeletionTime[msg.sender] = block.timestamp;
+
+        // Clear mappings
+        delete handleToAddress[handle];
+        delete users[msg.sender];
+        delete privateProfiles[msg.sender];
+
+        emit UserDeleted(msg.sender, handle, block.timestamp);
     }
     
     /**

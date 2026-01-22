@@ -253,6 +253,25 @@ export function useKudos() {
     return tx;
   }, [abstractClient, writeContractSponsoredAsync]);
 
+  const deleteAccountImmediately = useCallback(async () => {
+    if (!abstractClient) throw new Error('Wallet not connected');
+
+    setLastAction('delete');
+
+    const tx = await writeContractSponsoredAsync({
+      address: CONTRACT_ADDRESS,
+      abi: KUDOS_CONTRACT_ABI,
+      functionName: 'deleteAccountImmediately',
+      args: [],
+      paymaster: PAYMASTER_ADDRESS,
+      paymasterInput: getGeneralPaymasterInput({
+        innerInput: '0x',
+      }),
+    });
+
+    return tx;
+  }, [abstractClient, writeContractSponsoredAsync]);
+
   const setProfilePrivacy = useCallback(async (isPrivate: boolean) => {
     if (!abstractClient) throw new Error('Wallet not connected');
 
@@ -297,6 +316,7 @@ export function useKudos() {
     requestAccountDeletion,
     cancelAccountDeletion,
     executeAccountDeletion,
+    deleteAccountImmediately,
     setProfilePrivacy,
     checkUserRegistration,
     checkHandleAvailability,

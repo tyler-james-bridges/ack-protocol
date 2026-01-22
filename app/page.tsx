@@ -8,13 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { TwitterIntegration } from '@/components/twitter-integration';
 import { AccountSettings } from '@/components/account-settings';
 import { toast } from 'sonner';
 import { parseContractError } from '@/lib/errorUtils';
-import { AlertTriangle, Lock, Clock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import type { KudosEntry, UserProfile } from '@/lib/types';
 import { isContractDeployed } from '@/config/contract';
 import {
@@ -169,16 +168,15 @@ export default function KudosApp() {
           kudosGiven: registration.kudosGiven
         });
 
-        // Check if account is pending deletion
-        if (registration.deletionRequestedAt && registration.deletionRequestedAt > 0) {
-          const remainingTime = (registration.deletionRequestedAt + 7 * 24 * 60 * 60) - (Date.now() / 1000);
-          if (remainingTime > 0) {
-            const days = Math.floor(remainingTime / (24 * 60 * 60));
-            toast.warning(`Your account is pending deletion in ${days} days. You can cancel this in settings.`);
-          }
-        } else {
-          toast.success(`Welcome back @${registration.xHandle}! You have ${registration.kudosReceived} kudos received and ${registration.kudosGiven} kudos given.`);
-        }
+        toast.success(`Welcome back @${registration.xHandle}! You have ${registration.kudosReceived} kudos received and ${registration.kudosGiven} kudos given.`);
+      } else {
+        // Reset state if user is no longer registered (e.g., after deletion)
+        setUserData(null);
+        setIsRegistered(false);
+        setRegisteredHandle('');
+        setXHandle('');
+        setKudosStats({ received: 0, given: 0 });
+        setUserProfile(null);
       }
     } catch (error) {
       console.error('Error checking registration:', error);
@@ -379,6 +377,7 @@ export default function KudosApp() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header Card */}
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -414,6 +413,7 @@ export default function KudosApp() {
           </CardHeader>
         </Card>
 
+        {/* Registration Card */}
         {isConnected && !isRegistered && (
           <Card>
             <CardHeader>
@@ -446,17 +446,198 @@ export default function KudosApp() {
           </Card>
         )}
 
-        {isRegistered && userData?.deletionRequestedAt && userData.deletionRequestedAt > 0 && (
-          <Card className="border-orange-200 dark:border-orange-800">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-orange-900 dark:text-orange-100">
-                    Account Deletion Pending
-                  </h4>
-                  <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                    Your account is scheduled for deletion. You can cancel this in the Settings tab.
+        {/* Twitter Integration - only for registered users */}
+        {isRegistered && (
+          <TwitterIntegration registeredHandle={registeredHandle || xHandle} />
+        )}
+
+        {/* Manual Kudos Entry - only for registered users */}
+        {isRegistered && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Manual Kudos Entry</CardTitle>
+              <CardDescription>Or directly send kudos with a tweet URL</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <Input
+                    placeholder="e.g. alice_dev (recipient's handle)"
+                    value={kudosRecipient}
+                    onChange={(e) => setKudosRecipient(e.target.value)}
+                    className="flex-1"
+                    maxLength={15}
+                  />
+                  <Input
+                    placeholder="https://x.com/username/status/123456789"
+                    value={kudosTweetUrl}
+                    onChange={(e) => setKudosTweetUrl(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button onClick={handleGiveKudos} disabled={isPending}>
+                    {isPending ? 'Sending...' : 'Send Kudos'}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Tip: Use the format @username ++ in your tweets to automatically track kudos
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Kudos Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Kudos Activity</CardTitle>
+            <CardDescription>Latest kudos given across the network</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-muted" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-muted rounded" />
+                        <div className="h-3 w-24 bg-muted rounded" />
+                      </div>
+                    </div>
+                    <div className="h-6 w-16 bg-muted rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : recentKudos.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No kudos yet. Be the first to give kudos!
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentKudos.map((kudos) => (
+                  <div key={kudos.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-4">
+                      <Avatar>
+                        <AvatarFallback>{kudos.fromHandle[0].toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">
+                          @{kudos.fromHandle} - @{kudos.toHandle}
+                        </div>
+                        {kudos.message && (
+                          <div className="text-sm text-muted-foreground">{kudos.message}</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={kudos.tweetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-500 hover:underline"
+                      >
+                        View Tweet
+                      </a>
+                      <Badge variant="outline">{formatTimestamp(kudos.timestamp)}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Leaderboard Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Kudos Leaderboard</CardTitle>
+            <CardDescription>Top kudos receivers and givers</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="animate-pulse flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-4">
+                      <div className="h-8 w-8 bg-muted rounded" />
+                      <div className="h-10 w-10 rounded-full bg-muted" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-24 bg-muted rounded" />
+                        <div className="h-3 w-16 bg-muted rounded" />
+                      </div>
+                    </div>
+                    <div className="h-8 w-20 bg-muted rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : leaderboard.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No leaderboard data yet. Start giving kudos to populate the leaderboard!
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {leaderboard.map((user, index) => (
+                  <div key={user.handle} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-4">
+                      <div className="text-2xl font-bold text-muted-foreground">#{index + 1}</div>
+                      <Avatar>
+                        <AvatarFallback>{user.handle[0].toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">@{user.handle}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {user.kudosGiven} given
+                        </div>
+                      </div>
+                    </div>
+                    <Badge variant="default" className="text-lg px-3 py-1">
+                      {user.kudosReceived} kudos
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* My Profile Section - only for registered users */}
+        {isRegistered && userProfile && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Profile</CardTitle>
+              <CardDescription>Your kudos statistics and history</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="flex items-center gap-6">
+                  <Avatar className="h-20 w-20">
+                    <AvatarFallback className="text-2xl">
+                      {userProfile.handle[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-2xl font-bold">@{userProfile.handle}</h3>
+                      {userData?.isPrivate && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Lock className="h-3 w-3" />
+                          Private
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex gap-4 mt-2">
+                      <Badge variant="secondary" className="text-lg px-3 py-1">
+                        {userProfile.kudosReceived} Received
+                      </Badge>
+                      <Badge variant="outline" className="text-lg px-3 py-1">
+                        {userProfile.kudosGiven} Given
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">
+                    Keep giving kudos to climb the leaderboard! Your kudos are permanently recorded on the blockchain.
                   </p>
                 </div>
               </div>
@@ -464,235 +645,13 @@ export default function KudosApp() {
           </Card>
         )}
 
+        {/* Account Settings - only for registered users */}
         {isRegistered && (
-          <>
-            <TwitterIntegration registeredHandle={registeredHandle || xHandle} />
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Manual Kudos Entry</CardTitle>
-                <CardDescription>Or directly send kudos with a tweet URL</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <Input
-                      placeholder="e.g. alice_dev (recipient's handle)"
-                      value={kudosRecipient}
-                      onChange={(e) => setKudosRecipient(e.target.value)}
-                      className="flex-1"
-                      maxLength={15}
-                    />
-                    <Input
-                      placeholder="https://x.com/username/status/123456789"
-                      value={kudosTweetUrl}
-                      onChange={(e) => setKudosTweetUrl(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button onClick={handleGiveKudos} disabled={isPending}>
-                      {isPending ? 'Sending...' : 'Send Kudos'}
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Tip: Use the format @username ++ in your tweets to automatically track kudos
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </>
+          <AccountSettings
+            userData={userData}
+            onDataUpdate={checkRegistrationStatus}
+          />
         )}
-
-        <Tabs defaultValue="recent" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="recent">Recent Kudos</TabsTrigger>
-            <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-            <TabsTrigger value="profile">My Profile</TabsTrigger>
-            {isRegistered && (
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            )}
-          </TabsList>
-
-          <TabsContent value="recent">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Kudos Activity</CardTitle>
-                <CardDescription>Latest kudos given across the network</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="animate-pulse flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-full bg-muted" />
-                          <div className="space-y-2">
-                            <div className="h-4 w-32 bg-muted rounded" />
-                            <div className="h-3 w-24 bg-muted rounded" />
-                          </div>
-                        </div>
-                        <div className="h-6 w-16 bg-muted rounded" />
-                      </div>
-                    ))}
-                  </div>
-                ) : recentKudos.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No kudos yet. Be the first to give kudos!
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {recentKudos.map((kudos) => (
-                      <div key={kudos.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-4">
-                          <Avatar>
-                            <AvatarFallback>{kudos.fromHandle[0].toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">
-                              @{kudos.fromHandle} - @{kudos.toHandle}
-                            </div>
-                            {kudos.message && (
-                              <div className="text-sm text-muted-foreground">{kudos.message}</div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <a
-                            href={kudos.tweetUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-500 hover:underline"
-                          >
-                            View Tweet
-                          </a>
-                          <Badge variant="outline">{formatTimestamp(kudos.timestamp)}</Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="leaderboard">
-            <Card>
-              <CardHeader>
-                <CardTitle>Kudos Leaderboard</CardTitle>
-                <CardDescription>Top kudos receivers and givers</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className="animate-pulse flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-4">
-                          <div className="h-8 w-8 bg-muted rounded" />
-                          <div className="h-10 w-10 rounded-full bg-muted" />
-                          <div className="space-y-2">
-                            <div className="h-4 w-24 bg-muted rounded" />
-                            <div className="h-3 w-16 bg-muted rounded" />
-                          </div>
-                        </div>
-                        <div className="h-8 w-20 bg-muted rounded" />
-                      </div>
-                    ))}
-                  </div>
-                ) : leaderboard.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No leaderboard data yet. Start giving kudos to populate the leaderboard!
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {leaderboard.map((user, index) => (
-                      <div key={user.handle} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-4">
-                          <div className="text-2xl font-bold text-muted-foreground">#{index + 1}</div>
-                          <Avatar>
-                            <AvatarFallback>{user.handle[0].toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">@{user.handle}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {user.kudosGiven} given
-                            </div>
-                          </div>
-                        </div>
-                        <Badge variant="default" className="text-lg px-3 py-1">
-                          {user.kudosReceived} kudos
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Profile</CardTitle>
-                <CardDescription>Your kudos statistics and history</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {userProfile ? (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-6">
-                      <Avatar className="h-20 w-20">
-                        <AvatarFallback className="text-2xl">
-                          {userProfile.handle[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-2xl font-bold">@{userProfile.handle}</h3>
-                          {userData?.isPrivate && (
-                            <Badge variant="secondary" className="gap-1">
-                              <Lock className="h-3 w-3" />
-                              Private
-                            </Badge>
-                          )}
-                          {userData?.deletionRequestedAt && userData.deletionRequestedAt > 0 && (
-                            <Badge variant="destructive" className="gap-1">
-                              <Clock className="h-3 w-3" />
-                              Deleting
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex gap-4 mt-2">
-                          <Badge variant="secondary" className="text-lg px-3 py-1">
-                            {userProfile.kudosReceived} Received
-                          </Badge>
-                          <Badge variant="outline" className="text-lg px-3 py-1">
-                            {userProfile.kudosGiven} Given
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-4 rounded-lg bg-muted/50">
-                      <p className="text-sm text-muted-foreground">
-                        Keep giving kudos to climb the leaderboard! Your kudos are permanently recorded on the blockchain.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    {isConnected ? 'Register your X handle to view your profile' : 'Connect your wallet to get started'}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {isRegistered && (
-            <TabsContent value="settings">
-              <AccountSettings
-                userData={userData}
-                onDataUpdate={checkRegistrationStatus}
-              />
-            </TabsContent>
-          )}
-        </Tabs>
       </div>
     </div>
   );

@@ -22,6 +22,15 @@ export function isContractDeployed(): boolean {
 }
 
 /**
- * Abstract testnet paymaster address for sponsored transactions
+ * Default paymaster address for sponsored transactions (Abstract testnet)
  */
-export const PAYMASTER_ADDRESS = '0x5407B5040dec3D339A9247f3654E59EEccbb6391' as Address;
+const DEFAULT_PAYMASTER_ADDRESS = '0x5407B5040dec3D339A9247f3654E59EEccbb6391' as const;
+
+/**
+ * Paymaster address for sponsored transactions.
+ * Reads from NEXT_PUBLIC_PAYMASTER_ADDRESS environment variable.
+ * Falls back to default Abstract testnet paymaster if not configured.
+ */
+export const PAYMASTER_ADDRESS: Address = (
+  process.env.NEXT_PUBLIC_PAYMASTER_ADDRESS || DEFAULT_PAYMASTER_ADDRESS
+) as Address;

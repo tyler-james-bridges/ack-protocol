@@ -20,13 +20,6 @@ export interface UserData {
   isPrivate?: boolean;
 }
 
-export interface AccountStatus {
-  isRegistered: boolean;
-  isPendingDeletion: boolean;
-  deletionTime: number;
-  canReregister: boolean;
-}
-
 export interface KudosTransaction {
   from: Address;
   to: Address;
@@ -47,7 +40,6 @@ export function useKudos() {
   const { address } = useAccount();
   const {
     writeContractSponsoredAsync,
-    data,
     error,
     isPending,
     isSuccess
@@ -100,34 +92,6 @@ export function useKudos() {
       return null;
     } catch (error) {
       console.error('Error checking registration:', error);
-      return null;
-    }
-  }, [address, publicClient]);
-
-  const getAccountStatus = useCallback(async (userAddress?: Address): Promise<AccountStatus | null> => {
-    const addressToCheck = userAddress || address;
-    if (!addressToCheck) return null;
-
-    try {
-      const result = await publicClient.readContract({
-        address: CONTRACT_ADDRESS,
-        abi: KUDOS_CONTRACT_ABI,
-        functionName: 'getAccountStatus',
-        args: [addressToCheck]
-      });
-
-      if (result && Array.isArray(result)) {
-        const [isRegistered, isPendingDeletion, deletionTime, canReregister] = result;
-        return {
-          isRegistered: isRegistered as boolean,
-          isPendingDeletion: isPendingDeletion as boolean,
-          deletionTime: Number(deletionTime),
-          canReregister: canReregister as boolean
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error('Error checking account status:', error);
       return null;
     }
   }, [address, publicClient]);
@@ -335,15 +299,12 @@ export function useKudos() {
     executeAccountDeletion,
     setProfilePrivacy,
     checkUserRegistration,
-    getAccountStatus,
     checkHandleAvailability,
     getKudosHistory,
     getLeaderboardData,
-    isConnected: !!abstractClient,
     isPending,
     isSuccess,
     error,
-    data,
     lastAction,
   };
 }

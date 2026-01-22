@@ -44,10 +44,3 @@ export interface FoundTweet {
   text: string;
   url: string;
 }
-
-/**
- * Error type for contract interactions with optional reason field
- */
-export interface ContractError extends Error {
-  reason?: string;
-}

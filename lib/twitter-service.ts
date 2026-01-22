@@ -21,14 +21,14 @@ export class TwitterService {
   parseKudosFromText(text: string): { recipient: string; isValid: boolean } | null {
     const kudosPattern = /@(\w+)\s*\+\+/g;
     const match = kudosPattern.exec(text);
-    
+
     if (match && match[1]) {
       return {
         recipient: match[1],
         isValid: true
       };
     }
-    
+
     return null;
   }
 
@@ -53,7 +53,7 @@ export class TwitterService {
         const kudos = this.parseKudosFromText(tweet.text);
         if (kudos && kudos.recipient.toLowerCase() === username.toLowerCase()) {
           const author = tweets.includes?.users?.find(u => u.id === tweet.author_id);
-          
+
           kudosTweets.push({
             id: tweet.id,
             text: tweet.text,
@@ -96,18 +96,3 @@ export class TwitterService {
 // SECURITY: Twitter Bearer Token must never be exposed client-side
 // This service should ONLY be instantiated in server-side code (API routes, server components)
 // Use: new TwitterService(process.env.TWITTER_BEARER_TOKEN) in server-side code only
-export function createTwitterService(): TwitterService {
-  if (typeof window !== 'undefined') {
-    throw new Error(
-      'TwitterService cannot be instantiated on the client side. ' +
-      'Twitter API calls must be made from server-side code only.'
-    );
-  }
-
-  const bearerToken = process.env.TWITTER_BEARER_TOKEN;
-  if (!bearerToken) {
-    throw new Error('TWITTER_BEARER_TOKEN environment variable is not configured');
-  }
-
-  return new TwitterService(bearerToken);
-}

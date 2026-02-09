@@ -73,53 +73,18 @@ export default function KudosApp() {
   // Ref for debounce timer
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const loadMockData = useCallback(() => {
-    const mockKudos: KudosEntry[] = [
-      {
-        id: '1',
-        fromHandle: 'alice_dev',
-        toHandle: 'bob_builder',
-        tweetUrl: 'https://x.com/alice_dev/status/123',
-        timestamp: Date.now() - 3600000,
-        message: 'Great work on the API!',
-      },
-      {
-        id: '2',
-        fromHandle: 'charlie_coder',
-        toHandle: 'alice_dev',
-        tweetUrl: 'https://x.com/charlie_coder/status/456',
-        timestamp: Date.now() - 7200000,
-        message: 'Thanks for the help debugging!',
-      },
-      {
-        id: '3',
-        fromHandle: 'bob_builder',
-        toHandle: 'dana_designer',
-        tweetUrl: 'https://x.com/bob_builder/status/789',
-        timestamp: Date.now() - 10800000,
-        message: 'Amazing UI design!',
-      },
-    ];
-
-    const mockLeaderboard: UserProfile[] = [
-      { handle: 'alice_dev', kudosReceived: 42, kudosGiven: 38 },
-      { handle: 'bob_builder', kudosReceived: 35, kudosGiven: 40 },
-      { handle: 'charlie_coder', kudosReceived: 28, kudosGiven: 25 },
-      { handle: 'dana_designer', kudosReceived: 25, kudosGiven: 22 },
-      { handle: 'eve_engineer', kudosReceived: 20, kudosGiven: 18 },
-    ];
-
-    setRecentKudos(mockKudos);
-    setLeaderboard(mockLeaderboard);
+  const loadEmptyState = useCallback(() => {
+    setRecentKudos([]);
+    setLeaderboard([]);
     setIsLoading(false);
   }, []);
 
   const loadBlockchainData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // If contract not deployed (zero address), use mock data for demo
+      // If contract not deployed (zero address), show empty state
       if (!isContractDeployed()) {
-        loadMockData();
+        loadEmptyState();
         return;
       }
 
@@ -161,12 +126,12 @@ export default function KudosApp() {
       }
     } catch (error) {
       console.error('Error loading blockchain data:', error);
-      // Fall back to mock data on error
-      loadMockData();
+      // Fall back to empty state on error
+      loadEmptyState();
     } finally {
       setIsLoading(false);
     }
-  }, [getKudosHistory, getLeaderboardData, loadMockData]);
+  }, [getKudosHistory, getLeaderboardData, loadEmptyState]);
 
   const checkRegistrationStatus = useCallback(async () => {
     try {

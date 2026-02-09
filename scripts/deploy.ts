@@ -23,9 +23,10 @@ async function main() {
 
   // Save the contract address to a file
   const fs = require('fs');
+  const network = hre.network.name;
   const contractInfo = {
     address: contractAddress,
-    network: 'abstractTestnet',
+    network,
     deployer: deployer.address,
     deployedAt: new Date().toISOString(),
   };

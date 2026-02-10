@@ -212,7 +212,7 @@ export default function AgentProfilePage({
         {/* 8004scan link */}
         <div className="text-center pt-4">
           <a
-            href={`https://www.8004scan.io/agents/${agent.agent_id}`}
+            href={`https://www.8004scan.io/agents/${getChainSlug(agent.chain_id)}/${agent.token_id}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -223,6 +223,21 @@ export default function AgentProfilePage({
       </div>
     </div>
   );
+}
+
+function getChainSlug(chainId: number): string {
+  const slugs: Record<number, string> = {
+    1: 'ethereum',
+    2741: 'abstract',
+    8453: 'base',
+    42161: 'arbitrum',
+    137: 'polygon',
+    56: 'bnb',
+    10: 'optimism',
+    43114: 'avalanche',
+    196: 'xlayer',
+  };
+  return slugs[chainId] || String(chainId);
 }
 
 function InfoRow({

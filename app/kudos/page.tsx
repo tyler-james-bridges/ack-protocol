@@ -99,11 +99,17 @@ export default function GiveKudosPage() {
                     </p>
                   )}
 
-                  {(status === 'uploading' || status === 'confirming' || status === 'waiting') && (
+                  {(status === 'uploading' ||
+                    status === 'confirming' ||
+                    status === 'waiting') && (
                     <div className="text-center text-sm text-muted-foreground space-y-1">
                       {status === 'uploading' && <p>Uploading to IPFS...</p>}
-                      {status === 'confirming' && <p>Confirm in your wallet...</p>}
-                      {status === 'waiting' && <p>Waiting for confirmation...</p>}
+                      {status === 'confirming' && (
+                        <p>Confirm in your wallet...</p>
+                      )}
+                      {status === 'waiting' && (
+                        <p>Waiting for confirmation...</p>
+                      )}
                     </div>
                   )}
                 </>

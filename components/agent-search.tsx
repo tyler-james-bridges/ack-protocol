@@ -51,9 +51,7 @@ export function AgentSearch({
           )}
 
           {data && data.items.length === 0 && (
-            <p className="p-3 text-sm text-muted-foreground">
-              No agents found
-            </p>
+            <p className="p-3 text-sm text-muted-foreground">No agents found</p>
           )}
 
           {data?.items.map((agent) => (

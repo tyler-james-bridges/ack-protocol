@@ -38,7 +38,9 @@ export function useAbstractAgents(
 /**
  * Fetch the global leaderboard.
  */
-export function useLeaderboard(options: { limit?: number; chainId?: number; sortBy?: string } = {}) {
+export function useLeaderboard(
+  options: { limit?: number; chainId?: number; sortBy?: string } = {}
+) {
   return useQuery({
     queryKey: ['leaderboard', options],
     queryFn: () => fetchLeaderboard(options),

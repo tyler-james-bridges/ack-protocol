@@ -32,7 +32,10 @@ export function AgentCard({ agent, onClick, className }: AgentCardProps) {
           <div className="flex items-center gap-2">
             <p className="truncate font-semibold text-sm">{agent.name}</p>
             {agent.is_verified && (
-              <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0">
+              <Badge
+                variant="secondary"
+                className="shrink-0 text-[10px] px-1.5 py-0"
+              >
                 Verified
               </Badge>
             )}

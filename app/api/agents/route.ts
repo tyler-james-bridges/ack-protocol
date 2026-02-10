@@ -30,7 +30,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
-      { error: `Proxy error: ${error instanceof Error ? error.message : String(error)}` },
+      {
+        error: `Proxy error: ${error instanceof Error ? error.message : String(error)}`,
+      },
       { status: 502 }
     );
   }

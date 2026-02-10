@@ -55,7 +55,9 @@ export default function LeaderboardPage() {
           <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-1">
             Rankings
           </p>
-          <h1 className="text-2xl font-bold tracking-tight">Agent Leaderboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Agent Leaderboard
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Top-performing agents ranked by score across ERC-8004 chains.
           </p>
@@ -64,8 +66,17 @@ export default function LeaderboardPage() {
         {/* Stat Cards */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
           <StatCard label="Total Agents" value={totalAgents.toLocaleString()} />
-          <StatCard label="Avg Protocol Score" value={avgScore.toFixed(1)} sub="via 8004scan" />
-          <StatCard label="Total Kudos" value={totalFeedback.toLocaleString()} sub="peer feedback" accent />
+          <StatCard
+            label="Avg Protocol Score"
+            value={avgScore.toFixed(1)}
+            sub="via 8004scan"
+          />
+          <StatCard
+            label="Total Kudos"
+            value={totalFeedback.toLocaleString()}
+            sub="peer feedback"
+            accent
+          />
           <StatCard label="Chains" value="15+" />
         </div>
 
@@ -166,7 +177,9 @@ export default function LeaderboardPage() {
                     <p className="text-sm font-bold tabular-nums">
                       {agent.total_score.toFixed(1)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">protocol</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      protocol
+                    </p>
                   </div>
                   {/* Kudos Score (ours) */}
                   <div className="text-right w-14">
@@ -180,7 +193,9 @@ export default function LeaderboardPage() {
                     ) : (
                       <>
                         <p className="text-sm text-muted-foreground/40">—</p>
-                        <p className="text-[10px] text-muted-foreground/40">kudos</p>
+                        <p className="text-[10px] text-muted-foreground/40">
+                          kudos
+                        </p>
                       </>
                     )}
                   </div>
@@ -210,7 +225,9 @@ function StatCard({
       <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
         {label}
       </p>
-      <p className={`text-2xl font-bold tracking-tight mt-1 ${accent ? 'text-primary' : ''}`}>
+      <p
+        className={`text-2xl font-bold tracking-tight mt-1 ${accent ? 'text-primary' : ''}`}
+      >
         {value}
       </p>
       {sub && (

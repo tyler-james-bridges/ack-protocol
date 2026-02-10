@@ -21,7 +21,13 @@ interface GiveKudosParams {
   fromAgentId?: number;
 }
 
-type KudosStatus = 'idle' | 'uploading' | 'confirming' | 'waiting' | 'success' | 'error';
+type KudosStatus =
+  | 'idle'
+  | 'uploading'
+  | 'confirming'
+  | 'waiting'
+  | 'success'
+  | 'error';
 
 /**
  * Hook to give kudos to an agent.
@@ -67,9 +73,7 @@ export function useGiveKudos() {
         setIpfsURI(feedbackURI);
 
         // Step 2: Hash the payload for on-chain verification
-        const feedbackHash = keccak256(
-          toBytes(JSON.stringify(payload))
-        );
+        const feedbackHash = keccak256(toBytes(JSON.stringify(payload)));
 
         // Step 3: Call giveFeedback on the Reputation Registry
         setStatus('confirming');
@@ -116,6 +120,9 @@ export function useGiveKudos() {
     txHash,
     ipfsURI,
     reset,
-    isLoading: finalStatus === 'uploading' || finalStatus === 'confirming' || finalStatus === 'waiting',
+    isLoading:
+      finalStatus === 'uploading' ||
+      finalStatus === 'confirming' ||
+      finalStatus === 'waiting',
   };
 }

@@ -45,7 +45,10 @@ export default function AgentProfilePage({
             <div className="h-4 w-96 animate-pulse rounded bg-muted" />
             <div className="grid grid-cols-3 gap-3 pt-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />
+                <div
+                  key={i}
+                  className="h-24 animate-pulse rounded-xl bg-muted"
+                />
               ))}
             </div>
           </div>
@@ -59,7 +62,9 @@ export default function AgentProfilePage({
       <div className="min-h-screen">
         <Nav />
         <div className="mx-auto max-w-4xl px-4 pt-12 text-center space-y-4">
-          <p className="text-lg text-muted-foreground">{error || 'Agent not found'}</p>
+          <p className="text-lg text-muted-foreground">
+            {error || 'Agent not found'}
+          </p>
           <Button variant="outline" onClick={() => router.push('/')}>
             Back to Home
           </Button>
@@ -76,7 +81,12 @@ export default function AgentProfilePage({
         {/* Header */}
         <div className="space-y-4">
           <div className="flex items-start gap-4">
-            <AgentAvatar name={agent.name} imageUrl={agent.image_url} size={56} className="rounded-2xl" />
+            <AgentAvatar
+              name={agent.name}
+              imageUrl={agent.image_url}
+              size={56}
+              className="rounded-2xl"
+            />
 
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -85,7 +95,10 @@ export default function AgentProfilePage({
                   <Badge variant="secondary">Verified</Badge>
                 )}
                 {agent.is_active && (
-                  <Badge variant="outline" className="text-green-600 border-green-200">
+                  <Badge
+                    variant="outline"
+                    className="text-green-600 border-green-200"
+                  >
                     Active
                   </Badge>
                 )}
@@ -93,7 +106,9 @@ export default function AgentProfilePage({
 
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <ChainIcon chainId={agent.chain_id} size={14} />
-                <span className="font-medium">{getChainName(agent.chain_id)}</span>
+                <span className="font-medium">
+                  {getChainName(agent.chain_id)}
+                </span>
                 <span>· Agent #{agent.token_id}</span>
               </div>
             </div>
@@ -113,26 +128,42 @@ export default function AgentProfilePage({
           <div>
             <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-2">
               Protocol Score
-              <span className="ml-1.5 text-muted-foreground/50 normal-case tracking-normal">via 8004scan</span>
+              <span className="ml-1.5 text-muted-foreground/50 normal-case tracking-normal">
+                via 8004scan
+              </span>
             </p>
             <div className="grid grid-cols-3 gap-3">
               <StatsCard label="Score" value={agent.total_score.toFixed(1)} />
               <StatsCard label="Stars" value={agent.star_count} />
               <StatsCard
                 label="Rank"
-                value={agent.scores?.rank ? `#${agent.scores.rank.toLocaleString()}` : '-'}
+                value={
+                  agent.scores?.rank
+                    ? `#${agent.scores.rank.toLocaleString()}`
+                    : '-'
+                }
               />
             </div>
           </div>
           <div>
             <p className="text-[10px] font-medium tracking-wider text-primary uppercase mb-2">
               Kudos Reputation
-              <span className="ml-1.5 text-primary/50 normal-case tracking-normal">peer feedback</span>
+              <span className="ml-1.5 text-primary/50 normal-case tracking-normal">
+                peer feedback
+              </span>
             </p>
             <div className="grid grid-cols-3 gap-3">
               <StatsCard label="Kudos" value={agent.total_feedbacks} />
-              <StatsCard label="Avg Rating" value={agent.average_score > 0 ? agent.average_score.toFixed(1) : '—'} />
-              <StatsCard label="Categories" value={agent.categories?.length || '—'} />
+              <StatsCard
+                label="Avg Rating"
+                value={
+                  agent.average_score > 0 ? agent.average_score.toFixed(1) : '—'
+                }
+              />
+              <StatsCard
+                label="Categories"
+                value={agent.categories?.length || '—'}
+              />
             </div>
           </div>
         </div>
@@ -163,7 +194,9 @@ export default function AgentProfilePage({
                   <p className="text-xs text-muted-foreground">Protocols</p>
                   <div className="flex flex-wrap gap-1">
                     {agent.supported_protocols.map((p) => (
-                      <Badge key={p} variant="secondary">{p}</Badge>
+                      <Badge key={p} variant="secondary">
+                        {p}
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -174,7 +207,9 @@ export default function AgentProfilePage({
                   <p className="text-xs text-muted-foreground">Tags</p>
                   <div className="flex flex-wrap gap-1">
                     {agent.tags.map((t) => (
-                      <Badge key={t} variant="outline">{t}</Badge>
+                      <Badge key={t} variant="outline">
+                        {t}
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -204,10 +239,7 @@ export default function AgentProfilePage({
         </div>
 
         {/* Give Kudos Form */}
-        <InlineKudosForm
-          agentTokenId={agent.token_id}
-          agentName={agent.name}
-        />
+        <InlineKudosForm agentTokenId={agent.token_id} agentName={agent.name} />
 
         {/* 8004scan link */}
         <div className="text-center pt-4">

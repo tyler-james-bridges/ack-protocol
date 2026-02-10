@@ -39,13 +39,21 @@ function pickPalette(name: string): string[] {
  * Uses the agent's image if available, otherwise generates a deterministic
  * colorful face from the agent name via Facehash.
  */
-export function AgentAvatar({ name, imageUrl, size = 40, className }: AgentAvatarProps) {
+export function AgentAvatar({
+  name,
+  imageUrl,
+  size = 40,
+  className,
+}: AgentAvatarProps) {
   const [imgError, setImgError] = useState(false);
 
   if (imageUrl && !imgError) {
     return (
       <div
-        className={cn('relative shrink-0 overflow-hidden rounded-lg bg-muted', className)}
+        className={cn(
+          'relative shrink-0 overflow-hidden rounded-lg bg-muted',
+          className
+        )}
         style={{ width: size, height: size }}
       >
         <Image
@@ -65,7 +73,13 @@ export function AgentAvatar({ name, imageUrl, size = 40, className }: AgentAvata
 
   return (
     <div className={cn('shrink-0 rounded-lg overflow-hidden', className)}>
-      <Facehash name={name} size={size} colors={colors} intensity3d="dramatic" enableBlink />
+      <Facehash
+        name={name}
+        size={size}
+        colors={colors}
+        intensity3d="dramatic"
+        enableBlink
+      />
     </div>
   );
 }

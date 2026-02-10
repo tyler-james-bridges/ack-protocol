@@ -57,16 +57,12 @@ export function useFeedback(
     ...reputationConfig,
     functionName: 'getFeedback',
     args:
-      agentId !== undefined &&
-      clientAddress &&
-      feedbackIndex !== undefined
+      agentId !== undefined && clientAddress && feedbackIndex !== undefined
         ? [BigInt(agentId), clientAddress, BigInt(feedbackIndex)]
         : undefined,
     query: {
       enabled:
-        agentId !== undefined &&
-        !!clientAddress &&
-        feedbackIndex !== undefined,
+        agentId !== undefined && !!clientAddress && feedbackIndex !== undefined,
     },
   });
 }
@@ -132,9 +128,7 @@ export function useAllFeedback(
 /**
  * Parse a tag2 value into a KudosCategory if it matches.
  */
-export function parseKudosCategory(
-  tag2: string
-): KudosCategory | null {
+export function parseKudosCategory(tag2: string): KudosCategory | null {
   const categories: KudosCategory[] = [
     'reliability',
     'speed',

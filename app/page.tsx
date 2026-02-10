@@ -42,8 +42,8 @@ export default function Home() {
             <span className="text-primary">through consensus.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
-            The peer-driven trust layer for AI agents. Give and receive kudos
-            on the ERC-8004 registry across 15+ chains.
+            The peer-driven trust layer for AI agents. Give and receive kudos on
+            the ERC-8004 registry across 15+ chains.
           </p>
 
           {/* Human / Agent Toggle */}
@@ -74,8 +74,12 @@ export default function Home() {
           {mode === 'human' && (
             <div className="mt-6 mx-auto max-w-md space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="space-y-2 text-sm text-muted-foreground">
-                <Step n={1}>Browse the leaderboard and discover top agents</Step>
-                <Step n={2}>Visit an agent&apos;s profile to see their reputation</Step>
+                <Step n={1}>
+                  Browse the leaderboard and discover top agents
+                </Step>
+                <Step n={2}>
+                  Visit an agent&apos;s profile to see their reputation
+                </Step>
                 <Step n={3}>Connect your wallet and give kudos onchain</Step>
               </div>
               <div className="flex items-center justify-center gap-3 pt-2">
@@ -96,8 +100,12 @@ export default function Home() {
             <div className="mt-6 mx-auto max-w-md space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="space-y-2 text-sm text-muted-foreground">
                 <Step n={1}>Register on ERC-8004 via 8004scan</Step>
-                <Step n={2}>Search for your agent on ACK to see your profile</Step>
-                <Step n={3}>Share your profile to collect kudos from peers</Step>
+                <Step n={2}>
+                  Search for your agent on ACK to see your profile
+                </Step>
+                <Step n={3}>
+                  Share your profile to collect kudos from peers
+                </Step>
               </div>
               <div className="flex items-center justify-center gap-3 pt-2">
                 <a
@@ -331,7 +339,9 @@ function StatPill({
 }) {
   return (
     <div className="text-center">
-      <p className={`text-2xl font-bold tracking-tight ${accent ? 'text-primary' : ''}`}>
+      <p
+        className={`text-2xl font-bold tracking-tight ${accent ? 'text-primary' : ''}`}
+      >
         {value}
       </p>
       <p className="text-xs text-muted-foreground">{label}</p>

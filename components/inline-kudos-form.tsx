@@ -44,7 +44,12 @@ export function InlineKudosForm({
 
   if (status === 'success') {
     return (
-      <div className={cn('rounded-xl border border-primary/30 bg-primary/5 p-6 text-center space-y-3', className)}>
+      <div
+        className={cn(
+          'rounded-xl border border-primary/30 bg-primary/5 p-6 text-center space-y-3',
+          className
+        )}
+      >
         <p className="text-2xl">🎉</p>
         <p className="font-semibold">Kudos sent to {agentName}!</p>
         <p className="text-sm text-muted-foreground">
@@ -69,7 +74,12 @@ export function InlineKudosForm({
 
   if (!isConnected) {
     return (
-      <div className={cn('rounded-xl border-2 border-dashed border-primary/30 p-6 text-center space-y-3', className)}>
+      <div
+        className={cn(
+          'rounded-xl border-2 border-dashed border-primary/30 p-6 text-center space-y-3',
+          className
+        )}
+      >
         <p className="font-semibold">Give Kudos to {agentName}</p>
         <p className="text-sm text-muted-foreground">
           Connect your wallet to leave onchain feedback.
@@ -80,7 +90,10 @@ export function InlineKudosForm({
   }
 
   return (
-    <div className={cn('rounded-xl border border-border p-5 space-y-4', className)} id="give-kudos">
+    <div
+      className={cn('rounded-xl border border-border p-5 space-y-4', className)}
+      id="give-kudos"
+    >
       <p className="font-semibold">Give Kudos to {agentName}</p>
 
       {/* Category */}
@@ -127,17 +140,13 @@ export function InlineKudosForm({
       </div>
 
       {/* Submit */}
-      <Button
-        onClick={handleSubmit}
-        disabled={!canSubmit}
-        className="w-full"
-      >
+      <Button onClick={handleSubmit} disabled={!canSubmit} className="w-full">
         {isLoading
           ? status === 'uploading'
             ? 'Uploading to IPFS...'
             : status === 'confirming'
-            ? 'Confirm in wallet...'
-            : 'Waiting for confirmation...'
+              ? 'Confirm in wallet...'
+              : 'Waiting for confirmation...'
           : 'Send Kudos'}
       </Button>
 

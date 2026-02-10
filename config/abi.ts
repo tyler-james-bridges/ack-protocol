@@ -1,140 +1,203 @@
 /**
- * Kudos Contract ABI
- * Centralized ABI definition for the Kudos smart contract.
- * This ABI is shared across all client and server-side contract interactions.
+ * ERC-8004 Contract ABIs
+ *
+ * Identity Registry — agent registration, metadata, URI resolution
+ * Reputation Registry — feedback (kudos) submission and retrieval
+ *
+ * Reference: https://eips.ethereum.org/EIPS/eip-8004
  */
-export const KUDOS_CONTRACT_ABI = [
+
+export const IDENTITY_REGISTRY_ABI = [
   {
-    inputs: [{ name: '_xHandle', type: 'string' }],
-    name: 'registerUser',
-    outputs: [],
+    inputs: [{ name: 'agentURI', type: 'string' }],
+    name: 'register',
+    outputs: [{ name: 'agentId', type: 'uint256' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
     inputs: [],
-    name: 'requestAccountDeletion',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'cancelAccountDeletion',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: '_user', type: 'address' }],
-    name: 'executeAccountDeletion',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'deleteAccountImmediately',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: '_isPrivate', type: 'bool' }],
-    name: 'setProfilePrivacy',
-    outputs: [],
+    name: 'register',
+    outputs: [{ name: 'agentId', type: 'uint256' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
     inputs: [
-      { name: '_toHandle', type: 'string' },
-      { name: '_tweetUrl', type: 'string' },
+      { name: 'agentURI', type: 'string' },
+      {
+        components: [
+          { name: 'metadataKey', type: 'string' },
+          { name: 'metadataValue', type: 'bytes' },
+        ],
+        name: 'metadata',
+        type: 'tuple[]',
+      },
     ],
-    name: 'giveKudos',
-    outputs: [],
+    name: 'register',
+    outputs: [{ name: 'agentId', type: 'uint256' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
-    inputs: [{ name: '_handle', type: 'string' }],
-    name: 'isHandleAvailable',
-    outputs: [{ name: '', type: 'bool' }],
+    inputs: [{ name: 'tokenId', type: 'uint256' }],
+    name: 'tokenURI',
+    outputs: [{ name: '', type: 'string' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [{ name: '_user', type: 'address' }],
-    name: 'getAccountStatus',
-    outputs: [
-      { name: 'isRegistered', type: 'bool' },
-      { name: 'isPendingDeletion', type: 'bool' },
-      { name: 'deletionTime', type: 'uint256' },
-      { name: 'canReregister', type: 'bool' },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: '_limit', type: 'uint256' }],
-    name: 'getLeaderboard',
-    outputs: [
-      { name: 'handles', type: 'string[]' },
-      { name: 'kudosReceived', type: 'uint256[]' },
-      { name: 'addresses', type: 'address[]' },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: '', type: 'address' }],
-    name: 'users',
-    outputs: [
-      { name: 'xHandle', type: 'string' },
-      { name: 'kudosReceived', type: 'uint256' },
-      { name: 'kudosGiven', type: 'uint256' },
-      { name: 'isRegistered', type: 'bool' },
-      { name: 'registeredAt', type: 'uint256' },
-      { name: 'deletionRequestedAt', type: 'uint256' },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: '', type: 'string' }],
-    name: 'handleToAddress',
+    inputs: [{ name: 'tokenId', type: 'uint256' }],
+    name: 'ownerOf',
     outputs: [{ name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [{ name: '', type: 'address' }],
-    name: 'privateProfiles',
-    outputs: [{ name: '', type: 'bool' }],
+    inputs: [],
+    name: 'totalSupply',
+    outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
     inputs: [
-      { name: '_offset', type: 'uint256' },
-      { name: '_limit', type: 'uint256' },
+      { name: 'agentId', type: 'uint256' },
+      { name: 'metadataKey', type: 'string' },
     ],
-    name: 'getKudosHistoryPage',
+    name: 'getMetadata',
+    outputs: [{ name: '', type: 'bytes' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'metadataKey', type: 'string' },
+      { name: 'metadataValue', type: 'bytes' },
+    ],
+    name: 'setMetadata',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'newURI', type: 'string' },
+    ],
+    name: 'setAgentURI',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'agentId', type: 'uint256' }],
+    name: 'getAgentWallet',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'uint256' },
+      { indexed: false, name: 'agentURI', type: 'string' },
+      { indexed: true, name: 'owner', type: 'address' },
+    ],
+    name: 'Registered',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'from', type: 'address' },
+      { indexed: true, name: 'to', type: 'address' },
+      { indexed: true, name: 'tokenId', type: 'uint256' },
+    ],
+    name: 'Transfer',
+    type: 'event',
+  },
+] as const;
+
+export const REPUTATION_REGISTRY_ABI = [
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'value', type: 'int128' },
+      { name: 'valueDecimals', type: 'uint8' },
+      { name: 'tag1', type: 'string' },
+      { name: 'tag2', type: 'string' },
+      { name: 'endpoint', type: 'string' },
+      { name: 'feedbackURI', type: 'string' },
+      { name: 'feedbackHash', type: 'bytes32' },
+    ],
+    name: 'giveFeedback',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getIdentityRegistry',
+    outputs: [{ name: 'identityRegistry', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddress', type: 'address' },
+    ],
+    name: 'getFeedbackCount',
+    outputs: [{ name: '', type: 'uint64' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddress', type: 'address' },
+      { name: 'feedbackIndex', type: 'uint64' },
+    ],
+    name: 'getFeedback',
     outputs: [
-      {
-        components: [
-          { name: 'from', type: 'address' },
-          { name: 'to', type: 'address' },
-          { name: 'fromHandle', type: 'string' },
-          { name: 'toHandle', type: 'string' },
-          { name: 'timestamp', type: 'uint256' },
-          { name: 'tweetUrl', type: 'string' },
-        ],
-        name: '',
-        type: 'tuple[]',
-      },
+      { name: 'value', type: 'int128' },
+      { name: 'valueDecimals', type: 'uint8' },
+      { name: 'tag1', type: 'string' },
+      { name: 'tag2', type: 'string' },
+      { name: 'isRevoked', type: 'bool' },
     ],
     stateMutability: 'view',
     type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddress', type: 'address' },
+      { name: 'feedbackIndex', type: 'uint64' },
+    ],
+    name: 'revokeFeedback',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'uint256' },
+      { indexed: true, name: 'clientAddress', type: 'address' },
+      { indexed: false, name: 'feedbackIndex', type: 'uint64' },
+      { indexed: false, name: 'value', type: 'int128' },
+      { indexed: false, name: 'valueDecimals', type: 'uint8' },
+      { indexed: true, name: 'indexedTag1', type: 'string' },
+      { indexed: false, name: 'tag1', type: 'string' },
+      { indexed: false, name: 'tag2', type: 'string' },
+      { indexed: false, name: 'endpoint', type: 'string' },
+      { indexed: false, name: 'feedbackURI', type: 'string' },
+      { indexed: false, name: 'feedbackHash', type: 'bytes32' },
+    ],
+    name: 'NewFeedback',
+    type: 'event',
   },
 ] as const;

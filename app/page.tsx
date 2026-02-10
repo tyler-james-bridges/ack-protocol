@@ -1,703 +1,340 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
 import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { useAccount } from 'wagmi';
-import {
-  useKudos,
-  type UserData,
-  type KudosTransaction,
-  type LeaderboardEntry,
-} from '@/lib/useKudos';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { TwitterIntegration } from '@/components/twitter-integration';
-import { AccountSettings } from '@/components/account-settings';
-import { toast } from 'sonner';
-import { parseContractError } from '@/lib/errorUtils';
-import { Lock } from 'lucide-react';
-import type { KudosEntry, UserProfile } from '@/lib/types';
-import { isContractDeployed } from '@/config/contract';
-import {
-  isValidHandle,
-  isValidTweetUrl,
-  HANDLE_REGEX,
-  MIN_HANDLE_LENGTH,
-  MAX_HANDLE_LENGTH,
-} from '@/lib/validation';
+import { Nav } from '@/components/nav';
+import { AgentAvatar } from '@/components/agent-avatar';
+import { ChainIcon } from '@/components/chain-icon';
+import { AgentSearch } from '@/components/agent-search';
+import { useAgents, useLeaderboard, getChainName } from '@/hooks';
+import type { ScanAgent } from '@/lib/api';
 
-// Debounce delay for handle availability check (in milliseconds)
-const DEBOUNCE_DELAY = 300;
-
-export default function KudosApp() {
-  const { login, logout } = useLoginWithAbstract();
+export default function Home() {
+  const router = useRouter();
+  const { login } = useLoginWithAbstract();
   const { isConnected } = useAccount();
-  const {
-    registerUser,
-    giveKudos,
-    checkUserRegistration,
-    checkHandleAvailability,
-    getKudosHistory,
-    getLeaderboardData,
-    isPending,
-    isSuccess,
-    error,
-  } = useKudos();
+  const [mode, setMode] = useState<'human' | 'agent' | null>(null);
+  const { data: agentsData } = useAgents({ limit: 1 });
+  const { data: leaderboard, isLoading: loadingLeaderboard } = useLeaderboard({
+    limit: 10,
+  });
 
-  const [xHandle, setXHandle] = useState('');
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [recentKudos, setRecentKudos] = useState<KudosEntry[]>([]);
-  const [leaderboard, setLeaderboard] = useState<UserProfile[]>([]);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [kudosRecipient, setKudosRecipient] = useState('');
-  const [kudosTweetUrl, setKudosTweetUrl] = useState('');
-  const [registeredHandle, setRegisteredHandle] = useState<string>('');
-  const [kudosStats, setKudosStats] = useState<{
-    received: number;
-    given: number;
-  }>({ received: 0, given: 0 });
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [handleAvailable, setHandleAvailable] = useState<boolean | null>(null);
-  const [checkingHandle, setCheckingHandle] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Ref for debounce timer
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const loadEmptyState = useCallback(() => {
-    setRecentKudos([]);
-    setLeaderboard([]);
-    setIsLoading(false);
-  }, []);
-
-  const loadBlockchainData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // If contract not deployed (zero address), show empty state
-      if (!isContractDeployed()) {
-        loadEmptyState();
-        return;
-      }
-
-      // Fetch real blockchain data
-      const [historyData, leaderboardData] = await Promise.all([
-        getKudosHistory(0, 10),
-        getLeaderboardData(10),
-      ]);
-
-      // Transform kudos history to KudosEntry format
-      if (historyData.length > 0) {
-        const transformedKudos: KudosEntry[] = historyData.map(
-          (tx: KudosTransaction, index: number) => ({
-            id: `${tx.timestamp}-${index}`,
-            fromHandle: tx.fromHandle,
-            toHandle: tx.toHandle,
-            tweetUrl: tx.tweetUrl,
-            timestamp: tx.timestamp * 1000, // Convert seconds to milliseconds
-          })
-        );
-        setRecentKudos(transformedKudos);
-      } else {
-        setRecentKudos([]);
-      }
-
-      // Transform leaderboard data to UserProfile format
-      if (leaderboardData.length > 0) {
-        const transformedLeaderboard: UserProfile[] = leaderboardData.map(
-          (entry: LeaderboardEntry) => ({
-            handle: entry.handle,
-            kudosReceived: entry.kudosReceived,
-            kudosGiven: 0, // Not available from leaderboard call
-            walletAddress: entry.address,
-          })
-        );
-        setLeaderboard(transformedLeaderboard);
-      } else {
-        setLeaderboard([]);
-      }
-    } catch (error) {
-      console.error('Error loading blockchain data:', error);
-      // Fall back to empty state on error
-      loadEmptyState();
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getKudosHistory, getLeaderboardData, loadEmptyState]);
-
-  const checkRegistrationStatus = useCallback(async () => {
-    try {
-      const registration = await checkUserRegistration();
-      if (registration && registration.isRegistered) {
-        setUserData(registration);
-        setIsRegistered(true);
-        setRegisteredHandle(registration.xHandle);
-        setXHandle(registration.xHandle);
-        setKudosStats({
-          received: registration.kudosReceived,
-          given: registration.kudosGiven,
-        });
-        setUserProfile({
-          handle: registration.xHandle,
-          kudosReceived: registration.kudosReceived,
-          kudosGiven: registration.kudosGiven,
-        });
-
-        toast.success(
-          `Welcome back @${registration.xHandle}! You have ${registration.kudosReceived} kudos received and ${registration.kudosGiven} kudos given.`
-        );
-      } else {
-        // Reset state if user is no longer registered (e.g., after deletion)
-        setUserData(null);
-        setIsRegistered(false);
-        setRegisteredHandle('');
-        setXHandle('');
-        setKudosStats({ received: 0, given: 0 });
-        setUserProfile(null);
-      }
-    } catch (error) {
-      console.error('Error checking registration:', error);
-    }
-  }, [checkUserRegistration]);
-
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    loadBlockchainData();
-  }, [loadBlockchainData]);
-
-  useEffect(() => {
-    if (isConnected) {
-      checkRegistrationStatus();
-    }
-  }, [isConnected, checkRegistrationStatus]);
-
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success('Transaction successful!');
-      loadBlockchainData();
-    }
-  }, [isSuccess, loadBlockchainData]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(`Transaction failed: ${error.message}`);
-    }
-  }, [error]);
-
-  const handleConnect = async () => {
-    try {
-      await login();
-      toast.success('Wallet connected successfully!');
-    } catch {
-      toast.error('Failed to connect wallet');
-    }
-  };
-
-  const handleDisconnect = async () => {
-    try {
-      await logout();
-      setIsRegistered(false);
-      setXHandle('');
-      setRegisteredHandle('');
-      setUserProfile(null);
-      setKudosStats({ received: 0, given: 0 });
-      setUserData(null);
-      toast.success('Wallet disconnected');
-    } catch {
-      toast.error('Failed to disconnect wallet');
-    }
-  };
-
-  const handleRegister = async () => {
-    if (!xHandle) {
-      toast.error('Please enter your X handle');
-      return;
-    }
-
-    // Enhanced validation for new contract
-    if (xHandle.length < MIN_HANDLE_LENGTH) {
-      toast.error(
-        `Handle must be at least ${MIN_HANDLE_LENGTH} characters long`
-      );
-      return;
-    }
-
-    if (xHandle.length > MAX_HANDLE_LENGTH) {
-      toast.error(`Handle must be ${MAX_HANDLE_LENGTH} characters or less`);
-      return;
-    }
-
-    if (!HANDLE_REGEX.test(xHandle)) {
-      toast.error('Handle can only contain letters, numbers, and underscores');
-      return;
-    }
-
-    // Check handle availability
-    const available = await checkHandleAvailability(xHandle);
-    if (!available) {
-      toast.error('This handle is not available (already taken or retired)');
-      return;
-    }
-
-    try {
-      await registerUser(xHandle);
-      setIsRegistered(true);
-      setRegisteredHandle(xHandle);
-      setUserProfile({
-        handle: xHandle,
-        kudosReceived: 0,
-        kudosGiven: 0,
-      });
-      setKudosStats({ received: 0, given: 0 });
-      toast.success(
-        `Successfully registered as @${xHandle}! You can now give and receive kudos.`
-      );
-    } catch (error: unknown) {
-      const errorMessage = parseContractError(error);
-      toast.error(errorMessage);
-      console.error('Registration error:', error);
-    }
-  };
-
-  const handleGiveKudos = async () => {
-    if (!kudosRecipient || !kudosTweetUrl) {
-      toast.error('Please enter both recipient handle and tweet URL');
-      return;
-    }
-
-    // Validate recipient handle
-    if (!HANDLE_REGEX.test(kudosRecipient)) {
-      toast.error(
-        'Recipient handle can only contain letters, numbers, and underscores'
-      );
-      return;
-    }
-
-    // Validate tweet URL
-    if (!isValidTweetUrl(kudosTweetUrl)) {
-      toast.error('Please enter a valid X (Twitter) URL');
-      return;
-    }
-
-    // Check if trying to give kudos to themselves
-    if (kudosRecipient.toLowerCase() === xHandle.toLowerCase()) {
-      toast.error(
-        'You cannot give kudos to yourself. Please select a different recipient.'
-      );
-      return;
-    }
-
-    try {
-      await giveKudos(kudosRecipient, kudosTweetUrl);
-
-      const newKudos: KudosEntry = {
-        id: Date.now().toString(),
-        fromHandle: xHandle,
-        toHandle: kudosRecipient,
-        tweetUrl: kudosTweetUrl,
-        timestamp: Date.now(),
-        message: 'Kudos sent!',
-      };
-
-      setRecentKudos([newKudos, ...recentKudos]);
-      setKudosRecipient('');
-      setKudosTweetUrl('');
-
-      toast.success(
-        `Kudos successfully sent to @${kudosRecipient}! This recognition is now permanently recorded on the blockchain.`
-      );
-    } catch (error: unknown) {
-      const errorMessage = parseContractError(error);
-      toast.error(errorMessage);
-      console.error('Kudos error:', error);
-    }
-  };
-
-  const formatTimestamp = (timestamp: number) => {
-    const minutes = Math.floor((Date.now() - timestamp) / 60000);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  };
-
-  // Debounced handle change handler
-  const handleXHandleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const handle = e.target.value;
-    setXHandle(handle);
-
-    // Clear any existing debounce timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Reset availability state while typing
-    setHandleAvailable(null);
-
-    // Check availability with debounce
-    if (isValidHandle(handle)) {
-      setCheckingHandle(true);
-      debounceTimerRef.current = setTimeout(async () => {
-        try {
-          const available = await checkHandleAvailability(handle);
-          setHandleAvailable(available);
-        } catch (err) {
-          console.error('Error checking handle availability:', err);
-          setHandleAvailable(null);
-        } finally {
-          setCheckingHandle(false);
-        }
-      }, DEBOUNCE_DELAY);
-    } else {
-      setCheckingHandle(false);
-    }
-  };
+  const goToAgent = (agent: ScanAgent) =>
+    router.push(`/agent/${agent.chain_id}/${agent.token_id}`);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-3xl">Kudos Tracker</CardTitle>
-                <CardDescription>
-                  Give kudos to your friends on X with blockchain verification
-                </CardDescription>
+    <div className="min-h-screen">
+      <Nav />
+
+      {/* Hero — dot grid + green glow */}
+      <section className="hero-grid relative">
+        <div className="relative mx-auto max-w-5xl px-4 pt-20 pb-16 text-center">
+          <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-4">
+            Agent Consensus Kudos
+          </p>
+          <h1 className="text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
+            Onchain reputation
+            <br />
+            <span className="text-primary">through consensus.</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
+            The peer-driven trust layer for AI agents. Give and receive kudos
+            on the ERC-8004 registry across 15+ chains.
+          </p>
+
+          {/* Human / Agent Toggle */}
+          <div className="mt-8 inline-flex rounded-lg border border-border p-1 bg-muted/50">
+            <button
+              onClick={() => setMode('human')}
+              className={`rounded-md px-5 py-2.5 text-sm font-medium transition-all ${
+                mode === 'human'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              I&apos;m a Human
+            </button>
+            <button
+              onClick={() => setMode('agent')}
+              className={`rounded-md px-5 py-2.5 text-sm font-medium transition-all ${
+                mode === 'agent'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              I&apos;m an Agent
+            </button>
+          </div>
+
+          {/* Contextual onboarding */}
+          {mode === 'human' && (
+            <div className="mt-6 mx-auto max-w-md space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <Step n={1}>Browse the leaderboard and discover top agents</Step>
+                <Step n={2}>Visit an agent&apos;s profile to see their reputation</Step>
+                <Step n={3}>Connect your wallet and give kudos onchain</Step>
               </div>
-              {isConnected ? (
-                <div className="flex items-center gap-4">
-                  {isRegistered && (
-                    <div className="text-right">
-                      <p className="text-sm font-medium">
-                        @{registeredHandle || xHandle}
-                      </p>
-                      {(kudosStats.received > 0 || kudosStats.given > 0) && (
-                        <p className="text-xs text-muted-foreground">
-                          {kudosStats.received} received · {kudosStats.given}{' '}
-                          given
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  <Badge variant="secondary" className="px-3 py-1">
-                    {isRegistered
-                      ? `@${registeredHandle || xHandle}`
-                      : 'Not Registered'}
-                  </Badge>
-                  <Button onClick={handleDisconnect} variant="outline">
-                    Disconnect
+              <div className="flex items-center justify-center gap-3 pt-2">
+                {!isConnected ? (
+                  <Button size="lg" onClick={() => login()}>
+                    Connect with Abstract
                   </Button>
-                </div>
-              ) : (
-                <Button onClick={handleConnect} size="lg">
-                  Connect Wallet
-                </Button>
-              )}
+                ) : (
+                  <Button size="lg" onClick={() => router.push('/leaderboard')}>
+                    Explore Agents
+                  </Button>
+                )}
+              </div>
             </div>
-          </CardHeader>
-        </Card>
+          )}
 
-        {/* Registration Card */}
-        {isConnected && !isRegistered && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Register Your X Handle</CardTitle>
-              <CardDescription>
-                Link your X account to start giving and receiving kudos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4">
-                <div className="flex-1 max-w-sm space-y-2">
-                  <Input
-                    placeholder="e.g. john_doe (without @, 3-15 chars)"
-                    value={xHandle}
-                    onChange={handleXHandleChange}
-                    maxLength={15}
-                  />
-                  {checkingHandle && (
-                    <p className="text-xs text-muted-foreground">
-                      Checking availability...
-                    </p>
-                  )}
-                  {xHandle.length >= 3 &&
-                    handleAvailable !== null &&
-                    !checkingHandle && (
-                      <p
-                        className={`text-xs ${handleAvailable ? 'text-green-600' : 'text-red-600'}`}
-                      >
-                        {handleAvailable
-                          ? 'Handle available'
-                          : 'Handle not available'}
-                      </p>
-                    )}
-                </div>
-                <Button onClick={handleRegister} disabled={isPending}>
-                  {isPending ? 'Registering...' : 'Register'}
+          {mode === 'agent' && (
+            <div className="mt-6 mx-auto max-w-md space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <Step n={1}>Register on ERC-8004 via 8004scan</Step>
+                <Step n={2}>Search for your agent on ACK to see your profile</Step>
+                <Step n={3}>Share your profile to collect kudos from peers</Step>
+              </div>
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <a
+                  href="https://www.8004scan.io/create"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button size="lg">Register on 8004scan</Button>
+                </a>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => router.push('/leaderboard')}
+                >
+                  Find My Agent
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        {/* Twitter Integration - only for registered users */}
-        {isRegistered && (
-          <TwitterIntegration registeredHandle={registeredHandle || xHandle} />
-        )}
+          {!mode && (
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => router.push('/leaderboard')}
+              >
+                Explore Agents
+              </Button>
+            </div>
+          )}
 
-        {/* Manual Kudos Entry - only for registered users */}
-        {isRegistered && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Manual Kudos Entry</CardTitle>
-              <CardDescription>
-                Or directly send kudos with a tweet URL
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <Input
-                    placeholder="e.g. alice_dev (recipient's handle)"
-                    value={kudosRecipient}
-                    onChange={(e) => setKudosRecipient(e.target.value)}
-                    className="flex-1"
-                    maxLength={15}
-                  />
-                  <Input
-                    placeholder="https://x.com/username/status/123456789"
-                    value={kudosTweetUrl}
-                    onChange={(e) => setKudosTweetUrl(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleGiveKudos} disabled={isPending}>
-                    {isPending ? 'Sending...' : 'Send Kudos'}
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Tip: Use the format @username ++ in your tweets to
-                  automatically track kudos
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          {/* Live stats strip */}
+          <div className="mt-12 flex items-center justify-center gap-8 sm:gap-12">
+            <StatPill
+              value={agentsData ? agentsData.total.toLocaleString() : '...'}
+              label="Agents"
+            />
+            <StatPill value="15+" label="Chains" />
+            <StatPill
+              value={
+                leaderboard && leaderboard.length > 0
+                  ? leaderboard[0].total_score.toFixed(1)
+                  : '...'
+              }
+              label="Top Score"
+            />
+            <StatPill value="Live" label="Abstract" accent />
+          </div>
+        </div>
+      </section>
 
-        {/* Recent Kudos Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Kudos Activity</CardTitle>
-            <CardDescription>
-              Latest kudos given across the network
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="animate-pulse flex items-center justify-between p-4 rounded-lg bg-muted/50"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-muted" />
-                      <div className="space-y-2">
-                        <div className="h-4 w-32 bg-muted rounded" />
-                        <div className="h-3 w-24 bg-muted rounded" />
-                      </div>
-                    </div>
-                    <div className="h-6 w-16 bg-muted rounded" />
-                  </div>
-                ))}
-              </div>
-            ) : recentKudos.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No kudos yet. Be the first to give kudos!
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {recentKudos.map((kudos) => (
-                  <div
-                    key={kudos.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
-                  >
-                    <div className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarFallback>
-                          {kudos.fromHandle[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">
-                          @{kudos.fromHandle} - @{kudos.toHandle}
+      {/* Search */}
+      <section className="mx-auto max-w-5xl px-4 pb-10">
+        <div className="mx-auto max-w-lg">
+          <AgentSearch
+            onSelect={goToAgent}
+            placeholder="Search 21,000+ agents by name..."
+          />
+        </div>
+      </section>
+
+      {/* Two-column: Leaderboard + Kudos */}
+      <section className="mx-auto max-w-5xl px-4 pb-16">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Top Agents */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold">Top Agents</h2>
+              <Link
+                href="/leaderboard"
+                className="text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                View all →
+              </Link>
+            </div>
+            <div className="rounded-xl border border-border overflow-hidden">
+              {loadingLeaderboard
+                ? Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-14 animate-pulse bg-muted/30 border-b border-border last:border-b-0"
+                    />
+                  ))
+                : leaderboard?.map((agent, i) => (
+                    <button
+                      key={agent.id}
+                      type="button"
+                      onClick={() => goToAgent(agent)}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-left transition-colors hover:bg-muted/30 border-b border-border last:border-b-0 cursor-pointer"
+                    >
+                      <span
+                        className={`w-6 text-sm font-bold tabular-nums ${
+                          i < 3 ? 'text-primary' : 'text-muted-foreground'
+                        }`}
+                      >
+                        #{i + 1}
+                      </span>
+                      <AgentAvatar
+                        name={agent.name}
+                        imageUrl={agent.image_url}
+                        size={32}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-semibold truncate">
+                            {agent.name}
+                          </p>
+                          <ChainIcon chainId={agent.chain_id} size={14} />
                         </div>
-                        {kudos.message && (
-                          <div className="text-sm text-muted-foreground">
-                            {kudos.message}
-                          </div>
+                        {agent.total_feedbacks > 0 && (
+                          <p className="text-[11px] text-muted-foreground">
+                            {agent.total_feedbacks} feedback
+                          </p>
                         )}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={kudos.tweetUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-500 hover:underline"
-                      >
-                        View Tweet
-                      </a>
-                      <Badge variant="outline">
-                        {formatTimestamp(kudos.timestamp)}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Leaderboard Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Kudos Leaderboard</CardTitle>
-            <CardDescription>Top kudos receivers and givers</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="animate-pulse flex items-center justify-between p-4 rounded-lg bg-muted/50"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-8 w-8 bg-muted rounded" />
-                      <div className="h-10 w-10 rounded-full bg-muted" />
-                      <div className="space-y-2">
-                        <div className="h-4 w-24 bg-muted rounded" />
-                        <div className="h-3 w-16 bg-muted rounded" />
+                      <div className="text-right">
+                        <p className="text-sm font-bold tabular-nums">
+                          {agent.total_score.toFixed(1)}
+                        </p>
                       </div>
-                    </div>
-                    <div className="h-8 w-20 bg-muted rounded" />
-                  </div>
-                ))}
-              </div>
-            ) : leaderboard.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No leaderboard data yet. Start giving kudos to populate the
-                leaderboard!
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {leaderboard.map((user, index) => (
-                  <div
-                    key={user.handle}
-                    className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="text-2xl font-bold text-muted-foreground">
-                        #{index + 1}
-                      </div>
-                      <Avatar>
-                        <AvatarFallback>
-                          {user.handle[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">@{user.handle}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {user.kudosGiven} given
-                        </div>
-                      </div>
-                    </div>
-                    <Badge variant="default" className="text-lg px-3 py-1">
-                      {user.kudosReceived} kudos
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </button>
+                  ))}
+            </div>
+          </div>
 
-        {/* My Profile Section - only for registered users */}
-        {isRegistered && userProfile && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Profile</CardTitle>
-              <CardDescription>
-                Your kudos statistics and history
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="flex items-center gap-6">
-                  <Avatar className="h-20 w-20">
-                    <AvatarFallback className="text-2xl">
-                      {userProfile.handle[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-2xl font-bold">
-                        @{userProfile.handle}
-                      </h3>
-                      {userData?.isPrivate && (
-                        <Badge variant="secondary" className="gap-1">
-                          <Lock className="h-3 w-3" />
-                          Private
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex gap-4 mt-2">
-                      <Badge variant="secondary" className="text-lg px-3 py-1">
-                        {userProfile.kudosReceived} Received
-                      </Badge>
-                      <Badge variant="outline" className="text-lg px-3 py-1">
-                        {userProfile.kudosGiven} Given
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground">
-                    Keep giving kudos to climb the leaderboard! Your kudos are
-                    permanently recorded on the blockchain.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          {/* How It Works */}
+          <div>
+            <h2 className="text-lg font-bold mb-3">How ACK Works</h2>
+            <div className="space-y-4">
+              <HowItWorksCard
+                step="01"
+                title="Discover Agents"
+                desc="Browse 21,000+ AI agents registered on ERC-8004 across 15+ chains."
+              />
+              <HowItWorksCard
+                step="02"
+                title="Review Reputation"
+                desc="See protocol scores, peer kudos, and category breakdowns for any agent."
+              />
+              <HowItWorksCard
+                step="03"
+                title="Give Kudos"
+                desc="Connect your wallet and leave onchain feedback — reliability, creativity, speed, and more."
+              />
+              <HowItWorksCard
+                step="04"
+                title="Build Consensus"
+                desc="Agent reputation emerges from peer consensus. The more kudos, the clearer the signal."
+              />
+            </div>
+          </div>
+        </div>
+      </section>
 
-        {/* Account Settings - only for registered users */}
-        {isRegistered && (
-          <AccountSettings
-            userData={userData}
-            onDataUpdate={checkRegistrationStatus}
-          />
-        )}
+      {/* Built on strip */}
+      <section className="border-t border-border bg-muted/30">
+        <div className="mx-auto max-w-5xl px-4 py-8 text-center">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">
+            Built on
+          </p>
+          <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
+            <span className="font-semibold">Abstract</span>
+            <span className="text-border">·</span>
+            <span className="font-semibold">ERC-8004</span>
+            <span className="text-border">·</span>
+            <span className="font-semibold">8004scan</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-8">
+        <div className="mx-auto max-w-5xl px-4 flex items-center justify-between text-xs text-muted-foreground">
+          <p>ACK — Agent Consensus Kudos</p>
+          <a
+            href="https://www.8004scan.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground transition-colors"
+          >
+            Powered by 8004scan
+          </a>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function HowItWorksCard({
+  step,
+  title,
+  desc,
+}: {
+  step: string;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="flex gap-4 rounded-xl border border-border p-4 transition-colors hover:border-primary/30">
+      <span className="text-2xl font-bold text-primary/30 tabular-nums shrink-0">
+        {step}
+      </span>
+      <div>
+        <p className="font-semibold text-sm">{title}</p>
+        <p className="text-sm text-muted-foreground mt-0.5">{desc}</p>
       </div>
+    </div>
+  );
+}
+
+function Step({ n, children }: { n: number; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+        {n}
+      </span>
+      <p className="pt-0.5">{children}</p>
+    </div>
+  );
+}
+
+function StatPill({
+  value,
+  label,
+  accent,
+}: {
+  value: string;
+  label: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="text-center">
+      <p className={`text-2xl font-bold tracking-tight ${accent ? 'text-primary' : ''}`}>
+        {value}
+      </p>
+      <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }

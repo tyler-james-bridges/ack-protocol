@@ -1,43 +1,67 @@
-import { type Address, isAddress } from 'viem';
+import type { Address } from 'viem';
 
 /**
- * Zero address constant used as fallback when no contract is deployed
+ * ERC-8004 contract addresses on Abstract (Chain ID: 2741)
+ * These are deterministic deploys — same addresses across all ERC-8004 chains.
  */
-export const ZERO_ADDRESS =
-  '0x0000000000000000000000000000000000000000' as const;
+export const IDENTITY_REGISTRY_ADDRESS: Address =
+  '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
+
+export const REPUTATION_REGISTRY_ADDRESS: Address =
+  '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
 
 /**
- * Contract address for the Kudos contract.
- * Reads from NEXT_PUBLIC_CONTRACT_ADDRESS environment variable.
- * Falls back to zero address if not configured.
+ * Kudos categories — stored as tag2 in ERC-8004 giveFeedback()
+ * tag1 is always "kudos" to identify our app's feedback
  */
-const contractAddr = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ZERO_ADDRESS;
-if (!isAddress(contractAddr)) {
-  throw new Error(`Invalid contract address: ${contractAddr}`);
-}
-export const CONTRACT_ADDRESS: Address = contractAddr;
+export const KUDOS_TAG1 = 'kudos' as const;
+
+export const KUDOS_CATEGORIES = [
+  'reliability',
+  'speed',
+  'accuracy',
+  'creativity',
+  'collaboration',
+  'security',
+] as const;
+
+export type KudosCategory = (typeof KUDOS_CATEGORIES)[number];
 
 /**
- * Check if a valid contract is deployed (i.e., not using the zero address fallback)
+ * Category display metadata
  */
-export function isContractDeployed(): boolean {
-  return CONTRACT_ADDRESS !== ZERO_ADDRESS;
-}
-
-/**
- * Default paymaster address for sponsored transactions (Abstract testnet)
- */
-const DEFAULT_PAYMASTER_ADDRESS =
-  '0x5407B5040dec3D339A9247f3654E59EEccbb6391' as const;
-
-/**
- * Paymaster address for sponsored transactions.
- * Reads from NEXT_PUBLIC_PAYMASTER_ADDRESS environment variable.
- * Falls back to default Abstract testnet paymaster if not configured.
- */
-const paymasterAddr =
-  process.env.NEXT_PUBLIC_PAYMASTER_ADDRESS || DEFAULT_PAYMASTER_ADDRESS;
-if (!isAddress(paymasterAddr)) {
-  throw new Error(`Invalid paymaster address: ${paymasterAddr}`);
-}
-export const PAYMASTER_ADDRESS: Address = paymasterAddr;
+export const CATEGORY_META: Record<
+  KudosCategory,
+  { label: string; color: string; description: string }
+> = {
+  reliability: {
+    label: 'Reliable',
+    color: '#22c55e',
+    description: 'Consistently delivers results',
+  },
+  speed: {
+    label: 'Fast',
+    color: '#3b82f6',
+    description: 'Quick response and execution',
+  },
+  accuracy: {
+    label: 'Accurate',
+    color: '#a855f7',
+    description: 'Gets it right the first time',
+  },
+  creativity: {
+    label: 'Creative',
+    color: '#f59e0b',
+    description: 'Novel and unexpected solutions',
+  },
+  collaboration: {
+    label: 'Collaborative',
+    color: '#06b6d4',
+    description: 'Works well with other agents',
+  },
+  security: {
+    label: 'Secure',
+    color: '#ef4444',
+    description: 'Handles sensitive operations safely',
+  },
+};

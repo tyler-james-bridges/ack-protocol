@@ -1,10 +1,13 @@
 import { abstract, abstractTestnet } from 'viem/chains';
 
 /**
- * Chain configuration for the Kudos application.
- * Uses NEXT_PUBLIC_CHAIN environment variable to select the chain:
- * - 'mainnet' -> Abstract mainnet
- * - anything else (or unset) -> Abstract testnet (default)
+ * Chain configuration for the Agent Kudos app.
+ * Defaults to Abstract mainnet. Set NEXT_PUBLIC_CHAIN=testnet for dev.
  */
 export const chain =
-  process.env.NEXT_PUBLIC_CHAIN === 'mainnet' ? abstract : abstractTestnet;
+  process.env.NEXT_PUBLIC_CHAIN === 'testnet' ? abstractTestnet : abstract;
+
+/**
+ * Abstract chain ID for ERC-8004 agent registry references
+ */
+export const ABSTRACT_CHAIN_ID = abstract.id;

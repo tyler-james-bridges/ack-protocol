@@ -1,46 +1,121 @@
-/**
- * Shared type definitions for the Kudos application
- */
+import type { Address } from 'viem';
+import type { KudosCategory } from '@/config/contract';
 
 /**
- * Represents a kudos entry in the system
+ * ERC-8004 Agent Registration File structure
+ * Reference: https://eips.ethereum.org/EIPS/eip-8004#agent-uri-and-agent-registration-file
  */
-export interface KudosEntry {
-  id: string;
-  fromHandle: string;
-  toHandle: string;
-  tweetUrl: string;
-  timestamp: number;
-  message?: string;
+export interface AgentRegistrationFile {
+  type: string;
+  name: string;
+  description: string;
+  image?: string;
+  services?: AgentService[];
+  x402Support?: boolean;
+  active?: boolean;
+  registrations?: AgentRegistration[];
+  supportedTrust?: string[];
+}
+
+export interface AgentService {
+  name: string;
+  endpoint: string;
+  version?: string;
+}
+
+export interface AgentRegistration {
+  agentId: number;
+  agentRegistry: string;
 }
 
 /**
- * Represents a user profile with kudos statistics
+ * Resolved agent identity — combines on-chain + off-chain data
  */
-export interface UserProfile {
-  handle: string;
+export interface AgentIdentity {
+  agentId: number;
+  owner: Address;
+  agentURI: string;
+  chainId: number;
+  registration: AgentRegistrationFile | null;
+  wallet: Address | null;
+}
+
+/**
+ * Kudos feedback entry — wraps ERC-8004 feedback with our kudos context
+ */
+export interface KudosFeedback {
+  agentId: number;
+  clientAddress: Address;
+  feedbackIndex: number;
+  value: number;
+  category: KudosCategory;
+  message: string;
+  timestamp: number;
+  feedbackURI: string;
+  isRevoked: boolean;
+}
+
+/**
+ * Off-chain kudos data stored at feedbackURI (IPFS)
+ */
+export interface KudosPayload {
+  agentRegistry: string;
+  agentId: number;
+  clientAddress: string;
+  createdAt: string;
+  value: number;
+  valueDecimals: number;
+  tag1: 'kudos';
+  tag2: KudosCategory;
+  message: string;
+  fromAgentId?: number;
+}
+
+/**
+ * Agent card display data — pre-resolved for UI
+ */
+export interface AgentCardData {
+  agentId: number;
+  name: string;
+  description: string;
+  image: string | null;
+  chainId: number;
+  owner: Address;
   kudosReceived: number;
   kudosGiven: number;
-  walletAddress?: string;
+  services: string[];
+  active: boolean;
 }
 
 /**
- * Represents a simulated tweet for testing purposes
+ * Leaderboard entry
  */
-export interface SimulatedTweet {
-  id: string;
-  text: string;
-  author: string;
-  timestamp: Date;
-  processed: boolean;
+export interface LeaderboardEntry {
+  agentId: number;
+  name: string;
+  image: string | null;
+  chainId: number;
+  kudosCount: number;
+  topCategory: KudosCategory | null;
 }
 
 /**
- * Represents a found tweet from search results
+ * Graph node for social graph visualization
  */
-export interface FoundTweet {
+export interface GraphNode {
   id: string;
-  authorUsername: string;
-  text: string;
-  url: string;
+  agentId: number;
+  name: string;
+  image: string | null;
+  kudosReceived: number;
+}
+
+/**
+ * Graph edge for social graph visualization
+ */
+export interface GraphEdge {
+  source: string;
+  target: string;
+  category: KudosCategory;
+  count: number;
 }

@@ -11,7 +11,7 @@ import {
 } from '@/config/contract';
 import type { KudosCategory } from '@/config/contract';
 import { chain } from '@/config/chain';
-import { uploadKudosToIPFS } from '@/lib/ipfs';
+// Kudos payload stored fully onchain as data URI
 
 interface GiveKudosParams {
   agentId: number;
@@ -23,7 +23,6 @@ interface GiveKudosParams {
 
 type KudosStatus =
   | 'idle'
-  | 'uploading'
   | 'confirming'
   | 'waiting'
   | 'success'
@@ -41,7 +40,7 @@ type KudosStatus =
 export function useGiveKudos() {
   const [status, setStatus] = useState<KudosStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
-  const [ipfsURI, setIpfsURI] = useState<string | null>(null);
+  const [feedbackDataURI, setFeedbackDataURI] = useState<string | null>(null);
 
   const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
@@ -52,10 +51,10 @@ export function useGiveKudos() {
   const giveKudos = useCallback(
     async (params: GiveKudosParams) => {
       setError(null);
-      setStatus('uploading');
+      setStatus('confirming');
 
       try {
-        // Step 1: Build and upload payload to IPFS
+        // Build kudos payload — stored fully onchain as data URI
         const payload = {
           agentRegistry: IDENTITY_REGISTRY_ADDRESS,
           agentId: params.agentId,
@@ -69,14 +68,8 @@ export function useGiveKudos() {
           fromAgentId: params.fromAgentId,
         };
 
-        let feedbackURI = '';
-        try {
-          feedbackURI = await uploadKudosToIPFS(payload);
-          setIpfsURI(feedbackURI);
-        } catch {
-          // IPFS upload optional — proceed without it
-          console.warn('IPFS upload skipped (no Pinata JWT configured)');
-        }
+        // Store payload onchain as a base64 data URI — no IPFS dependency
+        const feedbackURI = `data:application/json;base64,${btoa(JSON.stringify(payload))}`;
 
         // Step 2: Hash the payload for on-chain verification
         const feedbackHash = keccak256(toBytes(JSON.stringify(payload)));
@@ -119,7 +112,7 @@ export function useGiveKudos() {
   const reset = useCallback(() => {
     setStatus('idle');
     setError(null);
-    setIpfsURI(null);
+    setFeedbackDataURI(null);
     resetWrite();
   }, [resetWrite]);
 
@@ -131,10 +124,9 @@ export function useGiveKudos() {
     status: finalStatus,
     error,
     txHash,
-    ipfsURI,
+    feedbackDataURI,
     reset,
     isLoading:
-      finalStatus === 'uploading' ||
       finalStatus === 'confirming' ||
       finalStatus === 'waiting',
   };

@@ -8,10 +8,24 @@ function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+function parseMessage(feedbackURI: string): string | null {
+  try {
+    if (feedbackURI.startsWith('data:application/json;base64,')) {
+      const json = atob(feedbackURI.replace('data:application/json;base64,', ''));
+      const payload = JSON.parse(json);
+      return payload.message || null;
+    }
+  } catch {
+    // ignore malformed URIs
+  }
+  return null;
+}
+
 function KudosCard({ kudos }: { kudos: KudosEvent }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
   );
+  const message = parseMessage(kudos.feedbackURI);
 
   return (
     <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900/50 hover:border-[#00DE73]/40 transition-colors">
@@ -30,6 +44,10 @@ function KudosCard({ kudos }: { kudos: KudosEvent }) {
           <span className="text-xs text-neutral-500">{kudos.tag2}</span>
         )}
       </div>
+
+      {message && (
+        <p className="text-sm text-neutral-200 my-2">&ldquo;{message}&rdquo;</p>
+      )}
 
       <div className="flex items-center justify-between text-xs text-neutral-500 mt-2">
         <span>Block #{kudos.blockNumber.toString()}</span>

@@ -165,11 +165,9 @@ export function InlineKudosForm({
       {/* Submit */}
       <Button onClick={handleSubmit} disabled={!canSubmit} className="w-full">
         {isLoading
-          ? status === 'uploading'
-            ? 'Uploading to IPFS...'
-            : status === 'confirming'
-              ? 'Confirm in wallet...'
-              : 'Waiting for confirmation...'
+          ? status === 'confirming'
+            ? 'Confirm in wallet...'
+            : 'Waiting for confirmation...'
           : 'Send Kudos'}
       </Button>
 

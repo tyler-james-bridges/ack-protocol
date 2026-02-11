@@ -3,9 +3,7 @@ import type { KudosPayload } from '@/lib/types';
 /**
  * Upload kudos payload to IPFS via Pinata.
  * Returns the IPFS URI (ipfs://CID) for use as feedbackURI.
- *
- * Uses the Pinata API directly to avoid SDK bundle size.
- * Requires NEXT_PUBLIC_PINATA_JWT environment variable.
+ * Returns empty string silently if Pinata is not configured.
  */
 export async function uploadKudosToIPFS(
   payload: KudosPayload
@@ -21,9 +19,11 @@ export async function uploadKudosToIPFS(
     }),
   });
 
+  // Silently skip if IPFS not configured (no Pinata JWT)
+  if (response.status === 503) return '';
+
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`IPFS upload failed: ${error}`);
+    throw new Error(`IPFS upload failed: ${response.status}`);
   }
 
   const data = await response.json();

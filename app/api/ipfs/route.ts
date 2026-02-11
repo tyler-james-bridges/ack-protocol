@@ -3,10 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   const jwt = process.env.PINATA_JWT;
   if (!jwt) {
-    return NextResponse.json(
-      { error: 'IPFS upload not configured' },
-      { status: 503 }
-    );
+    // Return success with empty hash — IPFS is optional
+    return NextResponse.json({ IpfsHash: '' });
   }
 
   const body = await request.json();

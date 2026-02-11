@@ -1,11 +1,23 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { createPublicClient, http, parseAbiItem, type Address } from 'viem';
+import {
+  createPublicClient,
+  http,
+  type Address,
+  type Hex,
+  decodeAbiParameters,
+  numberToHex,
+  padHex,
+} from 'viem';
 import { abstract } from 'viem/chains';
 
 const REPUTATION_REGISTRY =
   '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63' as const;
+
+// Actual event topic from on-chain tx logs
+const FEEDBACK_GIVEN_TOPIC =
+  '0x6a4a61743519c9d648a14e6493f47dbe3ff1aa29e7785c96c8326a205e58febc' as const;
 
 export interface KudosEvent {
   sender: Address;
@@ -13,39 +25,76 @@ export interface KudosEvent {
   tag1: string;
   tag2: string;
   feedbackURI: string;
-  feedbackHash: string;
+  feedbackHash: Hex;
   blockNumber: bigint;
-  txHash: string;
+  txHash: Hex;
 }
 
 const client = createPublicClient({ chain: abstract, transport: http() });
 
 async function fetchKudos(agentId: number): Promise<KudosEvent[]> {
   const currentBlock = await client.getBlockNumber();
-  const fromBlock = currentBlock > BigInt(10000) ? currentBlock - BigInt(10000) : BigInt(0);
+  const fromBlock =
+    currentBlock > BigInt(50000) ? currentBlock - BigInt(50000) : BigInt(0);
 
-  const logs = await client.getLogs({
-    address: REPUTATION_REGISTRY,
-    event: parseAbiItem(
-      'event FeedbackGiven(uint256 indexed agentId, address indexed sender, int128 value, uint8 valueDecimals, string tag1, string tag2, string endpoint, string feedbackURI, bytes32 feedbackHash)'
-    ),
-    args: { agentId: BigInt(agentId) },
-    fromBlock,
-    toBlock: currentBlock,
+  // Filter by topic[0]=event sig, topic[1]=agentId (uint256, padded to 32 bytes)
+  const agentIdTopic = padHex(numberToHex(agentId), { size: 32 });
+
+  const logs = await client.request({
+    method: 'eth_getLogs',
+    params: [
+      {
+        address: REPUTATION_REGISTRY,
+        topics: [FEEDBACK_GIVEN_TOPIC, agentIdTopic],
+        fromBlock: numberToHex(fromBlock),
+        toBlock: numberToHex(currentBlock),
+      },
+    ],
   });
 
-  return logs
-    .filter((log) => log.args.tag1 === 'kudos')
-    .map((log) => ({
-      sender: log.args.sender!,
-      value: log.args.value!,
-      tag1: log.args.tag1!,
-      tag2: log.args.tag2!,
-      feedbackURI: log.args.feedbackURI!,
-      feedbackHash: log.args.feedbackHash!,
-      blockNumber: log.blockNumber,
-      txHash: log.transactionHash,
-    }));
+  return (logs as Array<{
+    topics: Hex[];
+    data: Hex;
+    blockNumber: Hex;
+    transactionHash: Hex;
+  }>)
+    .map((log) => {
+      const sender = ('0x' + log.topics[2].slice(26)) as Address;
+      const feedbackHash = log.topics[3] as Hex;
+
+      // Decode non-indexed data
+      // Based on tx data: uint8 version, int128 value, uint8 valueDecimals,
+      // string tag1, string tag2, string endpoint, string feedbackURI, bytes32 extraHash
+      try {
+        const decoded = decodeAbiParameters(
+          [
+            { name: 'version', type: 'uint8' },
+            { name: 'value', type: 'int128' },
+            { name: 'valueDecimals', type: 'uint8' },
+            { name: 'tag1', type: 'string' },
+            { name: 'tag2', type: 'string' },
+            { name: 'endpoint', type: 'string' },
+            { name: 'feedbackURI', type: 'string' },
+            { name: 'extraHash', type: 'bytes32' },
+          ],
+          log.data
+        );
+
+        return {
+          sender,
+          value: decoded[1],
+          tag1: decoded[3],
+          tag2: decoded[4],
+          feedbackURI: decoded[6],
+          feedbackHash,
+          blockNumber: BigInt(log.blockNumber),
+          txHash: log.transactionHash,
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter((e): e is KudosEvent => e !== null && e.tag1 === 'kudos');
 }
 
 export function useKudosReceived(agentId: number | undefined) {

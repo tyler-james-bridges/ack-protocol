@@ -26,6 +26,12 @@ export function Nav() {
           >
             Leaderboard
           </Link>
+          <Link
+            href="/graph"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
+          >
+            Graph
+          </Link>
         </div>
 
         <div className="flex items-center gap-2">

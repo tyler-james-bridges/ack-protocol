@@ -69,11 +69,10 @@ export function useGiveKudos() {
         };
 
         // Store just the message onchain — other fields are already in event args
-        // Using text/plain to minimize calldata (saves ~60% gas vs full JSON payload)
         const feedbackURI = `data:,${encodeURIComponent(params.message.trim())}`;
 
-        // Step 2: Hash the payload for on-chain verification
-        const feedbackHash = keccak256(toBytes(JSON.stringify(payload)));
+        // Hash matches what's stored — independently verifiable from chain data
+        const feedbackHash = keccak256(toBytes(feedbackURI));
 
         // Step 3: Call giveFeedback on the Reputation Registry
         setStatus('confirming');

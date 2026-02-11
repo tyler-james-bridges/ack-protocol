@@ -69,21 +69,9 @@ export const POST = withSiwa(async (agent, req) => {
     );
   }
 
-  // Build kudos payload
-  const payload = {
-    agentRegistry: IDENTITY_REGISTRY_ADDRESS,
-    agentId,
-    fromAddress: agent.address,
-    fromAgentId: agent.agentId,
-    createdAt: new Date().toISOString(),
-    value: 100,
-    valueDecimals: 0,
-    tag1: KUDOS_TAG1,
-    tag2: category,
-    message: message.trim(),
-  };
-
-  const feedbackHash = keccak256(toBytes(JSON.stringify(payload)));
+  // Store just the message — other fields are in event args
+  const feedbackURI = `data:,${encodeURIComponent(message.trim())}`;
+  const feedbackHash = keccak256(toBytes(feedbackURI));
 
   // Encode giveFeedback transaction
   const txData = encodeFunctionData({
@@ -96,7 +84,7 @@ export const POST = withSiwa(async (agent, req) => {
       KUDOS_TAG1,
       category,
       '',
-      '',
+      feedbackURI,
       feedbackHash,
     ],
   });
@@ -110,7 +98,7 @@ export const POST = withSiwa(async (agent, req) => {
       data: txData,
       chainId: abstract.id,
     },
-    payload,
+    feedbackURI,
     feedbackHash,
     rateLimit: { remaining: rateLimit.remaining, resetAt: rateLimit.resetAt },
   };

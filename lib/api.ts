@@ -153,51 +153,57 @@ export async function fetchAgentFeedback(
  * 8004scan has no leaderboard endpoint and no server-side sort,
  * so we fetch a large batch and sort client-side by total_score.
  */
+// Cache the full agent pool so filter/sort switches are instant
+let agentPoolCache: { agents: ScanAgent[]; ts: number } | null = null;
+const POOL_TTL = 120_000; // 2 min
+
+async function getAgentPool(): Promise<ScanAgent[]> {
+  if (agentPoolCache && Date.now() - agentPoolCache.ts < POOL_TTL) {
+    return agentPoolCache.agents;
+  }
+
+  // Fetch 5 pages in parallel (500 agents)
+  const pageSize = 100;
+  const pages = [0, 1, 2, 3, 4];
+  const results = await Promise.all(
+    pages.map((page) =>
+      proxyFetch<ScanAgentsResponse>('agents', {
+        limit: pageSize,
+        offset: page * pageSize,
+        sort_by: 'total_score',
+        sort_order: 'desc',
+      })
+    )
+  );
+
+  const all = results.flatMap((r) => r.items || []).filter((a) => !a.is_testnet);
+  // Dedupe by id
+  const seen = new Set<string>();
+  const deduped = all.filter((a) => {
+    if (seen.has(a.id)) return false;
+    seen.add(a.id);
+    return true;
+  });
+
+  agentPoolCache = { agents: deduped, ts: Date.now() };
+  return deduped;
+}
+
 export async function fetchLeaderboard(
   options: { limit?: number; chainId?: number; sortBy?: string } = {}
 ): Promise<ScanAgent[]> {
   const sortBy = options.sortBy || 'total_score';
   const displayLimit = options.limit || 50;
 
-  if (!options.chainId) {
-    // No chain filter — single fetch is fine
-    const data = await proxyFetch<ScanAgentsResponse>('agents', {
-      limit: 100,
-      sort_by: sortBy,
-      sort_order: 'desc',
-    });
-    return (data.items || [])
-      .filter((a: ScanAgent) => !a.is_testnet)
-      .slice(0, displayLimit);
-  }
+  const pool = await getAgentPool();
 
-  // Chain filter active — paginate to find enough agents for this chain.
-  // 8004scan ignores chain_id param, so we must filter client-side.
-  const collected: ScanAgent[] = [];
-  const pageSize = 100;
-  const maxPages = 5; // Cap at 500 agents scanned
+  let filtered = options.chainId
+    ? pool.filter((a) => a.chain_id === options.chainId)
+    : pool;
 
-  for (let page = 0; page < maxPages; page++) {
-    const data = await proxyFetch<ScanAgentsResponse>('agents', {
-      limit: pageSize,
-      offset: page * pageSize,
-      sort_by: sortBy,
-      sort_order: 'desc',
-    });
-    const items = data.items || [];
-    if (items.length === 0) break;
-
-    const matching = items.filter(
-      (a: ScanAgent) => a.chain_id === options.chainId && !a.is_testnet
-    );
-    collected.push(...matching);
-
-    // Stop if we have enough or exhausted results
-    if (collected.length >= displayLimit || items.length < pageSize) break;
-  }
-
-  // Re-sort and limit
+  // Sort
   const sortKey = sortBy as keyof ScanAgent;
-  collected.sort((a, b) => (Number(b[sortKey]) || 0) - (Number(a[sortKey]) || 0));
-  return collected.slice(0, displayLimit);
+  filtered.sort((a, b) => (Number(b[sortKey]) || 0) - (Number(a[sortKey]) || 0));
+
+  return filtered.slice(0, displayLimit);
 }

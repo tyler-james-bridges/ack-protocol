@@ -18,8 +18,8 @@ export function AgentCard({ agent, onClick, className }: AgentCardProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full text-left rounded-xl border border-border bg-card p-4',
-        'transition-all duration-200 hover:border-primary/30 hover:shadow-md',
+        'w-full text-left rounded-xl border border-border bg-card p-4 card-glow',
+        'transition-all duration-200 hover:border-primary/30',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         onClick && 'cursor-pointer',
         className

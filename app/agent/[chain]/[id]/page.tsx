@@ -97,7 +97,7 @@ export default function AgentProfilePage({
                 {agent.is_active && (
                   <Badge
                     variant="outline"
-                    className="text-green-600 border-green-200"
+                    className="text-green-400 border-green-400/30 pulse-green"
                   >
                     Active
                   </Badge>

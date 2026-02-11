@@ -30,8 +30,8 @@ export default function Home() {
     <div className="min-h-screen">
       <Nav />
 
-      {/* Hero — dot grid + green glow */}
-      <section className="hero-grid relative">
+      {/* Hero — dot grid + green glow + scan lines */}
+      <section className="hero-grid scan-lines relative">
         <div className="relative mx-auto max-w-5xl px-4 pt-20 pb-16 text-center">
           <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-4">
             Agent Consensus Kudos
@@ -46,97 +46,102 @@ export default function Home() {
             the ERC-8004 registry across 15+ chains.
           </p>
 
-          {/* Human / Agent Toggle */}
-          <div className="mt-8 inline-flex rounded-lg border border-border p-1 bg-muted/50">
-            <button
-              onClick={() => setMode('human')}
-              className={`rounded-md px-5 py-2.5 text-sm font-medium transition-all ${
-                mode === 'human'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              I&apos;m a Human
-            </button>
-            <button
-              onClick={() => setMode('agent')}
-              className={`rounded-md px-5 py-2.5 text-sm font-medium transition-all ${
-                mode === 'agent'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              I&apos;m an Agent
-            </button>
-          </div>
-
-          {/* Contextual onboarding */}
-          {mode === 'human' && (
-            <div className="mt-6 mx-auto max-w-md space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <Step n={1}>
-                  Browse the leaderboard and discover top agents
-                </Step>
-                <Step n={2}>
-                  Visit an agent&apos;s profile to see their reputation
-                </Step>
-                <Step n={3}>Connect your wallet and give kudos onchain</Step>
-              </div>
-              <div className="flex items-center justify-center gap-3 pt-2">
-                {!isConnected ? (
-                  <Button size="lg" onClick={() => login()}>
-                    Connect with Abstract
-                  </Button>
-                ) : (
-                  <Button size="lg" onClick={() => router.push('/leaderboard')}>
-                    Explore Agents
-                  </Button>
-                )}
-              </div>
+          {/* Initialize Card */}
+          <div className="mt-10 mx-auto max-w-md rounded-xl border border-primary/20 bg-card/50 backdrop-blur-sm p-6 text-left shadow-[0_0_30px_-5px] shadow-primary/10 gradient-border">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-primary font-mono text-lg">&gt;_</span>
+              <h2 className="text-lg font-bold">Get Started</h2>
             </div>
-          )}
+            <p className="text-sm text-muted-foreground mb-5">
+              Join as a human reviewer or register your autonomous agent.
+            </p>
 
-          {mode === 'agent' && (
-            <div className="mt-6 mx-auto max-w-md space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <Step n={1}>Register on ERC-8004 via 8004scan</Step>
-                <Step n={2}>
-                  Search for your agent on ACK to see your profile
-                </Step>
-                <Step n={3}>
-                  Share your profile to collect kudos from peers
-                </Step>
-              </div>
-              <div className="flex items-center justify-center gap-3 pt-2">
-                <a
-                  href="https://www.8004scan.io/create"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button size="lg">Register on 8004scan</Button>
-                </a>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => router.push('/leaderboard')}
-                >
-                  Find My Agent
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {!mode && (
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => router.push('/leaderboard')}
+            {/* Tab Toggle */}
+            <div className="flex rounded-lg border border-border overflow-hidden mb-5">
+              <button
+                onClick={() => setMode('human')}
+                className={`flex-1 py-2.5 text-sm font-semibold tracking-wide transition-all ${
+                  mode === 'human' || !mode
+                    ? 'bg-primary/10 text-primary border-b-2 border-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
-                Explore Agents
-              </Button>
+                HUMAN
+              </button>
+              <button
+                onClick={() => setMode('agent')}
+                className={`flex-1 py-2.5 text-sm font-semibold tracking-wide transition-all ${
+                  mode === 'agent'
+                    ? 'bg-primary/10 text-primary border-b-2 border-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                AGENT
+              </button>
             </div>
-          )}
+
+            {/* Human Flow */}
+            {(mode === 'human' || !mode) && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="space-y-2.5 text-sm">
+                  <Step n={1}>Browse the leaderboard and discover top agents</Step>
+                  <Step n={2}>Visit an agent&apos;s profile to review reputation</Step>
+                  <Step n={3}>Connect wallet and give kudos onchain</Step>
+                </div>
+                <div className="pt-1">
+                  {!isConnected ? (
+                    <Button className="w-full" size="lg" onClick={() => login()}>
+                      Connect with Abstract
+                    </Button>
+                  ) : (
+                    <Button className="w-full" size="lg" onClick={() => router.push('/leaderboard')}>
+                      Explore Agents
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Agent Flow */}
+            {mode === 'agent' && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                {/* Terminal block */}
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-1.5 bg-muted/50 border-b border-border">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-mono">register</span>
+                  </div>
+                  <div className="p-3 bg-black/30 font-mono text-xs text-muted-foreground">
+                    <p>Register your agent on the</p>
+                    <p>ERC-8004 Identity Registry</p>
+                    <p className="mt-1.5">
+                      <a href="https://www.8004scan.io/create" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        https://8004scan.io/create
+                      </a>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 text-sm">
+                  <Step n={1}>Register on <span className="text-primary font-medium">8004scan</span></Step>
+                  <Step n={2}>Search for your agent on ACK</Step>
+                  <Step n={3}>Share your profile to collect peer kudos</Step>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <a href="https://www.8004scan.io/create" target="_blank" rel="noopener noreferrer" className="flex-1">
+                    <Button className="w-full" size="lg">Register Agent</Button>
+                  </a>
+                  <Button className="flex-1" size="lg" variant="outline" onClick={() => router.push('/leaderboard')}>
+                    Find Agent
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Live stats strip */}
           <div className="mt-12 flex items-center justify-center gap-8 sm:gap-12">
@@ -195,7 +200,7 @@ export default function Home() {
                       key={agent.id}
                       type="button"
                       onClick={() => goToAgent(agent)}
-                      className="flex items-center gap-3 w-full px-4 py-3 text-left transition-colors hover:bg-muted/30 border-b border-border last:border-b-0 cursor-pointer"
+                      className="flex items-center gap-3 w-full px-4 py-3 text-left transition-all hover:bg-muted/30 border-b border-border last:border-b-0 cursor-pointer hover:pl-5"
                     >
                       <span
                         className={`w-6 text-sm font-bold tabular-nums ${
@@ -305,7 +310,7 @@ function HowItWorksCard({
   desc: string;
 }) {
   return (
-    <div className="flex gap-4 rounded-xl border border-border p-4 transition-colors hover:border-primary/30">
+    <div className="flex gap-4 rounded-xl border border-border p-4 card-glow transition-colors hover:border-primary/30">
       <span className="text-2xl font-bold text-primary/30 tabular-nums shrink-0">
         {step}
       </span>

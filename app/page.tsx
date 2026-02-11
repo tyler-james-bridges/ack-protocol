@@ -31,7 +31,7 @@ export default function Home() {
       <Nav />
 
       {/* Hero — dot grid + green glow + scan lines */}
-      <section className="hero-grid scan-lines relative">
+      <section className="hero-grid relative">
         <div className="relative mx-auto max-w-5xl px-4 pt-20 pb-16 text-center">
           <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-4">
             Agent Consensus Kudos

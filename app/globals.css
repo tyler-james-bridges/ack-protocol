@@ -108,7 +108,7 @@
   inset: 0;
   background-image: radial-gradient(
     circle,
-    oklch(0.5 0 0 / 15%) 1px,
+    oklch(0.45 0.15 155 / 30%) 1px,
     transparent 1px
   );
   background-size: 24px 24px;
@@ -139,7 +139,7 @@
   inset: 0;
   background: radial-gradient(
     ellipse 50% 50% at 50% 50%,
-    oklch(0.7 0 0 / 6%) 0%,
+    oklch(0.45 0.15 155 / 10%) 0%,
     transparent 70%
   );
   pointer-events: none;
@@ -177,7 +177,7 @@
 }
 
 /* ── Scan-line overlay ── */
-.scan-lines::before {
+.scan-lines::after {
   content: '';
   position: absolute;
   inset: 0;

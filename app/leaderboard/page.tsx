@@ -28,12 +28,14 @@ export default function LeaderboardPage() {
   const router = useRouter();
   const [chainFilter, setChainFilter] = useState(0);
   const [sortBy, setSortBy] = useState<SortKey>('total_score');
-  const { data: agents, isLoading } = useLeaderboard({ limit: 50, sortBy });
+  const { data: agents, isLoading } = useLeaderboard({
+    limit: 50,
+    sortBy,
+    chainId: chainFilter || undefined,
+  });
   const { data: allAgents } = useAgents({ limit: 1 });
 
-  const filtered = (agents || []).filter(
-    (a) => chainFilter === 0 || a.chain_id === chainFilter
-  );
+  const filtered = agents || [];
 
   const totalAgents = allAgents?.total || 0;
   const totalFeedback = filtered.reduce((sum, a) => sum + a.total_feedbacks, 0);

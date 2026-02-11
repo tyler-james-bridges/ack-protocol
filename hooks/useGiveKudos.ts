@@ -69,8 +69,14 @@ export function useGiveKudos() {
           fromAgentId: params.fromAgentId,
         };
 
-        const feedbackURI = await uploadKudosToIPFS(payload);
-        setIpfsURI(feedbackURI);
+        let feedbackURI = '';
+        try {
+          feedbackURI = await uploadKudosToIPFS(payload);
+          setIpfsURI(feedbackURI);
+        } catch {
+          // IPFS upload optional — proceed without it
+          console.warn('IPFS upload skipped (no Pinata JWT configured)');
+        }
 
         // Step 2: Hash the payload for on-chain verification
         const feedbackHash = keccak256(toBytes(JSON.stringify(payload)));

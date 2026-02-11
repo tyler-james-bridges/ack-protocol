@@ -30,13 +30,13 @@ export function InlineKudosForm({
   const [category, setCategory] = useState<KudosCategory | null>(null);
   const [message, setMessage] = useState('');
 
-  const canSubmit = category && message.trim().length > 0 && !isLoading;
+  const canSubmit = message.trim().length > 0 && !isLoading;
 
   const handleSubmit = () => {
     if (!canSubmit || !address) return;
     giveKudos({
       agentId: Number(agentTokenId),
-      category,
+      category: category || 'reliability',
       message: message.trim(),
       clientAddress: address,
     });
@@ -98,7 +98,7 @@ export function InlineKudosForm({
 
       {/* Category */}
       <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">Category</p>
+        <p className="text-xs text-muted-foreground">Category <span className="text-muted-foreground/40">(optional)</span></p>
         <div className="flex flex-wrap gap-2">
           {KUDOS_CATEGORIES.map((cat) => (
             <button
@@ -106,16 +106,17 @@ export function InlineKudosForm({
               type="button"
               onClick={() => setCategory(cat)}
               className={cn(
-                'transition-all duration-150',
+                'transition-all duration-150 rounded-full cursor-pointer',
                 category === cat
-                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-full'
-                  : 'opacity-60 hover:opacity-100'
+                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-105'
+                  : 'opacity-50 hover:opacity-90 hover:scale-105'
               )}
             >
               <CategoryBadge category={cat} size="md" />
             </button>
           ))}
         </div>
+{/* category is optional */}
       </div>
 
       {/* Message */}

@@ -13,7 +13,7 @@ const CHAIN_ICONS: Record<number, { name: string; src: string }> = {
   },
   2741: {
     name: 'Abstract',
-    src: 'https://assets.abstract.world/icons/light.png',
+    src: '/chains/abstract.svg',
   },
   8453: {
     name: 'Base',

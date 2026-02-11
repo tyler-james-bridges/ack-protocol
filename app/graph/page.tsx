@@ -72,7 +72,7 @@ export default function GraphPage() {
 
   const handleNodeClick = useCallback(
     (node: Record<string, unknown>) => {
-      const n = node as GraphNode;
+      const n = node as unknown as GraphNode;
       // Fly to node then navigate
       const fg = fgRef.current;
       if (fg) {
@@ -183,21 +183,19 @@ export default function GraphPage() {
             // Nodes
             nodeLabel=""
             nodeColor={(node: Record<string, unknown>) =>
-              (node as GraphNode).color
+              (node as unknown as GraphNode).color
             }
-            nodeVal={(node: Record<string, unknown>) => (node as GraphNode).val}
+            nodeVal={(node: Record<string, unknown>) => (node as unknown as GraphNode).val}
             nodeOpacity={0.9}
             nodeResolution={16}
             // Links
             linkColor={(link: Record<string, unknown>) =>
-              (link as Record<string, unknown>).color ||
-              'rgba(255,255,255,0.05)'
+              (link.color as string) || 'rgba(255,255,255,0.05)'
             }
             linkWidth={0.5}
             linkOpacity={0.6}
             linkDirectionalParticles={(link: Record<string, unknown>) => {
-              // Particles on cross-chain links
-              const color = (link as Record<string, unknown>).color || '';
+              const color = (link.color as string) || '';
               return color.includes('rgba') ? 2 : 0;
             }}
             linkDirectionalParticleWidth={1.5}
@@ -205,8 +203,8 @@ export default function GraphPage() {
             linkDirectionalParticleColor={() => '#00DE73'}
             // Interaction
             onNodeClick={handleNodeClick}
-            onNodeHover={(node: Record<string, unknown>) =>
-              setHoveredAgent(node as GraphNode | null)
+            onNodeHover={(node: Record<string, unknown> | null) =>
+              setHoveredAgent(node as unknown as GraphNode | null)
             }
             enableNodeDrag={true}
             enableNavigationControls={true}

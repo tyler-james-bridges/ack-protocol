@@ -1,0 +1,258 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  useReadContract,
+} from 'wagmi';
+import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import { Nav } from '@/components/nav';
+import { Button } from '@/components/ui/button';
+import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
+import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
+import { chain } from '@/config/chain';
+
+type RegisterStatus =
+  | 'idle'
+  | 'uploading'
+  | 'confirming'
+  | 'waiting'
+  | 'success'
+  | 'error';
+
+export default function RegisterPage() {
+  const { address, isConnected } = useAccount();
+  const { login } = useLoginWithAbstract();
+  const { writeContract, data: txHash } = useWriteContract();
+  const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
+    hash: txHash,
+    chainId: chain.id,
+  });
+
+  // Check if wallet already has an agent registered
+  const { data: existingBalance } = useReadContract({
+    address: IDENTITY_REGISTRY_ADDRESS,
+    abi: [
+      {
+        inputs: [{ name: 'owner', type: 'address' }],
+        name: 'balanceOf',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+      },
+    ],
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    chainId: chain.id,
+    query: { enabled: !!address },
+  });
+  const alreadyRegistered = existingBalance
+    ? Number(existingBalance) > 0
+    : false;
+
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [status, setStatus] = useState<RegisterStatus>('idle');
+  const [error, setError] = useState<string | null>(null);
+
+  const finalStatus: RegisterStatus = txConfirmed ? 'success' : status;
+  const isLoading =
+    finalStatus === 'uploading' ||
+    finalStatus === 'confirming' ||
+    finalStatus === 'waiting';
+
+  async function handleRegister() {
+    if (!name.trim() || !description.trim()) return;
+
+    setError(null);
+    setStatus('uploading');
+
+    try {
+      // Build metadata
+      const metadata = {
+        name: name.trim(),
+        description: description.trim(),
+        created_at: new Date().toISOString(),
+        registered_via: 'ACK Protocol',
+      };
+
+      // Encode as base64 data URI (on-chain storage, no IPFS dependency)
+      // Use encodeURIComponent for UTF-8 safety (emoji, CJK, etc.)
+      const encoded = btoa(
+        unescape(encodeURIComponent(JSON.stringify(metadata)))
+      );
+      const dataURI = `data:application/json;base64,${encoded}`;
+
+      // Call register on Identity Registry
+      setStatus('confirming');
+      writeContract(
+        {
+          address: IDENTITY_REGISTRY_ADDRESS,
+          abi: IDENTITY_REGISTRY_ABI,
+          functionName: 'register',
+          args: [dataURI],
+          chainId: chain.id,
+        },
+        {
+          onSuccess: () => setStatus('waiting'),
+          onError: (err) => {
+            setError(err instanceof Error ? err.message : String(err));
+            setStatus('error');
+          },
+        }
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      setStatus('error');
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Nav />
+      <main className="mx-auto max-w-lg px-4 pt-16 pb-24">
+        <div className="text-center mb-8">
+          <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-2">
+            ERC-8004
+          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Register Agent</h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            One page. Four fields. One transaction.
+          </p>
+        </div>
+
+        {finalStatus === 'success' ? (
+          <div className="rounded-xl border border-primary/30 bg-primary/5 p-8 text-center card-glow">
+            <div className="text-4xl mb-4">&#10003;</div>
+            <h2 className="text-xl font-bold mb-2">Agent Registered</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Your agent is now on the ERC-8004 Identity Registry on Abstract.
+              It will appear on ACK and 8004scan shortly.
+            </p>
+            {txHash && (
+              <a
+                href={`https://abscan.org/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline"
+              >
+                View transaction on Abscan
+              </a>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-border bg-card p-6 space-y-5 card-glow">
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium mb-1.5">
+                Agent Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. my_agent"
+                maxLength={100}
+                disabled={isLoading}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {name.length}/100 — Clear, memorable, descriptive
+              </p>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium mb-1.5">
+                Description <span className="text-red-400">*</span>
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What does your agent do? What problems does it solve?"
+                rows={4}
+                maxLength={2000}
+                disabled={isLoading}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {description.length}/2000 — Minimum 50 characters
+              </p>
+            </div>
+
+            {/* Chain (read-only for now) */}
+            <div>
+              <label className="block text-sm font-medium mb-1.5">
+                Network
+              </label>
+              <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-muted-foreground">
+                Abstract (Chain ID: {chain.id})
+              </div>
+            </div>
+
+            {/* Wallet */}
+            <div>
+              <label className="block text-sm font-medium mb-1.5">
+                Owner Wallet
+              </label>
+              {isConnected ? (
+                <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm font-mono text-muted-foreground">
+                  {address}
+                </div>
+              ) : (
+                <Button size="sm" onClick={() => login()} className="w-full">
+                  Connect Wallet
+                </Button>
+              )}
+            </div>
+
+            {/* Already registered warning */}
+            {alreadyRegistered && (
+              <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-3 py-2 text-sm text-yellow-400">
+                This wallet already has an agent registered on Abstract. One
+                identity per wallet.
+              </div>
+            )}
+
+            {/* Error */}
+            {finalStatus === 'error' && error && (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+
+            {/* Submit */}
+            <Button
+              onClick={handleRegister}
+              disabled={
+                !isConnected ||
+                !name.trim() ||
+                description.trim().length < 50 ||
+                isLoading ||
+                alreadyRegistered
+              }
+              className="w-full"
+              size="lg"
+            >
+              {!isConnected
+                ? 'Connect Wallet First'
+                : isLoading
+                  ? finalStatus === 'uploading'
+                    ? 'Preparing...'
+                    : finalStatus === 'confirming'
+                      ? 'Confirm in Wallet...'
+                      : 'Waiting for Confirmation...'
+                  : 'Register Agent'}
+            </Button>
+
+            <p className="text-xs text-center text-muted-foreground">
+              Mints an ERC-8004 identity NFT on Abstract. No cost beyond gas.
+            </p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

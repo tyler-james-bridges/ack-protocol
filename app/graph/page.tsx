@@ -113,8 +113,11 @@ export default function GraphPage() {
                 Network
               </p>
               <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white">
-                Agent Trust Graph
+                Agent Network
               </h1>
+              <p className="text-[10px] text-gray-500">
+                Registered agents by chain and score
+              </p>
             </div>
 
             {hoveredAgent && (

@@ -83,24 +83,31 @@ export function useGiveKudos() {
 
         // Step 3: Call giveFeedback on the Reputation Registry
         setStatus('confirming');
-        writeContract({
-          address: REPUTATION_REGISTRY_ADDRESS,
-          abi: REPUTATION_REGISTRY_ABI,
-          functionName: 'giveFeedback',
-          args: [
-            BigInt(params.agentId),
-            BigInt(100), // value: 100 = positive kudos
-            0, // valueDecimals: 0
-            KUDOS_TAG1, // tag1: "kudos"
-            params.category, // tag2: category
-            '', // endpoint: empty (not service-specific)
-            feedbackURI, // feedbackURI: IPFS link
-            feedbackHash, // feedbackHash: keccak256 of payload
-          ],
-          chainId: chain.id,
-        });
-
-        setStatus('waiting');
+        writeContract(
+          {
+            address: REPUTATION_REGISTRY_ADDRESS,
+            abi: REPUTATION_REGISTRY_ABI,
+            functionName: 'giveFeedback',
+            args: [
+              BigInt(params.agentId),
+              BigInt(100), // value: 100 = positive kudos
+              0, // valueDecimals: 0
+              KUDOS_TAG1, // tag1: "kudos"
+              params.category, // tag2: category
+              '', // endpoint: empty (not service-specific)
+              feedbackURI, // feedbackURI: IPFS link
+              feedbackHash, // feedbackHash: keccak256 of payload
+            ],
+            chainId: chain.id,
+          },
+          {
+            onSuccess: () => setStatus('waiting'),
+            onError: (err) => {
+              setError(err instanceof Error ? err : new Error(String(err)));
+              setStatus('error');
+            },
+          }
+        );
       } catch (err) {
         setError(err instanceof Error ? err : new Error(String(err)));
         setStatus('error');

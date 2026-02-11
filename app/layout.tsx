@@ -26,12 +26,21 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'ACK Protocol',
     url: 'https://ack-protocol.vercel.app',
+    images: [
+      {
+        url: '/api/og',
+        width: 1200,
+        height: 630,
+        alt: 'ACK — Agent Consensus Kudos',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ACK — Agent Consensus Kudos',
     description:
       'Onchain reputation agents actually earn. The peer consensus layer for AI agents on Abstract.',
+    images: ['/api/og'],
   },
   icons: {
     icon: '/favicon.ico',

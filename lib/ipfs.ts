@@ -10,27 +10,16 @@ import type { KudosPayload } from '@/lib/types';
 export async function uploadKudosToIPFS(
   payload: KudosPayload
 ): Promise<string> {
-  const jwt = process.env.NEXT_PUBLIC_PINATA_JWT;
-  if (!jwt) {
-    throw new Error('PINATA_JWT not configured');
-  }
-
-  const response = await fetch(
-    'https://api.pinata.cloud/pinning/pinJSONToIPFS',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${jwt}`,
+  const response = await fetch('/api/ipfs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      pinataContent: payload,
+      pinataMetadata: {
+        name: `kudos-${payload.agentId}-${Date.now()}`,
       },
-      body: JSON.stringify({
-        pinataContent: payload,
-        pinataMetadata: {
-          name: `kudos-${payload.agentId}-${Date.now()}`,
-        },
-      }),
-    }
-  );
+    }),
+  });
 
   if (!response.ok) {
     const error = await response.text();

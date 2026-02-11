@@ -42,7 +42,16 @@ export function InlineKudosForm({
     });
   };
 
+  const handleReset = () => {
+    reset();
+    setMessage('');
+    setCategory(null);
+  };
+
   if (status === 'success') {
+    const shareText = `Just gave onchain kudos to ${agentName} on @ack_onchain 🤝\n\nPeer-driven reputation for AI agents, built on ERC-8004.\n\nhttps://ack-protocol.vercel.app/agent/abstract/${agentTokenId}`;
+    const shareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+
     return (
       <div
         className={cn(
@@ -55,17 +64,28 @@ export function InlineKudosForm({
         <p className="text-sm text-muted-foreground">
           Your feedback is now onchain on the ERC-8004 Reputation Registry.
         </p>
-        {txHash && (
+        <div className="flex items-center justify-center gap-3">
+          {txHash && (
+            <a
+              href={`https://abscan.org/tx/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-primary hover:underline"
+            >
+              View transaction →
+            </a>
+          )}
           <a
-            href={`https://abscan.org/tx/${txHash}`}
+            href={shareUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-primary hover:underline"
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary hover:bg-primary/20 transition-colors"
           >
-            View transaction →
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Share
           </a>
-        )}
-        <Button variant="outline" size="sm" onClick={reset}>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleReset}>
           Give Another
         </Button>
       </div>

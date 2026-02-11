@@ -13,22 +13,22 @@ export function Nav() {
   return (
     <nav className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
             <span className="text-lg font-bold tracking-tight">ACK</span>
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary hidden sm:inline">
               ERC-8004
             </span>
           </Link>
           <Link
             href="/leaderboard"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
+            className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Leaderboard
           </Link>
           <Link
             href="/graph"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
+            className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Graph
           </Link>

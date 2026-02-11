@@ -22,6 +22,7 @@ const CHAIN_FILTERS = [
 
 export default function GraphPage() {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fgRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -70,15 +71,20 @@ export default function GraphPage() {
   }, [graphData]);
 
   const handleNodeClick = useCallback(
-    (node: any) => {
+    (node: Record<string, unknown>) => {
       const n = node as GraphNode;
       // Fly to node then navigate
       const fg = fgRef.current;
       if (fg) {
         const distance = 80;
-        const distRatio = 1 + distance / Math.hypot(n.x || 0, n.y || 0, n.z || 0);
+        const distRatio =
+          1 + distance / Math.hypot(n.x || 0, n.y || 0, n.z || 0);
         fg.cameraPosition(
-          { x: (n.x || 0) * distRatio, y: (n.y || 0) * distRatio, z: (n.z || 0) * distRatio },
+          {
+            x: (n.x || 0) * distRatio,
+            y: (n.y || 0) * distRatio,
+            z: (n.z || 0) * distRatio,
+          },
           { x: n.x, y: n.y, z: n.z },
           1000
         );
@@ -173,17 +179,22 @@ export default function GraphPage() {
             showNavInfo={false}
             // Nodes
             nodeLabel=""
-            nodeColor={(node: any) => (node as GraphNode).color}
-            nodeVal={(node: any) => (node as GraphNode).val}
+            nodeColor={(node: Record<string, unknown>) =>
+              (node as GraphNode).color
+            }
+            nodeVal={(node: Record<string, unknown>) => (node as GraphNode).val}
             nodeOpacity={0.9}
             nodeResolution={16}
             // Links
-            linkColor={(link: any) => (link as any).color || 'rgba(255,255,255,0.05)'}
+            linkColor={(link: Record<string, unknown>) =>
+              (link as Record<string, unknown>).color ||
+              'rgba(255,255,255,0.05)'
+            }
             linkWidth={0.5}
             linkOpacity={0.6}
-            linkDirectionalParticles={(link: any) => {
+            linkDirectionalParticles={(link: Record<string, unknown>) => {
               // Particles on cross-chain links
-              const color = (link as any).color || '';
+              const color = (link as Record<string, unknown>).color || '';
               return color.includes('rgba') ? 2 : 0;
             }}
             linkDirectionalParticleWidth={1.5}
@@ -191,7 +202,9 @@ export default function GraphPage() {
             linkDirectionalParticleColor={() => '#00DE73'}
             // Interaction
             onNodeClick={handleNodeClick}
-            onNodeHover={(node: any) => setHoveredAgent(node as GraphNode | null)}
+            onNodeHover={(node: Record<string, unknown>) =>
+              setHoveredAgent(node as GraphNode | null)
+            }
             enableNodeDrag={true}
             enableNavigationControls={true}
             cooldownTicks={150}
@@ -207,7 +220,10 @@ export default function GraphPage() {
               Chains
             </p>
             {activeChains.map((chainId) => (
-              <div key={chainId} className="flex items-center gap-2 text-[11px]">
+              <div
+                key={chainId}
+                className="flex items-center gap-2 text-[11px]"
+              >
                 <span
                   className="w-2 h-2 rounded-full"
                   style={{
@@ -215,9 +231,7 @@ export default function GraphPage() {
                     boxShadow: `0 0 6px ${getChainColor(chainId)}80`,
                   }}
                 />
-                <span className="text-gray-500">
-                  {getChainName(chainId)}
-                </span>
+                <span className="text-gray-500">{getChainName(chainId)}</span>
               </div>
             ))}
           </div>
@@ -228,7 +242,9 @@ export default function GraphPage() {
           <p className="text-[9px] font-medium tracking-wider text-gray-600 uppercase">
             Tracking
           </p>
-          <p className="text-lg font-bold text-white tabular-nums">{graphData.nodes.length}</p>
+          <p className="text-lg font-bold text-white tabular-nums">
+            {graphData.nodes.length}
+          </p>
           <p className="text-[10px] text-gray-600">agents</p>
         </div>
 

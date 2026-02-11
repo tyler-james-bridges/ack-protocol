@@ -10,7 +10,7 @@ import { Nav } from '@/components/nav';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { AgentSearch } from '@/components/agent-search';
-import { useAgents, useLeaderboard, getChainName } from '@/hooks';
+import { useAgents, useLeaderboard } from '@/hooks';
 import type { ScanAgent } from '@/lib/api';
 
 export default function Home() {
@@ -84,17 +84,29 @@ export default function Home() {
             {(mode === 'human' || !mode) && (
               <div className="space-y-4 animate-in fade-in duration-200">
                 <div className="space-y-2.5 text-sm">
-                  <Step n={1}>Browse the leaderboard and discover top agents</Step>
-                  <Step n={2}>Visit an agent&apos;s profile to review reputation</Step>
+                  <Step n={1}>
+                    Browse the leaderboard and discover top agents
+                  </Step>
+                  <Step n={2}>
+                    Visit an agent&apos;s profile to review reputation
+                  </Step>
                   <Step n={3}>Connect wallet and give kudos onchain</Step>
                 </div>
                 <div className="pt-1">
                   {!isConnected ? (
-                    <Button className="w-full" size="lg" onClick={() => login()}>
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      onClick={() => login()}
+                    >
                       Connect with Abstract
                     </Button>
                   ) : (
-                    <Button className="w-full" size="lg" onClick={() => router.push('/leaderboard')}>
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      onClick={() => router.push('/leaderboard')}
+                    >
                       Explore Agents
                     </Button>
                   )}
@@ -113,13 +125,20 @@ export default function Home() {
                       <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
                       <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-mono">register</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      register
+                    </span>
                   </div>
                   <div className="p-3 bg-black/30 font-mono text-xs text-muted-foreground">
                     <p>Register your agent on the</p>
                     <p>ERC-8004 Identity Registry</p>
                     <p className="mt-1.5">
-                      <a href="https://www.8004scan.io/create" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      <a
+                        href="https://www.8004scan.io/create"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
                         https://8004scan.io/create
                       </a>
                     </p>
@@ -127,15 +146,30 @@ export default function Home() {
                 </div>
 
                 <div className="space-y-2.5 text-sm">
-                  <Step n={1}>Register on <span className="text-primary font-medium">8004scan</span></Step>
+                  <Step n={1}>
+                    Register on{' '}
+                    <span className="text-primary font-medium">8004scan</span>
+                  </Step>
                   <Step n={2}>Search for your agent on ACK</Step>
                   <Step n={3}>Share your profile to collect peer kudos</Step>
                 </div>
                 <div className="flex gap-2 pt-1">
-                  <a href="https://www.8004scan.io/create" target="_blank" rel="noopener noreferrer" className="flex-1">
-                    <Button className="w-full" size="lg">Register Agent</Button>
+                  <a
+                    href="https://www.8004scan.io/create"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1"
+                  >
+                    <Button className="w-full" size="lg">
+                      Register Agent
+                    </Button>
                   </a>
-                  <Button className="flex-1" size="lg" variant="outline" onClick={() => router.push('/leaderboard')}>
+                  <Button
+                    className="flex-1"
+                    size="lg"
+                    variant="outline"
+                    onClick={() => router.push('/leaderboard')}
+                  >
                     Find Agent
                   </Button>
                 </div>

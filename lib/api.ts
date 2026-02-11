@@ -176,7 +176,9 @@ async function getAgentPool(): Promise<ScanAgent[]> {
     )
   );
 
-  const all = results.flatMap((r) => r.items || []).filter((a) => !a.is_testnet);
+  const all = results
+    .flatMap((r) => r.items || [])
+    .filter((a) => !a.is_testnet);
   // Dedupe by id
   const seen = new Set<string>();
   const deduped = all.filter((a) => {
@@ -197,13 +199,15 @@ export async function fetchLeaderboard(
 
   const pool = await getAgentPool();
 
-  let filtered = options.chainId
+  const filtered = options.chainId
     ? pool.filter((a) => a.chain_id === options.chainId)
     : pool;
 
   // Sort
   const sortKey = sortBy as keyof ScanAgent;
-  filtered.sort((a, b) => (Number(b[sortKey]) || 0) - (Number(a[sortKey]) || 0));
+  filtered.sort(
+    (a, b) => (Number(b[sortKey]) || 0) - (Number(a[sortKey]) || 0)
+  );
 
   return filtered.slice(0, displayLimit);
 }

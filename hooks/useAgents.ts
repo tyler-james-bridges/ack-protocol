@@ -6,7 +6,6 @@ import {
   fetchAgentsByChain,
   fetchLeaderboard,
   fetchAgentFeedback,
-  type ScanAgent,
   type FetchAgentsOptions,
 } from '@/lib/api';
 import { ABSTRACT_CHAIN_ID } from '@/config/chain';

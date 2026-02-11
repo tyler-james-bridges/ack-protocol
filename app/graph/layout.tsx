@@ -2,13 +2,18 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Trust Graph | ACK Protocol',
-  description: 'Explore the ERC-8004 agent trust network. Interactive visualization of agent relationships across chains.',
+  description:
+    'Explore the ERC-8004 agent trust network. Interactive visualization of agent relationships across chains.',
   openGraph: {
     title: 'Agent Trust Graph | ACK Protocol',
     description: 'Explore the ERC-8004 agent trust network across chains.',
   },
 };
 
-export default function GraphLayout({ children }: { children: React.ReactNode }) {
+export default function GraphLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return children;
 }

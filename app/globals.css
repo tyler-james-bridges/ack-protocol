@@ -58,7 +58,7 @@
   --ring: oklch(0.708 0 0);
 
   /* Abstract chain brand green (for chain-specific accents) */
-  --abstract: #00DE73;
+  --abstract: #00de73;
   --abstract-light: #e6faf3;
 }
 
@@ -70,7 +70,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.17 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.78 0.18 155);        /* #00DE73 mapped */
+  --primary: oklch(0.78 0.18 155); /* #00DE73 mapped */
   --primary-foreground: oklch(0.1 0 0);
   --secondary: oklch(0.17 0.01 155);
   --secondary-foreground: oklch(0.985 0 0);
@@ -83,7 +83,7 @@
   --input: oklch(0.78 0.18 155 / 12%);
   --ring: oklch(0.78 0.18 155 / 60%);
 
-  --abstract: #00DE73;
+  --abstract: #00de73;
   --abstract-light: oklch(0.2 0.05 155);
 }
 
@@ -154,23 +154,38 @@
 }
 
 /* Hide scrollbar for horizontal scroll containers */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 /* ── Green glow card hover ── */
 .card-glow {
-  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.2s ease;
 }
 .dark .card-glow:hover {
-  box-shadow: 0 0 20px -4px oklch(0.78 0.18 155 / 20%), 0 0 40px -8px oklch(0.78 0.18 155 / 10%);
+  box-shadow:
+    0 0 20px -4px oklch(0.78 0.18 155 / 20%),
+    0 0 40px -8px oklch(0.78 0.18 155 / 10%);
   border-color: oklch(0.78 0.18 155 / 30%);
   transform: translateY(-1px);
 }
 
 /* ── Subtle pulse for key badges ── */
 @keyframes green-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 oklch(0.78 0.18 155 / 30%); }
-  50% { box-shadow: 0 0 8px 2px oklch(0.78 0.18 155 / 15%); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.78 0.18 155 / 30%);
+  }
+  50% {
+    box-shadow: 0 0 8px 2px oklch(0.78 0.18 155 / 15%);
+  }
 }
 .pulse-green {
   animation: green-pulse 3s ease-in-out infinite;
@@ -194,8 +209,12 @@
 
 /* ── Animated gradient border ── */
 @keyframes border-rotate {
-  0% { --border-angle: 0deg; }
-  100% { --border-angle: 360deg; }
+  0% {
+    --border-angle: 0deg;
+  }
+  100% {
+    --border-angle: 360deg;
+  }
 }
 @property --border-angle {
   syntax: '<angle>';
@@ -213,8 +232,15 @@
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: conic-gradient(from var(--border-angle), transparent 60%, oklch(0.78 0.18 155 / 40%) 80%, transparent 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  background: conic-gradient(
+    from var(--border-angle),
+    transparent 60%,
+    oklch(0.78 0.18 155 / 40%) 80%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation: border-rotate 4s linear infinite;
@@ -223,7 +249,9 @@
 
 /* ── Smooth nav link hover ── */
 .nav-link {
-  transition: color 0.2s ease, text-shadow 0.2s ease;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
 }
 .dark .nav-link:hover {
   text-shadow: 0 0 8px oklch(0.78 0.18 155 / 40%);

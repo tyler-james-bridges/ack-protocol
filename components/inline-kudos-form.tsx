@@ -98,7 +98,9 @@ export function InlineKudosForm({
 
       {/* Category */}
       <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">Category <span className="text-muted-foreground/40">(optional)</span></p>
+        <p className="text-xs text-muted-foreground">
+          Category <span className="text-muted-foreground/40">(optional)</span>
+        </p>
         <div className="flex flex-wrap gap-2">
           {KUDOS_CATEGORIES.map((cat) => (
             <button
@@ -116,7 +118,7 @@ export function InlineKudosForm({
             </button>
           ))}
         </div>
-{/* category is optional */}
+        {/* category is optional */}
       </div>
 
       {/* Message */}

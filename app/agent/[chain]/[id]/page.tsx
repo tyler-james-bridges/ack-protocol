@@ -10,6 +10,7 @@ import { ChainIcon } from '@/components/chain-icon';
 import { StatsCard } from '@/components/stats-card';
 import { CategoryBadge } from '@/components/category-badge';
 import { Nav } from '@/components/nav';
+import { KudosFeed } from '@/components/kudos-feed';
 import { getChainName } from '@/hooks';
 import { fetchAgent, type ScanAgent } from '@/lib/api';
 import { KUDOS_CATEGORIES } from '@/config/contract';
@@ -237,6 +238,9 @@ export default function AgentProfilePage({
             </div>
           </div>
         </div>
+
+        {/* Onchain Kudos Feed */}
+        <KudosFeed agentId={Number(agent.token_id)} />
 
         {/* Give Kudos Form */}
         <InlineKudosForm agentTokenId={agent.token_id} agentName={agent.name} />

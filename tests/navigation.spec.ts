@@ -61,7 +61,9 @@ test.describe('Navigation', () => {
     await expect(mobileRegistry).toBeVisible();
 
     // Close by clicking the left side of the backdrop (panel is on the right)
-    await page.locator('.fixed .backdrop-blur-sm').click({ position: { x: 10, y: 300 } });
+    await page
+      .locator('.fixed .backdrop-blur-sm')
+      .click({ position: { x: 10, y: 300 } });
     await expect(page.locator('text=Menu')).not.toBeVisible();
   });
 

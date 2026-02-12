@@ -43,3 +43,4 @@ next-env.d.ts
 # development documentation
 PROGRESS.md
 X_INTEGRATION_GUIDE.md
+test-results/

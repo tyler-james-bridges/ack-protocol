@@ -256,7 +256,8 @@ async function scanFetch<T>(path: string): Promise<T> {
 }
 
 function emptyCategoryCounts(): Record<KudosCategory, number> {
-  return Object.fromEntries(
-    KUDOS_CATEGORIES.map((c) => [c, 0])
-  ) as Record<KudosCategory, number>;
+  return Object.fromEntries(KUDOS_CATEGORIES.map((c) => [c, 0])) as Record<
+    KudosCategory,
+    number
+  >;
 }

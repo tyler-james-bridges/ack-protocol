@@ -12,6 +12,13 @@ export const REPUTATION_REGISTRY_ADDRESS: Address =
   '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
 
 /**
+ * Abstract Global Wallet paymaster — sponsors gas for all AGW transactions.
+ * Used with useWriteContractSponsored + getGeneralPaymasterInput.
+ */
+export const ABSTRACT_PAYMASTER_ADDRESS: Address =
+  '0x5407B5040dec3D339A9247f3654E59EEccbb6391';
+
+/**
  * CAIP-10 formatted agent registry identifier per ERC-8004 spec
  * Format: eip155:{chainId}:{identityRegistryAddress}
  */

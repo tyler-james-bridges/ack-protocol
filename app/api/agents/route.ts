@@ -11,6 +11,15 @@ export async function GET(request: NextRequest) {
   const path = searchParams.get('path') || 'agents';
   searchParams.delete('path');
 
+  // Allowlist guard — only permit known safe paths to prevent SSRF.
+  const ALLOWED_PATH = /^agents(\/\d+\/[a-zA-Z0-9_-]+\/feedbacks)?$/;
+  if (!ALLOWED_PATH.test(path)) {
+    return NextResponse.json(
+      { error: 'Invalid path parameter' },
+      { status: 400 }
+    );
+  }
+
   const url = `${API_BASE}/${path}?${searchParams.toString()}`;
 
   try {

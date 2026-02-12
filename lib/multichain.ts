@@ -24,17 +24,25 @@ export async function fetchCrossChainReputation(
   const results = await Promise.allSettled(
     SUPPORTED_CHAINS.map(async ({ chain }) => {
       const client = getPublicClient(chain.id);
-      const logs = await client.request({
+      const logs = (await client.request({
         method: 'eth_getLogs',
         params: [
           {
             address: REPUTATION_REGISTRY_ADDRESS,
-            topics: [FEEDBACK_GIVEN_TOPIC as `0x${string}`, null, paddedAddress],
+            topics: [
+              FEEDBACK_GIVEN_TOPIC as `0x${string}`,
+              null,
+              paddedAddress,
+            ],
             fromBlock: '0x0',
             toBlock: 'latest',
           },
         ],
-      }) as { blockNumber: `0x${string}`; transactionHash: `0x${string}`; data: `0x${string}` }[];
+      })) as {
+        blockNumber: `0x${string}`;
+        transactionHash: `0x${string}`;
+        data: `0x${string}`;
+      }[];
 
       return {
         chainId: chain.id,

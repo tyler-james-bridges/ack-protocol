@@ -181,10 +181,19 @@ export default function Home() {
           {/* Live stats strip */}
           <div className="mt-12 flex items-center justify-center gap-8 sm:gap-12">
             <StatPill
-              value={networkStats ? networkStats.total_agents.toLocaleString() : agentsData ? agentsData.total.toLocaleString() : '...'}
+              value={
+                networkStats
+                  ? networkStats.total_agents.toLocaleString()
+                  : agentsData
+                    ? agentsData.total.toLocaleString()
+                    : '...'
+              }
               label="Agents"
             />
-            <StatPill value={networkStats ? String(networkStats.total_chains) : '15+'} label="Chains" />
+            <StatPill
+              value={networkStats ? String(networkStats.total_chains) : '15+'}
+              label="Chains"
+            />
             <StatPill
               value={
                 leaderboard && leaderboard.length > 0

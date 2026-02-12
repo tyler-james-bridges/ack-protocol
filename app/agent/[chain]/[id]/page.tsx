@@ -159,26 +159,36 @@ export default function AgentProfilePage({
               </span>
             </p>
             {kudos && kudos.length > 0 ? (
-              <div className="grid grid-cols-3 gap-3">
-                <StatsCard label="Kudos" value={kudos.length} />
-                <StatsCard
-                  label="Givers"
-                  value={new Set(kudos.map((k) => k.sender)).size}
-                />
-                <StatsCard
-                  label="Top Category"
-                  value={(() => {
-                    const counts: Record<string, number> = {};
-                    kudos.forEach((k) => {
-                      if (KUDOS_CATEGORIES.includes(k.tag2 as KudosCategory))
-                        counts[k.tag2] = (counts[k.tag2] || 0) + 1;
-                    });
-                    const top = Object.entries(counts).sort(
-                      (a, b) => b[1] - a[1]
-                    )[0];
-                    return top ? top[0] : '-';
-                  })()}
-                />
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <StatsCard label="Kudos" value={kudos.length} />
+                  <StatsCard
+                    label="Givers"
+                    value={new Set(kudos.map((k) => k.sender)).size}
+                  />
+                </div>
+                {(() => {
+                  const counts: Record<string, number> = {};
+                  kudos.forEach((k) => {
+                    if (KUDOS_CATEGORIES.includes(k.tag2 as KudosCategory))
+                      counts[k.tag2] = (counts[k.tag2] || 0) + 1;
+                  });
+                  const sorted = Object.entries(counts).sort(
+                    (a, b) => b[1] - a[1]
+                  );
+                  if (sorted.length === 0) return null;
+                  return (
+                    <div className="flex flex-wrap gap-2">
+                      {sorted.map(([cat, count]) => (
+                        <CategoryBadge
+                          key={cat}
+                          category={cat as KudosCategory}
+                          count={count}
+                        />
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-primary/20 p-4 text-center">

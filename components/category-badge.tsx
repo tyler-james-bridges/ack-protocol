@@ -4,12 +4,14 @@ import { CATEGORY_META, type KudosCategory } from '@/config/contract';
 interface CategoryBadgeProps {
   category: KudosCategory;
   size?: 'sm' | 'md';
+  count?: number;
   className?: string;
 }
 
 export function CategoryBadge({
   category,
   size = 'sm',
+  count,
   className,
 }: CategoryBadgeProps) {
   const meta = CATEGORY_META[category];
@@ -29,6 +31,9 @@ export function CategoryBadge({
       }}
     >
       {meta.label}
+      {count != null && count > 0 && (
+        <span className="ml-1 opacity-60">{count}</span>
+      )}
     </span>
   );
 }

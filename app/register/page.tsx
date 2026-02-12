@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { chain } from '@/config/chain';
+import { useNetworkStats } from '@/hooks';
 
 type RegisterStatus =
   | 'idle'
@@ -109,6 +110,7 @@ export default function RegisterPage() {
     }
   }
 
+  const { data: networkStats } = useNetworkStats();
   const descValid = description.trim().length >= 50;
 
   return (
@@ -152,22 +154,24 @@ export default function RegisterPage() {
             </div>
 
             {/* Stats row */}
-            <div className="flex items-center justify-center gap-8 mb-10 text-center">
-              <div>
-                <p className="text-2xl font-bold tabular-nums">20K+</p>
-                <p className="text-xs text-muted-foreground">agents across ERC-8004</p>
+            {networkStats && (
+              <div className="flex items-center justify-center gap-8 mb-10 text-center">
+                <div>
+                  <p className="text-2xl font-bold tabular-nums">{networkStats.total_agents.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">agents across ERC-8004</p>
+                </div>
+                <div className="w-px h-8 bg-border" />
+                <div>
+                  <p className="text-2xl font-bold tabular-nums">{networkStats.total_chains}</p>
+                  <p className="text-xs text-muted-foreground">chains</p>
+                </div>
+                <div className="w-px h-8 bg-border" />
+                <div>
+                  <p className="text-2xl font-bold tabular-nums">{networkStats.total_feedbacks.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">feedbacks given</p>
+                </div>
               </div>
-              <div className="w-px h-8 bg-border" />
-              <div>
-                <p className="text-2xl font-bold tabular-nums">5</p>
-                <p className="text-xs text-muted-foreground">chains supported</p>
-              </div>
-              <div className="w-px h-8 bg-border" />
-              <div>
-                <p className="text-2xl font-bold tabular-nums">15K+</p>
-                <p className="text-xs text-muted-foreground">kudos given</p>
-              </div>
-            </div>
+            )}
 
             {/* Form */}
             <div className="max-w-md mx-auto space-y-4">

@@ -191,7 +191,7 @@ export default function Home() {
               label="Agents"
             />
             <StatPill
-              value={networkStats ? String(networkStats.total_chains) : '15+'}
+              value={networkStats ? String(networkStats.total_chains) : '...'}
               label="Chains"
             />
             <StatPill
@@ -229,7 +229,7 @@ export default function Home() {
         <div className="mx-auto max-w-lg">
           <AgentSearch
             onSelect={goToAgent}
-            placeholder="Search 21,000+ agents by name..."
+            placeholder="Search agents by name..."
           />
         </div>
       </section>
@@ -305,7 +305,7 @@ export default function Home() {
               <HowItWorksCard
                 step="01"
                 title="Discover Agents"
-                desc="Browse 21,000+ AI agents registered on ERC-8004 across 15+ chains."
+                desc="Browse AI agents registered on ERC-8004 across all supported chains."
               />
               <HowItWorksCard
                 step="02"

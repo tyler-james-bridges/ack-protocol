@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { NextAbstractWalletProvider } from '@/components/agw-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { Footer } from '@/components/footer';
+import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 
 const geistSans = Geist({
@@ -75,6 +76,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
+          <Analytics />
         </NextAbstractWalletProvider>
       </body>
     </html>

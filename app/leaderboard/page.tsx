@@ -1,19 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { useLeaderboard, useAgents, getChainName } from '@/hooks';
+import { useLeaderboard, useAgents, useNetworkStats, getChainName } from '@/hooks';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { Nav } from '@/components/nav';
 import { useRouter } from 'next/navigation';
+import { SUPPORTED_CHAINS } from '@/config/chains';
 import type { ScanAgent } from '@/lib/api';
 
 const CHAIN_FILTERS = [
-  { label: 'All Chains', value: 0 },
-  { label: 'Abstract', value: 2741 },
-  { label: 'Base', value: 8453 },
-  { label: 'Ethereum', value: 1 },
-  { label: 'Arbitrum', value: 42161 },
+  { label: 'All Chains', value: 0, color: '' },
+  ...SUPPORTED_CHAINS.map((c) => ({
+    label: c.chain.name,
+    value: c.chain.id,
+    color: c.color,
+  })),
 ];
 
 type SortKey = 'created_at' | 'total_score' | 'total_feedbacks' | 'star_count';
@@ -35,6 +37,7 @@ export default function LeaderboardPage() {
     chainId: chainFilter || undefined,
   });
   const { data: allAgents } = useAgents({ limit: 1 });
+  const { data: networkStats } = useNetworkStats();
 
   const filtered = agents || [];
 
@@ -64,21 +67,49 @@ export default function LeaderboardPage() {
           </p>
         </div>
 
-        {/* Stat Cards */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
-          <StatCard label="Total Agents" value={totalAgents.toLocaleString()} />
-          <StatCard
-            label="Avg Protocol Score"
-            value={avgScore.toFixed(1)}
-            sub="via 8004scan"
-          />
-          <StatCard
-            label="Total Kudos"
-            value={totalFeedback.toLocaleString()}
-            sub="peer feedback"
-            accent
-          />
-          <StatCard label="Chains" value="15+" />
+        {/* Network-wide Stats */}
+        {networkStats && (
+          <div className="mb-4">
+            <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-2">
+              ERC-8004 Network
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              <StatCard
+                label="Agents (all chains)"
+                value={networkStats.total_agents.toLocaleString()}
+              />
+              <StatCard
+                label="Total Feedback"
+                value={networkStats.total_feedbacks.toLocaleString()}
+                sub="network-wide"
+              />
+              <StatCard
+                label="Chains"
+                value={networkStats.total_chains.toLocaleString()}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Current View Stats */}
+        <div className="mb-6">
+          <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-2">
+            {chainFilter ? getChainName(chainFilter) : 'Current View'}
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            <StatCard label="Agents" value={totalAgents.toLocaleString()} />
+            <StatCard
+              label="Avg Score"
+              value={avgScore.toFixed(1)}
+              sub="via 8004scan"
+            />
+            <StatCard
+              label="Kudos"
+              value={totalFeedback.toLocaleString()}
+              sub="peer feedback"
+              accent
+            />
+          </div>
         </div>
 
         {/* Filters & Sort */}
@@ -90,9 +121,16 @@ export default function LeaderboardPage() {
                 onClick={() => setChainFilter(cf.value)}
                 className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors border ${
                   chainFilter === cf.value
-                    ? 'border-primary bg-primary/10 text-primary'
+                    ? 'border-current'
                     : 'border-border text-muted-foreground hover:border-primary/30 hover:text-foreground'
                 }`}
+                style={
+                  chainFilter === cf.value && cf.color
+                    ? { color: cf.color, backgroundColor: `${cf.color}15` }
+                    : chainFilter === cf.value
+                      ? { color: 'var(--primary)', backgroundColor: 'hsl(var(--primary) / 0.1)' }
+                      : undefined
+                }
               >
                 {cf.label}
               </button>

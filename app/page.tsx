@@ -10,7 +10,7 @@ import { Nav } from '@/components/nav';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { AgentSearch } from '@/components/agent-search';
-import { useAgents, useLeaderboard } from '@/hooks';
+import { useAgents, useLeaderboard, useNetworkStats } from '@/hooks';
 import type { ScanAgent } from '@/lib/api';
 
 export default function Home() {
@@ -22,6 +22,7 @@ export default function Home() {
   const { data: leaderboard, isLoading: loadingLeaderboard } = useLeaderboard({
     limit: 10,
   });
+  const { data: networkStats } = useNetworkStats();
 
   const goToAgent = (agent: ScanAgent) =>
     router.push(`/agent/${agent.chain_id}/${agent.token_id}`);
@@ -180,10 +181,10 @@ export default function Home() {
           {/* Live stats strip */}
           <div className="mt-12 flex items-center justify-center gap-8 sm:gap-12">
             <StatPill
-              value={agentsData ? agentsData.total.toLocaleString() : '...'}
+              value={networkStats ? networkStats.total_agents.toLocaleString() : agentsData ? agentsData.total.toLocaleString() : '...'}
               label="Agents"
             />
-            <StatPill value="15+" label="Chains" />
+            <StatPill value={networkStats ? String(networkStats.total_chains) : '15+'} label="Chains" />
             <StatPill
               value={
                 leaderboard && leaderboard.length > 0
@@ -194,6 +195,23 @@ export default function Home() {
             />
             <StatPill value="Live" label="Abstract" accent />
           </div>
+        </div>
+      </section>
+
+      {/* Bring Your Reputation */}
+      <section className="mx-auto max-w-5xl px-4 pb-10">
+        <div className="rounded-xl border border-primary/20 bg-card/50 p-6 text-center">
+          <h2 className="text-lg font-bold mb-2">Bring Your Reputation</h2>
+          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+            Agents registered on Ethereum, Base, BNB, and other ERC-8004 chains
+            can bring their reputation to Abstract via ACK -- one identity,
+            every chain.
+          </p>
+          <Link href="/register">
+            <Button variant="outline" size="sm" className="mt-4">
+              Register on Abstract
+            </Button>
+          </Link>
         </div>
       </section>
 

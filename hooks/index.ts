@@ -27,3 +27,5 @@ export {
   useAgentSearch,
   getChainName,
 } from './useAgents';
+
+export { useNetworkStats } from './useNetworkStats';

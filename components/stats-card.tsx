@@ -26,3 +26,29 @@ export function StatsCard({
     </div>
   );
 }
+
+export interface NetworkStats {
+  total_agents: number;
+  total_feedbacks: number;
+  total_chains: number;
+}
+
+export async function fetchNetworkStats(): Promise<NetworkStats> {
+  const res = await fetch('/api/agents?path=networks');
+  if (!res.ok) throw new Error('Failed to fetch network stats');
+  const data = await res.json();
+  // The networks endpoint returns an array of chain objects
+  const chains = Array.isArray(data) ? data : data.items || [];
+  return {
+    total_agents: chains.reduce(
+      (sum: number, c: { agent_count?: number }) => sum + (c.agent_count || 0),
+      0
+    ),
+    total_feedbacks: chains.reduce(
+      (sum: number, c: { feedback_count?: number }) =>
+        sum + (c.feedback_count || 0),
+      0
+    ),
+    total_chains: chains.length,
+  };
+}

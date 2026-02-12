@@ -46,7 +46,7 @@ export default function LeaderboardPage() {
 
   const filtered = agents || [];
 
-  const totalAgents = allAgents?.total || 0;
+  const totalAgents = chainFilter ? filtered.length : allAgents?.total || 0;
   const totalFeedback = filtered.reduce((sum, a) => sum + a.total_feedbacks, 0);
   const avgScore =
     filtered.length > 0

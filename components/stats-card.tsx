@@ -34,21 +34,45 @@ export interface NetworkStats {
 }
 
 export async function fetchNetworkStats(): Promise<NetworkStats> {
-  const res = await fetch('/api/agents?path=chains');
-  if (!res.ok) throw new Error('Failed to fetch network stats');
-  const data = await res.json();
-  // The chains endpoint returns {success: true, data: {chains: [...]}}
-  const chains = data?.data?.chains || [];
+  const [agentsRes, chainsRes] = await Promise.all([
+    fetch('/api/agents?path=agents&limit=1'),
+    fetch('/api/agents?path=chains'),
+  ]);
+
+  let totalAgents = 0;
+  if (agentsRes.ok) {
+    const agentsData = await agentsRes.json();
+    totalAgents = agentsData?.total || 0;
+  }
+
+  let mainnetChainCount = 0;
+  if (chainsRes.ok) {
+    const chainsData = await chainsRes.json();
+    const chains = chainsData?.data?.chains || [];
+    mainnetChainCount = chains.filter(
+      (c: { is_testnet: boolean }) => !c.is_testnet
+    ).length;
+  }
+
+  // Estimate total feedbacks from a sample of top agents
+  // 8004scan doesn't have a global feedback count endpoint
+  const feedbackRes = await fetch(
+    '/api/agents?path=agents&limit=100&sort_by=total_feedbacks&sort_order=desc'
+  );
+  let totalFeedbacks = 0;
+  if (feedbackRes.ok) {
+    const feedbackData = await feedbackRes.json();
+    const items = feedbackData?.items || [];
+    totalFeedbacks = items.reduce(
+      (sum: number, a: { total_feedbacks?: number }) =>
+        sum + (a.total_feedbacks || 0),
+      0
+    );
+  }
+
   return {
-    total_agents: chains.reduce(
-      (sum: number, c: { agent_count?: number }) => sum + (c.agent_count || 0),
-      0
-    ),
-    total_feedbacks: chains.reduce(
-      (sum: number, c: { feedback_count?: number }) =>
-        sum + (c.feedback_count || 0),
-      0
-    ),
-    total_chains: chains.length,
+    total_agents: totalAgents,
+    total_feedbacks: totalFeedbacks,
+    total_chains: mainnetChainCount,
   };
 }

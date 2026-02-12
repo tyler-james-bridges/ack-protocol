@@ -53,9 +53,10 @@ export function addVouch(
 }
 
 /** Get all pending vouches for a target address. */
-export function getVouches(
-  targetAddress: string
-): { vouches: PendingVouch[]; count: number } {
+export function getVouches(targetAddress: string): {
+  vouches: PendingVouch[];
+  count: number;
+} {
   const key = targetAddress.toLowerCase();
   const vouches = store.get(key) || [];
   return { vouches, count: vouches.length };

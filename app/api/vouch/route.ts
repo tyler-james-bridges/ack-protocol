@@ -58,7 +58,9 @@ export const POST = withSiwa(async (agent, req) => {
     !isAddress(targetAddress)
   ) {
     return new Response(
-      JSON.stringify({ error: 'Valid Ethereum address required for targetAddress' }),
+      JSON.stringify({
+        error: 'Valid Ethereum address required for targetAddress',
+      }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }

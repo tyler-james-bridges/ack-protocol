@@ -59,10 +59,8 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const showHeroDropdown =
-    heroDropdownOpen && heroQuery.length >= 2;
-  const heroHasResults =
-    heroSearchData && heroSearchData.items.length > 0;
+  const showHeroDropdown = heroDropdownOpen && heroQuery.length >= 2;
+  const heroHasResults = heroSearchData && heroSearchData.items.length > 0;
   const heroNoResults =
     heroSearchData && heroSearchData.items.length === 0 && !heroSearchLoading;
 

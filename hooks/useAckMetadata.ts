@@ -78,15 +78,16 @@ export function useAckMetadata(agentId: number | undefined) {
     query: { enabled },
   });
 
-  const { data: rawTopCategory, refetch: refetchTopCategory } =
-    useReadContract({
+  const { data: rawTopCategory, refetch: refetchTopCategory } = useReadContract(
+    {
       address: IDENTITY_REGISTRY_ADDRESS,
       abi: IDENTITY_REGISTRY_ABI,
       functionName: 'getMetadata',
       args: [agentIdBigInt, ACK_KEYS.topCategory],
       chainId: chain.id,
       query: { enabled },
-    });
+    }
+  );
 
   const metadata: AckMetadata = {
     score: decodeMetadataBytes(rawScore as Hex | undefined),

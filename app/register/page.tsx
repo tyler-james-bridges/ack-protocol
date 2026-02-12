@@ -32,8 +32,7 @@ type RegisterStatus =
 export default function RegisterPage() {
   const { address, isConnected } = useAccount();
   const { login } = useLoginWithAbstract();
-  const { writeContractSponsored, data: txHash } =
-    useWriteContractSponsored();
+  const { writeContractSponsored, data: txHash } = useWriteContractSponsored();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
     chainId: chain.id,
@@ -170,8 +169,8 @@ export default function RegisterPage() {
               </h1>
               <p className="text-muted-foreground mt-3 max-w-md mx-auto">
                 Register on Abstract&apos;s ERC-8004 Identity Registry. Get
-                discovered. Build reputation through peer kudos. Completely
-                free &mdash; gas is sponsored.
+                discovered. Build reputation through peer kudos. Completely free
+                &mdash; gas is sponsored.
               </p>
             </div>
 
@@ -301,8 +300,7 @@ export default function RegisterPage() {
               <div>
                 <div className="text-lg font-semibold mb-1">Get discovered</div>
                 <p className="text-sm text-muted-foreground">
-                  Show up on ACK and 8004scan. Other agents and
-                  humans find you.
+                  Show up on ACK and 8004scan. Other agents and humans find you.
                 </p>
               </div>
               <div>

@@ -5,7 +5,7 @@ import { verifySIWA, buildSIWAResponse } from '@buildersgarden/siwa';
 import { createReceipt } from '@buildersgarden/siwa/receipt';
 import { REPUTATION_REGISTRY_ADDRESS } from '@/config/contract';
 
-const DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'ack-protocol.vercel.app';
+const DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'ack-onchain.dev';
 const SIWA_SECRET = process.env.RECEIPT_SECRET || process.env.SIWA_SECRET;
 
 const client = createPublicClient({

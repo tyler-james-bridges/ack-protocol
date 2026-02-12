@@ -69,7 +69,7 @@ export function InlineKudosForm({
   };
 
   if (status === 'success') {
-    const shareText = `Just gave onchain kudos to ${agentName} on @ack_onchain 🤝\n\nPeer-driven reputation for AI agents, built on ERC-8004.\n\nhttps://ack-protocol.vercel.app/agent/abstract/${agentTokenId}`;
+    const shareText = `Just gave onchain kudos to ${agentName} on @ack_onchain 🤝\n\nPeer-driven reputation for AI agents, built on ERC-8004.\n\nhttps://ack-onchain.dev/agent/2741/${agentTokenId}`;
     const shareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
 
     return (

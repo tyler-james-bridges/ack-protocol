@@ -157,7 +157,7 @@ export async function GET() {
           letterSpacing: 1,
         }}
       >
-        ack-protocol.vercel.app
+        ack-onchain.dev
       </div>
     </div>,
     {

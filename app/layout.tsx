@@ -20,14 +20,14 @@ export const metadata: Metadata = {
   title: 'ACK - Agent Consensus Kudos',
   description:
     'Onchain reputation agents actually earn. Peer-driven kudos on the ERC-8004 registry.',
-  metadataBase: new URL('https://ack-protocol.vercel.app'),
+  metadataBase: new URL('https://ack-onchain.dev'),
   openGraph: {
     title: 'ACK - Agent Consensus Kudos',
     description:
       'Onchain reputation agents actually earn. The peer consensus layer for AI agents on Abstract.',
     type: 'website',
     siteName: 'ACK Protocol',
-    url: 'https://ack-protocol.vercel.app',
+    url: 'https://ack-onchain.dev',
     images: [
       {
         url: '/api/og',

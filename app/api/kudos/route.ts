@@ -5,8 +5,11 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
 import {
   REPUTATION_REGISTRY_ADDRESS,
-  IDENTITY_REGISTRY_ADDRESS,
   KUDOS_TAG1,
+  KUDOS_VALUE,
+  KUDOS_VALUE_DECIMALS,
+  AGENT_REGISTRY_CAIP10,
+  toCAIP10Address,
   KUDOS_CATEGORIES,
   type KudosCategory,
 } from '@/config/contract';
@@ -69,9 +72,23 @@ export const POST = withSiwa(async (agent, req) => {
     );
   }
 
-  // Store just the message — other fields are in event args
-  const feedbackURI = `data:,${encodeURIComponent(message.trim())}`;
-  const feedbackHash = keccak256(toBytes(feedbackURI));
+  // Build ERC-8004 best-practices compliant offchain feedback file
+  const feedbackFile = {
+    agentRegistry: AGENT_REGISTRY_CAIP10,
+    agentId,
+    clientAddress: toCAIP10Address(agent.address),
+    createdAt: new Date().toISOString(),
+    value: String(KUDOS_VALUE),
+    valueDecimals: KUDOS_VALUE_DECIMALS,
+    tag1: KUDOS_TAG1,
+    tag2: category,
+    reasoning: message.trim(),
+    ...(agent.agentId !== undefined && { fromAgentId: agent.agentId }),
+  };
+
+  const jsonStr = JSON.stringify(feedbackFile);
+  const feedbackURI = `data:application/json;base64,${Buffer.from(jsonStr).toString('base64')}`;
+  const feedbackHash = keccak256(toBytes(jsonStr));
 
   // Encode giveFeedback transaction
   const txData = encodeFunctionData({
@@ -79,8 +96,8 @@ export const POST = withSiwa(async (agent, req) => {
     functionName: 'giveFeedback',
     args: [
       BigInt(agentId),
-      BigInt(100),
-      0,
+      BigInt(KUDOS_VALUE),
+      KUDOS_VALUE_DECIMALS,
       KUDOS_TAG1,
       category,
       '',

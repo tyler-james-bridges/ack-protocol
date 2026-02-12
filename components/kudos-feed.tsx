@@ -10,15 +10,15 @@ function truncateAddress(addr: string) {
 
 function parseMessage(feedbackURI: string): string | null {
   try {
-    // New format: data:,<url-encoded message> (plain text, minimal calldata)
-    if (feedbackURI.startsWith('data:,')) {
-      return decodeURIComponent(feedbackURI.slice(6)) || null;
-    }
-    // Legacy format: data:application/json;base64,<base64 JSON>
+    // ERC-8004 best practices: data:application/json;base64,<base64 JSON>
     if (feedbackURI.startsWith('data:application/json;base64,')) {
       const json = atob(feedbackURI.replace('data:application/json;base64,', ''));
       const payload = JSON.parse(json);
-      return payload.message || null;
+      return payload.reasoning || payload.message || null;
+    }
+    // Legacy format: data:,<url-encoded message> (plain text)
+    if (feedbackURI.startsWith('data:,')) {
+      return decodeURIComponent(feedbackURI.slice(6)) || null;
     }
   } catch {
     // ignore malformed URIs

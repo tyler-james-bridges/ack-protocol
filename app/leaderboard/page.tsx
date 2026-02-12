@@ -16,9 +16,10 @@ const CHAIN_FILTERS = [
   { label: 'Arbitrum', value: 42161 },
 ];
 
-type SortKey = 'total_score' | 'total_feedbacks' | 'star_count';
+type SortKey = 'created_at' | 'total_score' | 'total_feedbacks' | 'star_count';
 
 const SORT_OPTIONS: { label: string; value: SortKey }[] = [
+  { label: 'Newest', value: 'created_at' },
   { label: 'Score', value: 'total_score' },
   { label: 'Feedback', value: 'total_feedbacks' },
   { label: 'Stars', value: 'star_count' },
@@ -27,9 +28,9 @@ const SORT_OPTIONS: { label: string; value: SortKey }[] = [
 export default function LeaderboardPage() {
   const router = useRouter();
   const [chainFilter, setChainFilter] = useState(0);
-  const [sortBy, setSortBy] = useState<SortKey>('total_score');
+  const [sortBy, setSortBy] = useState<SortKey>('created_at');
   const { data: agents, isLoading } = useLeaderboard({
-    limit: 50,
+    limit: 100,
     sortBy,
     chainId: chainFilter || undefined,
   });
@@ -55,13 +56,13 @@ export default function LeaderboardPage() {
         {/* Header */}
         <div className="mb-6">
           <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-1">
-            Rankings
+            Registry
           </p>
           <h1 className="text-2xl font-bold tracking-tight">
-            Agent Leaderboard
+            Agent Registry
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Top-performing agents ranked by score across ERC-8004 chains.
+            Discover and explore agents across ERC-8004 chains.
           </p>
         </div>
 

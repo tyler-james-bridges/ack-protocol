@@ -70,12 +70,17 @@ export default function RegisterPage() {
     setStatus('uploading');
 
     try {
-      // Build metadata
+      // Build ERC-8004 compliant registration file
       const metadata = {
+        type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
         name: name.trim(),
         description: description.trim(),
-        created_at: new Date().toISOString(),
-        registered_via: 'ACK Protocol',
+        image: '',
+        services: [],
+        x402Support: false,
+        active: true,
+        registrations: [],
+        supportedTrust: ['reputation'],
       };
 
       // Encode as base64 data URI (on-chain storage, no IPFS dependency)

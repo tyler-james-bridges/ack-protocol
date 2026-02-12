@@ -1,4 +1,5 @@
 import type { Address } from 'viem';
+import { chain } from './chain';
 
 /**
  * ERC-8004 contract addresses on Abstract (Chain ID: 2741)
@@ -9,6 +10,25 @@ export const IDENTITY_REGISTRY_ADDRESS: Address =
 
 export const REPUTATION_REGISTRY_ADDRESS: Address =
   '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
+
+/**
+ * CAIP-10 formatted agent registry identifier per ERC-8004 spec
+ * Format: eip155:{chainId}:{identityRegistryAddress}
+ */
+export const AGENT_REGISTRY_CAIP10 =
+  `eip155:${chain.id}:${IDENTITY_REGISTRY_ADDRESS}` as const;
+
+/** Format an address as CAIP-10 account ID */
+export function toCAIP10Address(address: string): string {
+  return `eip155:${chain.id}:${address}`;
+}
+
+/**
+ * Kudos feedback defaults per ERC-8004 best practices
+ * Using 5-star scale: value=5, valueDecimals=0 for positive kudos
+ */
+export const KUDOS_VALUE = 5; // 5-star positive endorsement
+export const KUDOS_VALUE_DECIMALS = 0;
 
 /**
  * Kudos categories — stored as tag2 in ERC-8004 giveFeedback()

@@ -24,7 +24,7 @@ export function Nav() {
             href="/leaderboard"
             className="text-xs sm:text-sm text-muted-foreground hover:text-foreground nav-link"
           >
-            Leaderboard
+            Registry
           </Link>
           <Link
             href="/graph"

@@ -7,11 +7,13 @@ import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
 import {
   REPUTATION_REGISTRY_ADDRESS,
   KUDOS_TAG1,
-  IDENTITY_REGISTRY_ADDRESS,
+  KUDOS_VALUE,
+  KUDOS_VALUE_DECIMALS,
+  AGENT_REGISTRY_CAIP10,
+  toCAIP10Address,
 } from '@/config/contract';
 import type { KudosCategory } from '@/config/contract';
 import { chain } from '@/config/chain';
-// Kudos payload stored fully onchain as data URI
 
 interface GiveKudosParams {
   agentId: number;
@@ -40,7 +42,6 @@ type KudosStatus =
 export function useGiveKudos() {
   const [status, setStatus] = useState<KudosStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
-  const [feedbackDataURI, setFeedbackDataURI] = useState<string | null>(null);
 
   const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
@@ -54,27 +55,30 @@ export function useGiveKudos() {
       setStatus('confirming');
 
       try {
-        // Build kudos payload — stored fully onchain as data URI
-        const payload = {
-          agentRegistry: IDENTITY_REGISTRY_ADDRESS,
+        // Build ERC-8004 best-practices compliant offchain feedback file
+        // Stored onchain as base64 data URI — no IPFS dependency
+        const feedbackFile = {
+          agentRegistry: AGENT_REGISTRY_CAIP10,
           agentId: params.agentId,
-          clientAddress: params.clientAddress,
+          clientAddress: toCAIP10Address(params.clientAddress),
           createdAt: new Date().toISOString(),
-          value: 100,
-          valueDecimals: 0,
-          tag1: 'kudos' as const,
+          value: String(KUDOS_VALUE),
+          valueDecimals: KUDOS_VALUE_DECIMALS,
+          tag1: KUDOS_TAG1,
           tag2: params.category,
-          message: params.message,
-          fromAgentId: params.fromAgentId,
+          reasoning: params.message.trim(),
+          ...(params.fromAgentId !== undefined && {
+            fromAgentId: params.fromAgentId,
+          }),
         };
 
-        // Store just the message onchain — other fields are already in event args
-        const feedbackURI = `data:,${encodeURIComponent(params.message.trim())}`;
+        // Encode as base64 data URI (UTF-8 safe, spec-compliant)
+        const jsonStr = JSON.stringify(feedbackFile);
+        const feedbackURI = `data:application/json;base64,${btoa(unescape(encodeURIComponent(jsonStr)))}`;
 
-        // Hash matches what's stored — independently verifiable from chain data
-        const feedbackHash = keccak256(toBytes(feedbackURI));
+        // feedbackHash: keccak256 of the feedbackURI content per ERC-8004 spec
+        const feedbackHash = keccak256(toBytes(jsonStr));
 
-        // Step 3: Call giveFeedback on the Reputation Registry
         setStatus('confirming');
         writeContract(
           {
@@ -83,13 +87,13 @@ export function useGiveKudos() {
             functionName: 'giveFeedback',
             args: [
               BigInt(params.agentId),
-              BigInt(100), // value: 100 = positive kudos
-              0, // valueDecimals: 0
+              BigInt(KUDOS_VALUE), // value: 5-star positive endorsement
+              KUDOS_VALUE_DECIMALS, // valueDecimals: 0
               KUDOS_TAG1, // tag1: "kudos"
               params.category, // tag2: category
               '', // endpoint: empty (not service-specific)
-              feedbackURI, // feedbackURI: IPFS link
-              feedbackHash, // feedbackHash: keccak256 of payload
+              feedbackURI, // feedbackURI: structured JSON data URI
+              feedbackHash, // feedbackHash: keccak256 of JSON content
             ],
             chainId: chain.id,
           },
@@ -112,7 +116,6 @@ export function useGiveKudos() {
   const reset = useCallback(() => {
     setStatus('idle');
     setError(null);
-    setFeedbackDataURI(null);
     resetWrite();
   }, [resetWrite]);
 
@@ -124,7 +127,6 @@ export function useGiveKudos() {
     status: finalStatus,
     error,
     txHash,
-    feedbackDataURI,
     reset,
     isLoading:
       finalStatus === 'confirming' ||

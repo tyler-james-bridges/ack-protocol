@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 interface InlineKudosFormProps {
   agentTokenId: string;
   agentName: string;
+  ownerAddress?: string;
   className?: string;
 }
 
@@ -22,6 +23,7 @@ interface InlineKudosFormProps {
 export function InlineKudosForm({
   agentTokenId,
   agentName,
+  ownerAddress,
   className,
 }: InlineKudosFormProps) {
   const { login } = useLoginWithAbstract();
@@ -30,7 +32,11 @@ export function InlineKudosForm({
   const [category, setCategory] = useState<KudosCategory | null>(null);
   const [message, setMessage] = useState('');
 
-  const canSubmit = message.trim().length > 0 && !isLoading;
+  // ERC-8004: "feedback submitter MUST NOT be the agent owner or approved operator"
+  const isSelfKudos = address && ownerAddress &&
+    address.toLowerCase() === ownerAddress.toLowerCase();
+
+  const canSubmit = message.trim().length > 0 && !isLoading && !isSelfKudos;
 
   const handleSubmit = () => {
     if (!canSubmit || !address) return;
@@ -163,6 +169,11 @@ export function InlineKudosForm({
       </div>
 
       {/* Submit */}
+      {isSelfKudos && (
+        <p className="text-sm text-muted-foreground text-center">
+          You own this agent — you can&apos;t give kudos to yourself.
+        </p>
+      )}
       <Button onClick={handleSubmit} disabled={!canSubmit} className="w-full">
         {isLoading
           ? status === 'confirming'

@@ -191,23 +191,40 @@ async function getAgentPool(): Promise<ScanAgent[]> {
   return deduped;
 }
 
+function sortAgents(agents: ScanAgent[], sortBy: string): ScanAgent[] {
+  const sorted = [...agents];
+  if (sortBy === 'created_at') {
+    sorted.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  } else {
+    const sortKey = sortBy as keyof ScanAgent;
+    sorted.sort(
+      (a, b) => (Number(b[sortKey]) || 0) - (Number(a[sortKey]) || 0)
+    );
+  }
+  return sorted;
+}
+
 export async function fetchLeaderboard(
   options: { limit?: number; chainId?: number; sortBy?: string } = {}
 ): Promise<ScanAgent[]> {
-  const sortBy = options.sortBy || 'total_score';
-  const displayLimit = options.limit || 50;
+  const sortBy = options.sortBy || 'created_at';
+  const displayLimit = options.limit || 100;
 
+  // For chain-specific queries, fetch directly with chain_id param
+  // (the global pool sorted by score misses small-chain agents)
+  if (options.chainId) {
+    const data = await proxyFetch<ScanAgentsResponse>('agents', {
+      chain_id: options.chainId,
+      limit: displayLimit,
+    });
+    const agents = (data.items || []).filter((a) => !a.is_testnet);
+    return sortAgents(agents, sortBy);
+  }
+
+  // For "All Chains", use the cached global pool
   const pool = await getAgentPool();
-
-  const filtered = options.chainId
-    ? pool.filter((a) => a.chain_id === options.chainId)
-    : pool;
-
-  // Sort
-  const sortKey = sortBy as keyof ScanAgent;
-  filtered.sort(
-    (a, b) => (Number(b[sortKey]) || 0) - (Number(a[sortKey]) || 0)
-  );
-
-  return filtered.slice(0, displayLimit);
+  return sortAgents(pool, sortBy).slice(0, displayLimit);
 }

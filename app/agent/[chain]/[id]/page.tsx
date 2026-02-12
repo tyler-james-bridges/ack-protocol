@@ -299,6 +299,8 @@ function getChainSlug(chainId: number): string {
     10: 'optimism',
     43114: 'avalanche',
     196: 'xlayer',
+    100: 'gnosis',
+    42220: 'celo',
   };
   return slugs[chainId] || String(chainId);
 }

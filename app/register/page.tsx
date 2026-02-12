@@ -120,13 +120,24 @@ export default function RegisterPage() {
         {finalStatus === 'success' ? (
           <div className="text-center pt-12 space-y-4">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#00DE73]/10 border border-[#00DE73]/20">
-              <svg viewBox="0 0 24 24" className="w-8 h-8 text-[#00DE73]" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              <svg
+                viewBox="0 0 24 24"
+                className="w-8 h-8 text-[#00DE73]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold">You're on Abstract</h1>
+            <h1 className="text-2xl font-bold">You&apos;re on Abstract</h1>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Your agent is live on the ERC-8004 Identity Registry. It'll show up on ACK and 8004scan within minutes.
+              Your agent is live on the ERC-8004 Identity Registry. It will show
+              up on ACK and 8004scan within minutes.
             </p>
             {txHash && (
               <a
@@ -149,7 +160,9 @@ export default function RegisterPage() {
                 <span className="text-[#00DE73]">on the map</span>
               </h1>
               <p className="text-muted-foreground mt-3 max-w-md mx-auto">
-                Register on Abstract's ERC-8004 Identity Registry. Get discovered. Build reputation through peer kudos. Free beyond gas.
+                Register on Abstract&apos;s ERC-8004 Identity Registry. Get
+                discovered. Build reputation through peer kudos. Free beyond
+                gas.
               </p>
             </div>
 
@@ -157,18 +170,28 @@ export default function RegisterPage() {
             {networkStats && (
               <div className="flex items-center justify-center gap-8 mb-10 text-center">
                 <div>
-                  <p className="text-2xl font-bold tabular-nums">{networkStats.total_agents.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">agents across ERC-8004</p>
+                  <p className="text-2xl font-bold tabular-nums">
+                    {networkStats.total_agents.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    agents across ERC-8004
+                  </p>
                 </div>
                 <div className="w-px h-8 bg-border" />
                 <div>
-                  <p className="text-2xl font-bold tabular-nums">{networkStats.total_chains}</p>
+                  <p className="text-2xl font-bold tabular-nums">
+                    {networkStats.total_chains}
+                  </p>
                   <p className="text-xs text-muted-foreground">chains</p>
                 </div>
                 <div className="w-px h-8 bg-border" />
                 <div>
-                  <p className="text-2xl font-bold tabular-nums">{networkStats.total_feedbacks.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">feedbacks given</p>
+                  <p className="text-2xl font-bold tabular-nums">
+                    {networkStats.total_feedbacks.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    feedbacks given
+                  </p>
                 </div>
               </div>
             )}
@@ -212,8 +235,12 @@ export default function RegisterPage() {
                       background: `linear-gradient(135deg, hsl(${parseInt(address.slice(2, 5), 16) % 360}, 70%, 50%), hsl(${(parseInt(address.slice(2, 5), 16) + 120) % 360}, 70%, 50%))`,
                     }}
                   />
-                  <span className="text-xs font-mono text-muted-foreground truncate">{address}</span>
-                  <span className="ml-auto text-[10px] text-muted-foreground/60">Abstract</span>
+                  <span className="text-xs font-mono text-muted-foreground truncate">
+                    {address}
+                  </span>
+                  <span className="ml-auto text-[10px] text-muted-foreground/60">
+                    Abstract
+                  </span>
                 </div>
               )}
 
@@ -241,10 +268,7 @@ export default function RegisterPage() {
                 <Button
                   onClick={handleRegister}
                   disabled={
-                    !name.trim() ||
-                    !descValid ||
-                    isLoading ||
-                    alreadyRegistered
+                    !name.trim() || !descValid || isLoading || alreadyRegistered
                   }
                   className="w-full h-12 text-sm font-medium rounded-lg bg-[#00DE73] text-black hover:bg-[#00DE73]/90 disabled:bg-muted disabled:text-muted-foreground"
                   size="lg"
@@ -267,19 +291,26 @@ export default function RegisterPage() {
               <div>
                 <div className="text-lg font-semibold mb-1">Get discovered</div>
                 <p className="text-sm text-muted-foreground">
-                  Show up in the ACK registry and on 8004scan. Other agents and humans find you.
+                  Show up in the ACK registry and on 8004scan. Other agents and
+                  humans find you.
                 </p>
               </div>
               <div>
-                <div className="text-lg font-semibold mb-1">Build reputation</div>
+                <div className="text-lg font-semibold mb-1">
+                  Build reputation
+                </div>
                 <p className="text-sm text-muted-foreground">
-                  Earn peer kudos from agents you work with. Onchain, verifiable, portable.
+                  Earn peer kudos from agents you work with. Onchain,
+                  verifiable, portable.
                 </p>
               </div>
               <div>
-                <div className="text-lg font-semibold mb-1">Cross-chain rep</div>
+                <div className="text-lg font-semibold mb-1">
+                  Cross-chain rep
+                </div>
                 <p className="text-sm text-muted-foreground">
-                  Already on Ethereum or Base? Your reputation follows you to Abstract.
+                  Already on Ethereum or Base? Your reputation follows you to
+                  Abstract.
                 </p>
               </div>
             </div>

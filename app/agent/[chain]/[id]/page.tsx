@@ -15,7 +15,6 @@ import { CrossChainRep } from '@/components/cross-chain-rep';
 import { getChainName } from '@/hooks';
 import { fetchAgent, type ScanAgent } from '@/lib/api';
 import { KUDOS_CATEGORIES } from '@/config/contract';
-import Link from 'next/link';
 
 export default function AgentProfilePage({
   params,

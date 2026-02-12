@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       chainId: result.chainId,
       verified: result.verified,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
   }
 }

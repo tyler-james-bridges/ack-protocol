@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 import { keccak256, toBytes } from 'viem';
 import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
 import {
@@ -37,6 +38,8 @@ type KudosStatus = 'idle' | 'confirming' | 'waiting' | 'success' | 'error';
 export function useGiveKudos() {
   const [status, setStatus] = useState<KudosStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
+  const [kudosAgentId, setKudosAgentId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
 
   const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
@@ -44,10 +47,32 @@ export function useGiveKudos() {
     chainId: chain.id,
   });
 
+  // When tx confirms, invalidate all related queries so the UI updates
+  useEffect(() => {
+    if (!txConfirmed) return;
+
+    // Small delay to let the RPC index the new event, then refetch all related data
+    const timer = setTimeout(() => {
+      // Kudos feed (onchain events)
+      queryClient.invalidateQueries({
+        queryKey: ['kudos-received', kudosAgentId],
+      });
+      // Cross-chain reputation card
+      queryClient.invalidateQueries({ queryKey: ['cross-chain-rep'] });
+      // Network-wide stats
+      queryClient.invalidateQueries({ queryKey: ['network-stats'] });
+      // Wagmi contract reads (score, kudos count, top category)
+      queryClient.invalidateQueries({ queryKey: ['readContract'] });
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [txConfirmed, kudosAgentId, queryClient]);
+
   const giveKudos = useCallback(
     async (params: GiveKudosParams) => {
       setError(null);
       setStatus('confirming');
+      setKudosAgentId(params.agentId);
 
       try {
         // Build ERC-8004 best-practices compliant offchain feedback file

@@ -11,7 +11,7 @@ test.describe('Register Page', () => {
   });
 
   test('name input accepts text', async ({ page }) => {
-    const nameInput = page.getByPlaceholder('Agent name');
+    const nameInput = page.getByLabel('Agent Name');
     await expect(nameInput).toBeVisible();
     await nameInput.fill('Test Agent');
     await expect(nameInput).toHaveValue('Test Agent');

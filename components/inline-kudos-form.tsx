@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,18 @@ export function InlineKudosForm({
     address.toLowerCase() === ownerAddress.toLowerCase();
 
   const canSubmit = message.trim().length > 0 && !isLoading && !isSelfKudos;
+
+  // After successful kudos, scroll to the kudos feed so the user sees their new kudos
+  useEffect(() => {
+    if (status !== 'success') return;
+    const timer = setTimeout(() => {
+      const feed = document.getElementById('kudos-feed');
+      if (feed) {
+        feed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 2500); // Wait for query invalidation + refetch
+    return () => clearTimeout(timer);
+  }, [status]);
 
   const handleSubmit = () => {
     if (!canSubmit || !address) return;

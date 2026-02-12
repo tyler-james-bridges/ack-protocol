@@ -88,14 +88,14 @@ export function KudosFeed({ agentId }: { agentId: number }) {
 
   if (!kudos?.length) {
     return (
-      <div className="text-muted-foreground text-sm">
+      <div id="kudos-feed" className="text-muted-foreground text-sm">
         No onchain kudos yet — be the first!
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div id="kudos-feed" className="space-y-3">
       <h3 className="text-sm font-medium text-[#00DE73]">
         Onchain Kudos ({kudos.length})
       </h3>

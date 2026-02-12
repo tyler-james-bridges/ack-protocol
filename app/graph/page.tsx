@@ -121,7 +121,7 @@ export default function GraphPage() {
             </div>
 
             {hoveredAgent && (
-              <div className="flex items-center gap-1.5 text-xs bg-background/70 rounded-lg px-2.5 py-1.5 border border-border backdrop-blur-sm">
+              <div className="flex items-center gap-1.5 text-xs bg-gray-900/80 rounded-lg px-2.5 py-1.5 border border-border backdrop-blur-sm">
                 <ChainIcon chainId={hoveredAgent.chainId} size={12} />
                 <span className="font-semibold text-white truncate max-w-[140px]">
                   {hoveredAgent.name}
@@ -222,7 +222,7 @@ export default function GraphPage() {
 
         {/* Chain legend */}
         {activeChains.length > 0 && (
-          <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 rounded-lg border border-border bg-background/70 backdrop-blur-sm p-2 sm:p-3 space-y-1">
+          <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 rounded-lg border border-border bg-gray-900/80 backdrop-blur-sm p-2 sm:p-3 space-y-1">
             <p className="text-[9px] font-medium tracking-wider text-muted-foreground uppercase">
               Chains
             </p>
@@ -247,7 +247,7 @@ export default function GraphPage() {
         )}
 
         {/* Stats */}
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 rounded-lg border border-border bg-background/70 backdrop-blur-sm p-2 sm:p-3 text-right">
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 rounded-lg border border-border bg-gray-900/80 backdrop-blur-sm p-2 sm:p-3 text-right">
           <p className="text-[9px] font-medium tracking-wider text-muted-foreground uppercase">
             Tracking
           </p>

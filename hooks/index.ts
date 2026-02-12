@@ -33,3 +33,7 @@ export { useNetworkStats } from './useNetworkStats';
 export { useAckMetadata } from './useAckMetadata';
 export type { AckMetadata } from './useAckMetadata';
 export { useAbstractFeedbackCounts } from './useAbstractFeedbackCounts';
+export { useRecentKudos } from './useRecentKudos';
+export type { RecentKudos } from './useRecentKudos';
+export { useKudosGiven } from './useKudosGiven';
+export type { KudosGivenEvent } from './useKudosGiven';

@@ -63,6 +63,9 @@ export function useGiveKudos() {
       queryClient.invalidateQueries({ queryKey: ['network-stats'] });
       // Abstract onchain feedback counts (leaderboard)
       queryClient.invalidateQueries({ queryKey: ['abstract-feedback-counts'] });
+      // Recent kudos feed and kudos given by user
+      queryClient.invalidateQueries({ queryKey: ['recent-kudos'] });
+      queryClient.invalidateQueries({ queryKey: ['kudos-given'] });
       // Wagmi contract reads (score, kudos count, top category)
       queryClient.invalidateQueries({ queryKey: ['readContract'] });
     }, 2000);

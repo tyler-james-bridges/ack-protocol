@@ -18,7 +18,10 @@ import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { chain } from '@/config/chain';
 import { fetchAgents, type ScanAgent } from '@/lib/api';
-import { getChainName } from '@/hooks';
+import { getChainName, useKudosGiven, useRecentKudos } from '@/hooks';
+import { useKudosReceived } from '@/hooks/useKudosReceived';
+import { CategoryBadge } from '@/components/category-badge';
+import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
 
 const BALANCE_OF_ABI = [
   {
@@ -62,6 +65,16 @@ export default function ProfilePage() {
     enabled: !!address && hasAgent,
     staleTime: 60_000,
   });
+
+  // Kudos given by this wallet
+  const { data: kudosGiven, isLoading: loadingGiven } = useKudosGiven(
+    address as `0x${string}` | undefined
+  );
+
+  // Kudos received by this wallet's agent
+  const { data: kudosReceived, isLoading: loadingReceived } = useKudosReceived(
+    myAgent ? Number(myAgent.token_id) : undefined
+  );
 
   if (!isConnected) {
     return (
@@ -264,46 +277,116 @@ export default function ProfilePage() {
             {/* Update Agent URI */}
             <UpdateAgentURI agent={myAgent} />
 
-            {/* Kudos History */}
+            {/* Kudos Received */}
+            {myAgent && (
+              <section className="rounded-2xl border border-border bg-card p-6 mb-5">
+                <h2 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-4">
+                  Kudos Received
+                  {kudosReceived && kudosReceived.length > 0 && (
+                    <span className="ml-2 text-[#00DE73]">
+                      ({kudosReceived.length})
+                    </span>
+                  )}
+                </h2>
+                {loadingReceived ? (
+                  <div className="space-y-3">
+                    {[...Array(2)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="border border-border rounded-lg p-4 animate-pulse"
+                      >
+                        <div className="h-4 bg-muted rounded w-2/3 mb-3" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
+                      </div>
+                    ))}
+                  </div>
+                ) : !kudosReceived?.length ? (
+                  <div className="text-center py-6">
+                    <p className="text-sm text-muted-foreground">
+                      No kudos received yet.
+                    </p>
+                    <p className="text-xs text-muted-foreground/50 mt-1">
+                      Share your agent page to start collecting reputation.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {kudosReceived.map((k, i) => (
+                      <KudosCard
+                        key={`recv-${k.txHash}-${i}`}
+                        sender={k.sender}
+                        agentId={null}
+                        tag2={k.tag2}
+                        message={parseMessage(k.feedbackURI)}
+                        txHash={k.txHash}
+                        blockNumber={k.blockNumber}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Kudos Given */}
             <section className="rounded-2xl border border-border bg-card p-6">
               <h2 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-4">
                 Kudos Given
+                {kudosGiven && kudosGiven.length > 0 && (
+                  <span className="ml-2 text-[#00DE73]">
+                    ({kudosGiven.length})
+                  </span>
+                )}
               </h2>
-              <div className="text-center py-8">
-                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted border border-border">
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="h-5 w-5 text-muted-foreground/50"
-                  >
-                    <path d="M3.505 2.365A41.369 41.369 0 019 2c1.863 0 3.697.124 5.495.365 1.247.167 2.18 1.108 2.435 2.268a4.45 4.45 0 00-.577-.069 43.141 43.141 0 00-4.706 0C9.229 4.696 7.5 6.727 7.5 8.998v2.24c0 1.413.67 2.735 1.76 3.562l-2.98 2.98A.75.75 0 015 17.25v-3.443c-.501-.048-1-.106-1.495-.172C2.033 13.438 1 12.162 1 10.72V5.28c0-1.441 1.033-2.717 2.505-2.914z" />
-                    <path d="M14 6c-.762 0-1.52.02-2.271.062C10.157 6.148 9 7.472 9 8.998v2.24c0 1.519 1.147 2.839 2.71 2.935.214.013.428.024.642.034.2.009.385.09.518.224l2.35 2.35a.75.75 0 001.28-.531v-2.07c1.453-.195 2.5-1.463 2.5-2.942V8.998c0-1.526-1.157-2.85-2.729-2.936A41.645 41.645 0 0014 6z" />
-                  </svg>
+              {loadingGiven ? (
+                <div className="space-y-3">
+                  {[...Array(2)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="border border-border rounded-lg p-4 animate-pulse"
+                    >
+                      <div className="h-4 bg-muted rounded w-2/3 mb-3" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                    </div>
+                  ))}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  No kudos given yet
-                </p>
-                <p className="text-xs text-muted-foreground/50 mt-1">
-                  Your kudos history will appear here once indexed.
-                </p>
-                <Link
-                  href="/leaderboard"
-                  className="inline-flex items-center gap-1 mt-4 text-sm text-[#00DE73] hover:text-[#00DE73]/80 transition-colors font-medium"
-                >
-                  Browse agents to review
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="h-4 w-4"
+              ) : !kudosGiven?.length ? (
+                <div className="text-center py-6">
+                  <p className="text-sm text-muted-foreground">
+                    No kudos given yet.
+                  </p>
+                  <Link
+                    href="/leaderboard"
+                    className="inline-flex items-center gap-1 mt-3 text-sm text-[#00DE73] hover:text-[#00DE73]/80 transition-colors font-medium"
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
-                      clipRule="evenodd"
+                    Browse agents to review
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="h-4 w-4"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {kudosGiven.map((k, i) => (
+                    <KudosCard
+                      key={`given-${k.txHash}-${i}`}
+                      sender={null}
+                      agentId={k.agentId}
+                      tag2={k.tag2}
+                      message={k.message}
+                      txHash={k.txHash}
+                      blockNumber={k.blockNumber}
                     />
-                  </svg>
-                </Link>
-              </div>
+                  ))}
+                </div>
+              )}
             </section>
           </>
         ) : (
@@ -460,5 +543,89 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
         </div>
       )}
     </section>
+  );
+}
+
+function truncateAddress(addr: string) {
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
+
+function parseMessage(feedbackURI: string): string | null {
+  try {
+    if (feedbackURI.startsWith('data:application/json;base64,')) {
+      const json = decodeURIComponent(
+        escape(atob(feedbackURI.replace('data:application/json;base64,', '')))
+      );
+      const payload = JSON.parse(json);
+      return payload.reasoning || payload.message || null;
+    }
+    if (feedbackURI.startsWith('data:,')) {
+      return decodeURIComponent(feedbackURI.slice(6)) || null;
+    }
+  } catch {
+    // ignore malformed URIs
+  }
+  return null;
+}
+
+function KudosCard({
+  sender,
+  agentId,
+  tag2,
+  message,
+  txHash,
+  blockNumber,
+}: {
+  sender: string | null;
+  agentId: number | null;
+  tag2: string;
+  message: string | null;
+  txHash: string;
+  blockNumber: bigint;
+}) {
+  const isValidCategory = KUDOS_CATEGORIES.includes(tag2 as KudosCategory);
+
+  return (
+    <div className="border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          {sender && (
+            <a
+              href={`https://abscan.org/address/${sender}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-sm text-muted-foreground hover:text-[#00DE73] transition-colors"
+            >
+              {truncateAddress(sender)}
+            </a>
+          )}
+          {agentId !== null && (
+            <Link
+              href={`/agent/2741/${agentId}`}
+              className="text-sm font-medium text-foreground hover:text-[#00DE73] transition-colors"
+            >
+              Agent #{agentId}
+            </Link>
+          )}
+        </div>
+        {isValidCategory && <CategoryBadge category={tag2 as KudosCategory} />}
+      </div>
+
+      {message && (
+        <p className="text-sm text-foreground my-2">&ldquo;{message}&rdquo;</p>
+      )}
+
+      <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+        <span>Block #{blockNumber.toString()}</span>
+        <a
+          href={`https://abscan.org/tx/${txHash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-[#00DE73] transition-colors"
+        >
+          View tx
+        </a>
+      </div>
+    </div>
   );
 }

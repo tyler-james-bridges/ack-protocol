@@ -5,14 +5,73 @@ import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Nav } from '@/components/nav';
 import { KudosForm } from '@/components/kudos-form';
-import { useGiveKudos } from '@/hooks';
+import { CategoryBadge } from '@/components/category-badge';
+import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import { useGiveKudos, useRecentKudos } from '@/hooks';
+import type { RecentKudos } from '@/hooks';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+
+function truncateAddress(addr: string) {
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
+
+function RecentKudosCard({ kudos }: { kudos: RecentKudos }) {
+  const isValidCategory = KUDOS_CATEGORIES.includes(
+    kudos.tag2 as KudosCategory
+  );
+
+  return (
+    <div className="border border-border rounded-lg p-4 bg-card hover:border-[#00DE73]/40 transition-colors">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <a
+            href={`https://abscan.org/address/${kudos.sender}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-sm text-muted-foreground hover:text-[#00DE73] transition-colors shrink-0"
+          >
+            {truncateAddress(kudos.sender)}
+          </a>
+          <span className="text-muted-foreground/40 text-xs shrink-0">to</span>
+          <Link
+            href={`/agent/2741/${kudos.agentId}`}
+            className="text-sm font-medium text-foreground hover:text-[#00DE73] transition-colors truncate"
+          >
+            Agent #{kudos.agentId}
+          </Link>
+        </div>
+        {isValidCategory && (
+          <CategoryBadge category={kudos.tag2 as KudosCategory} />
+        )}
+      </div>
+
+      {kudos.message && (
+        <p className="text-sm text-foreground my-2">
+          &ldquo;{kudos.message}&rdquo;
+        </p>
+      )}
+
+      <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+        <span>Block #{kudos.blockNumber.toString()}</span>
+        <a
+          href={`https://abscan.org/tx/${kudos.txHash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-[#00DE73] transition-colors"
+        >
+          View tx
+        </a>
+      </div>
+    </div>
+  );
+}
 
 export default function GiveKudosPage() {
   const { login } = useLoginWithAbstract();
   const { address, isConnected } = useAccount();
   const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
+  const { data: recentKudos, isLoading: loadingFeed } = useRecentKudos();
 
   const handleSubmit = (data: {
     agent: { token_id: string };
@@ -114,6 +173,42 @@ export default function GiveKudosPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Recent Kudos Feed */}
+        <div className="mt-12 space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold tracking-tight">Recent Kudos</h2>
+            <p className="text-sm text-muted-foreground">
+              Latest onchain kudos across all agents on Abstract.
+            </p>
+          </div>
+
+          {loadingFeed ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="border border-border rounded-lg p-4 animate-pulse"
+                >
+                  <div className="h-4 bg-muted rounded w-2/3 mb-3" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : !recentKudos?.length ? (
+            <div className="rounded-xl border border-border p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                No onchain kudos yet. Be the first!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentKudos.map((k, i) => (
+                <RecentKudosCard key={`${k.txHash}-${i}`} kudos={k} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

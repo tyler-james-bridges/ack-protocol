@@ -47,7 +47,7 @@ export default function LeaderboardPage() {
   const { data: abstractCounts } = useAbstractFeedbackCounts();
 
   // Enrich Abstract agents with onchain feedback counts (8004scan doesn't index them)
-  const filtered = (agents || []).map((agent) => {
+  const enriched = (agents || []).map((agent) => {
     if (agent.chain_id === 2741 && abstractCounts) {
       const onchainCount = abstractCounts.get(Number(agent.token_id)) || 0;
       if (onchainCount > agent.total_feedbacks) {
@@ -56,6 +56,13 @@ export default function LeaderboardPage() {
     }
     return agent;
   });
+
+  // Re-sort after enrichment when sorting by feedback
+  if (sortBy === 'total_feedbacks') {
+    enriched.sort((a, b) => b.total_feedbacks - a.total_feedbacks);
+  }
+
+  const filtered = enriched;
 
   const totalAgents = chainFilter ? filtered.length : allAgents?.total || 0;
   const totalFeedback = filtered.reduce((sum, a) => sum + a.total_feedbacks, 0);

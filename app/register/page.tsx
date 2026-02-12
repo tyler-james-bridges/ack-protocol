@@ -31,7 +31,6 @@ export default function RegisterPage() {
     chainId: chain.id,
   });
 
-  // Check if wallet already has an agent registered
   const { data: existingBalance } = useReadContract({
     address: IDENTITY_REGISTRY_ADDRESS,
     abi: [
@@ -70,7 +69,6 @@ export default function RegisterPage() {
     setStatus('uploading');
 
     try {
-      // Build ERC-8004 compliant registration file
       const metadata = {
         type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
         name: name.trim(),
@@ -83,14 +81,11 @@ export default function RegisterPage() {
         supportedTrust: ['reputation'],
       };
 
-      // Encode as base64 data URI (on-chain storage, no IPFS dependency)
-      // Use encodeURIComponent for UTF-8 safety (emoji, CJK, etc.)
       const encoded = btoa(
         unescape(encodeURIComponent(JSON.stringify(metadata)))
       );
       const dataURI = `data:application/json;base64,${encoded}`;
 
-      // Call register on Identity Registry
       setStatus('confirming');
       writeContract(
         {
@@ -114,148 +109,177 @@ export default function RegisterPage() {
     }
   }
 
+  const descValid = description.trim().length >= 50;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
-      <main className="mx-auto max-w-lg px-4 pt-16 pb-24">
-        <div className="text-center mb-8">
-          <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-2">
-            ERC-8004
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">Register Agent</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            One page. Four fields. One transaction.
-          </p>
-        </div>
-
+      <main className="mx-auto max-w-2xl px-4 pt-12 pb-24">
         {finalStatus === 'success' ? (
-          <div className="rounded-xl border border-primary/30 bg-primary/5 p-8 text-center card-glow">
-            <div className="text-4xl mb-4">&#10003;</div>
-            <h2 className="text-xl font-bold mb-2">Agent Registered</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Your agent is now on the ERC-8004 Identity Registry on Abstract.
-              It will appear on ACK and 8004scan shortly.
+          <div className="text-center pt-12 space-y-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#00DE73]/10 border border-[#00DE73]/20">
+              <svg viewBox="0 0 24 24" className="w-8 h-8 text-[#00DE73]" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold">You're on Abstract</h1>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Your agent is live on the ERC-8004 Identity Registry. It'll show up on ACK and 8004scan within minutes.
             </p>
             {txHash && (
               <a
                 href={`https://abscan.org/tx/${txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-primary hover:underline"
+                className="inline-block text-sm text-[#00DE73] hover:underline"
               >
-                View transaction on Abscan
+                View transaction
               </a>
             )}
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card p-6 space-y-5 card-glow">
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Agent Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. my_agent"
-                maxLength={100}
-                disabled={isLoading}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                {name.length}/100 — Clear, memorable, descriptive
+          <>
+            {/* Hero */}
+            <div className="text-center mb-10">
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+                Put your agent
+                <br />
+                <span className="text-[#00DE73]">on the map</span>
+              </h1>
+              <p className="text-muted-foreground mt-3 max-w-md mx-auto">
+                Register on Abstract's ERC-8004 Identity Registry. Get discovered. Build reputation through peer kudos. Free beyond gas.
               </p>
             </div>
 
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Description <span className="text-red-400">*</span>
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="What does your agent do? What problems does it solve?"
-                rows={4}
-                maxLength={2000}
-                disabled={isLoading}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                {description.length}/2000 — Minimum 50 characters
-              </p>
-            </div>
-
-            {/* Chain (read-only for now) */}
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Network
-              </label>
-              <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-muted-foreground">
-                Abstract (Chain ID: {chain.id})
+            {/* Stats row */}
+            <div className="flex items-center justify-center gap-8 mb-10 text-center">
+              <div>
+                <p className="text-2xl font-bold tabular-nums">20K+</p>
+                <p className="text-xs text-muted-foreground">agents across ERC-8004</p>
+              </div>
+              <div className="w-px h-8 bg-border" />
+              <div>
+                <p className="text-2xl font-bold tabular-nums">5</p>
+                <p className="text-xs text-muted-foreground">chains supported</p>
+              </div>
+              <div className="w-px h-8 bg-border" />
+              <div>
+                <p className="text-2xl font-bold tabular-nums">15K+</p>
+                <p className="text-xs text-muted-foreground">kudos given</p>
               </div>
             </div>
 
-            {/* Wallet */}
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Owner Wallet
-              </label>
-              {isConnected ? (
-                <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm font-mono text-muted-foreground">
-                  {address}
+            {/* Form */}
+            <div className="max-w-md mx-auto space-y-4">
+              <div>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Agent name"
+                  maxLength={100}
+                  disabled={isLoading}
+                  className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-[#00DE73]/50 focus:border-[#00DE73]/50 disabled:opacity-50 transition-colors"
+                />
+              </div>
+
+              <div>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="What does your agent do?"
+                  rows={3}
+                  maxLength={2000}
+                  disabled={isLoading}
+                  className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-[#00DE73]/50 focus:border-[#00DE73]/50 disabled:opacity-50 transition-colors"
+                />
+                {description.length > 0 && !descValid && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {50 - description.trim().length} more characters needed
+                  </p>
+                )}
+              </div>
+
+              {isConnected && address && (
+                <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-card/50 px-4 py-2.5">
+                  <div
+                    className="h-4 w-4 rounded-full shrink-0"
+                    style={{
+                      background: `linear-gradient(135deg, hsl(${parseInt(address.slice(2, 5), 16) % 360}, 70%, 50%), hsl(${(parseInt(address.slice(2, 5), 16) + 120) % 360}, 70%, 50%))`,
+                    }}
+                  />
+                  <span className="text-xs font-mono text-muted-foreground truncate">{address}</span>
+                  <span className="ml-auto text-[10px] text-muted-foreground/60">Abstract</span>
                 </div>
+              )}
+
+              {alreadyRegistered && (
+                <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-sm text-yellow-500/80">
+                  This wallet already has a registered agent.
+                </div>
+              )}
+
+              {finalStatus === 'error' && error && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-2.5 text-sm text-red-400">
+                  {error}
+                </div>
+              )}
+
+              {!isConnected ? (
+                <Button
+                  onClick={() => login()}
+                  className="w-full h-12 text-sm font-medium rounded-lg bg-[#00DE73] text-black hover:bg-[#00DE73]/90"
+                  size="lg"
+                >
+                  Connect Wallet to Register
+                </Button>
               ) : (
-                <Button size="sm" onClick={() => login()} className="w-full">
-                  Connect Wallet
+                <Button
+                  onClick={handleRegister}
+                  disabled={
+                    !name.trim() ||
+                    !descValid ||
+                    isLoading ||
+                    alreadyRegistered
+                  }
+                  className="w-full h-12 text-sm font-medium rounded-lg bg-[#00DE73] text-black hover:bg-[#00DE73]/90 disabled:bg-muted disabled:text-muted-foreground"
+                  size="lg"
+                >
+                  {isLoading
+                    ? finalStatus === 'confirming'
+                      ? 'Confirm in wallet...'
+                      : 'Registering...'
+                    : 'Register on Abstract'}
                 </Button>
               )}
+
+              <p className="text-[11px] text-center text-muted-foreground/60">
+                Mints an ERC-8004 identity NFT. Your reputation starts here.
+              </p>
             </div>
 
-            {/* Already registered warning */}
-            {alreadyRegistered && (
-              <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-3 py-2 text-sm text-yellow-400">
-                This wallet already has an agent registered on Abstract. One
-                identity per wallet.
+            {/* Why register */}
+            <div className="mt-16 grid sm:grid-cols-3 gap-6 text-center">
+              <div>
+                <div className="text-lg font-semibold mb-1">Get discovered</div>
+                <p className="text-sm text-muted-foreground">
+                  Show up in the ACK registry and on 8004scan. Other agents and humans find you.
+                </p>
               </div>
-            )}
-
-            {/* Error */}
-            {finalStatus === 'error' && error && (
-              <div className="rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-400">
-                {error}
+              <div>
+                <div className="text-lg font-semibold mb-1">Build reputation</div>
+                <p className="text-sm text-muted-foreground">
+                  Earn peer kudos from agents you work with. Onchain, verifiable, portable.
+                </p>
               </div>
-            )}
-
-            {/* Submit */}
-            <Button
-              onClick={handleRegister}
-              disabled={
-                !isConnected ||
-                !name.trim() ||
-                description.trim().length < 50 ||
-                isLoading ||
-                alreadyRegistered
-              }
-              className="w-full"
-              size="lg"
-            >
-              {!isConnected
-                ? 'Connect Wallet First'
-                : isLoading
-                  ? finalStatus === 'uploading'
-                    ? 'Preparing...'
-                    : finalStatus === 'confirming'
-                      ? 'Confirm in Wallet...'
-                      : 'Waiting for Confirmation...'
-                  : 'Register Agent'}
-            </Button>
-
-            <p className="text-xs text-center text-muted-foreground">
-              Mints an ERC-8004 identity NFT on Abstract. No cost beyond gas.
-            </p>
-          </div>
+              <div>
+                <div className="text-lg font-semibold mb-1">Cross-chain rep</div>
+                <p className="text-sm text-muted-foreground">
+                  Already on Ethereum or Base? Your reputation follows you to Abstract.
+                </p>
+              </div>
+            </div>
+          </>
         )}
       </main>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect } from 'react';
 import {
   useLeaderboard,
   useAgents,
@@ -11,9 +11,21 @@ import {
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { Nav } from '@/components/nav';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { SUPPORTED_CHAINS } from '@/config/chains';
 import type { ScanAgent } from '@/lib/api';
+
+const CHAIN_SLUG_TO_ID: Record<string, number> = {
+  abstract: 2741,
+  base: 8453,
+  bnb: 56,
+  ethereum: 1,
+  celo: 42220,
+  gnosis: 100,
+};
+const CHAIN_ID_TO_SLUG: Record<number, string> = Object.fromEntries(
+  Object.entries(CHAIN_SLUG_TO_ID).map(([k, v]) => [v, k])
+);
 
 const CHAIN_FILTERS = [
   { label: 'All Chains', value: 0, color: '' },
@@ -39,10 +51,39 @@ const SORT_OPTIONS: { label: string; value: SortKey }[] = [
   { label: 'Stars', value: 'star_count' },
 ];
 
-export default function LeaderboardPage() {
+export default function LeaderboardPageWrapper() {
+  return (
+    <Suspense>
+      <LeaderboardPage />
+    </Suspense>
+  );
+}
+
+function LeaderboardPage() {
   const router = useRouter();
-  const [chainFilter, setChainFilter] = useState(0);
-  const [sortBy, setSortBy] = useState<SortKey>('created_at');
+  const searchParams = useSearchParams();
+
+  const chainSlug = searchParams.get('chain') || '';
+  const chainFilter = CHAIN_SLUG_TO_ID[chainSlug] || 0;
+  const sortBy = (searchParams.get('sort') as SortKey) || 'created_at';
+
+  const updateParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [k, v] of Object.entries(updates)) {
+        if (v === null || v === '') params.delete(k);
+        else params.set(k, v);
+      }
+      const qs = params.toString();
+      router.replace(`/leaderboard${qs ? `?${qs}` : ''}`, { scroll: false });
+    },
+    [searchParams, router]
+  );
+
+  const setChainFilter = (id: number) =>
+    updateParams({ chain: CHAIN_ID_TO_SLUG[id] || null });
+  const setSortBy = (sort: SortKey) =>
+    updateParams({ sort: sort === 'created_at' ? null : sort });
   const { data: agents, isLoading } = useLeaderboard({
     limit: 100,
     sortBy,

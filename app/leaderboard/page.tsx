@@ -102,11 +102,19 @@ function LeaderboardPage() {
     return { ...agent, kudos };
   });
 
-  // Sort after enrichment for kudos or feedback
+  // Sort after enrichment — tiebreak by score, then feedback
   if (sortBy === 'kudos') {
-    enriched.sort((a, b) => b.kudos - a.kudos);
+    enriched.sort(
+      (a, b) =>
+        b.kudos - a.kudos ||
+        b.total_score - a.total_score ||
+        b.total_feedbacks - a.total_feedbacks
+    );
   } else if (sortBy === 'total_feedbacks') {
-    enriched.sort((a, b) => b.total_feedbacks - a.total_feedbacks);
+    enriched.sort(
+      (a, b) =>
+        b.total_feedbacks - a.total_feedbacks || b.total_score - a.total_score
+    );
   }
 
   // Auto-switch to Abstract when sorting by kudos (ACK kudos only live on Abstract)
@@ -304,55 +312,9 @@ function LeaderboardPage() {
                   </div>
                 </div>
 
-                {/* Triple metrics */}
-                <div className="flex items-center gap-3 shrink-0">
-                  {/* Protocol Score (8004scan) */}
-                  <div className="text-right w-12">
-                    <p className="text-sm font-bold tabular-nums">
-                      {agent.total_score.toFixed(1)}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      protocol
-                    </p>
-                  </div>
-                  {/* Feedback count (8004scan) */}
-                  <div className="text-right w-12">
-                    {agent.total_feedbacks > 0 ? (
-                      <>
-                        <p className="text-sm font-bold tabular-nums">
-                          {agent.total_feedbacks}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">
-                          feedback
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-sm text-muted-foreground/40">—</p>
-                        <p className="text-[10px] text-muted-foreground/40">
-                          feedback
-                        </p>
-                      </>
-                    )}
-                  </div>
-                  {/* ACK Kudos count */}
-                  <div className="text-right w-12">
-                    {agent.kudos > 0 ? (
-                      <>
-                        <p className="text-sm font-bold tabular-nums text-[#00DE73]">
-                          {agent.kudos}
-                        </p>
-                        <p className="text-[10px] text-[#00DE73]/70">kudos</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-sm text-muted-foreground/40">—</p>
-                        <p className="text-[10px] text-muted-foreground/40">
-                          kudos
-                        </p>
-                      </>
-                    )}
-                  </div>
+                {/* Metrics — primary sort value + secondary */}
+                <div className="flex items-center gap-4 shrink-0">
+                  <SortMetric agent={agent} sortBy={sortBy} />
                 </div>
               </button>
             ))
@@ -391,4 +353,88 @@ function StatCard({
       )}
     </div>
   );
+}
+
+type EnrichedAgent = ScanAgent & { kudos: number };
+
+function SortMetric({
+  agent,
+  sortBy,
+}: {
+  agent: EnrichedAgent;
+  sortBy: SortKey;
+}) {
+  const primary = getPrimary(agent, sortBy);
+  const secondary = getSecondary(agent, sortBy);
+
+  return (
+    <>
+      {secondary && (
+        <div className="text-right w-14 hidden sm:block">
+          <p className="text-xs tabular-nums text-muted-foreground">
+            {secondary.value}
+          </p>
+          <p className="text-[10px] text-muted-foreground/50">
+            {secondary.label}
+          </p>
+        </div>
+      )}
+      <div className="text-right w-14">
+        <p
+          className={`text-sm font-bold tabular-nums ${primary.accent ? 'text-[#00DE73]' : ''}`}
+        >
+          {primary.value}
+        </p>
+        <p
+          className={`text-[10px] ${primary.accent ? 'text-[#00DE73]/70' : 'text-muted-foreground'}`}
+        >
+          {primary.label}
+        </p>
+      </div>
+    </>
+  );
+}
+
+function getPrimary(
+  agent: EnrichedAgent,
+  sortBy: SortKey
+): { value: string; label: string; accent?: boolean } {
+  switch (sortBy) {
+    case 'kudos':
+      return agent.kudos > 0
+        ? { value: String(agent.kudos), label: 'kudos', accent: true }
+        : { value: '\u2014', label: 'kudos' };
+    case 'total_feedbacks':
+      return agent.total_feedbacks > 0
+        ? { value: String(agent.total_feedbacks), label: 'feedback' }
+        : { value: '\u2014', label: 'feedback' };
+    case 'total_score':
+      return { value: agent.total_score.toFixed(1), label: 'score' };
+    case 'star_count':
+      return agent.star_count > 0
+        ? { value: String(agent.star_count), label: 'stars' }
+        : { value: '\u2014', label: 'stars' };
+    default:
+      return { value: agent.total_score.toFixed(1), label: 'score' };
+  }
+}
+
+function getSecondary(
+  agent: EnrichedAgent,
+  sortBy: SortKey
+): { value: string; label: string } | null {
+  switch (sortBy) {
+    case 'kudos':
+      return { value: agent.total_score.toFixed(1), label: 'score' };
+    case 'total_feedbacks':
+      return { value: agent.total_score.toFixed(1), label: 'score' };
+    case 'total_score':
+      return agent.total_feedbacks > 0
+        ? { value: String(agent.total_feedbacks), label: 'feedback' }
+        : null;
+    case 'star_count':
+      return { value: agent.total_score.toFixed(1), label: 'score' };
+    default:
+      return null;
+  }
 }

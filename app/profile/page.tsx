@@ -431,7 +431,7 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
               onChange={(e) => setNewURI(e.target.value)}
               placeholder="data:application/json;base64,... or https://..."
               disabled={txPending}
-              className="w-full rounded-xl border border-border bg-muted/50 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-[#00DE73]/30 focus:border-[#00DE73]/30 disabled:opacity-50 transition-all"
+              className="w-full rounded-xl border border-border bg-muted/50 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#00DE73]/30 focus:border-[#00DE73]/30 disabled:opacity-50 transition-all"
             />
           </div>
           {txConfirmed && (

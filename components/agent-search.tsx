@@ -41,6 +41,7 @@ export function AgentSearch({
         }}
         onFocus={() => setIsOpen(true)}
         placeholder={placeholder}
+        aria-label={placeholder}
         className="w-full"
       />
 

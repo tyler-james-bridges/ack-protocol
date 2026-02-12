@@ -119,7 +119,8 @@ export default function Home() {
                       if (heroQuery.length >= 2) setHeroDropdownOpen(true);
                     }}
                     placeholder="Enter agent name or address..."
-                    className="w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
+                    aria-label="Search for an agent by name or address"
+                    className="w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
                   />
                 </div>
                 <button

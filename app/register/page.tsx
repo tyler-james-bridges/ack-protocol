@@ -207,26 +207,40 @@ export default function RegisterPage() {
             {/* Form */}
             <div className="max-w-md mx-auto space-y-4">
               <div>
+                <label
+                  htmlFor="agent-name"
+                  className="block text-xs font-medium text-muted-foreground mb-1.5"
+                >
+                  Agent Name
+                </label>
                 <input
+                  id="agent-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Agent name"
+                  placeholder="e.g. my-trading-bot"
                   maxLength={100}
                   disabled={isLoading}
-                  className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-[#00DE73]/50 focus:border-[#00DE73]/50 disabled:opacity-50 transition-colors"
+                  className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-[#00DE73]/50 focus:border-[#00DE73]/50 disabled:opacity-50 transition-colors"
                 />
               </div>
 
               <div>
+                <label
+                  htmlFor="agent-description"
+                  className="block text-xs font-medium text-muted-foreground mb-1.5"
+                >
+                  Description
+                </label>
                 <textarea
+                  id="agent-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What does your agent do?"
                   rows={3}
                   maxLength={2000}
                   disabled={isLoading}
-                  className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-[#00DE73]/50 focus:border-[#00DE73]/50 disabled:opacity-50 transition-colors"
+                  className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground/70 resize-none focus:outline-none focus:ring-1 focus:ring-[#00DE73]/50 focus:border-[#00DE73]/50 disabled:opacity-50 transition-colors"
                 />
                 {description.length > 0 && !descValid && (
                   <p className="text-xs text-muted-foreground mt-1">

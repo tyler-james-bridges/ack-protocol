@@ -260,10 +260,7 @@ export default function AgentProfilePage({
           </div>
         </div>
 
-        {/* Cross-Chain Reputation */}
-        {agent.agent_wallet && (
-          <CrossChainRep agentAddress={agent.agent_wallet} />
-        )}
+        {/* TODO: Re-enable CrossChainRep when agents have richer multi-chain data */}
 
         {/* Onchain Kudos Feed */}
         <KudosFeed agentId={Number(agent.token_id)} />

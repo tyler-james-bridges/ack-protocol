@@ -10,7 +10,6 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 const NAV_LINKS = [
   { href: '/leaderboard', label: 'Registry' },
-  { href: '/graph', label: 'Graph' },
   { href: '/register', label: 'Register' },
 ];
 

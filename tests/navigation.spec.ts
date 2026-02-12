@@ -9,20 +9,20 @@ test.describe('Navigation', () => {
 
   test('nav links are present and work', async ({ page }) => {
     await page.goto('/');
-    const registryLink = page.getByRole('link', { name: 'Registry' }).first();
+    const exploreLink = page.getByRole('link', { name: 'Explore' }).first();
     const kudosLink = page.getByRole('link', { name: 'Kudos' }).first();
     const registerLink = page.getByRole('link', { name: 'Register' }).first();
 
-    await expect(registryLink).toBeVisible();
+    await expect(exploreLink).toBeVisible();
     await expect(kudosLink).toBeVisible();
     await expect(registerLink).toBeVisible();
   });
 
-  test('registry link navigates to leaderboard', async ({ page }) => {
+  test('explore link navigates to leaderboard', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Registry' }).first().click();
+    await page.getByRole('link', { name: 'Explore' }).first().click();
     await expect(page).toHaveURL(/leaderboard/, { timeout: 15000 });
-    await expect(page.locator('h1')).toContainText('Agent Registry');
+    await expect(page.locator('h1')).toContainText('Explore Agents');
   });
 
   test('kudos link navigates correctly', async ({ page }) => {
@@ -52,19 +52,18 @@ test.describe('Navigation', () => {
 
     // Open mobile menu
     await hamburger.click();
-    await expect(page.locator('text=Menu')).toBeVisible();
 
     // Verify links in mobile menu
-    const mobileRegistry = page
+    const mobileExplore = page
       .locator('.fixed')
-      .getByRole('link', { name: 'Registry' });
-    await expect(mobileRegistry).toBeVisible();
+      .getByRole('link', { name: 'Explore' });
+    await expect(mobileExplore).toBeVisible();
 
-    // Close by clicking the left side of the backdrop (panel is on the right)
-    await page
-      .locator('.fixed .backdrop-blur-sm')
-      .click({ position: { x: 10, y: 300 } });
-    await expect(page.locator('text=Menu')).not.toBeVisible();
+    // Close menu - click the X button next to "Menu" text
+    const menuHeader = page.locator('text=Menu').locator('..');
+    const closeBtn = menuHeader.locator('button');
+    await closeBtn.click();
+    await expect(mobileExplore).not.toBeVisible({ timeout: 5000 });
   });
 
   test('connect button is visible when not connected', async ({ page }) => {

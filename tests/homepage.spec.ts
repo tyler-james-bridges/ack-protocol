@@ -11,17 +11,14 @@ test.describe('Homepage', () => {
     await expect(page.locator('text=through consensus')).toBeVisible();
   });
 
-  test('get started card with human/agent tabs', async ({ page }) => {
+  test('get started card with search and register', async ({ page }) => {
     await expect(page.locator('text=Get Started')).toBeVisible();
-    const humanTab = page.getByRole('button', { name: 'HUMAN' });
-    const agentTab = page.getByRole('button', { name: 'AGENT' });
-    await expect(humanTab).toBeVisible();
-    await expect(agentTab).toBeVisible();
-
-    // Click agent tab
-    await agentTab.click();
-    // Click human tab back
-    await humanTab.click();
+    await expect(
+      page.getByPlaceholder(/enter agent name or address/i)
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /register on abstract/i }).first()
+    ).toBeVisible();
   });
 
   test('connect button is visible', async ({ page }) => {

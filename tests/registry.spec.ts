@@ -5,8 +5,8 @@ test.describe('Registry / Leaderboard', () => {
     await page.goto('/leaderboard');
   });
 
-  test('page loads with Agent Registry heading', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Agent Registry');
+  test('page loads with Explore Agents heading', async ({ page }) => {
+    await expect(page.locator('h1')).toContainText('Explore Agents');
   });
 
   test('network stats cards show real data', async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe('Registry / Leaderboard', () => {
     if ((await chainButtons.count()) > 0) {
       await chainButtons.first().click();
       await page.waitForTimeout(1000);
-      await expect(page.locator('h1')).toContainText('Agent Registry');
+      await expect(page.locator('h1')).toContainText('Explore Agents');
     }
   });
 
@@ -52,7 +52,7 @@ test.describe('Registry / Leaderboard', () => {
         await page.waitForTimeout(500);
       }
     }
-    await expect(page.locator('h1')).toContainText('Agent Registry');
+    await expect(page.locator('h1')).toContainText('Explore Agents');
   });
 
   test('agent cards render with name and details', async ({ page }) => {

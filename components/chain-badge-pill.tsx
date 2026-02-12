@@ -30,9 +30,7 @@ export function ChainBadgePill({
         style={{ backgroundColor: color }}
       />
       <span className="truncate">{name}</span>
-      {count !== undefined && (
-        <span className="text-gray-500">{count}</span>
-      )}
+      {count !== undefined && <span className="text-gray-500">{count}</span>}
     </span>
   );
 }

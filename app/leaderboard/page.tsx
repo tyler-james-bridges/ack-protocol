@@ -1,7 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useLeaderboard, useAgents, useNetworkStats, getChainName } from '@/hooks';
+import {
+  useLeaderboard,
+  useAgents,
+  useNetworkStats,
+  getChainName,
+} from '@/hooks';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { Nav } from '@/components/nav';
@@ -128,7 +133,10 @@ export default function LeaderboardPage() {
                   chainFilter === cf.value && cf.color
                     ? { color: cf.color, backgroundColor: `${cf.color}15` }
                     : chainFilter === cf.value
-                      ? { color: 'var(--primary)', backgroundColor: 'hsl(var(--primary) / 0.1)' }
+                      ? {
+                          color: 'var(--primary)',
+                          backgroundColor: 'hsl(var(--primary) / 0.1)',
+                        }
                       : undefined
                 }
               >

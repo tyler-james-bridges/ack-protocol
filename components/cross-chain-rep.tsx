@@ -18,10 +18,7 @@ export function CrossChainRep({ agentAddress }: CrossChainRepProps) {
         <div className="h-4 w-32 animate-pulse rounded bg-gray-700" />
         <div className="space-y-2 pt-2">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-8 animate-pulse rounded bg-gray-700"
-            />
+            <div key={i} className="h-8 animate-pulse rounded bg-gray-700" />
           ))}
         </div>
       </div>
@@ -50,16 +47,14 @@ export function CrossChainRep({ agentAddress }: CrossChainRepProps) {
           Reputation Across Chains
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">
-          {totalFeedbacks} total feedback{totalFeedbacks !== 1 ? 's' : ''} across{' '}
-          {chains.length} chain{chains.length !== 1 ? 's' : ''}
+          {totalFeedbacks} total feedback{totalFeedbacks !== 1 ? 's' : ''}{' '}
+          across {chains.length} chain{chains.length !== 1 ? 's' : ''}
         </p>
       </div>
 
       <div className="space-y-2.5">
         {chains.map((c) => {
-          const meta = SUPPORTED_CHAINS.find(
-            (m) => m.chain.id === c.chainId
-          );
+          const meta = SUPPORTED_CHAINS.find((m) => m.chain.id === c.chainId);
           const color = meta?.color ?? '#888';
           const pct = maxCount > 0 ? (c.feedbackCount / maxCount) * 100 : 0;
 

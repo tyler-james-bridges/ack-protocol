@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   useLeaderboard,
   useAgents,
@@ -68,6 +68,13 @@ export default function LeaderboardPage() {
     enriched.sort((a, b) => b.total_feedbacks - a.total_feedbacks);
   }
 
+  // Auto-switch to Abstract when sorting by kudos (ACK kudos only live on Abstract)
+  useEffect(() => {
+    if (sortBy === 'kudos' && chainFilter !== 2741) {
+      setChainFilter(2741);
+    }
+  }, [sortBy, chainFilter]);
+
   const filtered = enriched;
 
   const totalAgents = chainFilter ? filtered.length : allAgents?.total || 0;
@@ -126,7 +133,9 @@ export default function LeaderboardPage() {
           <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-2">
             {chainFilter ? getChainName(chainFilter) : 'Current View'}
           </p>
-          <div className="grid grid-cols-4 gap-3">
+          <div
+            className={`grid gap-3 ${chainFilter === 2741 ? 'grid-cols-4' : 'grid-cols-3'}`}
+          >
             <StatCard label="Agents" value={totalAgents.toLocaleString()} />
             <StatCard
               label="Avg Score"
@@ -138,12 +147,14 @@ export default function LeaderboardPage() {
               value={totalFeedback.toLocaleString()}
               sub="8004scan"
             />
-            <StatCard
-              label="Kudos"
-              value={totalKudos.toLocaleString()}
-              sub="ACK"
-              accent
-            />
+            {chainFilter === 2741 && (
+              <StatCard
+                label="Kudos"
+                value={totalKudos.toLocaleString()}
+                sub="ACK"
+                accent
+              />
+            )}
           </div>
         </div>
 

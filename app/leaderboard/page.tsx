@@ -5,6 +5,7 @@ import {
   useLeaderboard,
   useAgents,
   useNetworkStats,
+  useAbstractFeedbackCounts,
   getChainName,
 } from '@/hooks';
 import { AgentAvatar } from '@/components/agent-avatar';
@@ -43,8 +44,18 @@ export default function LeaderboardPage() {
   });
   const { data: allAgents } = useAgents({ limit: 1 });
   const { data: networkStats } = useNetworkStats();
+  const { data: abstractCounts } = useAbstractFeedbackCounts();
 
-  const filtered = agents || [];
+  // Enrich Abstract agents with onchain feedback counts (8004scan doesn't index them)
+  const filtered = (agents || []).map((agent) => {
+    if (agent.chain_id === 2741 && abstractCounts) {
+      const onchainCount = abstractCounts.get(Number(agent.token_id)) || 0;
+      if (onchainCount > agent.total_feedbacks) {
+        return { ...agent, total_feedbacks: onchainCount };
+      }
+    }
+    return agent;
+  });
 
   const totalAgents = chainFilter ? filtered.length : allAgents?.total || 0;
   const totalFeedback = filtered.reduce((sum, a) => sum + a.total_feedbacks, 0);

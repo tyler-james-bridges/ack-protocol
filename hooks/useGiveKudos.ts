@@ -61,6 +61,8 @@ export function useGiveKudos() {
       queryClient.invalidateQueries({ queryKey: ['cross-chain-rep'] });
       // Network-wide stats
       queryClient.invalidateQueries({ queryKey: ['network-stats'] });
+      // Abstract onchain feedback counts (leaderboard)
+      queryClient.invalidateQueries({ queryKey: ['abstract-feedback-counts'] });
       // Wagmi contract reads (score, kudos count, top category)
       queryClient.invalidateQueries({ queryKey: ['readContract'] });
     }, 2000);

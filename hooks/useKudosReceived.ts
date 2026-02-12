@@ -60,12 +60,14 @@ async function fetchKudos(agentId: number): Promise<KudosEvent[]> {
   // Indexed: [0] event sig, [1] agentId, [2] clientAddress, [3] keccak256(tag1)
   // Non-indexed: feedbackIndex (uint64), value (int128), valueDecimals (uint8),
   //   tag1 (string), tag2 (string), endpoint (string), feedbackURI (string), feedbackHash (bytes32)
-  return (logs as Array<{
-    topics: Hex[];
-    data: Hex;
-    blockNumber: Hex;
-    transactionHash: Hex;
-  }>)
+  return (
+    logs as Array<{
+      topics: Hex[];
+      data: Hex;
+      blockNumber: Hex;
+      transactionHash: Hex;
+    }>
+  )
     .map((log) => {
       const sender = ('0x' + log.topics[2].slice(26)) as Address;
       // topic[3] is keccak256(tag1), NOT feedbackHash

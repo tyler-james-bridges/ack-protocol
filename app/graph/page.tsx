@@ -115,18 +115,18 @@ export default function GraphPage() {
               <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white">
                 Agent Network
               </h1>
-              <p className="text-[10px] text-gray-500">
+              <p className="text-[10px] text-muted-foreground">
                 Registered agents by chain and score
               </p>
             </div>
 
             {hoveredAgent && (
-              <div className="flex items-center gap-1.5 text-xs bg-black/70 rounded-lg px-2.5 py-1.5 border border-gray-800 backdrop-blur-sm">
+              <div className="flex items-center gap-1.5 text-xs bg-background/70 rounded-lg px-2.5 py-1.5 border border-border backdrop-blur-sm">
                 <ChainIcon chainId={hoveredAgent.chainId} size={12} />
                 <span className="font-semibold text-white truncate max-w-[140px]">
                   {hoveredAgent.name}
                 </span>
-                <span className="text-gray-500 tabular-nums">
+                <span className="text-muted-foreground tabular-nums">
                   {hoveredAgent.score.toFixed(0)}
                 </span>
                 {hoveredAgent.feedbacks > 0 && (
@@ -146,7 +146,7 @@ export default function GraphPage() {
                 className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors border whitespace-nowrap ${
                   chainFilter === cf.value
                     ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-gray-800 text-gray-500 hover:border-primary/30 hover:text-gray-300'
+                    : 'border-border text-muted-foreground hover:border-primary/30 hover:text-foreground'
                 }`}
               >
                 {cf.label}
@@ -165,12 +165,16 @@ export default function GraphPage() {
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-3">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-sm text-gray-500">Scanning agent network...</p>
+              <p className="text-sm text-muted-foreground">
+                Scanning agent network...
+              </p>
             </div>
           </div>
         ) : graphData.nodes.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-gray-500">No agents found for this filter.</p>
+            <p className="text-muted-foreground">
+              No agents found for this filter.
+            </p>
           </div>
         ) : (
           <ForceGraph3D
@@ -185,7 +189,9 @@ export default function GraphPage() {
             nodeColor={(node: Record<string, unknown>) =>
               (node as unknown as GraphNode).color
             }
-            nodeVal={(node: Record<string, unknown>) => (node as unknown as GraphNode).val}
+            nodeVal={(node: Record<string, unknown>) =>
+              (node as unknown as GraphNode).val
+            }
             nodeOpacity={0.9}
             nodeResolution={16}
             // Links
@@ -216,8 +222,8 @@ export default function GraphPage() {
 
         {/* Chain legend */}
         {activeChains.length > 0 && (
-          <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 rounded-lg border border-gray-800/50 bg-black/70 backdrop-blur-sm p-2 sm:p-3 space-y-1">
-            <p className="text-[9px] font-medium tracking-wider text-gray-600 uppercase">
+          <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 rounded-lg border border-border bg-background/70 backdrop-blur-sm p-2 sm:p-3 space-y-1">
+            <p className="text-[9px] font-medium tracking-wider text-muted-foreground uppercase">
               Chains
             </p>
             {activeChains.map((chainId) => (
@@ -232,25 +238,27 @@ export default function GraphPage() {
                     boxShadow: `0 0 6px ${getChainColor(chainId)}80`,
                   }}
                 />
-                <span className="text-gray-500">{getChainName(chainId)}</span>
+                <span className="text-muted-foreground">
+                  {getChainName(chainId)}
+                </span>
               </div>
             ))}
           </div>
         )}
 
         {/* Stats */}
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 rounded-lg border border-gray-800/50 bg-black/70 backdrop-blur-sm p-2 sm:p-3 text-right">
-          <p className="text-[9px] font-medium tracking-wider text-gray-600 uppercase">
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 rounded-lg border border-border bg-background/70 backdrop-blur-sm p-2 sm:p-3 text-right">
+          <p className="text-[9px] font-medium tracking-wider text-muted-foreground uppercase">
             Tracking
           </p>
           <p className="text-lg font-bold text-white tabular-nums">
             {graphData.nodes.length}
           </p>
-          <p className="text-[10px] text-gray-600">agents</p>
+          <p className="text-[10px] text-muted-foreground">agents</p>
         </div>
 
         {/* Instructions */}
-        <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 text-[10px] text-gray-700">
+        <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 text-[10px] text-muted-foreground/50">
           Drag to rotate · Scroll to zoom · Click node to view agent
         </div>
       </div>

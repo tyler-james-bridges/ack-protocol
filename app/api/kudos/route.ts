@@ -28,7 +28,12 @@ export const POST = withSiwa(async (agent, req) => {
   const { agentId, message, category: rawCategory } = body;
 
   // Validate required fields
-  if (!agentId || typeof agentId !== 'number' || !Number.isInteger(agentId) || agentId < 0) {
+  if (
+    !agentId ||
+    typeof agentId !== 'number' ||
+    !Number.isInteger(agentId) ||
+    agentId < 0
+  ) {
     return new Response(
       JSON.stringify({ error: 'Valid agentId (positive integer) required' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -43,7 +48,10 @@ export const POST = withSiwa(async (agent, req) => {
   }
 
   // Prevent self-kudos
-  if (agent.agentId !== undefined && String(agent.agentId) === String(agentId)) {
+  if (
+    agent.agentId !== undefined &&
+    String(agent.agentId) === String(agentId)
+  ) {
     return new Response(
       JSON.stringify({ error: 'Cannot give kudos to yourself' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -66,7 +74,9 @@ export const POST = withSiwa(async (agent, req) => {
           'Content-Type': 'application/json',
           'X-RateLimit-Remaining': '0',
           'X-RateLimit-Reset': String(Math.ceil(rateLimit.resetAt / 1000)),
-          'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+          'Retry-After': String(
+            Math.ceil((rateLimit.resetAt - Date.now()) / 1000)
+          ),
         },
       }
     );

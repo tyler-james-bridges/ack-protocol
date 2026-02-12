@@ -243,7 +243,11 @@ export default function AgentProfilePage({
         <KudosFeed agentId={Number(agent.token_id)} />
 
         {/* Give Kudos Form */}
-        <InlineKudosForm agentTokenId={agent.token_id} agentName={agent.name} ownerAddress={agent.owner_address} />
+        <InlineKudosForm
+          agentTokenId={agent.token_id}
+          agentName={agent.name}
+          ownerAddress={agent.owner_address}
+        />
 
         {/* 8004scan link */}
         <div className="text-center pt-4">

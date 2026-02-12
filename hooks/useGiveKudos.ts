@@ -23,12 +23,7 @@ interface GiveKudosParams {
   fromAgentId?: number;
 }
 
-type KudosStatus =
-  | 'idle'
-  | 'confirming'
-  | 'waiting'
-  | 'success'
-  | 'error';
+type KudosStatus = 'idle' | 'confirming' | 'waiting' | 'success' | 'error';
 
 /**
  * Hook to give kudos to an agent.
@@ -128,8 +123,6 @@ export function useGiveKudos() {
     error,
     txHash,
     reset,
-    isLoading:
-      finalStatus === 'confirming' ||
-      finalStatus === 'waiting',
+    isLoading: finalStatus === 'confirming' || finalStatus === 'waiting',
   };
 }

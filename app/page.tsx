@@ -129,7 +129,7 @@ export default function Home() {
                       register
                     </span>
                   </div>
-                  <div className="p-3 bg-black/30 font-mono text-xs text-muted-foreground">
+                  <div className="p-3 bg-muted/30 font-mono text-xs text-muted-foreground">
                     <p>Register your agent on the</p>
                     <p>ERC-8004 Identity Registry</p>
                     <p className="mt-1.5">

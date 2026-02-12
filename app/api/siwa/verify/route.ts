@@ -32,14 +32,22 @@ export async function POST(request: NextRequest) {
 
     if (!message || !signature) {
       return NextResponse.json(
-        { status: 'rejected', code: 'VERIFICATION_FAILED', error: 'Missing message or signature' },
+        {
+          status: 'rejected',
+          code: 'VERIFICATION_FAILED',
+          error: 'Missing message or signature',
+        },
         { status: 400 }
       );
     }
 
     if (!nonceToken) {
       return NextResponse.json(
-        { status: 'rejected', code: 'INVALID_NONCE', error: 'Missing nonceToken' },
+        {
+          status: 'rejected',
+          code: 'INVALID_NONCE',
+          error: 'Missing nonceToken',
+        },
         { status: 400 }
       );
     }
@@ -59,10 +67,9 @@ export async function POST(request: NextRequest) {
     );
 
     if (!result.valid) {
-      return NextResponse.json(
-        buildSIWAResponse(result),
-        { status: result.code === 'NOT_REGISTERED' ? 403 : 401 }
-      );
+      return NextResponse.json(buildSIWAResponse(result), {
+        status: result.code === 'NOT_REGISTERED' ? 403 : 401,
+      });
     }
 
     const receiptResult = createReceipt(
@@ -87,9 +94,6 @@ export async function POST(request: NextRequest) {
       verified: result.verified,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Verification failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
   }
 }

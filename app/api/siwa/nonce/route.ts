@@ -37,10 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (agentId === undefined || agentId === null) {
-      return NextResponse.json(
-        { error: 'agentId required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'agentId required' }, { status: 400 });
     }
 
     if (!agentRegistry || typeof agentRegistry !== 'string') {
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest) {
       { address, agentId, agentRegistry },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client as any,
-      { secret: SIWA_SECRET },
+      { secret: SIWA_SECRET }
     );
 
     return NextResponse.json(result);

@@ -12,7 +12,9 @@ function parseMessage(feedbackURI: string): string | null {
   try {
     // ERC-8004 best practices: data:application/json;base64,<base64 JSON>
     if (feedbackURI.startsWith('data:application/json;base64,')) {
-      const json = atob(feedbackURI.replace('data:application/json;base64,', ''));
+      const json = atob(
+        feedbackURI.replace('data:application/json;base64,', '')
+      );
       const payload = JSON.parse(json);
       return payload.reasoning || payload.message || null;
     }
@@ -33,28 +35,28 @@ function KudosCard({ kudos }: { kudos: KudosEvent }) {
   const message = parseMessage(kudos.feedbackURI);
 
   return (
-    <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900/50 hover:border-[#00DE73]/40 transition-colors">
+    <div className="border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors">
       <div className="flex items-center justify-between mb-2">
         <a
           href={`https://abscan.org/address/${kudos.sender}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-mono text-sm text-neutral-400 hover:text-[#00DE73] transition-colors"
+          className="font-mono text-sm text-muted-foreground hover:text-[#00DE73] transition-colors"
         >
           {truncateAddress(kudos.sender)}
         </a>
         {isValidCategory ? (
           <CategoryBadge category={kudos.tag2 as KudosCategory} />
         ) : (
-          <span className="text-xs text-neutral-500">{kudos.tag2}</span>
+          <span className="text-xs text-muted-foreground">{kudos.tag2}</span>
         )}
       </div>
 
       {message && (
-        <p className="text-sm text-neutral-200 my-2">&ldquo;{message}&rdquo;</p>
+        <p className="text-sm text-foreground my-2">&ldquo;{message}&rdquo;</p>
       )}
 
-      <div className="flex items-center justify-between text-xs text-neutral-500 mt-2">
+      <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
         <span>Block #{kudos.blockNumber.toString()}</span>
         <a
           href={`https://abscan.org/tx/${kudos.txHash}`}
@@ -74,21 +76,19 @@ export function KudosFeed({ agentId }: { agentId: number }) {
 
   if (isLoading) {
     return (
-      <div className="text-neutral-500 text-sm animate-pulse">
+      <div className="text-muted-foreground text-sm animate-pulse">
         Loading onchain kudos...
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="text-red-400 text-sm">Failed to load kudos</div>
-    );
+    return <div className="text-red-400 text-sm">Failed to load kudos</div>;
   }
 
   if (!kudos?.length) {
     return (
-      <div className="text-neutral-500 text-sm">
+      <div className="text-muted-foreground text-sm">
         No onchain kudos yet — be the first!
       </div>
     );

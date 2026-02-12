@@ -58,9 +58,7 @@ export default function LeaderboardPage() {
           <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-1">
             Registry
           </p>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Agent Registry
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Agent Registry</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Discover and explore agents across ERC-8004 chains.
           </p>

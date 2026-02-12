@@ -99,8 +99,7 @@ export default function GiveKudosPage() {
                     </p>
                   )}
 
-                  {(status === 'confirming' ||
-                    status === 'waiting') && (
+                  {(status === 'confirming' || status === 'waiting') && (
                     <div className="text-center text-sm text-muted-foreground space-y-1">
                       {status === 'confirming' && (
                         <p>Confirm in your wallet...</p>

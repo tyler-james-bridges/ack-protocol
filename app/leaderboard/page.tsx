@@ -24,12 +24,18 @@ const CHAIN_FILTERS = [
   })),
 ];
 
-type SortKey = 'created_at' | 'total_score' | 'total_feedbacks' | 'star_count';
+type SortKey =
+  | 'created_at'
+  | 'total_score'
+  | 'total_feedbacks'
+  | 'kudos'
+  | 'star_count';
 
 const SORT_OPTIONS: { label: string; value: SortKey }[] = [
   { label: 'Newest', value: 'created_at' },
   { label: 'Score', value: 'total_score' },
   { label: 'Feedback', value: 'total_feedbacks' },
+  { label: 'Kudos', value: 'kudos' },
   { label: 'Stars', value: 'star_count' },
 ];
 
@@ -46,19 +52,19 @@ export default function LeaderboardPage() {
   const { data: networkStats } = useNetworkStats();
   const { data: abstractCounts } = useAbstractFeedbackCounts();
 
-  // Enrich Abstract agents with onchain feedback counts (8004scan doesn't index them)
+  // Enrich agents with ACK kudos counts (separate from 8004scan feedback)
   const enriched = (agents || []).map((agent) => {
-    if (agent.chain_id === 2741 && abstractCounts) {
-      const onchainCount = abstractCounts.get(Number(agent.token_id)) || 0;
-      if (onchainCount > agent.total_feedbacks) {
-        return { ...agent, total_feedbacks: onchainCount };
-      }
-    }
-    return agent;
+    const kudos =
+      agent.chain_id === 2741 && abstractCounts
+        ? abstractCounts.get(Number(agent.token_id)) || 0
+        : 0;
+    return { ...agent, kudos };
   });
 
-  // Re-sort after enrichment when sorting by feedback
-  if (sortBy === 'total_feedbacks') {
+  // Sort after enrichment for kudos or feedback
+  if (sortBy === 'kudos') {
+    enriched.sort((a, b) => b.kudos - a.kudos);
+  } else if (sortBy === 'total_feedbacks') {
     enriched.sort((a, b) => b.total_feedbacks - a.total_feedbacks);
   }
 
@@ -66,6 +72,7 @@ export default function LeaderboardPage() {
 
   const totalAgents = chainFilter ? filtered.length : allAgents?.total || 0;
   const totalFeedback = filtered.reduce((sum, a) => sum + a.total_feedbacks, 0);
+  const totalKudos = filtered.reduce((sum, a) => sum + a.kudos, 0);
   const avgScore =
     filtered.length > 0
       ? filtered.reduce((sum, a) => sum + a.total_score, 0) / filtered.length
@@ -119,17 +126,23 @@ export default function LeaderboardPage() {
           <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-2">
             {chainFilter ? getChainName(chainFilter) : 'Current View'}
           </p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <StatCard label="Agents" value={totalAgents.toLocaleString()} />
             <StatCard
               label="Avg Score"
               value={avgScore.toFixed(1)}
-              sub="via 8004scan"
+              sub="8004scan"
             />
             <StatCard
               label="Feedback"
               value={totalFeedback.toLocaleString()}
-              sub="via 8004scan"
+              sub="8004scan"
+            />
+            <StatCard
+              label="Kudos"
+              value={totalKudos.toLocaleString()}
+              sub="ACK"
+              accent
             />
           </div>
         </div>
@@ -227,6 +240,11 @@ export default function LeaderboardPage() {
                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                       <ChainIcon chainId={agent.chain_id} size={12} />
                       <span>{getChainName(agent.chain_id)}</span>
+                      {agent.kudos > 0 && (
+                        <span className="text-[#00DE73]">
+                          · {agent.kudos} kudos
+                        </span>
+                      )}
                       {agent.total_feedbacks > 0 && (
                         <span>· {agent.total_feedbacks} feedback</span>
                       )}
@@ -234,10 +252,10 @@ export default function LeaderboardPage() {
                   </div>
                 </div>
 
-                {/* Dual metrics */}
-                <div className="flex items-center gap-4 shrink-0">
+                {/* Triple metrics */}
+                <div className="flex items-center gap-3 shrink-0">
                   {/* Protocol Score (8004scan) */}
-                  <div className="text-right">
+                  <div className="text-right w-12">
                     <p className="text-sm font-bold tabular-nums">
                       {agent.total_score.toFixed(1)}
                     </p>
@@ -246,7 +264,7 @@ export default function LeaderboardPage() {
                     </p>
                   </div>
                   {/* Feedback count (8004scan) */}
-                  <div className="text-right w-14">
+                  <div className="text-right w-12">
                     {agent.total_feedbacks > 0 ? (
                       <>
                         <p className="text-sm font-bold tabular-nums">
@@ -261,6 +279,24 @@ export default function LeaderboardPage() {
                         <p className="text-sm text-muted-foreground/40">—</p>
                         <p className="text-[10px] text-muted-foreground/40">
                           feedback
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  {/* ACK Kudos count */}
+                  <div className="text-right w-12">
+                    {agent.kudos > 0 ? (
+                      <>
+                        <p className="text-sm font-bold tabular-nums text-[#00DE73]">
+                          {agent.kudos}
+                        </p>
+                        <p className="text-[10px] text-[#00DE73]/70">kudos</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-muted-foreground/40">—</p>
+                        <p className="text-[10px] text-muted-foreground/40">
+                          kudos
                         </p>
                       </>
                     )}
@@ -287,12 +323,14 @@ function StatCard({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-border p-4">
+    <div
+      className={`rounded-lg border p-4 ${accent ? 'border-[#00DE73]/20 bg-[#00DE73]/5' : 'border-border'}`}
+    >
       <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
         {label}
       </p>
       <p
-        className={`text-2xl font-bold tracking-tight mt-1 ${accent ? 'text-primary' : ''}`}
+        className={`text-2xl font-bold tracking-tight mt-1 ${accent ? 'text-[#00DE73]' : ''}`}
       >
         {value}
       </p>

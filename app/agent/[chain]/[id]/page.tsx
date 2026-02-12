@@ -11,6 +11,7 @@ import { StatsCard } from '@/components/stats-card';
 import { CategoryBadge } from '@/components/category-badge';
 import { Nav } from '@/components/nav';
 import { KudosFeed } from '@/components/kudos-feed';
+import { CrossChainRep } from '@/components/cross-chain-rep';
 import { getChainName } from '@/hooks';
 import { fetchAgent, type ScanAgent } from '@/lib/api';
 import { KUDOS_CATEGORIES } from '@/config/contract';
@@ -238,6 +239,11 @@ export default function AgentProfilePage({
             </div>
           </div>
         </div>
+
+        {/* Cross-Chain Reputation */}
+        {agent.agent_wallet && (
+          <CrossChainRep agentAddress={agent.agent_wallet} />
+        )}
 
         {/* Onchain Kudos Feed */}
         <KudosFeed agentId={Number(agent.token_id)} />

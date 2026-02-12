@@ -12,9 +12,9 @@ function parseMessage(feedbackURI: string): string | null {
   try {
     // ERC-8004 best practices: data:application/json;base64,<base64 JSON>
     if (feedbackURI.startsWith('data:application/json;base64,')) {
-      const json = atob(
+      const json = decodeURIComponent(escape(atob(
         feedbackURI.replace('data:application/json;base64,', '')
-      );
+      )));
       const payload = JSON.parse(json);
       return payload.reasoning || payload.message || null;
     }

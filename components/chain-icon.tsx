@@ -43,7 +43,7 @@ const CHAIN_ICONS: Record<number, { name: string; src: string }> = {
     name: 'XLayer',
     src: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/okc/info/logo.png',
   },
-  6398: {
+  143: {
     name: 'Monad',
     src: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png',
   },

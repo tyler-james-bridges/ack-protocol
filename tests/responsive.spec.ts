@@ -16,12 +16,17 @@ test.describe('Responsive - Mobile Viewport', () => {
       await expect(hamburger).toBeVisible();
     });
 
-    test(`${path} - content does not overflow horizontally`, async ({ page }) => {
+    test(`${path} - content does not overflow horizontally`, async ({
+      page,
+    }) => {
       await page.goto(path);
       await page.waitForTimeout(2000);
 
       const overflow = await page.evaluate(() => {
-        return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+        return (
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth
+        );
       });
       expect(overflow).toBe(false);
     });
@@ -43,7 +48,11 @@ test.describe('Responsive - Mobile Viewport', () => {
     const discovered = page.getByText('Get discovered', { exact: true });
     await discovered.scrollIntoViewIfNeeded();
     await expect(discovered).toBeVisible();
-    await expect(page.getByText('Build reputation', { exact: true })).toBeVisible();
-    await expect(page.getByText('Cross-chain rep', { exact: true })).toBeVisible();
+    await expect(
+      page.getByText('Build reputation', { exact: true })
+    ).toBeVisible();
+    await expect(
+      page.getByText('Cross-chain rep', { exact: true })
+    ).toBeVisible();
   });
 });

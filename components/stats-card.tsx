@@ -34,11 +34,11 @@ export interface NetworkStats {
 }
 
 export async function fetchNetworkStats(): Promise<NetworkStats> {
-  const res = await fetch('/api/agents?path=networks');
+  const res = await fetch('/api/agents?path=chains');
   if (!res.ok) throw new Error('Failed to fetch network stats');
   const data = await res.json();
-  // The networks endpoint returns an array of chain objects
-  const chains = Array.isArray(data) ? data : data.items || [];
+  // The chains endpoint returns {success: true, data: {chains: [...]}}
+  const chains = data?.data?.chains || [];
   return {
     total_agents: chains.reduce(
       (sum: number, c: { agent_count?: number }) => sum + (c.agent_count || 0),

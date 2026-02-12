@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Agent Profile', () => {
-  test('navigate to agent from registry and verify profile loads', async ({ page }) => {
+  test('navigate to agent from registry and verify profile loads', async ({
+    page,
+  }) => {
     // First get a real agent from the registry
     await page.goto('/leaderboard');
     await page.waitForTimeout(3000);
@@ -27,7 +29,7 @@ test.describe('Agent Profile', () => {
     await page.waitForTimeout(3000);
 
     const cards = page.locator('[class*="cursor-pointer"]');
-    if (await cards.count() > 0) {
+    if ((await cards.count()) > 0) {
       await cards.first().click();
       await page.waitForURL(/\/agent\//, { timeout: 10000 });
       await page.waitForTimeout(2000);
@@ -44,7 +46,7 @@ test.describe('Agent Profile', () => {
     await page.waitForTimeout(3000);
 
     const cards = page.locator('[class*="cursor-pointer"]');
-    if (await cards.count() > 0) {
+    if ((await cards.count()) > 0) {
       await cards.first().click();
       await page.waitForURL(/\/agent\//, { timeout: 10000 });
       await page.waitForTimeout(2000);

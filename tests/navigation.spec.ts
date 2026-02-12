@@ -55,16 +55,20 @@ test.describe('Navigation', () => {
     await expect(page.locator('text=Menu')).toBeVisible();
 
     // Verify links in mobile menu
-    const mobileRegistry = page.locator('.fixed').getByRole('link', { name: 'Registry' });
+    const mobileRegistry = page
+      .locator('.fixed')
+      .getByRole('link', { name: 'Registry' });
     await expect(mobileRegistry).toBeVisible();
 
-    // Close by clicking the backdrop overlay
-    await page.locator('.fixed .backdrop-blur-sm').click();
+    // Close by clicking the left side of the backdrop (panel is on the right)
+    await page.locator('.fixed .backdrop-blur-sm').click({ position: { x: 10, y: 300 } });
     await expect(page.locator('text=Menu')).not.toBeVisible();
   });
 
   test('connect button is visible when not connected', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('button', { name: /connect/i }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /connect/i }).first()
+    ).toBeVisible();
   });
 });

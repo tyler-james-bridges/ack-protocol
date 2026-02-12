@@ -25,7 +25,9 @@ test.describe('Homepage', () => {
   });
 
   test('connect button is visible', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /connect/i }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /connect/i }).first()
+    ).toBeVisible();
   });
 
   test('agent search input is functional', async ({ page }) => {
@@ -38,7 +40,9 @@ test.describe('Homepage', () => {
 
   test('featured agents section loads real data', async ({ page }) => {
     // Wait for leaderboard data to load
-    const agentCards = page.locator('[class*="cursor-pointer"]').or(page.locator('[class*="border"][class*="rounded"]'));
+    const agentCards = page
+      .locator('[class*="cursor-pointer"]')
+      .or(page.locator('[class*="border"][class*="rounded"]'));
     // Give time for API data
     await page.waitForTimeout(3000);
 

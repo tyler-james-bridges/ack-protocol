@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   searchParams.delete('path');
 
   // Allowlist guard — only permit known safe paths to prevent SSRF.
-  const ALLOWED_PATH = /^(agents(\/\d+\/[a-zA-Z0-9_-]+\/feedbacks)?|networks)$/;
+  const ALLOWED_PATH = /^(agents(\/\d+\/[a-zA-Z0-9_-]+\/feedbacks)?|chains)$/;
   if (!ALLOWED_PATH.test(path)) {
     return NextResponse.json(
       { error: 'Invalid path parameter' },

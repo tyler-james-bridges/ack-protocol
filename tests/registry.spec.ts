@@ -21,7 +21,9 @@ test.describe('Registry / Leaderboard', () => {
   });
 
   test('chain filter pills render', async ({ page }) => {
-    await expect(page.getByRole('button', { name: 'All Chains' })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'All Chains' })
+    ).toBeVisible();
     const buttons = page.getByRole('button');
     const count = await buttons.count();
     expect(count).toBeGreaterThan(3);
@@ -29,8 +31,10 @@ test.describe('Registry / Leaderboard', () => {
 
   test('clicking a chain filter updates the list', async ({ page }) => {
     await page.waitForTimeout(2000);
-    const chainButtons = page.getByRole('button').filter({ hasText: /Ethereum|Base|Abstract/i });
-    if (await chainButtons.count() > 0) {
+    const chainButtons = page
+      .getByRole('button')
+      .filter({ hasText: /Ethereum|Base|Abstract/i });
+    if ((await chainButtons.count()) > 0) {
       await chainButtons.first().click();
       await page.waitForTimeout(1000);
       await expect(page.locator('h1')).toContainText('Agent Registry');
@@ -60,10 +64,12 @@ test.describe('Registry / Leaderboard', () => {
     }
   });
 
-  test('clicking an agent card navigates to agent profile', async ({ page }) => {
+  test('clicking an agent card navigates to agent profile', async ({
+    page,
+  }) => {
     await page.waitForTimeout(3000);
     const cards = page.locator('[class*="cursor-pointer"]');
-    if (await cards.count() > 0) {
+    if ((await cards.count()) > 0) {
       await cards.first().click();
       await page.waitForURL(/\/agent\//, { timeout: 10000 });
     }

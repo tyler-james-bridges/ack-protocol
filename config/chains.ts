@@ -9,11 +9,11 @@ export interface ChainMeta {
 }
 
 const chainMetas: ChainMeta[] = [
-  { chain: mainnet, color: '#627EEA', explorerUrl: 'https://etherscan.io' },
+  { chain: abstract, color: '#00FF94', explorerUrl: 'https://abscan.org' },
   { chain: base, color: '#0052FF', explorerUrl: 'https://basescan.org' },
   { chain: bsc, color: '#F0B90B', explorerUrl: 'https://bscscan.com' },
+  { chain: mainnet, color: '#627EEA', explorerUrl: 'https://etherscan.io' },
   { chain: gnosis, color: '#04795B', explorerUrl: 'https://gnosisscan.io' },
-  { chain: abstract, color: '#00FF94', explorerUrl: 'https://abscan.org' },
 ];
 
 export const SUPPORTED_CHAINS = chainMetas;

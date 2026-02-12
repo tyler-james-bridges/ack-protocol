@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -10,14 +9,23 @@ import { Nav } from '@/components/nav';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { AgentSearch } from '@/components/agent-search';
-import { useAgents, useLeaderboard, useNetworkStats } from '@/hooks';
+import {
+  useAgents,
+  useLeaderboard,
+  useNetworkStats,
+  useAgentSearch,
+  getChainName,
+} from '@/hooks';
 import type { ScanAgent } from '@/lib/api';
 
 export default function Home() {
   const router = useRouter();
-  const { login } = useLoginWithAbstract();
   const { isConnected } = useAccount();
-  const [mode, setMode] = useState<'human' | 'agent' | null>(null);
+  const [heroQuery, setHeroQuery] = useState('');
+  const [heroDropdownOpen, setHeroDropdownOpen] = useState(false);
+  const heroSearchRef = useRef<HTMLDivElement>(null);
+  const { data: heroSearchData, isLoading: heroSearchLoading } =
+    useAgentSearch(heroQuery);
   const { data: agentsData } = useAgents({ limit: 1 });
   const { data: leaderboard, isLoading: loadingLeaderboard } = useLeaderboard({
     limit: 10,
@@ -26,6 +34,37 @@ export default function Home() {
 
   const goToAgent = (agent: ScanAgent) =>
     router.push(`/agent/${agent.chain_id}/${agent.token_id}`);
+
+  const handleHeroSelect = useCallback(
+    (agent: ScanAgent) => {
+      setHeroQuery('');
+      setHeroDropdownOpen(false);
+      goToAgent(agent);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        heroSearchRef.current &&
+        !heroSearchRef.current.contains(e.target as Node)
+      ) {
+        setHeroDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const showHeroDropdown =
+    heroDropdownOpen && heroQuery.length >= 2;
+  const heroHasResults =
+    heroSearchData && heroSearchData.items.length > 0;
+  const heroNoResults =
+    heroSearchData && heroSearchData.items.length === 0 && !heroSearchLoading;
 
   return (
     <div className="min-h-screen">
@@ -47,135 +86,155 @@ export default function Home() {
             the ERC-8004 registry across 15+ chains.
           </p>
 
-          {/* Initialize Card */}
+          {/* Get Started Card */}
           <div className="mt-10 mx-auto max-w-md rounded-xl border border-primary/20 bg-card/50 backdrop-blur-sm p-6 text-left shadow-[0_0_30px_-5px] shadow-primary/10 gradient-border">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-primary font-mono text-lg">&gt;_</span>
               <h2 className="text-lg font-bold">Get Started</h2>
             </div>
             <p className="text-sm text-muted-foreground mb-5">
-              Join as a human reviewer or register your autonomous agent.
+              Search for your agent or register new.
             </p>
 
-            {/* Tab Toggle */}
-            <div className="flex rounded-lg border border-border overflow-hidden mb-5">
-              <button
-                onClick={() => setMode('human')}
-                className={`flex-1 py-2.5 text-sm font-semibold tracking-wide transition-all ${
-                  mode === 'human' || !mode
-                    ? 'bg-primary/10 text-primary border-b-2 border-primary'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                HUMAN
-              </button>
-              <button
-                onClick={() => setMode('agent')}
-                className={`flex-1 py-2.5 text-sm font-semibold tracking-wide transition-all ${
-                  mode === 'agent'
-                    ? 'bg-primary/10 text-primary border-b-2 border-primary'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                AGENT
-              </button>
-            </div>
-
-            {/* Human Flow */}
-            {(mode === 'human' || !mode) && (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="space-y-2.5 text-sm">
-                  <Step n={1}>
-                    Browse the leaderboard and discover top agents
-                  </Step>
-                  <Step n={2}>
-                    Visit an agent&apos;s profile to review reputation
-                  </Step>
-                  <Step n={3}>Connect wallet and give kudos onchain</Step>
+            {/* Search input with dropdown */}
+            <div className="relative" ref={heroSearchRef}>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path strokeLinecap="round" d="m21 21-4.35-4.35" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={heroQuery}
+                    onChange={(e) => {
+                      setHeroQuery(e.target.value);
+                      setHeroDropdownOpen(true);
+                    }}
+                    onFocus={() => {
+                      if (heroQuery.length >= 2) setHeroDropdownOpen(true);
+                    }}
+                    placeholder="Enter agent name or address..."
+                    className="w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
+                  />
                 </div>
-                <div className="pt-1">
-                  {!isConnected ? (
-                    <Button
-                      className="w-full"
-                      size="lg"
-                      onClick={() => login()}
-                    >
-                      Connect with Abstract
-                    </Button>
-                  ) : (
-                    <Button
-                      className="w-full"
-                      size="lg"
-                      onClick={() => router.push('/leaderboard')}
-                    >
-                      Explore Agents
-                    </Button>
+                <button
+                  onClick={() => {
+                    if (heroQuery.length >= 2) setHeroDropdownOpen(true);
+                  }}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  aria-label="Search"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" d="M5 12h14m-7-7 7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Search dropdown results */}
+              {showHeroDropdown && (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg">
+                  {heroSearchLoading && (
+                    <p className="p-3 text-sm text-muted-foreground">
+                      Searching...
+                    </p>
+                  )}
+
+                  {heroHasResults &&
+                    heroSearchData.items.map((agent) => (
+                      <button
+                        key={agent.id}
+                        type="button"
+                        onClick={() => handleHeroSelect(agent)}
+                        className="flex items-center gap-3 w-full px-3 py-2.5 text-left transition-colors hover:bg-muted/40 border-b border-border last:border-b-0 cursor-pointer"
+                      >
+                        <AgentAvatar
+                          name={agent.name}
+                          imageUrl={agent.image_url}
+                          size={32}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold truncate">
+                            {agent.name}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {getChainName(agent.chain_id)} #{agent.token_id}
+                          </p>
+                        </div>
+                        {agent.total_score > 0 && (
+                          <span className="text-xs font-bold tabular-nums text-primary">
+                            {agent.total_score.toFixed(1)}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+
+                  {heroNoResults && (
+                    <div className="p-3 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        No agents found.
+                      </p>
+                      <Link
+                        href="/register"
+                        className="inline-block mt-1 text-sm text-primary hover:underline font-medium"
+                      >
+                        Register your agent &rarr;
+                      </Link>
+                    </div>
                   )}
                 </div>
-              </div>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs font-medium text-muted-foreground tracking-wide">
+                OR
+              </span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            {/* Register CTA */}
+            <Link href="/register" className="block">
+              <Button className="w-full" size="lg">
+                Register on Abstract &mdash; Free, no gas
+              </Button>
+            </Link>
+
+            {/* Secondary CTA when connected */}
+            {isConnected && (
+              <Button
+                className="w-full mt-2"
+                size="lg"
+                variant="outline"
+                onClick={() => router.push('/leaderboard')}
+              >
+                Explore Agents
+              </Button>
             )}
 
-            {/* Agent Flow */}
-            {mode === 'agent' && (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                {/* Terminal block */}
-                <div className="rounded-lg border border-border overflow-hidden">
-                  <div className="flex items-center justify-between px-3 py-1.5 bg-muted/50 border-b border-border">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                      <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                      <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-                    </div>
-                    <span className="text-[10px] text-muted-foreground font-mono">
-                      register
-                    </span>
-                  </div>
-                  <div className="p-3 bg-muted/30 font-mono text-xs text-muted-foreground">
-                    <p>Register your agent on the</p>
-                    <p>ERC-8004 Identity Registry</p>
-                    <p className="mt-1.5">
-                      <a
-                        href="https://www.8004scan.io/create"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        https://8004scan.io/create
-                      </a>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2.5 text-sm">
-                  <Step n={1}>
-                    Register on{' '}
-                    <span className="text-primary font-medium">8004scan</span>
-                  </Step>
-                  <Step n={2}>Search for your agent on ACK</Step>
-                  <Step n={3}>Share your profile to collect peer kudos</Step>
-                </div>
-                <div className="flex gap-2 pt-1">
-                  <a
-                    href="https://www.8004scan.io/create"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1"
-                  >
-                    <Button className="w-full" size="lg">
-                      Register Agent
-                    </Button>
-                  </a>
-                  <Button
-                    className="flex-1"
-                    size="lg"
-                    variant="outline"
-                    onClick={() => router.push('/leaderboard')}
-                  >
-                    Find Agent
-                  </Button>
-                </div>
-              </div>
-            )}
+            {/* Helper text */}
+            <div className="mt-4 space-y-1 text-center">
+              <p className="text-xs text-muted-foreground">
+                Already on 8004scan? Search above.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                New agent? Register in seconds.
+              </p>
+            </div>
           </div>
 
           {/* Live stats strip */}
@@ -350,17 +409,6 @@ function HowItWorksCard({
         <p className="font-semibold text-sm">{title}</p>
         <p className="text-sm text-muted-foreground mt-0.5">{desc}</p>
       </div>
-    </div>
-  );
-}
-
-function Step({ n, children }: { n: number; children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-        {n}
-      </span>
-      <p className="pt-0.5">{children}</p>
     </div>
   );
 }

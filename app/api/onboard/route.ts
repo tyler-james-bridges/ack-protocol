@@ -4,6 +4,7 @@ import { withSiwa, siwaOptions } from '@buildersgarden/siwa/next';
 import { RateLimiter } from '@/lib/rate-limit';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
+import { getVouches } from '@/lib/vouch-store';
 import type { ScanAgentsResponse } from '@/lib/api';
 
 const API_BASE = 'https://www.8004scan.io/api/v1';
@@ -125,6 +126,9 @@ export const POST = withSiwa(async (agent) => {
     args: [''],
   });
 
+  // Check for pending vouches — incentivizes registration
+  const pending = getVouches(agent.address);
+
   return {
     status: 'not_registered',
     registerUrl: '/register',
@@ -135,6 +139,10 @@ export const POST = withSiwa(async (agent) => {
       chainId: abstract.id,
       calldata: registerCalldata,
     },
+    pendingVouches:
+      pending.count > 0
+        ? { count: pending.count, vouches: pending.vouches }
+        : undefined,
     rateLimit: { remaining: rateLimit.remaining, resetAt: rateLimit.resetAt },
   };
 });

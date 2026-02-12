@@ -3,15 +3,21 @@
 import { useState } from 'react';
 import {
   useAccount,
-  useWriteContract,
   useWaitForTransactionReceipt,
   useReadContract,
 } from 'wagmi';
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import {
+  useLoginWithAbstract,
+  useWriteContractSponsored,
+} from '@abstract-foundation/agw-react';
+import { getGeneralPaymasterInput } from 'viem/zksync';
 import { Nav } from '@/components/nav';
 import { Button } from '@/components/ui/button';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
-import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
+import {
+  IDENTITY_REGISTRY_ADDRESS,
+  ABSTRACT_PAYMASTER_ADDRESS,
+} from '@/config/contract';
 import { chain } from '@/config/chain';
 import { useNetworkStats } from '@/hooks';
 
@@ -26,7 +32,8 @@ type RegisterStatus =
 export default function RegisterPage() {
   const { address, isConnected } = useAccount();
   const { login } = useLoginWithAbstract();
-  const { writeContract, data: txHash } = useWriteContract();
+  const { writeContractSponsored, data: txHash } =
+    useWriteContractSponsored();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
     chainId: chain.id,
@@ -88,13 +95,15 @@ export default function RegisterPage() {
       const dataURI = `data:application/json;base64,${encoded}`;
 
       setStatus('confirming');
-      writeContract(
+      writeContractSponsored(
         {
           address: IDENTITY_REGISTRY_ADDRESS,
           abi: IDENTITY_REGISTRY_ABI,
           functionName: 'register',
           args: [dataURI],
           chainId: chain.id,
+          paymaster: ABSTRACT_PAYMASTER_ADDRESS,
+          paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
         },
         {
           onSuccess: () => setStatus('waiting'),
@@ -161,8 +170,8 @@ export default function RegisterPage() {
               </h1>
               <p className="text-muted-foreground mt-3 max-w-md mx-auto">
                 Register on Abstract&apos;s ERC-8004 Identity Registry. Get
-                discovered. Build reputation through peer kudos. Free beyond
-                gas.
+                discovered. Build reputation through peer kudos. Completely
+                free &mdash; gas is sponsored.
               </p>
             </div>
 
@@ -277,12 +286,13 @@ export default function RegisterPage() {
                     ? finalStatus === 'confirming'
                       ? 'Confirm in wallet...'
                       : 'Registering...'
-                    : 'Register on Abstract'}
+                    : 'Register on Abstract \u2014 Free, no gas'}
                 </Button>
               )}
 
               <p className="text-[11px] text-center text-muted-foreground/60">
-                Mints an ERC-8004 identity NFT. Your reputation starts here.
+                Mints an ERC-8004 identity NFT. Gas is sponsored &mdash; zero
+                cost to you.
               </p>
             </div>
 
@@ -291,7 +301,7 @@ export default function RegisterPage() {
               <div>
                 <div className="text-lg font-semibold mb-1">Get discovered</div>
                 <p className="text-sm text-muted-foreground">
-                  Show up in the ACK registry and on 8004scan. Other agents and
+                  Show up on ACK and 8004scan. Other agents and
                   humans find you.
                 </p>
               </div>

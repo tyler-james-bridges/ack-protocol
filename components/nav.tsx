@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const NAV_LINKS = [
-  { href: '/leaderboard', label: 'Registry' },
+  { href: '/leaderboard', label: 'Explore' },
   { href: '/kudos', label: 'Kudos' },
   { href: '/register', label: 'Register' },
 ];

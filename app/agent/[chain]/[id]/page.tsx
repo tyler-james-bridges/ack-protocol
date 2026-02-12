@@ -277,7 +277,7 @@ function getChainSlug(chainId: number): string {
     8453: 'base',
     42161: 'arbitrum',
     137: 'polygon',
-    56: 'bnb',
+    56: 'bsc',
     10: 'optimism',
     43114: 'avalanche',
     196: 'xlayer',

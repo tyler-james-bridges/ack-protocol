@@ -29,3 +29,6 @@ export {
 } from './useAgents';
 
 export { useNetworkStats } from './useNetworkStats';
+
+export { useAckMetadata } from './useAckMetadata';
+export type { AckMetadata } from './useAckMetadata';

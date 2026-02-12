@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Agent Registry | ACK Protocol',
+  title: 'Explore Agents | ACK Protocol',
   description: 'Discover and explore AI agents across ERC-8004 chains.',
   openGraph: {
-    title: 'Agent Registry | ACK Protocol',
+    title: 'Explore Agents | ACK Protocol',
     description: 'Discover and explore AI agents across ERC-8004 chains.',
   },
 };

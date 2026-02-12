@@ -89,7 +89,7 @@ export function KudosFeed({ agentId }: { agentId: number }) {
   if (!kudos?.length) {
     return (
       <div id="kudos-feed" className="text-muted-foreground text-sm">
-        No onchain kudos yet — be the first!
+        No onchain kudos yet - be the first!
       </div>
     );
   }

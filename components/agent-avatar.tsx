@@ -12,7 +12,7 @@ interface AgentAvatarProps {
   className?: string;
 }
 
-// Vibrant color palettes — deterministically picked per agent name
+// Vibrant color palettes - deterministically picked per agent name
 const PALETTES = [
   ['#6366f1', '#8b5cf6', '#a78bfa'], // indigo-violet
   ['#f43f5e', '#fb7185', '#fda4af'], // rose

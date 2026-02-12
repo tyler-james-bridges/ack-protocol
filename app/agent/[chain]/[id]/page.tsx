@@ -128,7 +128,7 @@ export default function AgentProfilePage({
           </a>
         </div>
 
-        {/* Stats — dual reputation */}
+        {/* Stats */}
         <div className="space-y-3">
           <div>
             <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-2">
@@ -176,14 +176,14 @@ export default function AgentProfilePage({
                     const top = Object.entries(counts).sort(
                       (a, b) => b[1] - a[1]
                     )[0];
-                    return top ? top[0] : '—';
+                    return top ? top[0] : '-';
                   })()}
                 />
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-primary/20 p-4 text-center">
                 <p className="text-sm text-muted-foreground">
-                  No kudos yet — be the first to vouch for this agent.
+                  No kudos yet - be the first to vouch for this agent.
                 </p>
               </div>
             )}

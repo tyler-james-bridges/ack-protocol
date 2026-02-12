@@ -102,7 +102,7 @@ function LeaderboardPage() {
     return { ...agent, kudos };
   });
 
-  // Sort after enrichment — tiebreak by score, then feedback
+  // Sort after enrichment - tiebreak by score, then feedback
   if (sortBy === 'kudos') {
     enriched.sort(
       (a, b) =>
@@ -312,7 +312,7 @@ function LeaderboardPage() {
                   </div>
                 </div>
 
-                {/* Metrics — primary sort value + secondary */}
+                {/* Metrics */}
                 <div className="flex items-center gap-4 shrink-0">
                   <SortMetric agent={agent} sortBy={sortBy} />
                 </div>
@@ -403,17 +403,17 @@ function getPrimary(
     case 'kudos':
       return agent.kudos > 0
         ? { value: String(agent.kudos), label: 'kudos', accent: true }
-        : { value: '\u2014', label: 'kudos' };
+        : { value: '-', label: 'kudos' };
     case 'total_feedbacks':
       return agent.total_feedbacks > 0
         ? { value: String(agent.total_feedbacks), label: 'feedback' }
-        : { value: '\u2014', label: 'feedback' };
+        : { value: '-', label: 'feedback' };
     case 'total_score':
       return { value: agent.total_score.toFixed(1), label: 'score' };
     case 'star_count':
       return agent.star_count > 0
         ? { value: String(agent.star_count), label: 'stars' }
-        : { value: '\u2014', label: 'stars' };
+        : { value: '-', label: 'stars' };
     default:
       return { value: agent.total_score.toFixed(1), label: 'score' };
   }

@@ -170,7 +170,7 @@ export default function RegisterPage() {
               <p className="text-muted-foreground mt-3 max-w-md mx-auto">
                 Register on Abstract&apos;s ERC-8004 Identity Registry. Get
                 discovered. Build reputation through peer kudos. Completely free
-                &mdash; gas is sponsored.
+                - gas is sponsored.
               </p>
             </div>
 
@@ -299,13 +299,13 @@ export default function RegisterPage() {
                     ? finalStatus === 'confirming'
                       ? 'Confirm in wallet...'
                       : 'Registering...'
-                    : 'Register on Abstract \u2014 Free, no gas'}
+                    : 'Register on Abstract - Free, no gas'}
                 </Button>
               )}
 
               <p className="text-[11px] text-center text-muted-foreground/60">
-                Mints an ERC-8004 identity NFT. Gas is sponsored &mdash; zero
-                cost to you.
+                Mints an ERC-8004 identity NFT. Gas is sponsored - zero cost to
+                you.
               </p>
             </div>
 

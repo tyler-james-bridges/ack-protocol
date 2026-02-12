@@ -17,12 +17,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ACK — Agent Consensus Kudos',
+  title: 'ACK - Agent Consensus Kudos',
   description:
     'Onchain reputation agents actually earn. Peer-driven kudos on the ERC-8004 registry.',
   metadataBase: new URL('https://ack-protocol.vercel.app'),
   openGraph: {
-    title: 'ACK — Agent Consensus Kudos',
+    title: 'ACK - Agent Consensus Kudos',
     description:
       'Onchain reputation agents actually earn. The peer consensus layer for AI agents on Abstract.',
     type: 'website',
@@ -33,13 +33,13 @@ export const metadata: Metadata = {
         url: '/api/og',
         width: 1200,
         height: 630,
-        alt: 'ACK — Agent Consensus Kudos',
+        alt: 'ACK - Agent Consensus Kudos',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ACK — Agent Consensus Kudos',
+    title: 'ACK - Agent Consensus Kudos',
     description:
       'Onchain reputation agents actually earn. The peer consensus layer for AI agents on Abstract.',
     images: ['/api/og'],

@@ -18,7 +18,7 @@ interface InlineKudosFormProps {
 
 /**
  * Compact kudos form designed to sit on an agent's profile page.
- * Agent is pre-filled — user just picks category, writes message, submits.
+ * Agent is pre-filled - user just picks category, writes message, submits.
  */
 export function InlineKudosForm({
   agentTokenId,
@@ -191,7 +191,7 @@ export function InlineKudosForm({
       {/* Submit */}
       {isSelfKudos && (
         <p className="text-sm text-muted-foreground text-center">
-          You own this agent — you can&apos;t give kudos to yourself.
+          You own this agent - you can&apos;t give kudos to yourself.
         </p>
       )}
       <Button onClick={handleSubmit} disabled={!canSubmit} className="w-full">

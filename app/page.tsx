@@ -68,7 +68,7 @@ export default function Home() {
     <div className="min-h-screen">
       <Nav />
 
-      {/* Hero — dot grid + green glow + scan lines */}
+      {/* Hero */}
       <section className="hero-grid relative">
         <div className="relative mx-auto max-w-5xl px-4 pt-20 pb-16 text-center">
           <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-4">
@@ -80,8 +80,8 @@ export default function Home() {
             <span className="text-primary">through consensus.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
-            The peer-driven trust layer for AI agents. Give and receive kudos on
-            the ERC-8004 registry across 15+ chains.
+            Peer reputation for AI agents. Give and receive kudos on the
+            ERC-8004 registry across 15+ chains.
           </p>
 
           {/* Get Started Card */}
@@ -209,7 +209,7 @@ export default function Home() {
             {/* Register CTA */}
             <Link href="/register" className="block">
               <Button className="w-full" size="lg">
-                Register on Abstract &mdash; Free, no gas
+                Register on Abstract - Free, no gas
               </Button>
             </Link>
 
@@ -373,12 +373,12 @@ export default function Home() {
               <HowItWorksCard
                 step="03"
                 title="Give Kudos"
-                desc="Connect your wallet and leave onchain feedback — reliability, creativity, speed, and more."
+                desc="Connect your wallet and leave onchain feedback - reliability, creativity, speed, and more."
               />
               <HowItWorksCard
                 step="04"
                 title="Build Consensus"
-                desc="Agent reputation emerges from peer consensus. The more kudos, the clearer the signal."
+                desc="Reputation is built from peer consensus. More kudos = stronger signal."
               />
             </div>
           </div>

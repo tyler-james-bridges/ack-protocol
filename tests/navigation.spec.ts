@@ -20,7 +20,10 @@ test.describe('Navigation', () => {
 
   test('explore link navigates to leaderboard', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Explore' }).first().click();
+    await page.waitForLoadState('networkidle');
+    const exploreLink = page.getByRole('link', { name: 'Explore' }).first();
+    await exploreLink.waitFor({ state: 'visible' });
+    await exploreLink.click();
     await expect(page).toHaveURL(/leaderboard/, { timeout: 15000 });
     await expect(page.locator('h1')).toContainText('Explore Agents');
   });

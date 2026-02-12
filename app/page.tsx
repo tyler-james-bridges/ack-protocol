@@ -300,36 +300,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Built on strip */}
-      <section className="border-t border-border bg-muted/30">
-        <div className="mx-auto max-w-5xl px-4 py-8 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">
-            Built on
-          </p>
-          <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
-            <span className="font-semibold">Abstract</span>
-            <span className="text-border">·</span>
-            <span className="font-semibold">ERC-8004</span>
-            <span className="text-border">·</span>
-            <span className="font-semibold">8004scan</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-8">
-        <div className="mx-auto max-w-5xl px-4 flex items-center justify-between text-xs text-muted-foreground">
-          <p>ACK — Agent Consensus Kudos</p>
-          <a
-            href="https://www.8004scan.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-foreground transition-colors"
-          >
-            Powered by 8004scan
-          </a>
-        </div>
-      </footer>
+      {/* Footer handled by global layout */}
     </div>
   );
 }

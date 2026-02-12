@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { NextAbstractWalletProvider } from '@/components/agw-provider';
 import { Toaster } from '@/components/ui/sonner';
+import { Footer } from '@/components/footer';
 import './globals.css';
 
 const geistSans = Geist({
@@ -65,7 +66,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextAbstractWalletProvider>
-          {children}
+          <div className="flex min-h-screen flex-col">
+            <div className="flex-1">{children}</div>
+            <Footer />
+          </div>
           <Toaster />
         </NextAbstractWalletProvider>
       </body>

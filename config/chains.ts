@@ -1,5 +1,5 @@
 import { createPublicClient, http, type Chain, type PublicClient } from 'viem';
-import { mainnet, base, bsc, gnosis } from 'viem/chains';
+import { mainnet, base, bsc, gnosis, celo } from 'viem/chains';
 import { abstract } from 'viem/chains';
 
 export interface ChainMeta {
@@ -13,6 +13,7 @@ const chainMetas: ChainMeta[] = [
   { chain: base, color: '#0052FF', explorerUrl: 'https://basescan.org' },
   { chain: bsc, color: '#F0B90B', explorerUrl: 'https://bscscan.com' },
   { chain: mainnet, color: '#627EEA', explorerUrl: 'https://etherscan.io' },
+  { chain: celo, color: '#FCFF52', explorerUrl: 'https://celoscan.io' },
   { chain: gnosis, color: '#04795B', explorerUrl: 'https://gnosisscan.io' },
 ];
 

@@ -43,6 +43,14 @@ const CHAIN_ICONS: Record<number, { name: string; src: string }> = {
     name: 'XLayer',
     src: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/okc/info/logo.png',
   },
+  100: {
+    name: 'Gnosis',
+    src: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/xdai/info/logo.png',
+  },
+  42220: {
+    name: 'Celo',
+    src: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/celo/info/logo.png',
+  },
   143: {
     name: 'Monad',
     src: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png',

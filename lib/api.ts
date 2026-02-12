@@ -106,6 +106,7 @@ export async function fetchAgent(scanId: string): Promise<ScanAgent> {
   const [chainId, tokenId] = scanId.split(':');
   const data = await proxyFetch<ScanAgentsResponse>('agents', {
     search: tokenId,
+    chain_id: chainId,
     limit: 20,
   });
   const match = (data.items || []).find(

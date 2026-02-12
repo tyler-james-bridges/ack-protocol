@@ -13,8 +13,9 @@ import { Nav } from '@/components/nav';
 import { KudosFeed } from '@/components/kudos-feed';
 import { CrossChainRep } from '@/components/cross-chain-rep';
 import { getChainName } from '@/hooks';
+import { useKudosReceived } from '@/hooks/useKudosReceived';
 import { fetchAgent, type ScanAgent } from '@/lib/api';
-import { KUDOS_CATEGORIES } from '@/config/contract';
+import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
 
 export default function AgentProfilePage({
   params,
@@ -26,6 +27,9 @@ export default function AgentProfilePage({
   const [agent, setAgent] = useState<ScanAgent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: kudos } = useKudosReceived(
+    agent ? Number(agent.token_id) : undefined
+  );
 
   useEffect(() => {
     const scanId = `${chain}:${id}`;
@@ -146,6 +150,43 @@ export default function AgentProfilePage({
                 }
               />
             </div>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium tracking-wider text-primary uppercase mb-2">
+              ACK Kudos
+              <span className="ml-1.5 text-primary/50 normal-case tracking-normal">
+                onchain peer feedback
+              </span>
+            </p>
+            {kudos && kudos.length > 0 ? (
+              <div className="grid grid-cols-3 gap-3">
+                <StatsCard label="Kudos" value={kudos.length} />
+                <StatsCard
+                  label="Givers"
+                  value={new Set(kudos.map((k) => k.sender)).size}
+                />
+                <StatsCard
+                  label="Top Category"
+                  value={(() => {
+                    const counts: Record<string, number> = {};
+                    kudos.forEach((k) => {
+                      if (KUDOS_CATEGORIES.includes(k.tag2 as KudosCategory))
+                        counts[k.tag2] = (counts[k.tag2] || 0) + 1;
+                    });
+                    const top = Object.entries(counts).sort(
+                      (a, b) => b[1] - a[1]
+                    )[0];
+                    return top ? top[0] : '—';
+                  })()}
+                />
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-primary/20 p-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No kudos yet — be the first to vouch for this agent.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

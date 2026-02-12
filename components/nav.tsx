@@ -211,7 +211,7 @@ export function Nav() {
       </nav>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-[60] md:hidden">
           <div
             className="absolute inset-0 bg-background/40 backdrop-blur-sm animate-in fade-in duration-150"
             onClick={() => setMobileOpen(false)}

@@ -133,8 +133,9 @@ export default function AgentProfilePage({
                 via 8004scan
               </span>
             </p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <StatsCard label="Score" value={agent.total_score.toFixed(1)} />
+              <StatsCard label="Feedback" value={agent.total_feedbacks} />
               <StatsCard label="Stars" value={agent.star_count} />
               <StatsCard
                 label="Rank"
@@ -143,27 +144,6 @@ export default function AgentProfilePage({
                     ? `#${agent.scores.rank.toLocaleString()}`
                     : '-'
                 }
-              />
-            </div>
-          </div>
-          <div>
-            <p className="text-[10px] font-medium tracking-wider text-primary uppercase mb-2">
-              Kudos Reputation
-              <span className="ml-1.5 text-primary/50 normal-case tracking-normal">
-                peer feedback
-              </span>
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              <StatsCard label="Kudos" value={agent.total_feedbacks} />
-              <StatsCard
-                label="Avg Rating"
-                value={
-                  agent.average_score > 0 ? agent.average_score.toFixed(1) : '—'
-                }
-              />
-              <StatsCard
-                label="Categories"
-                value={agent.categories?.length || '—'}
               />
             </div>
           </div>

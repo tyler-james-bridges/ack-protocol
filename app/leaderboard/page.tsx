@@ -109,10 +109,9 @@ export default function LeaderboardPage() {
               sub="via 8004scan"
             />
             <StatCard
-              label="Kudos"
+              label="Feedback"
               value={totalFeedback.toLocaleString()}
-              sub="peer feedback"
-              accent
+              sub="via 8004scan"
             />
           </div>
         </div>
@@ -228,20 +227,22 @@ export default function LeaderboardPage() {
                       protocol
                     </p>
                   </div>
-                  {/* Kudos Score (ours) */}
+                  {/* Feedback count (8004scan) */}
                   <div className="text-right w-14">
                     {agent.total_feedbacks > 0 ? (
                       <>
-                        <p className="text-sm font-bold tabular-nums text-primary">
+                        <p className="text-sm font-bold tabular-nums">
                           {agent.total_feedbacks}
                         </p>
-                        <p className="text-[10px] text-primary/60">kudos</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          feedback
+                        </p>
                       </>
                     ) : (
                       <>
                         <p className="text-sm text-muted-foreground/40">—</p>
                         <p className="text-[10px] text-muted-foreground/40">
-                          kudos
+                          feedback
                         </p>
                       </>
                     )}

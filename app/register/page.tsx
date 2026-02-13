@@ -3,16 +3,21 @@
 import { useState } from 'react';
 import {
   useAccount,
-  useWriteContract,
   useWaitForTransactionReceipt,
   useReadContract,
 } from 'wagmi';
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import {
+  useLoginWithAbstract,
+  useWriteContractSponsored,
+} from '@abstract-foundation/agw-react';
+import { getGeneralPaymasterInput } from 'viem/zksync';
 import { Nav } from '@/components/nav';
 import { Button } from '@/components/ui/button';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
-import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
-import { chain } from '@/config/chain';
+import {
+  IDENTITY_REGISTRY_ADDRESS,
+  ABSTRACT_PAYMASTER_ADDRESS,
+} from '@/config/contract';
 
 type RegisterStatus =
   | 'idle'
@@ -25,10 +30,13 @@ type RegisterStatus =
 export default function RegisterPage() {
   const { address, isConnected } = useAccount();
   const { login } = useLoginWithAbstract();
-  const { writeContract, data: txHash } = useWriteContract();
+  const {
+    writeContractSponsored,
+    data: txHash,
+    isPending,
+  } = useWriteContractSponsored();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
-    chainId: chain.id,
   });
 
   // Check if wallet already has an agent registered
@@ -45,7 +53,6 @@ export default function RegisterPage() {
     ],
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
-    chainId: chain.id,
     query: { enabled: !!address },
   });
   const alreadyRegistered = existingBalance
@@ -57,7 +64,13 @@ export default function RegisterPage() {
   const [status, setStatus] = useState<RegisterStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  const finalStatus: RegisterStatus = txConfirmed ? 'success' : status;
+  const finalStatus: RegisterStatus = txConfirmed
+    ? 'success'
+    : isPending
+      ? 'confirming'
+      : txHash
+        ? 'waiting'
+        : status;
   const isLoading =
     finalStatus === 'uploading' ||
     finalStatus === 'confirming' ||
@@ -85,24 +98,15 @@ export default function RegisterPage() {
       );
       const dataURI = `data:application/json;base64,${encoded}`;
 
-      // Call register on Identity Registry
       setStatus('confirming');
-      writeContract(
-        {
-          address: IDENTITY_REGISTRY_ADDRESS,
-          abi: IDENTITY_REGISTRY_ABI,
-          functionName: 'register',
-          args: [dataURI],
-          chainId: chain.id,
-        },
-        {
-          onSuccess: () => setStatus('waiting'),
-          onError: (err) => {
-            setError(err instanceof Error ? err.message : String(err));
-            setStatus('error');
-          },
-        }
-      );
+      writeContractSponsored({
+        address: IDENTITY_REGISTRY_ADDRESS,
+        abi: IDENTITY_REGISTRY_ABI,
+        functionName: 'register',
+        args: [dataURI],
+        paymaster: ABSTRACT_PAYMASTER_ADDRESS,
+        paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setStatus('error');
@@ -188,7 +192,7 @@ export default function RegisterPage() {
                 Network
               </label>
               <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-muted-foreground">
-                Abstract (Chain ID: {chain.id})
+                Abstract (Chain ID: 2741)
               </div>
             </div>
 

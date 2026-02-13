@@ -29,7 +29,7 @@ export default function Home() {
     useAgentSearch(heroQuery);
   const { data: agentsData } = useAgents({ limit: 1 });
   const { data: leaderboard, isLoading: loadingLeaderboard } = useLeaderboard({
-    limit: 10,
+    limit: 50,
     chainId: 2741,
     sortBy: 'total_score',
   });
@@ -339,7 +339,7 @@ export default function Home() {
                     (a.total_score + a.kudos * 5) ||
                     b.total_feedbacks - a.total_feedbacks
                 );
-                return enriched.map((agent, i) => (
+                return enriched.slice(0, 10).map((agent, i) => (
                   <button
                     key={agent.id}
                     type="button"

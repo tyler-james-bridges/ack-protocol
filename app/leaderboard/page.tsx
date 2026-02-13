@@ -115,21 +115,40 @@ function LeaderboardPage() {
   const enrichedAll = enrich(allAgentsList || []);
   const enrichedAbstract = enrich(abstractAgentsList || []);
 
-  // Sort helper
+  // Sort helper — always re-sort client-side to factor in kudos
   const doSort = (list: EnrichedAgent[]): EnrichedAgent[] => {
     const s = [...list];
-    if (sortBy === 'kudos') {
-      s.sort(
-        (a, b) =>
-          b.kudos - a.kudos ||
-          b.total_score - a.total_score ||
-          b.total_feedbacks - a.total_feedbacks
-      );
-    } else if (sortBy === 'total_feedbacks') {
-      s.sort(
-        (a, b) =>
-          b.total_feedbacks - a.total_feedbacks || b.total_score - a.total_score
-      );
+    switch (sortBy) {
+      case 'kudos':
+        s.sort(
+          (a, b) =>
+            b.kudos - a.kudos ||
+            b.total_score - a.total_score ||
+            b.total_feedbacks - a.total_feedbacks
+        );
+        break;
+      case 'total_feedbacks':
+        s.sort(
+          (a, b) =>
+            b.total_feedbacks - a.total_feedbacks ||
+            b.total_score - a.total_score
+        );
+        break;
+      case 'total_score':
+        s.sort(
+          (a, b) =>
+            b.total_score + b.kudos * 5 - (a.total_score + a.kudos * 5)
+        );
+        break;
+      case 'star_count':
+        s.sort((a, b) => b.star_count - a.star_count || b.total_score - a.total_score);
+        break;
+      default: // created_at
+        s.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        break;
     }
     return s;
   };

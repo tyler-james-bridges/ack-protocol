@@ -88,9 +88,9 @@ export default function Home() {
           <div className="mt-10 mx-auto max-w-md rounded-xl border border-primary/20 bg-card/50 backdrop-blur-sm p-6 text-left shadow-[0_0_30px_-5px] shadow-primary/10 gradient-border">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-primary font-mono text-lg">&gt;_</span>
-              <h2 className="text-lg font-bold">Get Started</h2>
+              <h2 className="text-lg md:text-xl font-bold">Get Started</h2>
             </div>
-            <p className="text-sm text-muted-foreground mb-5">
+            <p className="text-sm md:text-base text-muted-foreground mb-5">
               Search for your agent or register new.
             </p>
 
@@ -120,7 +120,7 @@ export default function Home() {
                     }}
                     placeholder="Enter agent name or address..."
                     aria-label="Search for an agent by name or address"
-                    className="w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
+                    className="w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3 text-sm md:text-base placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
                   />
                 </div>
                 <button
@@ -268,8 +268,10 @@ export default function Home() {
       {/* Bring Your Reputation */}
       <section className="mx-auto max-w-5xl px-4 pb-10">
         <div className="rounded-xl border border-primary/20 bg-card/50 p-6 text-center">
-          <h2 className="text-lg font-bold mb-2">Bring Your Reputation</h2>
-          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+          <h2 className="text-lg md:text-xl font-bold mb-2">
+            Bring Your Reputation
+          </h2>
+          <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
             Agents registered on Ethereum, Base, BNB, and other ERC-8004 chains
             can bring their reputation to Abstract via ACK -- one identity,
             every chain.
@@ -298,7 +300,7 @@ export default function Home() {
           {/* Top Agents */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold">Top Agents</h2>
+              <h2 className="text-lg md:text-xl font-bold">Top Agents</h2>
               <Link
                 href="/leaderboard"
                 className="text-xs text-muted-foreground hover:text-primary transition-colors"
@@ -358,7 +360,7 @@ export default function Home() {
 
           {/* How It Works */}
           <div>
-            <h2 className="text-lg font-bold mb-3">How ACK Works</h2>
+            <h2 className="text-lg md:text-xl font-bold mb-3">How ACK Works</h2>
             <div className="space-y-4">
               <HowItWorksCard
                 step="01"
@@ -401,12 +403,14 @@ function HowItWorksCard({
 }) {
   return (
     <div className="flex gap-4 rounded-xl border border-border p-4 card-glow transition-colors hover:border-primary/30">
-      <span className="text-2xl font-bold text-primary/30 tabular-nums shrink-0">
+      <span className="text-2xl md:text-3xl font-bold text-primary/30 tabular-nums shrink-0">
         {step}
       </span>
       <div>
-        <p className="font-semibold text-sm">{title}</p>
-        <p className="text-sm text-muted-foreground mt-0.5">{desc}</p>
+        <p className="font-semibold text-sm md:text-base">{title}</p>
+        <p className="text-sm md:text-base text-muted-foreground mt-0.5">
+          {desc}
+        </p>
       </div>
     </div>
   );
@@ -424,11 +428,11 @@ function StatPill({
   return (
     <div className="text-center">
       <p
-        className={`text-2xl font-bold tracking-tight ${accent ? 'text-primary' : ''}`}
+        className={`text-2xl md:text-3xl font-bold tracking-tight ${accent ? 'text-primary' : ''}`}
       >
         {value}
       </p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
     </div>
   );
 }

@@ -102,7 +102,7 @@ export default function GiveKudosPage() {
               className="text-center space-y-6 pt-12"
             >
               <div className="text-6xl">&#127881;</div>
-              <h1 className="text-3xl font-bold">Kudos Sent!</h1>
+              <h1 className="text-3xl md:text-4xl font-bold">Kudos Sent!</h1>
               <p className="text-muted-foreground">
                 Your kudos is now onchain on the ERC-8004 Reputation Registry.
               </p>
@@ -132,8 +132,8 @@ export default function GiveKudosPage() {
               className="space-y-6"
             >
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold">Give Kudos</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-3xl md:text-4xl font-bold">Give Kudos</h1>
+                <p className="text-muted-foreground md:text-lg">
                   Recognize an agent for great work. Your kudos goes directly
                   onchain via ERC-8004.
                 </p>
@@ -177,8 +177,10 @@ export default function GiveKudosPage() {
         {/* Recent Kudos Feed */}
         <div className="mt-12 space-y-4">
           <div className="space-y-1">
-            <h2 className="text-lg font-bold tracking-tight">Recent Kudos</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-lg md:text-xl font-bold tracking-tight">
+              Recent Kudos
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground">
               Latest onchain kudos across all agents on Abstract.
             </p>
           </div>

@@ -81,7 +81,7 @@ export function InlineKudosForm({
       >
         <p className="text-2xl">🎉</p>
         <p className="font-semibold">Kudos sent to {agentName}!</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           Your feedback is now onchain on the ERC-8004 Reputation Registry.
         </p>
         <div className="flex items-center justify-center gap-3">
@@ -127,7 +127,7 @@ export function InlineKudosForm({
         )}
       >
         <p className="font-semibold">Give Kudos to {agentName}</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           Connect your wallet to leave onchain feedback.
         </p>
         <Button onClick={() => login()}>Connect with Abstract</Button>
@@ -177,7 +177,7 @@ export function InlineKudosForm({
           rows={3}
           maxLength={280}
           className={cn(
-            'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm',
+            'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm md:text-base',
             'placeholder:text-muted-foreground',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             'resize-none'

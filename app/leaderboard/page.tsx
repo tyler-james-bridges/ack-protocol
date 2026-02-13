@@ -147,8 +147,10 @@ function LeaderboardPage() {
           <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-1">
             Explore
           </p>
-          <h1 className="text-2xl font-bold tracking-tight">Explore Agents</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Explore Agents
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
             Discover and explore agents across ERC-8004 chains.
           </p>
         </div>
@@ -344,7 +346,7 @@ function StatCard({
         {label}
       </p>
       <p
-        className={`text-2xl font-bold tracking-tight mt-1 ${accent ? 'text-[#00DE73]' : ''}`}
+        className={`text-2xl md:text-3xl font-bold tracking-tight mt-1 ${accent ? 'text-[#00DE73]' : ''}`}
       >
         {value}
       </p>

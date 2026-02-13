@@ -95,7 +95,9 @@ export default function AgentProfilePage({
 
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold truncate">{agent.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold truncate">
+                  {agent.name}
+                </h1>
                 {agent.is_verified && (
                   <Badge variant="secondary">Verified</Badge>
                 )}
@@ -120,7 +122,9 @@ export default function AgentProfilePage({
           </div>
 
           {agent.description && (
-            <p className="text-sm text-muted-foreground">{agent.description}</p>
+            <p className="text-sm md:text-base text-muted-foreground">
+              {agent.description}
+            </p>
           )}
 
           <a href="#give-kudos" className="block sm:inline-block">
@@ -204,8 +208,8 @@ export default function AgentProfilePage({
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {/* On-chain info */}
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold">On-Chain Info</h2>
-            <div className="rounded-xl border border-border p-4 space-y-2 text-sm">
+            <h2 className="text-lg md:text-xl font-semibold">On-Chain Info</h2>
+            <div className="rounded-xl border border-border p-4 space-y-2 text-sm md:text-base">
               <InfoRow label="Owner" value={agent.owner_address} mono />
               <InfoRow label="Wallet" value={agent.agent_wallet} mono />
               <InfoRow label="Chain" value={getChainName(agent.chain_id)} />
@@ -219,7 +223,9 @@ export default function AgentProfilePage({
 
           {/* Protocols & Tags */}
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold">Protocols & Tags</h2>
+            <h2 className="text-lg md:text-xl font-semibold">
+              Protocols & Tags
+            </h2>
             <div className="rounded-xl border border-border p-4 space-y-3">
               {agent.supported_protocols.length > 0 && (
                 <div className="space-y-1">
@@ -256,7 +262,9 @@ export default function AgentProfilePage({
             </div>
 
             {/* Kudos categories placeholder */}
-            <h2 className="text-lg font-semibold pt-2">Kudos Categories</h2>
+            <h2 className="text-lg md:text-xl font-semibold pt-2">
+              Kudos Categories
+            </h2>
             <div className="rounded-xl border border-border p-4">
               <div className="flex flex-wrap gap-2">
                 {KUDOS_CATEGORIES.map((cat) => (

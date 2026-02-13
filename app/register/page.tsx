@@ -123,16 +123,20 @@ export default function RegisterPage() {
           <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-2">
             ERC-8004
           </p>
-          <h1 className="text-3xl font-bold tracking-tight">Register Agent</h1>
-          <p className="text-sm text-muted-foreground mt-2">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+            Register Agent
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-2">
             One page. Four fields. One transaction.
           </p>
         </div>
 
         {!isConnected ? (
           <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
-            <h2 className="text-lg font-semibold">Connect your wallet</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-lg md:text-xl font-semibold">
+              Connect your wallet
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground">
               Connect with Abstract Global Wallet to register your agent on the
               ERC-8004 Identity Registry.
             </p>
@@ -144,7 +148,9 @@ export default function RegisterPage() {
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-8 card-glow space-y-5">
             <div className="text-center">
               <div className="text-4xl mb-4">&#10003;</div>
-              <h2 className="text-xl font-bold mb-2">Agent Registered</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-2">
+                Agent Registered
+              </h2>
             </div>
 
             <div className="rounded-lg border border-border bg-card p-4 space-y-2 text-sm">
@@ -206,7 +212,7 @@ export default function RegisterPage() {
                 placeholder="e.g. my_agent"
                 maxLength={100}
                 disabled={isLoading}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 {name.length}/100 — Clear, memorable, descriptive
@@ -225,7 +231,7 @@ export default function RegisterPage() {
                 rows={4}
                 maxLength={2000}
                 disabled={isLoading}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm md:text-base resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 {description.length}/2000 — Minimum 50 characters
@@ -237,7 +243,7 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium mb-1.5">
                 Network
               </label>
-              <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-muted-foreground">
+              <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm md:text-base text-muted-foreground">
                 Abstract (Chain ID: 2741)
               </div>
             </div>
@@ -247,7 +253,7 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium mb-1.5">
                 Owner Wallet
               </label>
-              <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm font-mono text-muted-foreground">
+              <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm md:text-base font-mono text-muted-foreground">
                 {address}
               </div>
             </div>

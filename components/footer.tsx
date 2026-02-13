@@ -46,7 +46,7 @@ export function Footer() {
       <div className="mx-auto max-w-5xl px-4 py-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold tracking-tight text-foreground">
+            <span className="text-sm md:text-base font-bold tracking-tight text-foreground">
               ACK
             </span>
             <span className="h-3 w-px bg-border" />

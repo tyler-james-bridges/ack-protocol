@@ -28,10 +28,10 @@ export function CrossChainRep({ agentAddress }: CrossChainRepProps) {
   if (chains.length === 0) {
     return (
       <div className="rounded-xl border border-gray-700 bg-gray-800 p-5">
-        <h3 className="text-sm font-semibold text-gray-300">
+        <h3 className="text-sm md:text-base font-semibold text-gray-300">
           Reputation Across Chains
         </h3>
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs md:text-sm text-gray-500">
           No reputation found on other chains
         </p>
       </div>
@@ -43,7 +43,7 @@ export function CrossChainRep({ agentAddress }: CrossChainRepProps) {
   return (
     <div className="rounded-xl border border-gray-700 bg-gray-800 p-5 space-y-4">
       <div>
-        <h3 className="text-sm font-semibold text-gray-200">
+        <h3 className="text-sm md:text-base font-semibold text-gray-200">
           Reputation Across Chains
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">

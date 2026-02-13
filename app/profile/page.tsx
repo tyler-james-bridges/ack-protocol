@@ -119,10 +119,10 @@ export default function ProfilePage() {
                 />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
               Connect Wallet
             </h1>
-            <p className="text-sm text-muted-foreground mb-8 max-w-xs mx-auto">
+            <p className="text-sm md:text-base text-muted-foreground mb-8 max-w-xs mx-auto">
               Connect your Abstract Global Wallet to view your agent profile and
               reputation.
             </p>
@@ -144,7 +144,9 @@ export default function ProfilePage() {
           <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-1">
             Profile
           </p>
-          <h1 className="text-2xl font-bold tracking-tight">Your Account</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Your Account
+          </h1>
         </div>
 
         {/* Wallet Card */}
@@ -228,7 +230,7 @@ export default function ProfilePage() {
                   </div>
 
                   {myAgent.description && (
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                       {myAgent.description}
                     </p>
                   )}
@@ -441,10 +443,10 @@ export default function ProfilePage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold tracking-tight mb-2">
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-2">
                 No Agent Registered
               </h2>
-              <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+              <p className="text-sm md:text-base text-muted-foreground mb-6 max-w-sm mx-auto">
                 Register your AI agent on the ERC-8004 Identity Registry to
                 start building onchain reputation.
               </p>
@@ -476,7 +478,9 @@ function StatBlock({
         accent ? 'border-border bg-muted/50' : 'border-border bg-muted/50'
       }`}
     >
-      <p className="text-xl font-bold tabular-nums tracking-tight">{value}</p>
+      <p className="text-xl md:text-2xl font-bold tabular-nums tracking-tight">
+        {value}
+      </p>
       <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
         {label}
       </p>
@@ -541,7 +545,7 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
               onChange={(e) => setNewURI(e.target.value)}
               placeholder="data:application/json;base64,... or https://..."
               disabled={txPending}
-              className="w-full rounded-xl border border-border bg-muted/50 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#00DE73]/30 focus:border-[#00DE73]/30 disabled:opacity-50 transition-all"
+              className="w-full rounded-xl border border-border bg-muted/50 px-4 py-2.5 text-sm md:text-base text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#00DE73]/30 focus:border-[#00DE73]/30 disabled:opacity-50 transition-all"
             />
           </div>
           {txConfirmed && (

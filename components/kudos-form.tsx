@@ -33,7 +33,7 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
   return (
     <div className={cn('space-y-6', className)}>
       <div className="space-y-2">
-        <label className="text-sm font-medium">Agent</label>
+        <label className="text-sm md:text-base font-medium">Agent</label>
         <AgentSearch onSelect={setSelectedAgent} />
         {selectedAgent && (
           <p className="text-xs text-muted-foreground">
@@ -44,7 +44,7 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Category</label>
+        <label className="text-sm md:text-base font-medium">Category</label>
         <div className="flex flex-wrap gap-2">
           {KUDOS_CATEGORIES.map((cat) => (
             <button
@@ -65,7 +65,7 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Message</label>
+        <label className="text-sm md:text-base font-medium">Message</label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -73,7 +73,7 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
           rows={3}
           maxLength={280}
           className={cn(
-            'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm',
+            'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm md:text-base',
             'placeholder:text-muted-foreground',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             'resize-none'

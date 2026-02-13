@@ -10,6 +10,7 @@ import {
   IDENTITY_REGISTRY_ADDRESS,
   ABSTRACT_PAYMASTER_ADDRESS,
 } from '@/config/contract';
+import { chain } from '@/config/chain';
 
 /**
  * ACK metadata keys stored onchain via ERC-8004 setMetadata / getMetadata.
@@ -64,6 +65,7 @@ export function useAckMetadata(agentId: number | undefined) {
     abi: IDENTITY_REGISTRY_ABI,
     functionName: 'getMetadata',
     args: [agentIdBigInt, ACK_KEYS.score],
+    chainId: chain.id,
     query: { enabled },
   });
 
@@ -72,6 +74,7 @@ export function useAckMetadata(agentId: number | undefined) {
     abi: IDENTITY_REGISTRY_ABI,
     functionName: 'getMetadata',
     args: [agentIdBigInt, ACK_KEYS.kudosCount],
+    chainId: chain.id,
     query: { enabled },
   });
 
@@ -81,6 +84,7 @@ export function useAckMetadata(agentId: number | undefined) {
       abi: IDENTITY_REGISTRY_ABI,
       functionName: 'getMetadata',
       args: [agentIdBigInt, ACK_KEYS.topCategory],
+      chainId: chain.id,
       query: { enabled },
     }
   );
@@ -111,6 +115,7 @@ export function useAckMetadata(agentId: number | undefined) {
 
   const { isSuccess: writeTxConfirmed } = useWaitForTransactionReceipt({
     hash: writeTxHash,
+    chainId: chain.id,
   });
 
   const finalWriteStatus: WriteStatus = writeTxConfirmed
@@ -140,6 +145,7 @@ export function useAckMetadata(agentId: number | undefined) {
             abi: IDENTITY_REGISTRY_ABI,
             functionName: 'setMetadata',
             args: [agentIdBigInt, metadataKey, metadataValue],
+            chainId: chain.id,
             paymaster: ABSTRACT_PAYMASTER_ADDRESS,
             paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
           },

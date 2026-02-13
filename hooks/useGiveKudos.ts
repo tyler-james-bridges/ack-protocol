@@ -14,6 +14,7 @@ import {
   KUDOS_VALUE_DECIMALS,
 } from '@/config/contract';
 import type { KudosCategory } from '@/config/contract';
+import { chain } from '@/config/chain';
 import { buildFeedback } from '@/lib/feedback';
 
 interface GiveKudosParams {
@@ -47,6 +48,7 @@ export function useGiveKudos() {
   } = useWriteContractSponsored();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
+    chainId: chain.id,
   });
 
   // When tx confirms, invalidate all related queries so the UI updates
@@ -100,6 +102,7 @@ export function useGiveKudos() {
               feedbackURI,
               feedbackHash,
             ],
+            chainId: chain.id,
             paymaster: ABSTRACT_PAYMASTER_ADDRESS,
             paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
           },

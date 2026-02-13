@@ -16,14 +16,14 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@abstract-foundation/agw-client": "^1.10.0",
-    "@abstract-foundation/agw-react": "^1.10.0",
+    "@abstract-foundation/agw-client": "1.8.7",
+    "@abstract-foundation/agw-react": "1.8.8",
     "@buildersgarden/siwa": "^0.0.11",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
-    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query": "^5.85.5",
     "@vercel/analytics": "^1.6.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -33,15 +33,15 @@
     "lucide-react": "^0.540.0",
     "next": "^16.1.6",
     "next-themes": "^0.4.6",
-    "radix-ui": "^1.4.3",
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-force-graph-3d": "^1.29.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "three": "^0.170.0",
-    "viem": "^2.45.3",
-    "wagmi": "^2.19.5"
+    "viem": "^2.34.0",
+    "wagmi": "^2.16.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

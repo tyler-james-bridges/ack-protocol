@@ -18,6 +18,7 @@ import {
   IDENTITY_REGISTRY_ADDRESS,
   ABSTRACT_PAYMASTER_ADDRESS,
 } from '@/config/contract';
+import { chain } from '@/config/chain';
 import { useNetworkStats } from '@/hooks';
 
 type RegisterStatus =
@@ -34,6 +35,7 @@ export default function RegisterPage() {
   const { writeContractSponsored, data: txHash } = useWriteContractSponsored();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
+    chainId: chain.id,
   });
 
   const { data: existingBalance } = useReadContract({
@@ -49,6 +51,7 @@ export default function RegisterPage() {
     ],
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
+    chainId: chain.id,
     query: { enabled: !!address },
   });
   const alreadyRegistered = existingBalance
@@ -97,6 +100,7 @@ export default function RegisterPage() {
           abi: IDENTITY_REGISTRY_ABI,
           functionName: 'register',
           args: [dataURI],
+          chainId: chain.id,
           paymaster: ABSTRACT_PAYMASTER_ADDRESS,
           paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
         },

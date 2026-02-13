@@ -77,11 +77,13 @@ function LeaderboardPage() {
   const setSortBy = (sort: SortKey) =>
     updateParams({ sort: sort === 'created_at' ? null : sort });
 
-  // Fetch all agents (no chain filter -- we split client-side)
+  // Fetch global agents + Abstract agents separately (Abstract may not rank in global top 500)
   const { data: allAgentsList, isLoading } = useLeaderboard({
     limit: 100,
     sortBy,
   });
+  const { data: abstractAgentsList, isLoading: isLoadingAbstract } =
+    useLeaderboard({ chainId: 2741, limit: 100, sortBy });
   const { data: networkStats } = useNetworkStats();
   const { data: abstractCounts } = useAbstractFeedbackCounts();
 
@@ -101,32 +103,39 @@ function LeaderboardPage() {
 
   // Enrich with ACK kudos
   type EnrichedAgent = ScanAgent & { kudos: number };
-  const enriched: EnrichedAgent[] = (allAgentsList || []).map((agent) => {
-    const kudos =
-      agent.chain_id === 2741 && abstractCounts
-        ? abstractCounts.get(Number(agent.token_id)) || 0
-        : 0;
-    return { ...agent, kudos };
-  });
+  const enrich = (agents: ScanAgent[]): EnrichedAgent[] =>
+    agents.map((agent) => ({
+      ...agent,
+      kudos:
+        agent.chain_id === 2741 && abstractCounts
+          ? abstractCounts.get(Number(agent.token_id)) || 0
+          : 0,
+    }));
 
-  // Sort
-  const sorted = [...enriched];
-  if (sortBy === 'kudos') {
-    sorted.sort(
-      (a, b) =>
-        b.kudos - a.kudos ||
-        b.total_score - a.total_score ||
-        b.total_feedbacks - a.total_feedbacks
-    );
-  } else if (sortBy === 'total_feedbacks') {
-    sorted.sort(
-      (a, b) =>
-        b.total_feedbacks - a.total_feedbacks || b.total_score - a.total_score
-    );
-  }
+  const enrichedAll = enrich(allAgentsList || []);
+  const enrichedAbstract = enrich(abstractAgentsList || []);
 
-  // Split by chain
-  const abstractAgents = sorted.filter((a) => a.chain_id === 2741);
+  // Sort helper
+  const doSort = (list: EnrichedAgent[]): EnrichedAgent[] => {
+    const s = [...list];
+    if (sortBy === 'kudos') {
+      s.sort(
+        (a, b) =>
+          b.kudos - a.kudos ||
+          b.total_score - a.total_score ||
+          b.total_feedbacks - a.total_feedbacks
+      );
+    } else if (sortBy === 'total_feedbacks') {
+      s.sort(
+        (a, b) =>
+          b.total_feedbacks - a.total_feedbacks || b.total_score - a.total_score
+      );
+    }
+    return s;
+  };
+
+  const sorted = doSort(enrichedAll);
+  const abstractAgents = doSort(enrichedAbstract);
   const otherChainAgents = new Map<number, EnrichedAgent[]>();
   for (const agent of sorted) {
     if (agent.chain_id === 2741) continue;
@@ -233,7 +242,7 @@ function LeaderboardPage() {
 
           {expandedChains.has(2741) && (
             <div className="rounded-xl border border-[#00FF94]/20 overflow-hidden bg-[#00FF94]/[0.02]">
-              {isLoading ? (
+              {isLoadingAbstract ? (
                 <LoadingSkeleton count={5} />
               ) : abstractAgents.length === 0 ? (
                 <EmptyState />

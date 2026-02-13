@@ -119,7 +119,7 @@ export default function ProfilePage() {
       <main className="mx-auto max-w-2xl px-4 pt-10 pb-24">
         {/* Page Header */}
         <div className="mb-8">
-          <p className="text-xs font-semibold tracking-widest text-[#00DE73] uppercase mb-1">
+          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-1">
             Profile
           </p>
           <h1 className="text-2xl font-bold tracking-tight">Your Account</h1>
@@ -148,8 +148,8 @@ export default function ProfilePage() {
                 Agent Status
               </span>
               {hasAgent ? (
-                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#00DE73]">
-                  <span className="h-2 w-2 rounded-full bg-[#00DE73] animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                  <span className="h-2 w-2 rounded-full bg-foreground animate-pulse" />
                   Registered
                 </span>
               ) : (
@@ -165,10 +165,7 @@ export default function ProfilePage() {
         {hasAgent ? (
           <>
             {/* Agent Card */}
-            <section className="rounded-2xl border border-[#00DE73]/15 bg-card p-6 mb-5 relative overflow-hidden">
-              {/* Subtle glow */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-[#00DE73]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-
+            <section className="rounded-2xl border border-border bg-card p-6 mb-5 relative overflow-hidden">
               <h2 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-5 relative">
                 Your Agent
               </h2>
@@ -187,7 +184,7 @@ export default function ProfilePage() {
                 <div className="space-y-5 relative">
                   {/* Agent identity */}
                   <div className="flex items-center gap-4">
-                    <div className="rounded-xl overflow-hidden ring-2 ring-[#00DE73]/20 ring-offset-2 ring-offset-background">
+                    <div className="rounded-xl overflow-hidden ring-2 ring-border ring-offset-2 ring-offset-background">
                       <AgentAvatar
                         name={myAgent.name}
                         imageUrl={myAgent.image_url}
@@ -390,14 +387,13 @@ export default function ProfilePage() {
             </section>
           </>
         ) : (
-          <section className="rounded-2xl border border-[#00DE73]/20 bg-card p-10 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#00DE73]/5 to-transparent pointer-events-none" />
-            <div className="relative">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#00DE73]/10 border border-[#00DE73]/20">
+          <section className="rounded-2xl border border-border bg-card p-10 text-center">
+            <div>
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted border border-border">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="h-7 w-7 text-[#00DE73]"
+                  className="h-7 w-7 text-muted-foreground"
                 >
                   <path
                     d="M12 4.5v15m7.5-7.5h-15"
@@ -440,16 +436,10 @@ function StatBlock({
   return (
     <div
       className={`rounded-xl border p-4 text-center transition-colors ${
-        accent
-          ? 'border-[#00DE73]/20 bg-[#00DE73]/5'
-          : 'border-border bg-muted/50'
+        accent ? 'border-border bg-muted/50' : 'border-border bg-muted/50'
       }`}
     >
-      <p
-        className={`text-xl font-bold tabular-nums tracking-tight ${accent ? 'text-[#00DE73]' : ''}`}
-      >
-        {value}
-      </p>
+      <p className="text-xl font-bold tabular-nums tracking-tight">{value}</p>
       <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
         {label}
       </p>

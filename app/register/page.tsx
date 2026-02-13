@@ -5,19 +5,13 @@ import {
   useAccount,
   useWaitForTransactionReceipt,
   useReadContract,
+  useWriteContract,
 } from 'wagmi';
-import {
-  useLoginWithAbstract,
-  useWriteContractSponsored,
-} from '@abstract-foundation/agw-react';
-import { getGeneralPaymasterInput } from 'viem/zksync';
+import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { Nav } from '@/components/nav';
 import { Button } from '@/components/ui/button';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
-import {
-  IDENTITY_REGISTRY_ADDRESS,
-  ABSTRACT_PAYMASTER_ADDRESS,
-} from '@/config/contract';
+import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 
 type RegisterStatus =
   | 'idle'
@@ -30,11 +24,7 @@ type RegisterStatus =
 export default function RegisterPage() {
   const { address, isConnected } = useAccount();
   const { login } = useLoginWithAbstract();
-  const {
-    writeContractSponsored,
-    data: txHash,
-    isPending,
-  } = useWriteContractSponsored();
+  const { writeContract, data: txHash, isPending } = useWriteContract();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
   });
@@ -99,13 +89,11 @@ export default function RegisterPage() {
       const dataURI = `data:application/json;base64,${encoded}`;
 
       setStatus('confirming');
-      writeContractSponsored({
+      writeContract({
         address: IDENTITY_REGISTRY_ADDRESS,
         abi: IDENTITY_REGISTRY_ABI,
         functionName: 'register',
         args: [dataURI],
-        paymaster: ABSTRACT_PAYMASTER_ADDRESS,
-        paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

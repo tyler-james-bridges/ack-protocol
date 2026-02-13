@@ -14,6 +14,7 @@ import {
   useLeaderboard,
   useNetworkStats,
   useAgentSearch,
+  useAbstractFeedbackCounts,
   getChainName,
 } from '@/hooks';
 import type { ScanAgent } from '@/lib/api';
@@ -29,8 +30,12 @@ export default function Home() {
   const { data: agentsData } = useAgents({ limit: 1 });
   const { data: leaderboard, isLoading: loadingLeaderboard } = useLeaderboard({
     limit: 10,
+    chainId: 2741,
   });
+  const { data: allLeaderboard, isLoading: loadingAllLeaderboard } =
+    useLeaderboard({ limit: 5 });
   const { data: networkStats } = useNetworkStats();
+  const { data: abstractCounts } = useAbstractFeedbackCounts();
 
   const goToAgent = (agent: ScanAgent) =>
     router.push(`/agent/${agent.chain_id}/${agent.token_id}`);
@@ -294,13 +299,91 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Two-column: Leaderboard + Kudos */}
+      {/* Abstract Leaderboard -- Featured */}
+      <section className="mx-auto max-w-5xl px-4 pb-10">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <ChainIcon chainId={2741} size={18} />
+            <h2 className="text-lg md:text-xl font-bold">
+              Top Agents on Abstract
+            </h2>
+          </div>
+          <Link
+            href="/leaderboard"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors"
+          >
+            View all →
+          </Link>
+        </div>
+        <div className="rounded-xl border border-[#00FF94]/20 overflow-hidden bg-[#00FF94]/[0.02]">
+          {loadingLeaderboard
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-14 animate-pulse bg-muted/30 border-b border-border last:border-b-0"
+                />
+              ))
+            : leaderboard?.map((agent, i) => {
+                const kudos = abstractCounts
+                  ? abstractCounts.get(Number(agent.token_id)) || 0
+                  : 0;
+                return (
+                  <button
+                    key={agent.id}
+                    type="button"
+                    onClick={() => goToAgent(agent)}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-left transition-all hover:bg-muted/30 border-b border-border last:border-b-0 cursor-pointer hover:pl-5"
+                  >
+                    <span
+                      className={`w-6 text-sm font-bold tabular-nums ${
+                        i < 3 ? 'text-primary' : 'text-muted-foreground'
+                      }`}
+                    >
+                      #{i + 1}
+                    </span>
+                    <AgentAvatar
+                      name={agent.name}
+                      imageUrl={agent.image_url}
+                      size={32}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold truncate">
+                          {agent.name}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        {kudos > 0 && (
+                          <span className="text-[#00DE73]">{kudos} kudos</span>
+                        )}
+                        {kudos > 0 && agent.total_feedbacks > 0 && (
+                          <span> · </span>
+                        )}
+                        {agent.total_feedbacks > 0 && (
+                          <span>{agent.total_feedbacks} feedback</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold tabular-nums">
+                        {agent.total_score.toFixed(1)}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+        </div>
+      </section>
+
+      {/* All Chains Top Agents + How It Works */}
       <section className="mx-auto max-w-5xl px-4 pb-16">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Top Agents */}
+          {/* Top Agents (All Chains) */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg md:text-xl font-bold">Top Agents</h2>
+              <h2 className="text-lg md:text-xl font-bold">
+                Top Agents (All Chains)
+              </h2>
               <Link
                 href="/leaderboard"
                 className="text-xs text-muted-foreground hover:text-primary transition-colors"
@@ -309,14 +392,14 @@ export default function Home() {
               </Link>
             </div>
             <div className="rounded-xl border border-border overflow-hidden">
-              {loadingLeaderboard
+              {loadingAllLeaderboard
                 ? Array.from({ length: 5 }).map((_, i) => (
                     <div
                       key={i}
                       className="h-14 animate-pulse bg-muted/30 border-b border-border last:border-b-0"
                     />
                   ))
-                : leaderboard?.map((agent, i) => (
+                : allLeaderboard?.map((agent, i) => (
                     <button
                       key={agent.id}
                       type="button"

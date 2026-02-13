@@ -19,9 +19,8 @@ const client = createPublicClient({ chain: abstract, transport: http() });
  */
 async function fetchFeedbackCounts(): Promise<Map<number, number>> {
   const currentBlock = await client.getBlockNumber();
-  // Scan last 100k blocks (covers several days on Abstract)
-  const fromBlock =
-    currentBlock > BigInt(100000) ? currentBlock - BigInt(100000) : BigInt(0);
+  // Scan from genesis to capture all kudos ever given
+  const fromBlock = BigInt(0);
 
   const logs = await client.request({
     method: 'eth_getLogs',

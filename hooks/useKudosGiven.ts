@@ -50,8 +50,8 @@ function parseMessage(feedbackURI: string): string | null {
 
 async function fetchKudosGiven(address: Address): Promise<KudosGivenEvent[]> {
   const currentBlock = await client.getBlockNumber();
-  const fromBlock =
-    currentBlock > BigInt(100000) ? currentBlock - BigInt(100000) : BigInt(0);
+  // Scan from genesis to capture all kudos ever given
+  const fromBlock = BigInt(0);
 
   // topic[2] is the indexed clientAddress (the person giving feedback)
   const senderTopic = padHex(address.toLowerCase() as Hex, { size: 32 });

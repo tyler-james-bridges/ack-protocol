@@ -38,8 +38,8 @@ const client = createPublicClient({ chain: abstract, transport: http() });
 
 async function fetchKudos(agentId: number): Promise<KudosEvent[]> {
   const currentBlock = await client.getBlockNumber();
-  const fromBlock =
-    currentBlock > BigInt(50000) ? currentBlock - BigInt(50000) : BigInt(0);
+  // Scan from genesis to capture all kudos ever given
+  const fromBlock = BigInt(0);
 
   // topic[0]=event sig, topic[1]=agentId (indexed uint256)
   const agentIdTopic = padHex(numberToHex(agentId), { size: 32 });

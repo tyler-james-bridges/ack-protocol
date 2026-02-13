@@ -31,9 +31,10 @@ export default function Home() {
   const { data: leaderboard, isLoading: loadingLeaderboard } = useLeaderboard({
     limit: 10,
     chainId: 2741,
+    sortBy: 'total_score',
   });
   const { data: allLeaderboard, isLoading: loadingAllLeaderboard } =
-    useLeaderboard({ limit: 5 });
+    useLeaderboard({ limit: 5, sortBy: 'total_score' });
   const { data: networkStats } = useNetworkStats();
   const { data: abstractCounts } = useAbstractFeedbackCounts();
 
@@ -323,11 +324,22 @@ export default function Home() {
                   className="h-14 animate-pulse bg-muted/30 border-b border-border last:border-b-0"
                 />
               ))
-            : leaderboard?.map((agent, i) => {
-                const kudos = abstractCounts
-                  ? abstractCounts.get(Number(agent.token_id)) || 0
-                  : 0;
-                return (
+            : (() => {
+                // Enrich and sort by score + kudos weight
+                const enriched = (leaderboard || []).map((agent) => ({
+                  ...agent,
+                  kudos: abstractCounts
+                    ? abstractCounts.get(Number(agent.token_id)) || 0
+                    : 0,
+                }));
+                enriched.sort(
+                  (a, b) =>
+                    b.total_score +
+                    b.kudos * 5 -
+                    (a.total_score + a.kudos * 5) ||
+                    b.total_feedbacks - a.total_feedbacks
+                );
+                return enriched.map((agent, i) => (
                   <button
                     key={agent.id}
                     type="button"
@@ -347,20 +359,24 @@ export default function Home() {
                       size={32}
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-semibold truncate">
-                          {agent.name}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                        {kudos > 0 && (
-                          <span className="text-[#00DE73]">{kudos} kudos</span>
-                        )}
-                        {kudos > 0 && agent.total_feedbacks > 0 && (
-                          <span> · </span>
+                      <p className="text-sm font-semibold truncate">
+                        {agent.name}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <span>{agent.total_score.toFixed(1)} score</span>
+                        {agent.kudos > 0 && (
+                          <>
+                            <span>·</span>
+                            <span className="text-[#00DE73]">
+                              {agent.kudos} kudos
+                            </span>
+                          </>
                         )}
                         {agent.total_feedbacks > 0 && (
-                          <span>{agent.total_feedbacks} feedback</span>
+                          <>
+                            <span>·</span>
+                            <span>{agent.total_feedbacks} feedback</span>
+                          </>
                         )}
                       </div>
                     </div>
@@ -368,10 +384,15 @@ export default function Home() {
                       <p className="text-sm font-bold tabular-nums">
                         {agent.total_score.toFixed(1)}
                       </p>
+                      {agent.kudos > 0 && (
+                        <p className="text-[10px] text-[#00DE73] font-medium">
+                          +{agent.kudos} kudos
+                        </p>
+                      )}
                     </div>
                   </button>
-                );
-              })}
+                ));
+              })()}
         </div>
       </section>
 

@@ -1,6 +1,9 @@
 /**
  * Per-agent rate limiter — sliding window, 10 kudos/agent/hour.
  *
+ * Uses on-demand pruning instead of setInterval to avoid timer leaks
+ * in serverless environments.
+ *
  * MVP: in-memory Map. Works for single-instance dev.
  * Production: swap to Upstash Redis ratelimit or Vercel KV.
  */
@@ -16,13 +19,24 @@ interface RateLimitResult {
   resetAt: number;
 }
 
+/** Prune stale windows. Called on each check. */
+function pruneWindows(): void {
+  const cutoff = Date.now() - WINDOW_MS;
+  for (const [key, timestamps] of windows) {
+    const active = timestamps.filter((t) => t > cutoff);
+    if (active.length === 0) windows.delete(key);
+    else windows.set(key, active);
+  }
+}
+
 /** Check and record a request for an agent address. */
 export function checkRateLimit(agentAddress: string): RateLimitResult {
+  pruneWindows();
+
   const key = agentAddress.toLowerCase();
   const now = Date.now();
   const windowStart = now - WINDOW_MS;
 
-  // Get existing timestamps, filter to current window
   const timestamps = (windows.get(key) || []).filter((t) => t > windowStart);
 
   if (timestamps.length >= MAX_REQUESTS) {
@@ -44,25 +58,11 @@ export function checkRateLimit(agentAddress: string): RateLimitResult {
   };
 }
 
-/** Periodic cleanup of stale windows. */
-export function pruneWindows(): void {
-  const cutoff = Date.now() - WINDOW_MS;
-  for (const [key, timestamps] of windows) {
-    const active = timestamps.filter((t) => t > cutoff);
-    if (active.length === 0) windows.delete(key);
-    else windows.set(key, active);
-  }
-}
-
-if (typeof globalThis !== 'undefined') {
-  setInterval(pruneWindows, 5 * 60_000);
-}
-
 /**
  * Configurable rate limiter — sliding window with custom limits.
  * Use for API endpoints that need different thresholds than the default.
  *
- * MVP: in-memory Map. Same caveats as the default limiter above.
+ * Uses on-demand pruning to avoid timer leaks in serverless environments.
  */
 export class RateLimiter {
   private windowMs: number;
@@ -72,13 +72,11 @@ export class RateLimiter {
   constructor(opts: { windowMs: number; maxRequests: number }) {
     this.windowMs = opts.windowMs;
     this.maxRequests = opts.maxRequests;
-
-    if (typeof globalThis !== 'undefined') {
-      setInterval(() => this.prune(), 5 * 60_000);
-    }
   }
 
   check(key: string): RateLimitResult {
+    this.prune();
+
     const k = key.toLowerCase();
     const now = Date.now();
     const windowStart = now - this.windowMs;

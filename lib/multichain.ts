@@ -1,6 +1,19 @@
-import { type Address, padHex } from 'viem';
+import { type Address, padHex, numberToHex } from 'viem';
 import { SUPPORTED_CHAINS, getPublicClient } from '@/config/chains';
 import { REPUTATION_REGISTRY_ADDRESS } from '@/config/contract';
+
+/**
+ * Approximate deployment blocks for ERC-8004 contracts per chain.
+ * Avoids scanning from block 0 which is slow and may hit RPC limits.
+ */
+const DEPLOYMENT_BLOCKS: Record<number, bigint> = {
+  1: BigInt(21000000), // Ethereum mainnet (late 2024)
+  8453: BigInt(20000000), // Base
+  56: BigInt(44000000), // BNB Chain
+  100: BigInt(37000000), // Gnosis
+  2741: BigInt(1000000), // Abstract
+  42220: BigInt(28000000), // Celo
+};
 
 const FEEDBACK_GIVEN_TOPIC =
   '0x6a4a61743519c9d648a14e6493f47dbe3ff1aa29e7785c96c8326a205e58febc';
@@ -24,6 +37,7 @@ export async function fetchCrossChainReputation(
   const results = await Promise.allSettled(
     SUPPORTED_CHAINS.map(async ({ chain }) => {
       const client = getPublicClient(chain.id);
+      const deployBlock = DEPLOYMENT_BLOCKS[chain.id] ?? BigInt(0);
       const logs = (await client.request({
         method: 'eth_getLogs',
         params: [
@@ -34,7 +48,7 @@ export async function fetchCrossChainReputation(
               null,
               paddedAddress,
             ],
-            fromBlock: '0x0',
+            fromBlock: numberToHex(deployBlock),
             toBlock: 'latest',
           },
         ],

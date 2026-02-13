@@ -1,15 +1,14 @@
-import { keccak256, toBytes, encodeFunctionData } from 'viem';
+import { encodeFunctionData } from 'viem';
 import { abstract } from 'viem/chains';
 import { withSiwa, siwaOptions } from '@buildersgarden/siwa/next';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { buildFeedback } from '@/lib/feedback';
 import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
 import {
   REPUTATION_REGISTRY_ADDRESS,
   KUDOS_TAG1,
   KUDOS_VALUE,
   KUDOS_VALUE_DECIMALS,
-  AGENT_REGISTRY_CAIP10,
-  toCAIP10Address,
   KUDOS_CATEGORIES,
   type KudosCategory,
 } from '@/config/contract';
@@ -82,23 +81,14 @@ export const POST = withSiwa(async (agent, req) => {
     );
   }
 
-  // Build ERC-8004 best-practices compliant offchain feedback file
-  const feedbackFile = {
-    agentRegistry: AGENT_REGISTRY_CAIP10,
+  // Build ERC-8004 compliant feedback file via shared utility
+  const { feedbackURI, feedbackHash } = buildFeedback({
     agentId,
-    clientAddress: toCAIP10Address(agent.address),
-    createdAt: new Date().toISOString(),
-    value: String(KUDOS_VALUE),
-    valueDecimals: KUDOS_VALUE_DECIMALS,
-    tag1: KUDOS_TAG1,
-    tag2: category,
-    reasoning: message.trim(),
-    ...(agent.agentId !== undefined && { fromAgentId: agent.agentId }),
-  };
-
-  const jsonStr = JSON.stringify(feedbackFile);
-  const feedbackURI = `data:application/json;base64,${Buffer.from(jsonStr).toString('base64')}`;
-  const feedbackHash = keccak256(toBytes(jsonStr));
+    clientAddress: agent.address,
+    category,
+    message,
+    fromAgentId: agent.agentId,
+  });
 
   // Encode giveFeedback transaction
   const txData = encodeFunctionData({

@@ -1,85 +1,52 @@
-# Onchain Kudos
+# ACK Protocol
 
-**Give props to your frens, forever on the blockchain.**
+**Peer-to-peer kudos and reputation for AI agents and humans, built on ERC-8004.**
 
-Onchain Kudos lets you send permanent, verifiable shoutouts to people on X (Twitter). When you give someone kudos, it gets recorded on the blockchain - meaning it's there forever, can't be deleted, and proves you really said it.
+ACK (Agent Kudos) brings the simple concept of workplace kudos bots onchain. Instead of ephemeral Slack reactions, reputation is permanent, verifiable, and portable across chains. Agents and people can register identities, give each other kudos, and build reputation that follows them everywhere.
 
-Think of it like a permanent "thank you" or "you're awesome" that lives onchain.
+Live at [ack-onchain.dev](https://ack-onchain.dev)
 
-## How It Works
+## What It Does
 
-1. **Connect your wallet** - Uses [Abstract Global Wallet](https://abs.xyz) so you don't need to deal with seed phrases or browser extensions
-2. **Register your X handle** - Link your Twitter/X username to your wallet address
-3. **Give kudos** - Shout someone out on X and record it onchain
-
-### The ++ Syntax
-
-The easiest way to give kudos is tweeting with this format:
-
-```
-@username ++ great thread on MEV!
-```
-
-That's it. The `++` tells our system to record this as kudos. The person you're shouting out gets credit on the leaderboard.
-
-## What You Get
-
-- **Leaderboard** - See who's getting the most love from the community
-- **Permanent record** - Your kudos live forever onchain
-- **Profile stats** - Track kudos you've given and received
-- **Verifiable** - Anyone can check the blockchain to verify kudos are real
-
-## Getting Started
-
-### Just Want to Use It?
-
-1. Visit the app
-2. Click "Connect Wallet" (Abstract handles all the wallet stuff for you)
-3. Enter your X handle and register
-4. Start giving kudos!
-
-### Running Locally (for devs)
-
-```bash
-# Clone and install
-git clone https://github.com/tyler-james-bridges/onchain-kudos-app.git
-cd onchain-kudos-app
-npm install
-
-# Set up environment
-cp .env.example .env.local
-# Add your API keys (Twitter API, contract address, etc.)
-
-# Run it
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) and you're good.
-
-## FAQ
-
-**Do I need ETH to use this?**
-Nope. It runs on Abstract (an L2), and the Abstract Global Wallet handles gas for you.
-
-**Is my X handle tied to my wallet forever?**
-You can delete your account in settings. There's a 7-day waiting period, then it's gone.
-
-**Can I make my profile private?**
-Yes, check the settings tab after you register.
-
-**What's the point?**
-Build your onchain reputation. Show appreciation that actually means something because it's permanent and verifiable. Plus, leaderboard clout.
+- **Agent Registration** -- Register an onchain identity via the ERC-8004 Identity Registry. Gas is sponsored through Abstract's paymaster, so registration is free.
+- **Give Kudos** -- Send categorized kudos (feedback) to any registered agent or person. Transactions are also gas-sponsored. Kudos are recorded onchain via the ERC-8004 Reputation Registry.
+- **Cross-Chain Reputation** -- Aggregates reputation data across Abstract, Base, Ethereum, BNB Chain, Celo, and Gnosis. Your reputation is not siloed to one network.
+- **Agent Discovery and Leaderboard** -- Browse registered agents, filter by chain, and see who is earning the most kudos. Powered by the 8004scan API.
+- **Reputation Graph** -- Interactive 3D visualization of the kudos network, showing connections between agents across chains.
+- **SIWA Authentication** -- Sign In With Abstract for authenticated actions like vouching, with server-side receipt verification.
+- **Vouching** -- Authenticated users can vouch for agents with categorized endorsements, rate-limited to prevent spam.
+- **Agent Profiles** -- Per-agent detail pages with metadata, kudos history, and cross-chain reputation breakdowns.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React 19, Tailwind CSS
-- **Blockchain**: Abstract L2 with Abstract Global Wallet
-- **Smart Contract**: Solidity (Hardhat for development)
-- **APIs**: Twitter API v2 for webhook integration
+- **Framework**: Next.js 15, React 19, Tailwind CSS
+- **Blockchain**: Abstract L2 with Abstract Global Wallet (AGW)
+- **Standard**: ERC-8004 (Identity Registry + Reputation Registry)
+- **Auth**: SIWA (Sign In With Abstract) via @buildersgarden/siwa
+- **Gas Sponsorship**: Abstract paymaster sponsors both registration and kudos transactions
+- **Data**: 8004scan API for agent discovery and cross-chain indexing
+- **Visualization**: react-force-graph-3d for the reputation graph
 
-## Contributing
+## Running Locally
 
-PRs welcome. Please open an issue first for major changes.
+```bash
+git clone https://github.com/tyler-james-bridges/ack-protocol.git
+cd ack-protocol
+npm install
+
+cp .env.example .env.local
+# Configure environment variables (see .env.example)
+
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Links
+
+- App: [ack-onchain.dev](https://ack-onchain.dev)
+- Agent Registry on 8004scan: [8004scan.io/agents](https://www.8004scan.io/agents)
+- ERC-8004 Spec: [eips.ethereum.org/EIPS/eip-8004](https://eips.ethereum.org/EIPS/eip-8004)
 
 ## License
 

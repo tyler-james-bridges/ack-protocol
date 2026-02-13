@@ -30,11 +30,24 @@ const VOUCH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
  */
 const store = new Map<string, PendingVouch[]>();
 
+/** Prune expired vouches from the store. Called on each read/write. */
+function pruneExpiredVouches(): void {
+  const cutoff = new Date(Date.now() - VOUCH_TTL_MS).toISOString();
+
+  for (const [key, vouches] of store) {
+    const active = vouches.filter((v) => v.timestamp > cutoff);
+    if (active.length === 0) store.delete(key);
+    else store.set(key, active);
+  }
+}
+
 /** Add a pending vouch for a target address. */
 export function addVouch(
   targetAddress: string,
   vouch: PendingVouch
 ): { added: boolean; count: number; reason?: string } {
+  pruneExpiredVouches();
+
   const key = targetAddress.toLowerCase();
   const existing = store.get(key) || [];
 
@@ -57,6 +70,8 @@ export function getVouches(targetAddress: string): {
   vouches: PendingVouch[];
   count: number;
 } {
+  pruneExpiredVouches();
+
   const key = targetAddress.toLowerCase();
   const vouches = store.get(key) || [];
   return { vouches, count: vouches.length };
@@ -65,19 +80,4 @@ export function getVouches(targetAddress: string): {
 /** Remove all pending vouches for a target (e.g. after registration). */
 export function clearVouches(targetAddress: string): void {
   store.delete(targetAddress.toLowerCase());
-}
-
-/** Periodic cleanup of expired vouches (older than TTL). */
-function pruneExpiredVouches(): void {
-  const cutoff = new Date(Date.now() - VOUCH_TTL_MS).toISOString();
-
-  for (const [key, vouches] of store) {
-    const active = vouches.filter((v) => v.timestamp > cutoff);
-    if (active.length === 0) store.delete(key);
-    else store.set(key, active);
-  }
-}
-
-if (typeof globalThis !== 'undefined') {
-  setInterval(pruneExpiredVouches, 10 * 60_000);
 }

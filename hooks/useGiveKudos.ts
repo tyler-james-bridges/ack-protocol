@@ -1,20 +1,23 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWaitForTransactionReceipt } from 'wagmi';
+import {
+  useWriteContractSponsored,
+} from '@abstract-foundation/agw-react';
+import { getGeneralPaymasterInput } from 'viem/zksync';
 import { useQueryClient } from '@tanstack/react-query';
-import { keccak256, toBytes } from 'viem';
 import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
 import {
   REPUTATION_REGISTRY_ADDRESS,
+  ABSTRACT_PAYMASTER_ADDRESS,
   KUDOS_TAG1,
   KUDOS_VALUE,
   KUDOS_VALUE_DECIMALS,
-  AGENT_REGISTRY_CAIP10,
-  toCAIP10Address,
 } from '@/config/contract';
 import type { KudosCategory } from '@/config/contract';
 import { chain } from '@/config/chain';
+import { buildFeedback } from '@/lib/feedback';
 
 interface GiveKudosParams {
   agentId: number;
@@ -27,13 +30,12 @@ interface GiveKudosParams {
 type KudosStatus = 'idle' | 'confirming' | 'waiting' | 'success' | 'error';
 
 /**
- * Hook to give kudos to an agent.
+ * Hook to give kudos to an agent with gas-sponsored transactions.
  *
  * Flow:
- * 1. Upload kudos message to IPFS (Pinata)
- * 2. Hash the payload for feedbackHash
- * 3. Call giveFeedback() on the Reputation Registry
- * 4. Wait for transaction confirmation
+ * 1. Build feedback file and hash via shared utility
+ * 2. Call giveFeedback() on the Reputation Registry (gas sponsored)
+ * 3. Wait for transaction confirmation
  */
 export function useGiveKudos() {
   const [status, setStatus] = useState<KudosStatus>('idle');
@@ -41,7 +43,7 @@ export function useGiveKudos() {
   const [kudosAgentId, setKudosAgentId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
-  const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
+  const { writeContractSponsored, data: txHash, reset: resetWrite } = useWriteContractSponsored();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
     chainId: chain.id,
@@ -53,20 +55,14 @@ export function useGiveKudos() {
 
     // Small delay to let the RPC index the new event, then refetch all related data
     const timer = setTimeout(() => {
-      // Kudos feed (onchain events)
       queryClient.invalidateQueries({
         queryKey: ['kudos-received', kudosAgentId],
       });
-      // Cross-chain reputation card
       queryClient.invalidateQueries({ queryKey: ['cross-chain-rep'] });
-      // Network-wide stats
       queryClient.invalidateQueries({ queryKey: ['network-stats'] });
-      // Abstract onchain feedback counts (leaderboard)
       queryClient.invalidateQueries({ queryKey: ['abstract-feedback-counts'] });
-      // Recent kudos feed and kudos given by user
       queryClient.invalidateQueries({ queryKey: ['recent-kudos'] });
       queryClient.invalidateQueries({ queryKey: ['kudos-given'] });
-      // Wagmi contract reads (score, kudos count, top category)
       queryClient.invalidateQueries({ queryKey: ['readContract'] });
     }, 2000);
 
@@ -80,47 +76,33 @@ export function useGiveKudos() {
       setKudosAgentId(params.agentId);
 
       try {
-        // Build ERC-8004 best-practices compliant offchain feedback file
-        // Stored onchain as base64 data URI — no IPFS dependency
-        const feedbackFile = {
-          agentRegistry: AGENT_REGISTRY_CAIP10,
+        const { feedbackURI, feedbackHash } = buildFeedback({
           agentId: params.agentId,
-          clientAddress: toCAIP10Address(params.clientAddress),
-          createdAt: new Date().toISOString(),
-          value: String(KUDOS_VALUE),
-          valueDecimals: KUDOS_VALUE_DECIMALS,
-          tag1: KUDOS_TAG1,
-          tag2: params.category,
-          reasoning: params.message.trim(),
-          ...(params.fromAgentId !== undefined && {
-            fromAgentId: params.fromAgentId,
-          }),
-        };
-
-        // Encode as base64 data URI (UTF-8 safe, spec-compliant)
-        const jsonStr = JSON.stringify(feedbackFile);
-        const feedbackURI = `data:application/json;base64,${btoa(unescape(encodeURIComponent(jsonStr)))}`;
-
-        // feedbackHash: keccak256 of the feedbackURI content per ERC-8004 spec
-        const feedbackHash = keccak256(toBytes(jsonStr));
+          clientAddress: params.clientAddress,
+          category: params.category,
+          message: params.message,
+          fromAgentId: params.fromAgentId,
+        });
 
         setStatus('confirming');
-        writeContract(
+        writeContractSponsored(
           {
             address: REPUTATION_REGISTRY_ADDRESS,
             abi: REPUTATION_REGISTRY_ABI,
             functionName: 'giveFeedback',
             args: [
               BigInt(params.agentId),
-              BigInt(KUDOS_VALUE), // value: 5-star positive endorsement
-              KUDOS_VALUE_DECIMALS, // valueDecimals: 0
-              KUDOS_TAG1, // tag1: "kudos"
-              params.category, // tag2: category
-              '', // endpoint: empty (not service-specific)
-              feedbackURI, // feedbackURI: structured JSON data URI
-              feedbackHash, // feedbackHash: keccak256 of JSON content
+              BigInt(KUDOS_VALUE),
+              KUDOS_VALUE_DECIMALS,
+              KUDOS_TAG1,
+              params.category,
+              '',
+              feedbackURI,
+              feedbackHash,
             ],
             chainId: chain.id,
+            paymaster: ABSTRACT_PAYMASTER_ADDRESS,
+            paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
           },
           {
             onSuccess: () => setStatus('waiting'),
@@ -135,7 +117,7 @@ export function useGiveKudos() {
         setStatus('error');
       }
     },
-    [writeContract]
+    [writeContractSponsored]
   );
 
   const reset = useCallback(() => {
@@ -144,7 +126,6 @@ export function useGiveKudos() {
     resetWrite();
   }, [resetWrite]);
 
-  // Update status when tx confirms
   const finalStatus: KudosStatus = txConfirmed ? 'success' : status;
 
   return {

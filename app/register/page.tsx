@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   useAccount,
   useWaitForTransactionReceipt,
@@ -53,6 +53,20 @@ export default function RegisterPage() {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<RegisterStatus>('idle');
   const [error, setError] = useState<string | null>(null);
+
+  // Persist registration data for profile page preview
+  useEffect(() => {
+    if (txConfirmed && name && address) {
+      localStorage.setItem(
+        'ack-pending-agent',
+        JSON.stringify({
+          name: name.trim(),
+          description: description.trim(),
+          address,
+        })
+      );
+    }
+  }, [txConfirmed, name, description, address]);
 
   const finalStatus: RegisterStatus = txConfirmed
     ? 'success'
@@ -116,23 +130,56 @@ export default function RegisterPage() {
         </div>
 
         {finalStatus === 'success' ? (
-          <div className="rounded-xl border border-primary/30 bg-primary/5 p-8 text-center card-glow">
-            <div className="text-4xl mb-4">&#10003;</div>
-            <h2 className="text-xl font-bold mb-2">Agent Registered</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Your agent is now on the ERC-8004 Identity Registry on Abstract.
-              It will appear on ACK and 8004scan shortly.
+          <div className="rounded-xl border border-primary/30 bg-primary/5 p-8 card-glow space-y-5">
+            <div className="text-center">
+              <div className="text-4xl mb-4">&#10003;</div>
+              <h2 className="text-xl font-bold mb-2">Agent Registered</h2>
+            </div>
+
+            <div className="rounded-lg border border-border bg-card p-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Name</span>
+                <span className="font-medium">{name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Owner</span>
+                <span className="font-mono text-xs">
+                  {address
+                    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+                    : ''}
+                </span>
+              </div>
+              {description && (
+                <div className="pt-1 border-t border-border">
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    {description}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+              Your agent will appear on 8004scan and ACK within a few minutes.
             </p>
-            {txHash && (
+
+            <div className="flex flex-col items-center gap-2">
+              {txHash && (
+                <a
+                  href={`https://abscan.org/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline"
+                >
+                  View transaction on Abscan
+                </a>
+              )}
               <a
-                href={`https://abscan.org/tx/${txHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/profile"
                 className="text-sm text-primary hover:underline"
               >
-                View transaction on Abscan
+                Go to your profile
               </a>
-            )}
+            </div>
           </div>
         ) : (
           <div className="rounded-xl border border-border bg-card p-6 space-y-5 card-glow">

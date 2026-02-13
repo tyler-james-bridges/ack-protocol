@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   useAccount,
   useReadContract,
@@ -49,6 +49,20 @@ export default function ProfilePage() {
 
   const hasAgent = balance ? Number(balance) > 0 : false;
 
+  // Load pending agent data from registration for preview
+  const [pendingAgent, setPendingAgent] = useState<{
+    name: string;
+    description: string;
+  } | null>(null);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('ack-pending-agent');
+      if (raw) setPendingAgent(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  // (clear pending moved below myAgent declaration)
+
   // Find agent on 8004scan by owner address
   const { data: myAgent, isLoading: loadingAgent } = useQuery({
     queryKey: ['my-agent', address],
@@ -65,6 +79,14 @@ export default function ProfilePage() {
     enabled: !!address && hasAgent,
     staleTime: 60_000,
   });
+
+  // Clear pending data once agent is indexed
+  useEffect(() => {
+    if (myAgent) {
+      localStorage.removeItem('ack-pending-agent');
+      setPendingAgent(null);
+    }
+  }, [myAgent]);
 
   // Kudos given by this wallet
   const { data: kudosGiven, isLoading: loadingGiven } = useKudosGiven(
@@ -247,26 +269,41 @@ export default function ProfilePage() {
                   </Link>
                 </div>
               ) : (
-                <div className="text-center py-6 relative">
-                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted border border-border">
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="h-5 w-5 text-muted-foreground"
+                <div className="relative space-y-4">
+                  {pendingAgent ? (
+                    <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2 animate-pulse">
+                      <p className="text-sm font-medium">{pendingAgent.name}</p>
+                      {pendingAgent.description && (
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {pendingAgent.description}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 animate-pulse rounded-xl bg-muted" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-5 w-40 animate-pulse rounded bg-muted" />
+                        <div className="h-3 w-28 animate-pulse rounded bg-muted" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Registered onchain -- waiting for indexer.
+                    </p>
+                    <p className="text-xs text-muted-foreground/50 mt-1">
+                      This usually takes a few minutes.
+                    </p>
+                    <a
+                      href="https://www.8004scan.io/agents/abstract"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-2 text-xs text-primary hover:underline"
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                      View all Abstract agents on 8004scan
+                    </a>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Agent registered onchain but not yet indexed.
-                  </p>
-                  <p className="text-xs text-muted-foreground/50 mt-1">
-                    It may take a few minutes to appear on 8004scan.
-                  </p>
                 </div>
               )}
             </section>

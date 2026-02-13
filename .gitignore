@@ -44,3 +44,8 @@ next-env.d.ts
 PROGRESS.md
 X_INTEGRATION_GUIDE.md
 test-results/
+
+# AI tool configs
+.claude/
+CLAUDE.md
+deployed-contract.json

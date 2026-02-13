@@ -209,7 +209,7 @@ export default function Home() {
             {/* Register CTA */}
             <Link href="/register" className="block">
               <Button className="w-full" size="lg">
-                Register on Abstract - Free, no gas
+                Register on Abstract
               </Button>
             </Link>
 

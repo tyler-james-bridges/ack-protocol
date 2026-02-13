@@ -335,8 +335,8 @@ export default function Home() {
                 enriched.sort(
                   (a, b) =>
                     b.total_score +
-                    b.kudos * 5 -
-                    (a.total_score + a.kudos * 5) ||
+                      b.kudos * 5 -
+                      (a.total_score + a.kudos * 5) ||
                     b.total_feedbacks - a.total_feedbacks
                 );
                 return enriched.slice(0, 10).map((agent, i) => (

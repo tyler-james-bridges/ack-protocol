@@ -136,12 +136,13 @@ function LeaderboardPage() {
         break;
       case 'total_score':
         s.sort(
-          (a, b) =>
-            b.total_score + b.kudos * 5 - (a.total_score + a.kudos * 5)
+          (a, b) => b.total_score + b.kudos * 5 - (a.total_score + a.kudos * 5)
         );
         break;
       case 'star_count':
-        s.sort((a, b) => b.star_count - a.star_count || b.total_score - a.total_score);
+        s.sort(
+          (a, b) => b.star_count - a.star_count || b.total_score - a.total_score
+        );
         break;
       default: // created_at
         s.sort(

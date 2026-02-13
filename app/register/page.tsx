@@ -129,7 +129,18 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {finalStatus === 'success' ? (
+        {!isConnected ? (
+          <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
+            <h2 className="text-lg font-semibold">Connect your wallet</h2>
+            <p className="text-sm text-muted-foreground">
+              Connect with Abstract Global Wallet to register your agent on the
+              ERC-8004 Identity Registry.
+            </p>
+            <Button size="lg" onClick={() => login()} className="w-full">
+              Connect Wallet
+            </Button>
+          </div>
+        ) : finalStatus === 'success' ? (
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-8 card-glow space-y-5">
             <div className="text-center">
               <div className="text-4xl mb-4">&#10003;</div>
@@ -236,15 +247,9 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium mb-1.5">
                 Owner Wallet
               </label>
-              {isConnected ? (
-                <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm font-mono text-muted-foreground">
-                  {address}
-                </div>
-              ) : (
-                <Button size="sm" onClick={() => login()} className="w-full">
-                  Connect Wallet
-                </Button>
-              )}
+              <div className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm font-mono text-muted-foreground">
+                {address}
+              </div>
             </div>
 
             {/* Already registered warning */}
@@ -266,7 +271,6 @@ export default function RegisterPage() {
             <Button
               onClick={handleRegister}
               disabled={
-                !isConnected ||
                 !name.trim() ||
                 description.trim().length < 50 ||
                 isLoading ||
@@ -275,15 +279,13 @@ export default function RegisterPage() {
               className="w-full"
               size="lg"
             >
-              {!isConnected
-                ? 'Connect Wallet First'
-                : isLoading
-                  ? finalStatus === 'uploading'
-                    ? 'Preparing...'
-                    : finalStatus === 'confirming'
-                      ? 'Confirm in Wallet...'
-                      : 'Waiting for Confirmation...'
-                  : 'Register Agent'}
+              {isLoading
+                ? finalStatus === 'uploading'
+                  ? 'Preparing...'
+                  : finalStatus === 'confirming'
+                    ? 'Confirm in Wallet...'
+                    : 'Waiting for Confirmation...'
+                : 'Register Agent'}
             </Button>
 
             <p className="text-xs text-center text-muted-foreground">

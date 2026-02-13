@@ -2,9 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useWaitForTransactionReceipt } from 'wagmi';
-import {
-  useWriteContractSponsored,
-} from '@abstract-foundation/agw-react';
+import { useWriteContractSponsored } from '@abstract-foundation/agw-react';
 import { getGeneralPaymasterInput } from 'viem/zksync';
 import { useQueryClient } from '@tanstack/react-query';
 import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
@@ -43,7 +41,11 @@ export function useGiveKudos() {
   const [kudosAgentId, setKudosAgentId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
-  const { writeContractSponsored, data: txHash, reset: resetWrite } = useWriteContractSponsored();
+  const {
+    writeContractSponsored,
+    data: txHash,
+    reset: resetWrite,
+  } = useWriteContractSponsored();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
     chainId: chain.id,

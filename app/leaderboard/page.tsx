@@ -59,7 +59,7 @@ function LeaderboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const sortBy = (searchParams.get('sort') as SortKey) || 'created_at';
+  const sortBy = (searchParams.get('sort') as SortKey) || 'kudos';
 
   const updateParams = useCallback(
     (updates: Record<string, string | null>) => {
@@ -75,7 +75,7 @@ function LeaderboardPage() {
   );
 
   const setSortBy = (sort: SortKey) =>
-    updateParams({ sort: sort === 'created_at' ? null : sort });
+    updateParams({ sort: sort === 'kudos' ? null : sort });
 
   // Fetch global agents + Abstract agents separately (Abstract may not rank in global top 500)
   const { data: allAgentsList, isLoading } = useLeaderboard({

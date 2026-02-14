@@ -19,6 +19,7 @@ const NAV_LINKS = [
   { href: '/leaderboard', label: 'Explore' },
   { href: '/kudos', label: 'Kudos' },
   { href: '/register', label: 'Register' },
+  { href: '/docs', label: 'Docs' },
 ];
 
 function AddressIdenticon({ address }: { address: string }) {

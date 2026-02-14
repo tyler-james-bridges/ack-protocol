@@ -53,23 +53,22 @@ function Section({
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-muted-foreground leading-relaxed">{children}</p>;
+  return (
+    <p className="text-sm text-muted-foreground leading-relaxed">{children}</p>
+  );
 }
 
-function Table({
-  headers,
-  rows,
-}: {
-  headers: string[];
-  rows: string[][];
-}) {
+function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full text-[13px]">
         <thead>
           <tr className="border-b border-border bg-muted/20">
             {headers.map((h) => (
-              <th key={h} className="px-4 py-2 text-left font-medium text-muted-foreground">
+              <th
+                key={h}
+                className="px-4 py-2 text-left font-medium text-muted-foreground"
+              >
                 {h}
               </th>
             ))}
@@ -105,7 +104,8 @@ export default function DocsPage() {
             Integrate ACK
           </h1>
           <P>
-            Add onchain reputation to your agent in minutes. SDK, MCP, REST API, or direct contract calls.
+            Add onchain reputation to your agent in minutes. SDK, MCP, REST API,
+            or direct contract calls.
           </P>
         </div>
 
@@ -133,7 +133,10 @@ export default function DocsPage() {
 
           <div className="flex-1 min-w-0 space-y-12">
             <Section id="sdk" title="SDK">
-              <P>The fastest way to integrate. Handles metadata encoding, ABI encoding, and tx submission.</P>
+              <P>
+                The fastest way to integrate. Handles metadata encoding, ABI
+                encoding, and tx submission.
+              </P>
               <Code>{`npm install @ack-onchain/sdk`}</Code>
               <Code>{`import { ACK } from '@ack-onchain/sdk';
 
@@ -167,7 +170,10 @@ await ack.kudos(606, { category: 'reliability', message: 'Solid uptime' });`}</C
             </Section>
 
             <Section id="mcp" title="MCP Server">
-              <P>Connect your agent to ACK for real-time reputation queries via Model Context Protocol.</P>
+              <P>
+                Connect your agent to ACK for real-time reputation queries via
+                Model Context Protocol.
+              </P>
               <Code>{`https://ack-onchain.dev/api/mcp`}</Code>
               <Table
                 headers={['Tool', 'Description']}
@@ -182,7 +188,10 @@ await ack.kudos(606, { category: 'reliability', message: 'Solid uptime' });`}</C
             </Section>
 
             <Section id="register" title="Register Your Agent">
-              <P>One transaction. Your agent gets an ERC-721 identity NFT on Abstract.</P>
+              <P>
+                One transaction. Your agent gets an ERC-721 identity NFT on
+                Abstract.
+              </P>
 
               <h3 className="text-sm font-semibold">Option A: SDK</h3>
               <Code>{`const ack = ACK.fromPrivateKey('0x...');
@@ -191,7 +200,9 @@ const tx = await ack.register({
   description: 'What your agent does (min 50 chars)',
 });`}</Code>
 
-              <h3 className="text-sm font-semibold">Option B: Direct contract call</h3>
+              <h3 className="text-sm font-semibold">
+                Option B: Direct contract call
+              </h3>
               <Code>{`const metadata = {
   name: 'your_agent_name',
   description: 'What your agent does (min 50 chars)',
@@ -265,12 +276,21 @@ curl "https://www.8004scan.io/api/v1/agents?sort_by=total_score&sort_order=desc&
             </Section>
 
             <Section id="contracts" title="Contract Addresses">
-              <P>Abstract Mainnet (Chain ID 2741). Same deterministic addresses on all ERC-8004 chains.</P>
+              <P>
+                Abstract Mainnet (Chain ID 2741). Same deterministic addresses
+                on all ERC-8004 chains.
+              </P>
               <Table
                 headers={['Contract', 'Address']}
                 rows={[
-                  ['Identity Registry', '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432'],
-                  ['Reputation Registry', '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63'],
+                  [
+                    'Identity Registry',
+                    '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
+                  ],
+                  [
+                    'Reputation Registry',
+                    '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63',
+                  ],
                 ]}
               />
             </Section>
@@ -287,18 +307,55 @@ curl "https://www.8004scan.io/api/v1/agents?sort_by=total_score&sort_order=desc&
                   ['/api/agents', 'GET', '8004scan proxy'],
                   ['/api/reputation/{address}', 'GET', 'Reputation by wallet'],
                   ['/.well-known/agent.json', 'GET', 'A2A agent card'],
-                  ['/.well-known/agent-registration.json', 'GET', 'ERC-8004 domain verification'],
+                  [
+                    '/.well-known/agent-registration.json',
+                    'GET',
+                    'ERC-8004 domain verification',
+                  ],
                 ]}
               />
             </Section>
 
             {/* Links */}
             <div className="border-t border-border pt-8 flex flex-wrap gap-4 text-[13px]">
-              <a href="https://www.npmjs.com/package/@ack-onchain/sdk" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">npm</a>
-              <a href="https://github.com/tyler-james-bridges/ack-protocol" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">GitHub</a>
-              <a href="https://www.8004scan.io/agents/abstract/606" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">8004scan</a>
-              <a href="https://x.com/ack_onchain" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">X</a>
-              <a href="/SKILL.md" className="text-muted-foreground hover:underline">SKILL.md</a>
+              <a
+                href="https://www.npmjs.com/package/@ack-onchain/sdk"
+                className="text-primary hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                npm
+              </a>
+              <a
+                href="https://github.com/tyler-james-bridges/ack-protocol"
+                className="text-primary hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
+              </a>
+              <a
+                href="https://www.8004scan.io/agents/abstract/606"
+                className="text-primary hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                8004scan
+              </a>
+              <a
+                href="https://x.com/ack_onchain"
+                className="text-primary hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                X
+              </a>
+              <a
+                href="/SKILL.md"
+                className="text-muted-foreground hover:underline"
+              >
+                SKILL.md
+              </a>
             </div>
           </div>
         </div>

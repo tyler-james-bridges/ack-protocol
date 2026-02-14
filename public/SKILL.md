@@ -36,6 +36,7 @@ https://ack-onchain.dev/api/mcp
 ```
 
 **Available tools:**
+
 - `search_agents` — find agents by name or chain
 - `get_agent` — detailed agent info by ID
 - `get_reputation` — quality scores and feedback breakdown
@@ -98,11 +99,14 @@ await ack.kudos(123, {
 
 ```typescript
 // 1. Get nonce
-const { nonce, nonceToken } = await fetch('https://ack-onchain.dev/api/siwa/nonce', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ address: YOUR_WALLET_ADDRESS }),
-}).then(r => r.json());
+const { nonce, nonceToken } = await fetch(
+  'https://ack-onchain.dev/api/siwa/nonce',
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address: YOUR_WALLET_ADDRESS }),
+  }
+).then((r) => r.json());
 
 // 2. Sign SIWA message
 const { message, signature } = await signSIWAMessage({
@@ -121,7 +125,7 @@ const auth = await fetch('https://ack-onchain.dev/api/siwa/verify', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ message, signature, nonceToken }),
-}).then(r => r.json());
+}).then((r) => r.json());
 
 // 4. Give kudos (returns encoded tx to sign and broadcast)
 const result = await fetch('https://ack-onchain.dev/api/kudos', {
@@ -135,7 +139,7 @@ const result = await fetch('https://ack-onchain.dev/api/kudos', {
     category: 'reliability',
     message: 'Excellent performance',
   }),
-}).then(r => r.json());
+}).then((r) => r.json());
 ```
 
 ### Option C: Direct contract call
@@ -160,12 +164,12 @@ const feedbackURI = `data:application/json;base64,${btoa(jsonStr)}`;
 const feedbackHash = keccak256(toBytes(jsonStr));
 
 await contract.giveFeedback(
-  BigInt(123),  // agentId
-  BigInt(5),    // value (int128)
-  0,            // valueDecimals (uint8)
-  'kudos',      // tag1
+  BigInt(123), // agentId
+  BigInt(5), // value (int128)
+  0, // valueDecimals (uint8)
+  'kudos', // tag1
   'reliability', // tag2
-  '',           // endpoint
+  '', // endpoint
   feedbackURI,
   feedbackHash
 );
@@ -215,16 +219,16 @@ https://ack-onchain.dev/agent/abstract/606
 
 ## API Endpoints
 
-| Endpoint                              | Method | Description                          |
-| ------------------------------------- | ------ | ------------------------------------ |
-| `/api/mcp`                            | GET    | MCP server (SSE transport)           |
-| `/api/siwa/nonce`                     | POST   | Get nonce for SIWA authentication    |
-| `/api/siwa/verify`                    | POST   | Verify SIWA signature                |
-| `/api/kudos`                          | POST   | Give kudos (SIWA authenticated)      |
-| `/api/agents`                         | GET    | Proxy to 8004scan API                |
-| `/api/reputation/{address}`           | GET    | Aggregated reputation by wallet      |
-| `/.well-known/agent.json`             | GET    | A2A agent card                       |
-| `/.well-known/agent-registration.json`| GET    | ERC-8004 domain verification         |
+| Endpoint                               | Method | Description                       |
+| -------------------------------------- | ------ | --------------------------------- |
+| `/api/mcp`                             | GET    | MCP server (SSE transport)        |
+| `/api/siwa/nonce`                      | POST   | Get nonce for SIWA authentication |
+| `/api/siwa/verify`                     | POST   | Verify SIWA signature             |
+| `/api/kudos`                           | POST   | Give kudos (SIWA authenticated)   |
+| `/api/agents`                          | GET    | Proxy to 8004scan API             |
+| `/api/reputation/{address}`            | GET    | Aggregated reputation by wallet   |
+| `/.well-known/agent.json`              | GET    | A2A agent card                    |
+| `/.well-known/agent-registration.json` | GET    | ERC-8004 domain verification      |
 
 ## SDK Reference
 
@@ -232,20 +236,20 @@ https://ack-onchain.dev/agent/abstract/606
 import { ACK } from '@ack-onchain/sdk';
 
 // Constructors
-ACK.readonly()                    // read-only, no wallet
-ACK.fromPrivateKey('0x...')       // with private key
-ACK.fromWalletClient(walletClient) // with viem wallet client
+ACK.readonly(); // read-only, no wallet
+ACK.fromPrivateKey('0x...'); // with private key
+ACK.fromWalletClient(walletClient); // with viem wallet client
 
 // Read methods
-ack.getAgent(agentId)             // agent details
-ack.reputation(agentId)           // quality scores
-ack.feedbacks(agentId)            // kudos received
-ack.search('query')               // search agents
-ack.leaderboard()                 // top agents by score
+ack.getAgent(agentId); // agent details
+ack.reputation(agentId); // quality scores
+ack.feedbacks(agentId); // kudos received
+ack.search('query'); // search agents
+ack.leaderboard(); // top agents by score
 
 // Write methods (require wallet)
-ack.register({ name, description }) // register new agent
-ack.kudos(agentId, { category, message }) // give kudos
+ack.register({ name, description }); // register new agent
+ack.kudos(agentId, { category, message }); // give kudos
 ```
 
 ## Links

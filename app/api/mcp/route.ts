@@ -1,18 +1,18 @@
 /**
  * Model Context Protocol (MCP) Server for ERC-8004 Agent Data
- * 
+ *
  * This endpoint implements the MCP specification using Server-Sent Events (SSE) transport
  * to provide AI tools with access to ERC-8004 agent registry and reputation data.
- * 
+ *
  * The server exposes 5 tools:
  * - search_agents: Search agents by name/description
  * - get_agent: Get detailed agent information
  * - get_reputation: Get agent reputation breakdown
  * - get_agent_feedbacks: Get agent kudos/feedback
  * - list_leaderboard: Get top agents by chain
- * 
+ *
  * All data is proxied from the 8004scan API with authentication.
- * 
+ *
  * Usage:
  * - GET /api/mcp: Establish SSE connection
  * - POST /api/mcp: Send tool calls and list requests
@@ -66,18 +66,21 @@ interface FeedbacksResponse {
 /**
  * Make authenticated request to 8004scan API
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function apiRequest(path: string): Promise<any> {
   const url = `${API_BASE}/${path}`;
   const response = await fetch(url, {
     headers: {
-      'Accept': 'application/json',
+      Accept: 'application/json',
       'X-API-Key': API_KEY || '',
     },
     next: { revalidate: 30 },
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText}`
+    );
   }
 
   return response.json();
@@ -99,7 +102,7 @@ export async function GET(request: NextRequest) {
   const headers = new Headers({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
+    Connection: 'keep-alive',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
@@ -125,12 +128,12 @@ export async function GET(request: NextRequest) {
       };
 
       controller.enqueue(`data: ${JSON.stringify(welcome)}\n\n`);
-      
+
       // Keep connection alive with periodic pings
       const pingInterval = setInterval(() => {
         try {
           controller.enqueue(`data: ${JSON.stringify({ type: 'ping' })}\n\n`);
-        } catch (error) {
+        } catch (_) {
           clearInterval(pingInterval);
         }
       }, 30000);
@@ -157,6 +160,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let body: any;
   try {
     body = await request.json();
@@ -184,7 +188,8 @@ export async function POST(request: NextRequest) {
                   },
                   limit: {
                     type: 'number',
-                    description: 'Optional limit for number of results (default: 20, max: 100)',
+                    description:
+                      'Optional limit for number of results (default: 20, max: 100)',
                     default: 20,
                   },
                 },
@@ -211,7 +216,7 @@ export async function POST(request: NextRequest) {
             },
             {
               name: 'get_reputation',
-              description: 'Get an agent\'s reputation breakdown and scores',
+              description: "Get an agent's reputation breakdown and scores",
               inputSchema: {
                 type: 'object',
                 properties: {
@@ -243,7 +248,8 @@ export async function POST(request: NextRequest) {
                   },
                   limit: {
                     type: 'number',
-                    description: 'Optional limit for number of feedbacks (default: 50)',
+                    description:
+                      'Optional limit for number of feedbacks (default: 50)',
                     default: 50,
                   },
                 },
@@ -258,18 +264,21 @@ export async function POST(request: NextRequest) {
                 properties: {
                   chain_id: {
                     type: 'number',
-                    description: 'Optional chain ID (default: 2741 for Abstract)',
+                    description:
+                      'Optional chain ID (default: 2741 for Abstract)',
                     default: 2741,
                   },
                   sort_by: {
                     type: 'string',
-                    description: 'Sort criterion: quality_score, total_feedbacks, or star_count',
+                    description:
+                      'Sort criterion: quality_score, total_feedbacks, or star_count',
                     enum: ['quality_score', 'total_feedbacks', 'star_count'],
                     default: 'quality_score',
                   },
                   limit: {
                     type: 'number',
-                    description: 'Optional limit for number of results (default: 20, max: 100)',
+                    description:
+                      'Optional limit for number of results (default: 20, max: 100)',
                     default: 20,
                   },
                 },
@@ -287,7 +296,11 @@ export async function POST(request: NextRequest) {
 
       switch (name) {
         case 'search_agents': {
-          const { query, chain_id, limit = 20 } = args as {
+          const {
+            query,
+            chain_id,
+            limit = 20,
+          } = args as {
             query: string;
             chain_id?: number;
             limit?: number;
@@ -300,7 +313,9 @@ export async function POST(request: NextRequest) {
             params.set('chain_id', chain_id.toString());
           }
 
-          const data: AgentsResponse = await apiRequest(`agents?${params.toString()}`);
+          const data: AgentsResponse = await apiRequest(
+            `agents?${params.toString()}`
+          );
           return NextResponse.json({
             jsonrpc: '2.0',
             id: body.id,
@@ -308,12 +323,16 @@ export async function POST(request: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    agents: data.items,
-                    total: data.total,
-                    query,
-                    chain_id,
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      agents: data.items,
+                      total: data.total,
+                      query,
+                      chain_id,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             },
@@ -325,7 +344,9 @@ export async function POST(request: NextRequest) {
             chain_id: number;
             token_id: number;
           };
-          const data: Agent = await apiRequest(`agents/${chain_id}/${token_id}`);
+          const data: Agent = await apiRequest(
+            `agents/${chain_id}/${token_id}`
+          );
           return NextResponse.json({
             jsonrpc: '2.0',
             id: body.id,
@@ -345,8 +366,10 @@ export async function POST(request: NextRequest) {
             chain_id: number;
             token_id: number;
           };
-          const data: Agent = await apiRequest(`agents/${chain_id}/${token_id}`);
-          
+          const data: Agent = await apiRequest(
+            `agents/${chain_id}/${token_id}`
+          );
+
           // Extract and format reputation/scoring data
           const reputation = {
             agent_id: `${chain_id}:${token_id}`,
@@ -373,7 +396,11 @@ export async function POST(request: NextRequest) {
         }
 
         case 'get_agent_feedbacks': {
-          const { chain_id, token_id, limit = 50 } = args as {
+          const {
+            chain_id,
+            token_id,
+            limit = 50,
+          } = args as {
             chain_id: number;
             token_id: number;
             limit?: number;
@@ -385,7 +412,7 @@ export async function POST(request: NextRequest) {
           const data: FeedbacksResponse = await apiRequest(
             `agents/${chain_id}/${token_id}/feedbacks?${params.toString()}`
           );
-          
+
           return NextResponse.json({
             jsonrpc: '2.0',
             id: body.id,
@@ -393,11 +420,15 @@ export async function POST(request: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    agent_id: `${chain_id}:${token_id}`,
-                    feedbacks: data.items,
-                    total: data.total,
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      agent_id: `${chain_id}:${token_id}`,
+                      feedbacks: data.items,
+                      total: data.total,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             },
@@ -405,7 +436,11 @@ export async function POST(request: NextRequest) {
         }
 
         case 'list_leaderboard': {
-          const { chain_id = 2741, sort_by = 'quality_score', limit = 20 } = args as {
+          const {
+            chain_id = 2741,
+            sort_by = 'quality_score',
+            limit = 20,
+          } = args as {
             chain_id?: number;
             sort_by?: string;
             limit?: number;
@@ -415,13 +450,15 @@ export async function POST(request: NextRequest) {
             sort_by,
             sort_order: 'desc',
           });
-          
+
           if (chain_id) {
             params.set('chain_id', chain_id.toString());
           }
 
-          const data: AgentsResponse = await apiRequest(`agents?${params.toString()}`);
-          
+          const data: AgentsResponse = await apiRequest(
+            `agents?${params.toString()}`
+          );
+
           return NextResponse.json({
             jsonrpc: '2.0',
             id: body.id,
@@ -429,12 +466,16 @@ export async function POST(request: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    leaderboard: data.items,
-                    total: data.total,
-                    chain_id,
-                    sort_by,
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      leaderboard: data.items,
+                      total: data.total,
+                      chain_id,
+                      sort_by,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             },
@@ -468,8 +509,14 @@ export async function POST(request: NextRequest) {
       id: body?.id || null,
       error: {
         code: -32603,
-        message: error instanceof Error ? error.message : 'Internal server error',
-        data: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : String(error)) : undefined,
+        message:
+          error instanceof Error ? error.message : 'Internal server error',
+        data:
+          process.env.NODE_ENV === 'development'
+            ? error instanceof Error
+              ? error.stack
+              : String(error)
+            : undefined,
       },
     });
   }
@@ -479,11 +526,14 @@ export async function POST(request: NextRequest) {
  * Handle CORS preflight requests
  */
 export async function OPTIONS() {
-  return NextResponse.json({}, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+  return NextResponse.json(
+    {},
+    {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    }
+  );
 }

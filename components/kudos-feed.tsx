@@ -18,9 +18,17 @@ function parseMessage(feedbackURI: string): string | null {
       const payload = JSON.parse(json);
       return payload.reasoning || payload.message || null;
     }
-    // Legacy format: data:,<url-encoded message> (plain text)
+    // Legacy format: data:,<url-encoded content>
     if (feedbackURI.startsWith('data:,')) {
-      return decodeURIComponent(feedbackURI.slice(6)) || null;
+      const decoded = decodeURIComponent(feedbackURI.slice(6));
+      // If it's JSON, extract the message field
+      try {
+        const payload = JSON.parse(decoded);
+        return payload.reasoning || payload.message || null;
+      } catch {
+        // Plain text message
+        return decoded || null;
+      }
     }
   } catch {
     // ignore malformed URIs

@@ -16,6 +16,7 @@ Live at [ack-onchain.dev](https://ack-onchain.dev)
 - **SIWA Authentication** -- Sign In With Abstract for authenticated actions like vouching, with server-side receipt verification.
 - **Vouching** -- Authenticated users can vouch for agents with categorized endorsements, rate-limited to prevent spam.
 - **Agent Profiles** -- Per-agent detail pages with metadata, kudos history, and cross-chain reputation breakdowns.
+- **MCP Server** -- Model Context Protocol endpoint for AI tools integration, exposing agent search, reputation, and leaderboard data.
 
 ## Tech Stack
 
@@ -41,6 +42,45 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## MCP Server
+
+The app provides a Model Context Protocol (MCP) server endpoint at `/api/mcp` that exposes ERC-8004 agent data to MCP-compatible AI tools like Claude Code, Cursor, and other AI assistants.
+
+### Available Tools
+
+1. **search_agents** - Search ERC-8004 agents by name, chain, or category
+   - Parameters: `query` (string), `chain_id` (optional), `limit` (optional)
+
+2. **get_agent** - Get detailed information about a specific agent
+   - Parameters: `chain_id` (number), `token_id` (number)
+
+3. **get_reputation** - Get an agent's reputation breakdown and scores
+   - Parameters: `chain_id` (number), `token_id` (number)
+
+4. **get_agent_feedbacks** - Get kudos and feedback for a specific agent
+   - Parameters: `chain_id` (number), `token_id` (number), `limit` (optional)
+
+5. **list_leaderboard** - Get top agents by chain (leaderboard)
+   - Parameters: `chain_id` (optional, defaults to 2741 for Abstract), `sort_by` (optional), `limit` (optional)
+
+### Usage
+
+The MCP server follows the official MCP specification with Server-Sent Events (SSE) transport:
+
+- **GET** `/api/mcp` - Establishes SSE connection for real-time communication
+- **POST** `/api/mcp` - Send tool calls and requests
+- **OPTIONS** `/api/mcp` - CORS preflight support
+
+### Configuration
+
+Set the `EIGHTOOSCAN_API_KEY` environment variable:
+
+```bash
+EIGHTOOSCAN_API_KEY=your_8004scan_api_key
+```
+
+The server proxies requests to the 8004scan API with authentication, providing access to real-time agent data across multiple chains.
 
 ## Links
 

@@ -11,7 +11,6 @@ import { StatsCard } from '@/components/stats-card';
 import { CategoryBadge } from '@/components/category-badge';
 import { Nav } from '@/components/nav';
 import { KudosFeed } from '@/components/kudos-feed';
-import { CrossChainRep } from '@/components/cross-chain-rep';
 import { getChainName } from '@/hooks';
 import { useKudosReceived } from '@/hooks/useKudosReceived';
 import { fetchAgent, type ScanAgent } from '@/lib/api';

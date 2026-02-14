@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
       const pingInterval = setInterval(() => {
         try {
           controller.enqueue(`data: ${JSON.stringify({ type: 'ping' })}\n\n`);
-        } catch (_) {
+        } catch {
           clearInterval(pingInterval);
         }
       }, 30000);

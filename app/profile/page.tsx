@@ -18,7 +18,7 @@ import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { chain } from '@/config/chain';
 import { fetchAgents, type ScanAgent } from '@/lib/api';
-import { getChainName, useKudosGiven, useRecentKudos } from '@/hooks';
+import { getChainName, useKudosGiven } from '@/hooks';
 import { useKudosReceived } from '@/hooks/useKudosReceived';
 import { CategoryBadge } from '@/components/category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';

@@ -9,8 +9,6 @@ test.describe('Responsive - Mobile Viewport', () => {
   for (const path of PAGES) {
     test(`${path} - nav collapses to hamburger`, async ({ page }) => {
       await page.goto(path);
-      // Desktop nav links should be hidden
-      const desktopNav = page.locator('.hidden.md\\:flex');
       // Hamburger should be visible
       const hamburger = page.getByLabel('Toggle menu');
       await expect(hamburger).toBeVisible();

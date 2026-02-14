@@ -1,9 +1,8 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useState } from 'react';
 import {
   useLeaderboard,
-  useAgents,
   useNetworkStats,
   useAbstractFeedbackCounts,
   getChainName,
@@ -12,20 +11,7 @@ import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { Nav } from '@/components/nav';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SUPPORTED_CHAINS } from '@/config/chains';
 import type { ScanAgent } from '@/lib/api';
-
-const CHAIN_SLUG_TO_ID: Record<string, number> = {
-  abstract: 2741,
-  base: 8453,
-  bnb: 56,
-  ethereum: 1,
-  celo: 42220,
-  gnosis: 100,
-};
-const CHAIN_ID_TO_SLUG: Record<number, string> = Object.fromEntries(
-  Object.entries(CHAIN_SLUG_TO_ID).map(([k, v]) => [v, k])
-);
 
 type SortKey =
   | 'created_at'
@@ -41,11 +27,6 @@ const SORT_OPTIONS: { label: string; value: SortKey }[] = [
   { label: 'Kudos', value: 'kudos' },
   { label: 'Stars', value: 'star_count' },
 ];
-
-// Non-Abstract chain IDs we support
-const OTHER_CHAIN_IDS = SUPPORTED_CHAINS.filter((c) => c.chain.id !== 2741).map(
-  (c) => c.chain.id
-);
 
 export default function LeaderboardPageWrapper() {
   return (
@@ -78,7 +59,7 @@ function LeaderboardPage() {
     updateParams({ sort: sort === 'kudos' ? null : sort });
 
   // Fetch global agents + Abstract agents separately (Abstract may not rank in global top 500)
-  const { data: allAgentsList, isLoading } = useLeaderboard({
+  const { data: allAgentsList } = useLeaderboard({
     limit: 100,
     sortBy,
   });
@@ -289,9 +270,6 @@ function LeaderboardPage() {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {otherChainEntries.map(([chainId, agents]) => {
-                const chainMeta = SUPPORTED_CHAINS.find(
-                  (c) => c.chain.id === chainId
-                );
                 const isExpanded = expandedChains.has(chainId);
                 const preview = agents.slice(0, 3);
 

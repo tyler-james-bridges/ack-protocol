@@ -40,7 +40,12 @@ function parseMessage(feedbackURI: string): string | null {
       return payload.reasoning || payload.message || null;
     }
     if (feedbackURI.startsWith('data:,')) {
-      return decodeURIComponent(feedbackURI.slice(6)) || null;
+      const decoded = decodeURIComponent(feedbackURI.slice(6));
+      if (decoded.startsWith('{')) {
+        const payload = JSON.parse(decoded);
+        return payload.reasoning || payload.message || null;
+      }
+      return decoded || null;
     }
     // Raw JSON string (e.g. from SDK)
     if (feedbackURI.startsWith('{')) {

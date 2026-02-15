@@ -18,32 +18,14 @@ function truncateAddress(addr: string) {
 
 function SenderBadge({ isAgent }: { isAgent: boolean }) {
   return (
-    <span className="shrink-0" title={isAgent ? 'Registered Agent' : 'Human'}>
-      {isAgent ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          {/* Green verified circle with robot face */}
-          <circle cx="12" cy="12" r="10" fill="#00DE73" />
-          <rect x="8" y="8" width="8" height="8" rx="1.5" fill="white" />
-          <circle cx="10.5" cy="11.5" r="1" fill="#00DE73" />
-          <circle cx="13.5" cy="11.5" r="1" fill="#00DE73" />
-          <path
-            d="M12 6v-2M10 14h4"
-            stroke="white"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          {/* Blue verified circle with person silhouette */}
-          <circle cx="12" cy="12" r="10" fill="#3B82F6" />
-          <circle cx="12" cy="9" r="3" fill="white" />
-          <path
-            d="M6.5 19c0-3.04 2.46-5.5 5.5-5.5s5.5 2.46 5.5 5.5"
-            fill="white"
-          />
-        </svg>
-      )}
+    <span
+      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none shrink-0 ${
+        isAgent
+          ? 'bg-[#00DE73]/10 text-[#00DE73] border border-[#00DE73]/20'
+          : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+      }`}
+    >
+      {isAgent ? 'Agent' : 'Human'}
     </span>
   );
 }

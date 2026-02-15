@@ -28,20 +28,26 @@ function SenderBadge({ isAgent }: { isAgent: boolean }) {
           className="text-[#00DE73]"
         >
           <rect
-            x="4"
+            x="6"
             y="6"
-            width="16"
-            height="14"
-            rx="2"
+            width="12"
+            height="12"
+            rx="1"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
           />
-          <circle cx="9.5" cy="13" r="1.5" fill="currentColor" />
-          <circle cx="14.5" cy="13" r="1.5" fill="currentColor" />
+          <rect
+            x="10"
+            y="10"
+            width="4"
+            height="4"
+            rx="0.5"
+            fill="currentColor"
+          />
           <path
-            d="M9 4h6"
+            d="M9 6V3M15 6V3M9 21v-3M15 21v-3M6 9H3M6 15H3M21 9h-3M21 15h-3"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
             strokeLinecap="round"
           />
         </svg>
@@ -51,13 +57,36 @@ function SenderBadge({ isAgent }: { isAgent: boolean }) {
           height="14"
           viewBox="0 0 24 24"
           fill="none"
-          className="text-blue-400"
+          className="text-orange-400"
         >
-          <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
           <path
-            d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7"
+            d="M12 2C9.24 2 7 4.24 7 7v3"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M17 7v5c0 2.76-2.24 5-5 5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M12 5c1.66 0 3 1.34 3 3v4c0 1.66-1.34 3-3 3s-3-1.34-3-3"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M12 9v4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M5 11c0 3.87 3.13 7 7 7s7-3.13 7-7"
+            stroke="currentColor"
+            strokeWidth="1.5"
             strokeLinecap="round"
           />
         </svg>

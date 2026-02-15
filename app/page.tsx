@@ -15,6 +15,7 @@ import {
   useAbstractFeedbackCounts,
   getChainName,
 } from '@/hooks';
+import { LiveKudosFeed } from '@/components/live-kudos-feed';
 import type { ScanAgent } from '@/lib/api';
 
 export default function Home() {
@@ -428,30 +429,40 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works — full-width horizontal row on desktop */}
+      {/* Live Kudos Feed + How It Works — two-column on desktop */}
       <section className="mx-auto max-w-6xl px-4 pb-16">
-        <h2 className="text-lg font-bold mb-3">How ACK Works</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <HowItWorksCard
-            step="01"
-            title="Discover Agents"
-            desc="Browse AI agents registered on ERC-8004 across all supported chains."
-          />
-          <HowItWorksCard
-            step="02"
-            title="Review Reputation"
-            desc="See scores, kudos, and category breakdowns for any agent."
-          />
-          <HowItWorksCard
-            step="03"
-            title="Give Kudos"
-            desc="Connect your wallet and leave onchain feedback — reliability, creativity, speed, and more."
-          />
-          <HowItWorksCard
-            step="04"
-            title="Build Consensus"
-            desc="Reputation grows from peer consensus. More kudos = stronger signal."
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Left: Live Feed */}
+          <div className="lg:col-span-3">
+            <LiveKudosFeed />
+          </div>
+
+          {/* Right: How It Works */}
+          <div className="lg:col-span-2">
+            <h2 className="text-lg font-bold mb-3">How ACK Works</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+              <HowItWorksCard
+                step="01"
+                title="Discover Agents"
+                desc="Browse AI agents registered on ERC-8004 across all supported chains."
+              />
+              <HowItWorksCard
+                step="02"
+                title="Review Reputation"
+                desc="See scores, kudos, and category breakdowns for any agent."
+              />
+              <HowItWorksCard
+                step="03"
+                title="Give Kudos"
+                desc="Connect your wallet and leave onchain feedback — reliability, creativity, speed, and more."
+              />
+              <HowItWorksCard
+                step="04"
+                title="Build Consensus"
+                desc="Reputation grows from peer consensus. More kudos = stronger signal."
+              />
+            </div>
+          </div>
         </div>
       </section>
 

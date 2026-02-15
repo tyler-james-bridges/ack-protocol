@@ -11,42 +11,57 @@ function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}\u2009..\u2009${addr.slice(-4)}`;
 }
 
-function FeedItem({ kudos, agent }: { kudos: RecentKudos; agent?: ScanAgent }) {
+function FeedItem({
+  kudos,
+  agent,
+  senderAgent,
+}: {
+  kudos: RecentKudos;
+  agent?: ScanAgent;
+  senderAgent?: ScanAgent;
+}) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
   );
   const name = agent?.name || `Agent #${kudos.agentId}`;
+  const senderName = senderAgent?.name || kudos.sender;
 
   return (
     <div className="flex gap-3 px-4 py-3 border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors">
-      <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0 mt-0.5">
-        <AgentAvatar name={name} imageUrl={agent?.image_url} size={32} />
-      </Link>
+      <div className="shrink-0 mt-0.5">
+        <AgentAvatar
+          name={senderName}
+          imageUrl={senderAgent?.image_url}
+          size={32}
+        />
+      </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <Link
-                href={`/agent/2741/${kudos.agentId}`}
-                className="text-sm font-semibold truncate hover:text-[#00DE73] transition-colors"
-              >
-                {name}
-              </Link>
-              {isValidCategory && (
-                <CategoryBadge category={kudos.tag2 as KudosCategory} />
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              from{' '}
+            <p className="text-xs text-muted-foreground">
               <a
                 href={`https://abscan.org/address/${kudos.sender}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono hover:text-[#00DE73] transition-colors"
+                className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
               >
-                {truncateAddress(kudos.sender)}
+                {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
               </a>
+              {' gave '}
+              <Link
+                href={`/agent/2741/${kudos.agentId}`}
+                className="font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+              >
+                {name}
+              </Link>
+              {' kudos'}
+              {isValidCategory && (
+                <>
+                  {' for '}
+                  <CategoryBadge category={kudos.tag2 as KudosCategory} />
+                </>
+              )}
             </p>
           </div>
           <a
@@ -80,13 +95,19 @@ export function LiveKudosFeed() {
 
   // Build agent lookup: tokenId → ScanAgent
   const agentMap = new Map<number, ScanAgent>();
+  // Build sender lookup: lowercase address → ScanAgent
+  const senderMap = new Map<string, ScanAgent>();
   if (agents) {
     for (const agent of agents) {
       agentMap.set(Number(agent.token_id), agent);
+      if (agent.owner_address)
+        senderMap.set(agent.owner_address.toLowerCase(), agent);
+      if (agent.agent_wallet)
+        senderMap.set(agent.agent_wallet.toLowerCase(), agent);
     }
   }
 
-  const recent = kudos?.slice(0, 15);
+  const recent = kudos?.slice(0, 5);
 
   return (
     <div className="rounded-xl border border-border overflow-hidden bg-card/50 flex flex-col">
@@ -110,7 +131,7 @@ export function LiveKudosFeed() {
       </div>
 
       {/* Feed list */}
-      <div className="overflow-y-auto no-scrollbar max-h-[420px] lg:max-h-[480px]">
+      <div>
         {isLoading ? (
           <div className="space-y-0">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -138,6 +159,7 @@ export function LiveKudosFeed() {
               key={`${k.txHash}-${i}`}
               kudos={k}
               agent={agentMap.get(k.agentId)}
+              senderAgent={senderMap.get(k.sender.toLowerCase())}
             />
           ))
         )}

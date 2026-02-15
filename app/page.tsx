@@ -227,65 +227,9 @@ export default function Home() {
                 <StatPill value="Live" label="Abstract" accent />
               </div>
 
-              {/* All Chains leaderboard — fills left column space on desktop */}
-              <div className="mt-auto pt-8 hidden lg:block">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-bold">Top Agents (All Chains)</h2>
-                  <Link
-                    href="/leaderboard"
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    View all →
-                  </Link>
-                </div>
-                <div className="rounded-xl border border-border overflow-hidden">
-                  {loadingAllLeaderboard
-                    ? Array.from({ length: 5 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-14 animate-pulse bg-muted/30 border-b border-border last:border-b-0"
-                        />
-                      ))
-                    : allLeaderboard?.map((agent, i) => (
-                        <button
-                          key={agent.id}
-                          type="button"
-                          onClick={() => goToAgent(agent)}
-                          className="flex items-center gap-3 w-full px-4 py-3 text-left transition-all hover:bg-muted/30 border-b border-border last:border-b-0 cursor-pointer hover:pl-5"
-                        >
-                          <span
-                            className={`w-6 text-sm font-bold tabular-nums ${
-                              i < 3 ? 'text-primary' : 'text-muted-foreground'
-                            }`}
-                          >
-                            #{i + 1}
-                          </span>
-                          <AgentAvatar
-                            name={agent.name}
-                            imageUrl={agent.image_url}
-                            size={32}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <p className="text-sm font-semibold truncate">
-                                {agent.name}
-                              </p>
-                              <ChainIcon chainId={agent.chain_id} size={14} />
-                            </div>
-                            {agent.total_feedbacks > 0 && (
-                              <p className="text-xs text-muted-foreground">
-                                {agent.total_feedbacks} feedback
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold tabular-nums">
-                              {agent.total_score.toFixed(1)}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                </div>
+              {/* Live Kudos Feed — fills remaining left column space */}
+              <div className="mt-8 hidden lg:block flex-1">
+                <LiveKudosFeed />
               </div>
             </div>
 
@@ -368,6 +312,11 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Mobile-only Live Kudos Feed (shown in hero left column on desktop) */}
+      <section className="mx-auto max-w-6xl px-4 pb-10 lg:hidden">
+        <LiveKudosFeed />
+      </section>
+
       {/* All Chains — mobile only (shown in left hero column on desktop) */}
       <section className="mx-auto max-w-6xl px-4 pb-10 lg:hidden">
         <div className="flex items-center justify-between mb-3">
@@ -429,18 +378,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Live Kudos Feed + How It Works — two-column on desktop */}
+      {/* How It Works — matches hero grid alignment */}
       <section className="mx-auto max-w-6xl px-4 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Left: Live Feed */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           <div>
-            <LiveKudosFeed />
-          </div>
-
-          {/* Right: How It Works */}
-          <div>
-            <h2 className="text-lg font-bold mb-3">How ACK Works</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
+              How ACK Works
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
               <HowItWorksCard
                 step="01"
                 title="Discover Agents"
@@ -451,10 +396,17 @@ export default function Home() {
                 title="Review Reputation"
                 desc="See scores, kudos, and category breakdowns for any agent."
               />
+            </div>
+          </div>
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-wider mb-4 lg:invisible">
+              &nbsp;
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
               <HowItWorksCard
                 step="03"
                 title="Give Kudos"
-                desc="Connect your wallet and leave onchain feedback — reliability, creativity, speed, and more."
+                desc="Connect your wallet and leave onchain feedback, reliability, creativity, speed, and more."
               />
               <HowItWorksCard
                 step="04"
@@ -481,7 +433,7 @@ function HowItWorksCard({
   desc: string;
 }) {
   return (
-    <div className="rounded-xl border border-border p-4 card-glow transition-colors hover:border-primary/30">
+    <div className="rounded-xl border border-border p-4 card-glow transition-colors hover:border-primary/30 h-full">
       <span className="text-lg font-bold text-primary/30 tabular-nums">
         {step}
       </span>

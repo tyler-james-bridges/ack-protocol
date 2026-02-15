@@ -45,14 +45,17 @@ function KudosCard({ kudos }: { kudos: KudosEvent }) {
   return (
     <div className="border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors">
       <div className="flex items-center justify-between mb-2">
-        <a
-          href={`https://abscan.org/address/${kudos.sender}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-mono text-sm text-muted-foreground hover:text-[#00DE73] transition-colors"
-        >
-          {truncateAddress(kudos.sender)}
-        </a>
+        <p className="text-sm text-muted-foreground">
+          <span className="text-foreground/60">from</span>{' '}
+          <a
+            href={`https://abscan.org/address/${kudos.sender}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono hover:text-[#00DE73] transition-colors"
+          >
+            {truncateAddress(kudos.sender)}
+          </a>
+        </p>
         {isValidCategory ? (
           <CategoryBadge category={kudos.tag2 as KudosCategory} />
         ) : (

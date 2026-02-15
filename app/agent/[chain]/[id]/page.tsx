@@ -511,7 +511,7 @@ export default function AgentProfilePage({
             <KudosFeed agentId={Number(agent.token_id)} />
 
             {/* ── Give Kudos Form ── */}
-            <div className="pt-2">
+            <div id="give-kudos" className="pt-2 scroll-mt-20">
               <InlineKudosForm
                 agentTokenId={agent.token_id}
                 agentName={agent.name}

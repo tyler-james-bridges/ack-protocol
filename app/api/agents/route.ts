@@ -23,10 +23,14 @@ export async function GET(request: NextRequest) {
   const url = `${API_BASE}/${path}?${searchParams.toString()}`;
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     const response = await fetch(url, {
       headers: { Accept: 'application/json' },
       next: { revalidate: 30 },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
 
     if (!response.ok) {
       return NextResponse.json(

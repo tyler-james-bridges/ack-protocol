@@ -2,6 +2,8 @@
 
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAccount } from 'wagmi';
+import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AgentAvatar } from '@/components/agent-avatar';
@@ -22,6 +24,8 @@ export default function AgentProfilePage({
 }) {
   const { chain, id } = use(params);
   const router = useRouter();
+  const { isConnected } = useAccount();
+  const { login } = useLoginWithAbstract();
   const [agent, setAgent] = useState<ScanAgent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -329,24 +333,34 @@ export default function AgentProfilePage({
               )}
 
               {/* ── Give Kudos CTA ── */}
-              <a href="#give-kudos" className="block">
-                <Button className="w-full" size="default">
-                  <svg
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
-                  Give Kudos
-                </Button>
-              </a>
+              <Button
+                className="w-full"
+                size="default"
+                onClick={() => {
+                  if (isConnected) {
+                    document
+                      .getElementById('give-kudos')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else {
+                    login();
+                  }
+                }}
+              >
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+                Give Kudos
+              </Button>
 
               {/* ── On-Chain Info (collapsed) ── */}
               <details
@@ -487,24 +501,34 @@ export default function AgentProfilePage({
                 )}
               </div>
               {/* Mobile-only Give Kudos button (since sidebar CTA scrolls away) */}
-              <a href="#give-kudos" className="lg:hidden">
-                <Button size="sm">
-                  <svg
-                    className="h-3.5 w-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
-                  Give Kudos
-                </Button>
-              </a>
+              <Button
+                size="sm"
+                className="lg:hidden"
+                onClick={() => {
+                  if (isConnected) {
+                    document
+                      .getElementById('give-kudos')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else {
+                    login();
+                  }
+                }}
+              >
+                <svg
+                  className="h-3.5 w-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+                Give Kudos
+              </Button>
             </div>
 
             {/* ── The Kudos Feed ── */}

@@ -18,14 +18,50 @@ function truncateAddress(addr: string) {
 
 function SenderBadge({ isAgent }: { isAgent: boolean }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none shrink-0 ${
-        isAgent
-          ? 'bg-[#00DE73]/10 text-[#00DE73] border border-[#00DE73]/20'
-          : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-      }`}
-    >
-      {isAgent ? 'Agent' : 'Human'}
+    <span className="shrink-0" title={isAgent ? 'Registered Agent' : 'Human'}>
+      {isAgent ? (
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          className="text-[#00DE73]"
+        >
+          <rect
+            x="4"
+            y="6"
+            width="16"
+            height="14"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+          <circle cx="9.5" cy="13" r="1.5" fill="currentColor" />
+          <circle cx="14.5" cy="13" r="1.5" fill="currentColor" />
+          <path
+            d="M9 4h6"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      ) : (
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          className="text-blue-400"
+        >
+          <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+          <path
+            d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      )}
     </span>
   );
 }
@@ -45,7 +81,6 @@ function RecentKudosCard({
     <div className="border border-border rounded-lg p-4 bg-card hover:border-[#00DE73]/40 transition-colors">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 min-w-0">
-          <SenderBadge isAgent={isAgent} />
           <a
             href={`https://abscan.org/address/${kudos.sender}`}
             target="_blank"
@@ -54,6 +89,7 @@ function RecentKudosCard({
           >
             {truncateAddress(kudos.sender)}
           </a>
+          <SenderBadge isAgent={isAgent} />
           <span className="text-muted-foreground/40 text-xs shrink-0">to</span>
           <Link
             href={`/agent/2741/${kudos.agentId}`}

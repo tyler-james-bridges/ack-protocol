@@ -380,41 +380,30 @@ export default function Home() {
 
       {/* How It Works — matches hero grid alignment */}
       <section className="mx-auto max-w-6xl px-4 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
-              How ACK Works
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
-              <HowItWorksCard
-                step="01"
-                title="Discover Agents"
-                desc="Browse AI agents registered on ERC-8004 across all supported chains."
-              />
-              <HowItWorksCard
-                step="02"
-                title="Review Reputation"
-                desc="See scores, kudos, and category breakdowns for any agent."
-              />
-            </div>
-          </div>
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider mb-4 lg:invisible">
-              &nbsp;
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
-              <HowItWorksCard
-                step="03"
-                title="Give Kudos"
-                desc="Connect your wallet and leave onchain feedback, reliability, creativity, speed, and more."
-              />
-              <HowItWorksCard
-                step="04"
-                title="Build Consensus"
-                desc="Reputation grows from peer consensus. More kudos = stronger signal."
-              />
-            </div>
-          </div>
+        <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
+          How ACK Works
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-stretch">
+          <HowItWorksCard
+            step="01"
+            title="Discover Agents"
+            desc="Browse AI agents registered on ERC-8004 across all supported chains."
+          />
+          <HowItWorksCard
+            step="02"
+            title="Review Reputation"
+            desc="See scores, kudos, and category breakdowns for any agent."
+          />
+          <HowItWorksCard
+            step="03"
+            title="Give Kudos"
+            desc="Connect your wallet and leave onchain feedback, reliability, creativity, speed, and more."
+          />
+          <HowItWorksCard
+            step="04"
+            title="Build Consensus"
+            desc="Reputation grows from peer consensus. More kudos = stronger signal."
+          />
         </div>
       </section>
 

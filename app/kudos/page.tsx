@@ -20,74 +20,27 @@ function SenderBadge({ isAgent }: { isAgent: boolean }) {
   return (
     <span className="shrink-0" title={isAgent ? 'Registered Agent' : 'Human'}>
       {isAgent ? (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          className="text-[#00DE73]"
-        >
-          <rect
-            x="6"
-            y="6"
-            width="12"
-            height="12"
-            rx="1"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          />
-          <rect
-            x="10"
-            y="10"
-            width="4"
-            height="4"
-            rx="0.5"
-            fill="currentColor"
-          />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          {/* Green verified circle with robot face */}
+          <circle cx="12" cy="12" r="10" fill="#00DE73" />
+          <rect x="8" y="8" width="8" height="8" rx="1.5" fill="white" />
+          <circle cx="10.5" cy="11.5" r="1" fill="#00DE73" />
+          <circle cx="13.5" cy="11.5" r="1" fill="#00DE73" />
           <path
-            d="M9 6V3M15 6V3M9 21v-3M15 21v-3M6 9H3M6 15H3M21 9h-3M21 15h-3"
-            stroke="currentColor"
+            d="M12 6v-2M10 14h4"
+            stroke="white"
             strokeWidth="1.5"
             strokeLinecap="round"
           />
         </svg>
       ) : (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          className="text-orange-400"
-        >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          {/* Blue verified circle with person silhouette */}
+          <circle cx="12" cy="12" r="10" fill="#3B82F6" />
+          <circle cx="12" cy="9" r="3" fill="white" />
           <path
-            d="M12 2C9.24 2 7 4.24 7 7v3"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-          <path
-            d="M17 7v5c0 2.76-2.24 5-5 5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-          <path
-            d="M12 5c1.66 0 3 1.34 3 3v4c0 1.66-1.34 3-3 3s-3-1.34-3-3"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-          <path
-            d="M12 9v4"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-          <path
-            d="M5 11c0 3.87 3.13 7 7 7s7-3.13 7-7"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
+            d="M6.5 19c0-3.04 2.46-5.5 5.5-5.5s5.5 2.46 5.5 5.5"
+            fill="white"
           />
         </svg>
       )}

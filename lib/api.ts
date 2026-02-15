@@ -31,7 +31,12 @@ export interface ScanAgent {
   tags: string[];
   categories: string[];
   supported_protocols: string[];
-  services: Record<string, unknown> | null;
+  services: Record<string, { endpoint?: string } | null> | null;
+  raw_metadata?: {
+    offchain_content?: {
+      services?: { name: string; endpoint?: string }[];
+    };
+  } | null;
   scores: {
     rank: number;
     freshness: number;

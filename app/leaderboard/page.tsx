@@ -388,9 +388,6 @@ function AgentRow({
             {agent.kudos > 0 && (
               <span className="text-[#00DE73]">· {agent.kudos} kudos</span>
             )}
-            {agent.total_feedbacks > 0 && (
-              <span>· {agent.total_feedbacks} feedback</span>
-            )}
           </div>
         </div>
       </div>

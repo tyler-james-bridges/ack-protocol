@@ -7,7 +7,7 @@ import { Nav } from '@/components/nav';
 import { KudosForm } from '@/components/kudos-form';
 import { CategoryBadge } from '@/components/category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
-import { useGiveKudos, useRecentKudos } from '@/hooks';
+import { useGiveKudos, useRecentKudos, useIsAgent } from '@/hooks';
 import type { RecentKudos } from '@/hooks';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +16,27 @@ function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
-function RecentKudosCard({ kudos }: { kudos: RecentKudos }) {
+function SenderBadge({ isAgent }: { isAgent: boolean }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none shrink-0 ${
+        isAgent
+          ? 'bg-[#00DE73]/10 text-[#00DE73] border border-[#00DE73]/20'
+          : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+      }`}
+    >
+      {isAgent ? 'Agent' : 'Human'}
+    </span>
+  );
+}
+
+function RecentKudosCard({
+  kudos,
+  isAgent,
+}: {
+  kudos: RecentKudos;
+  isAgent: boolean;
+}) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
   );
@@ -25,6 +45,7 @@ function RecentKudosCard({ kudos }: { kudos: RecentKudos }) {
     <div className="border border-border rounded-lg p-4 bg-card hover:border-[#00DE73]/40 transition-colors">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 min-w-0">
+          <SenderBadge isAgent={isAgent} />
           <a
             href={`https://abscan.org/address/${kudos.sender}`}
             target="_blank"
@@ -72,6 +93,8 @@ export default function GiveKudosPage() {
   const { address, isConnected } = useAccount();
   const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
   const { data: recentKudos, isLoading: loadingFeed } = useRecentKudos();
+  const senders = recentKudos?.map((k) => k.sender) || [];
+  const { data: agentSet } = useIsAgent(senders);
 
   const handleSubmit = (data: {
     agent: { token_id: string };
@@ -206,7 +229,11 @@ export default function GiveKudosPage() {
           ) : (
             <div className="space-y-3">
               {recentKudos.map((k, i) => (
-                <RecentKudosCard key={`${k.txHash}-${i}`} kudos={k} />
+                <RecentKudosCard
+                  key={`${k.txHash}-${i}`}
+                  kudos={k}
+                  isAgent={agentSet?.has(k.sender.toLowerCase()) ?? false}
+                />
               ))}
             </div>
           )}

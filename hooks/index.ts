@@ -37,3 +37,4 @@ export { useRecentKudos } from './useRecentKudos';
 export type { RecentKudos } from './useRecentKudos';
 export { useKudosGiven } from './useKudosGiven';
 export type { KudosGivenEvent } from './useKudosGiven';
+export { useIsAgent } from './useIsAgent';

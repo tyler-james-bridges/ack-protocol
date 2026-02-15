@@ -31,13 +31,27 @@ export default function AgentProfilePage({
   );
 
   useEffect(() => {
+    const CHAIN_NAMES: Record<string, string> = {
+      abstract: '2741',
+      ethereum: '1',
+      base: '8453',
+      bnb: '56',
+      gnosis: '100',
+      celo: '42220',
+      arbitrum: '42161',
+    };
+    const resolved = CHAIN_NAMES[chain.toLowerCase()] || chain;
+    if (resolved !== chain) {
+      router.replace(`/agent/${resolved}/${id}`);
+      return;
+    }
     const scanId = `${chain}:${id}`;
     setLoading(true);
     fetchAgent(scanId)
       .then(setAgent)
       .catch(() => setError('Agent not found'))
       .finally(() => setLoading(false));
-  }, [chain, id]);
+  }, [chain, id, router]);
 
   if (loading) {
     return (

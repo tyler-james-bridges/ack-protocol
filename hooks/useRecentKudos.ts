@@ -42,6 +42,11 @@ function parseMessage(feedbackURI: string): string | null {
     if (feedbackURI.startsWith('data:,')) {
       return decodeURIComponent(feedbackURI.slice(6)) || null;
     }
+    // Raw JSON string (e.g. from SDK)
+    if (feedbackURI.startsWith('{')) {
+      const payload = JSON.parse(feedbackURI);
+      return payload.reasoning || payload.message || null;
+    }
   } catch {
     // ignore malformed URIs
   }

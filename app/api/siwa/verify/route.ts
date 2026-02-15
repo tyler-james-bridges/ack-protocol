@@ -28,7 +28,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { message, signature, nonceToken } = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid or missing request body' },
+        { status: 400 }
+      );
+    }
+    const { message, signature, nonceToken } = body;
 
     if (!message || !signature) {
       return NextResponse.json(

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useWriteContractSponsored } from '@abstract-foundation/agw-react';
 import { getGeneralPaymasterInput } from 'viem/zksync';
 import { useQueryClient } from '@tanstack/react-query';
@@ -28,34 +28,48 @@ interface GiveKudosParams {
 type KudosStatus = 'idle' | 'confirming' | 'waiting' | 'success' | 'error';
 
 /**
- * Hook to give kudos to an agent with gas-sponsored transactions.
+ * Hook to give kudos to an agent.
  *
- * Flow:
- * 1. Build feedback file and hash via shared utility
- * 2. Call giveFeedback() on the Reputation Registry (gas sponsored)
- * 3. Wait for transaction confirmation
+ * Tries gas-sponsored tx first (Abstract paymaster).
+ * Falls back to regular tx (user pays gas) if paymaster rejects.
  */
 export function useGiveKudos() {
   const [status, setStatus] = useState<KudosStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
   const [kudosAgentId, setKudosAgentId] = useState<number | null>(null);
+  const [activeTxHash, setActiveTxHash] = useState<`0x${string}` | undefined>();
   const queryClient = useQueryClient();
 
+  // Sponsored path
   const {
     writeContractSponsored,
-    data: txHash,
-    reset: resetWrite,
+    data: sponsoredHash,
+    reset: resetSponsored,
   } = useWriteContractSponsored();
+
+  // Fallback: user-pays-gas path
+  const {
+    writeContract,
+    data: regularHash,
+    reset: resetRegular,
+  } = useWriteContract();
+
+  // Track whichever hash is active
+  useEffect(() => {
+    if (sponsoredHash) setActiveTxHash(sponsoredHash);
+  }, [sponsoredHash]);
+  useEffect(() => {
+    if (regularHash) setActiveTxHash(regularHash);
+  }, [regularHash]);
+
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
-    hash: txHash,
+    hash: activeTxHash,
     chainId: chain.id,
   });
 
-  // When tx confirms, invalidate all related queries so the UI updates
+  // Invalidate queries on confirmation
   useEffect(() => {
     if (!txConfirmed) return;
-
-    // Small delay to let the RPC index the new event, then refetch all related data
     const timer = setTimeout(() => {
       queryClient.invalidateQueries({
         queryKey: ['kudos-received', kudosAgentId],
@@ -67,7 +81,6 @@ export function useGiveKudos() {
       queryClient.invalidateQueries({ queryKey: ['kudos-given'] });
       queryClient.invalidateQueries({ queryKey: ['readContract'] });
     }, 2000);
-
     return () => clearTimeout(timer);
   }, [txConfirmed, kudosAgentId, queryClient]);
 
@@ -76,6 +89,7 @@ export function useGiveKudos() {
       setError(null);
       setStatus('confirming');
       setKudosAgentId(params.agentId);
+      setActiveTxHash(undefined);
 
       try {
         const { feedbackURI, feedbackHash } = buildFeedback({
@@ -86,31 +100,41 @@ export function useGiveKudos() {
           fromAgentId: params.fromAgentId,
         });
 
-        setStatus('confirming');
+        const contractArgs = {
+          address: REPUTATION_REGISTRY_ADDRESS,
+          abi: REPUTATION_REGISTRY_ABI,
+          functionName: 'giveFeedback' as const,
+          args: [
+            BigInt(params.agentId),
+            BigInt(KUDOS_VALUE),
+            KUDOS_VALUE_DECIMALS,
+            KUDOS_TAG1,
+            params.category,
+            '',
+            feedbackURI,
+            feedbackHash,
+          ] as const,
+          chainId: chain.id,
+        };
+
+        // Try sponsored first
         writeContractSponsored(
           {
-            address: REPUTATION_REGISTRY_ADDRESS,
-            abi: REPUTATION_REGISTRY_ABI,
-            functionName: 'giveFeedback',
-            args: [
-              BigInt(params.agentId),
-              BigInt(KUDOS_VALUE),
-              KUDOS_VALUE_DECIMALS,
-              KUDOS_TAG1,
-              params.category,
-              '',
-              feedbackURI,
-              feedbackHash,
-            ],
-            chainId: chain.id,
+            ...contractArgs,
             paymaster: ABSTRACT_PAYMASTER_ADDRESS,
             paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
           },
           {
             onSuccess: () => setStatus('waiting'),
-            onError: (err) => {
-              setError(err instanceof Error ? err : new Error(String(err)));
-              setStatus('error');
+            onError: () => {
+              // Paymaster rejected, fall back to regular tx
+              writeContract(contractArgs, {
+                onSuccess: () => setStatus('waiting'),
+                onError: (err) => {
+                  setError(err instanceof Error ? err : new Error(String(err)));
+                  setStatus('error');
+                },
+              });
             },
           }
         );
@@ -119,14 +143,16 @@ export function useGiveKudos() {
         setStatus('error');
       }
     },
-    [writeContractSponsored]
+    [writeContractSponsored, writeContract]
   );
 
   const reset = useCallback(() => {
     setStatus('idle');
     setError(null);
-    resetWrite();
-  }, [resetWrite]);
+    setActiveTxHash(undefined);
+    resetSponsored();
+    resetRegular();
+  }, [resetSponsored, resetRegular]);
 
   const finalStatus: KudosStatus = txConfirmed ? 'success' : status;
 
@@ -134,7 +160,7 @@ export function useGiveKudos() {
     giveKudos,
     status: finalStatus,
     error,
-    txHash,
+    txHash: activeTxHash,
     reset,
     isLoading: finalStatus === 'confirming' || finalStatus === 'waiting',
   };

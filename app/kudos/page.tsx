@@ -82,9 +82,16 @@ function RecentKudosCard({
             </span>
             <Link
               href={`/agent/2741/${kudos.agentId}`}
-              className="text-sm font-semibold text-foreground hover:text-[#00DE73] transition-colors truncate"
+              className="flex items-center gap-1.5 hover:text-[#00DE73] transition-colors shrink-0"
             >
-              {receiverName}
+              <AgentAvatar
+                name={receiverName}
+                imageUrl={agent?.image_url}
+                size={20}
+              />
+              <span className="text-sm font-semibold text-foreground">
+                {receiverName}
+              </span>
             </Link>
           </div>
           {isValidCategory && (

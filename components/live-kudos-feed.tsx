@@ -53,8 +53,13 @@ function FeedItem({
               {' gave '}
               <Link
                 href={`/agent/2741/${kudos.agentId}`}
-                className="font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+                className="inline-flex items-center gap-1 font-semibold text-foreground hover:text-[#00DE73] transition-colors align-middle"
               >
+                <AgentAvatar
+                  name={name}
+                  imageUrl={agent?.image_url}
+                  size={16}
+                />
                 {name}
               </Link>
               {' kudos'}

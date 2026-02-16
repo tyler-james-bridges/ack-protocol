@@ -81,8 +81,13 @@ function KudosCard({
             {' gave '}
             <Link
               href={`/agent/2741/${agentId}`}
-              className="font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+              className="inline-flex items-center gap-1 font-semibold text-foreground hover:text-[#00DE73] transition-colors align-middle"
             >
+              <AgentAvatar
+                name={receiverName}
+                imageUrl={receiverAgent?.image_url}
+                size={18}
+              />
               {receiverName}
             </Link>
             {' kudos'}

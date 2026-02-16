@@ -560,7 +560,7 @@ export class ACK {
             args: [BigInt(agentId), BigInt(i)],
           });
 
-          const [from, value, , tag1, tag2, , feedbackURI, , timestamp] =
+          const [from, value, , , tag2, , feedbackURI, , timestamp] =
             feedback as [
               Address,
               bigint,

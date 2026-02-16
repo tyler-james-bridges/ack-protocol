@@ -113,9 +113,7 @@ export default function AddressPage() {
           <h2 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-4">
             Kudos Given
             {kudosGiven && kudosGiven.length > 0 && (
-              <span className="ml-2 text-[#00DE73]">
-                ({kudosGiven.length})
-              </span>
+              <span className="ml-2 text-[#00DE73]">({kudosGiven.length})</span>
             )}
           </h2>
           {loadingGiven ? (

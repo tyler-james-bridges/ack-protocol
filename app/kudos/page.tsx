@@ -7,7 +7,12 @@ import { Nav } from '@/components/nav';
 import { KudosForm } from '@/components/kudos-form';
 import { CategoryBadge } from '@/components/category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
-import { useGiveKudos, useRecentKudos, useIsAgent, useLeaderboard } from '@/hooks';
+import {
+  useGiveKudos,
+  useRecentKudos,
+  useIsAgent,
+  useLeaderboard,
+} from '@/hooks';
 import type { RecentKudos } from '@/hooks';
 import type { ScanAgent } from '@/lib/api';
 import { AgentAvatar } from '@/components/agent-avatar';
@@ -72,7 +77,9 @@ function RecentKudosCard({
               {senderName}
             </Link>
             <SenderBadge isAgent={isAgent} />
-            <span className="text-muted-foreground/40 text-xs shrink-0">to</span>
+            <span className="text-muted-foreground/40 text-xs shrink-0">
+              to
+            </span>
             <Link
               href={`/agent/2741/${kudos.agentId}`}
               className="text-sm font-semibold text-foreground hover:text-[#00DE73] transition-colors truncate"
@@ -114,7 +121,11 @@ export default function GiveKudosPage() {
   const { data: recentKudos, isLoading: loadingFeed } = useRecentKudos();
   const senders = recentKudos?.map((k) => k.sender) || [];
   const { data: agentSet } = useIsAgent(senders);
-  const { data: agents } = useLeaderboard({ limit: 50, chainId: 2741, sortBy: 'total_score' });
+  const { data: agents } = useLeaderboard({
+    limit: 50,
+    chainId: 2741,
+    sortBy: 'total_score',
+  });
 
   const agentMap = new Map<number, ScanAgent>();
   const senderMap = new Map<string, ScanAgent>();

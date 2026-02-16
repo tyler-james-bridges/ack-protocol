@@ -1,20 +1,20 @@
-import type { Address, Hash } from 'viem'
+import type { Address, Hash } from 'viem';
 
 /**
  * Supported chain identifiers
  */
-export type ChainId = 'abstract' | 'base' | 'ethereum' | 'bnb'
+export type ChainId = 'abstract' | 'base' | 'ethereum' | 'bnb';
 
 /**
  * Chain configuration
  */
 export interface ChainConfig {
   /** Chain ID number */
-  id: number
+  id: number;
   /** Chain name */
-  name: string
+  name: string;
   /** RPC URL for the chain */
-  rpcUrl: string
+  rpcUrl: string;
 }
 
 /**
@@ -22,11 +22,11 @@ export interface ChainConfig {
  */
 export interface ACKConfig {
   /** Target blockchain */
-  chain: ChainId
+  chain: ChainId;
   /** API key for 8004scan (optional) */
-  apiKey?: string
+  apiKey?: string;
   /** Custom RPC URL (overrides default) */
-  rpcUrl?: string
+  rpcUrl?: string;
 }
 
 /**
@@ -34,17 +34,17 @@ export interface ACKConfig {
  */
 export interface Agent {
   /** Unique agent ID */
-  id: number
+  id: number;
   /** Agent name */
-  name: string
+  name: string;
   /** Agent description */
-  description: string
+  description: string;
   /** Owner address */
-  owner: Address
+  owner: Address;
   /** Token URI for metadata */
-  tokenURI?: string
+  tokenURI?: string;
   /** Registration timestamp */
-  registeredAt?: number
+  registeredAt?: number;
 }
 
 /**
@@ -52,15 +52,15 @@ export interface Agent {
  */
 export interface Reputation {
   /** Agent ID */
-  agentId: number
+  agentId: number;
   /** Overall quality score */
-  qualityScore: number
+  qualityScore: number;
   /** Total feedback count */
-  totalFeedbacks: number
+  totalFeedbacks: number;
   /** Average rating */
-  averageRating: number
+  averageRating: number;
   /** Reputation breakdown by category */
-  categories: ReputationCategory[]
+  categories: ReputationCategory[];
 }
 
 /**
@@ -68,11 +68,11 @@ export interface Reputation {
  */
 export interface ReputationCategory {
   /** Category name */
-  category: FeedbackCategory
+  category: FeedbackCategory;
   /** Average score for this category */
-  averageScore: number
+  averageScore: number;
   /** Number of feedbacks in this category */
-  count: number
+  count: number;
 }
 
 /**
@@ -80,44 +80,44 @@ export interface ReputationCategory {
  */
 export interface Feedback {
   /** Feedback ID */
-  id: string
+  id: string;
   /** Target agent ID */
-  agentId: number
+  agentId: number;
   /** Feedback giver address */
-  from: Address
+  from: Address;
   /** Feedback category */
-  category: FeedbackCategory
+  category: FeedbackCategory;
   /** Score (1-5) */
-  score: number
+  score: number;
   /** Optional message */
-  message?: string
+  message?: string;
   /** Timestamp when feedback was given */
-  timestamp: number
+  timestamp: number;
   /** Transaction hash */
-  transactionHash: Hash
+  transactionHash: Hash;
 }
 
 /**
  * Valid feedback categories
  */
-export type FeedbackCategory = 
+export type FeedbackCategory =
   | 'reliability'
   | 'speed'
   | 'accuracy'
   | 'creativity'
   | 'collaboration'
-  | 'security'
+  | 'security';
 
 /**
  * Registration parameters
  */
 export interface RegisterParams {
   /** Agent name */
-  name: string
+  name: string;
   /** Agent description */
-  description: string
+  description: string;
   /** Optional metadata URI */
-  metadataURI?: string
+  metadataURI?: string;
 }
 
 /**
@@ -125,11 +125,11 @@ export interface RegisterParams {
  */
 export interface KudosParams {
   /** Feedback category */
-  category: FeedbackCategory
+  category: FeedbackCategory;
   /** Optional message explaining the kudos */
-  message?: string
+  message?: string;
   /** If giving kudos as an agent, your agent token ID */
-  fromAgentId?: number
+  fromAgentId?: number;
 }
 
 /**
@@ -137,13 +137,13 @@ export interface KudosParams {
  */
 export interface LeaderboardParams {
   /** Sort criteria */
-  sortBy?: 'quality_score' | 'total_feedbacks' | 'average_rating'
+  sortBy?: 'quality_score' | 'total_feedbacks' | 'average_rating';
   /** Maximum results to return */
-  limit?: number
+  limit?: number;
   /** Result offset for pagination */
-  offset?: number
+  offset?: number;
   /** Filter by category */
-  category?: FeedbackCategory
+  category?: FeedbackCategory;
 }
 
 /**
@@ -151,11 +151,11 @@ export interface LeaderboardParams {
  */
 export interface TransactionResult {
   /** Transaction hash */
-  hash: Hash
+  hash: Hash;
   /** Block number (if confirmed) */
-  blockNumber?: bigint
+  blockNumber?: bigint;
   /** Gas used */
-  gasUsed?: bigint
+  gasUsed?: bigint;
 }
 
 // end of types

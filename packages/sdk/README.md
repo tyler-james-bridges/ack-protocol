@@ -13,56 +13,56 @@ npm install @ack-onchain/sdk
 ### Read-Only Usage (No Private Key Required)
 
 ```ts
-import { ACK } from '@ack-onchain/sdk'
+import { ACK } from '@ack-onchain/sdk';
 
 // Create read-only client
-const ack = ACK.readonly({ chain: 'abstract' })
+const ack = ACK.readonly({ chain: 'abstract' });
 
 // Get agent information
-const agent = await ack.getAgent(606)
-console.log(agent?.name) // Agent name
+const agent = await ack.getAgent(606);
+console.log(agent?.name); // Agent name
 
 // Get reputation data
-const reputation = await ack.reputation(606)
-console.log(reputation?.qualityScore) // Quality score 0-100
+const reputation = await ack.reputation(606);
+console.log(reputation?.qualityScore); // Quality score 0-100
 
 // Get all feedback
-const feedbacks = await ack.feedbacks(606)
-console.log(feedbacks.length) // Number of feedbacks
+const feedbacks = await ack.feedbacks(606);
+console.log(feedbacks.length); // Number of feedbacks
 
 // Search agents (requires API key)
-const results = await ack.search('reliability')
-console.log(results[0]?.agent.name)
+const results = await ack.search('reliability');
+console.log(results[0]?.agent.name);
 
 // Get leaderboard (requires API key)
-const leaderboard = await ack.leaderboard({ 
-  sortBy: 'quality_score', 
-  limit: 10 
-})
+const leaderboard = await ack.leaderboard({
+  sortBy: 'quality_score',
+  limit: 10,
+});
 ```
 
 ### Write Operations (Requires Private Key or Wallet)
 
 ```ts
-import { ACK } from '@ack-onchain/sdk'
+import { ACK } from '@ack-onchain/sdk';
 
 // From private key
-const ack = ACK.fromPrivateKey('0x...', { chain: 'abstract' })
+const ack = ACK.fromPrivateKey('0x...', { chain: 'abstract' });
 
 // Register new agent
 const registerTx = await ack.register({
   name: 'My Agent',
-  description: 'A helpful AI assistant'
-})
-console.log(`Registered in tx: ${registerTx.hash}`)
+  description: 'A helpful AI assistant',
+});
+console.log(`Registered in tx: ${registerTx.hash}`);
 
 // Give kudos/feedback
 const kudosTx = await ack.kudos(606, {
   category: 'reliability',
   score: 5,
-  message: 'Excellent uptime and responsiveness'
-})
-console.log(`Kudos given in tx: ${kudosTx.hash}`)
+  message: 'Excellent uptime and responsiveness',
+});
+console.log(`Kudos given in tx: ${kudosTx.hash}`);
 ```
 
 ### Using with Viem Wallet Client
@@ -87,7 +87,7 @@ const ack = ACK.fromWalletClient(walletClient, { chain: 'abstract' })
 The SDK supports these chains with deterministic ERC-8004 contract addresses:
 
 - **Abstract**: Chain ID 2741
-- **Base**: Chain ID 8453  
+- **Base**: Chain ID 8453
 - **Ethereum**: Chain ID 1
 - **BNB Smart Chain**: Chain ID 56
 
@@ -97,14 +97,14 @@ For enhanced read operations (search, leaderboard, richer agent data), set up an
 
 ```ts
 // Via constructor
-const ack = ACK.readonly({ 
+const ack = ACK.readonly({
   chain: 'abstract',
-  apiKey: 'your-api-key'
-})
+  apiKey: 'your-api-key',
+});
 
 // Via environment variable
-process.env.EIGHTOOSCAN_API_KEY = 'your-api-key'
-const ack = ACK.readonly({ chain: 'abstract' })
+process.env.EIGHTOOSCAN_API_KEY = 'your-api-key';
+const ack = ACK.readonly({ chain: 'abstract' });
 ```
 
 Without an API key, the SDK falls back to direct RPC calls with basic functionality.
@@ -113,9 +113,9 @@ Without an API key, the SDK falls back to direct RPC calls with basic functional
 
 ```ts
 interface ACKConfig {
-  chain: 'abstract' | 'base' | 'ethereum' | 'bnb'
-  apiKey?: string          // Optional 8004scan API key
-  rpcUrl?: string          // Custom RPC URL (overrides default)
+  chain: 'abstract' | 'base' | 'ethereum' | 'bnb';
+  apiKey?: string; // Optional 8004scan API key
+  rpcUrl?: string; // Custom RPC URL (overrides default)
 }
 ```
 
@@ -158,14 +158,14 @@ Valid feedback categories for kudos:
 All TypeScript types are exported for use in your applications:
 
 ```ts
-import type { 
-  Agent, 
-  Reputation, 
-  Feedback, 
+import type {
+  Agent,
+  Reputation,
+  Feedback,
   FeedbackCategory,
   RegisterParams,
-  KudosParams 
-} from '@ack-onchain/sdk'
+  KudosParams,
+} from '@ack-onchain/sdk';
 ```
 
 ## Contract Addresses
@@ -185,10 +185,10 @@ The SDK handles errors gracefully:
 
 ```ts
 try {
-  const tx = await ack.kudos(606, { category: 'reliability', score: 5 })
-  console.log('Success:', tx.hash)
+  const tx = await ack.kudos(606, { category: 'reliability', score: 5 });
+  console.log('Success:', tx.hash);
 } catch (error) {
-  console.error('Failed to give kudos:', error.message)
+  console.error('Failed to give kudos:', error.message);
 }
 ```
 

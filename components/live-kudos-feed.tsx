@@ -5,6 +5,10 @@ import { useRecentKudos, useLeaderboard, type RecentKudos } from '@/hooks';
 import { AgentAvatar } from './agent-avatar';
 import { CategoryBadge } from './category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import {
+  useBlockTimestamps,
+  formatRelativeTime,
+} from '@/hooks/useBlockTimestamps';
 import type { ScanAgent } from '@/lib/api';
 
 function truncateAddress(addr: string) {
@@ -15,10 +19,12 @@ function FeedItem({
   kudos,
   agent,
   senderAgent,
+  timestamp,
 }: {
   kudos: RecentKudos;
   agent?: ScanAgent;
   senderAgent?: ScanAgent;
+  timestamp?: number;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -73,7 +79,7 @@ function FeedItem({
             rel="noopener noreferrer"
             className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
           >
-            tx
+            {timestamp ? formatRelativeTime(timestamp) : 'tx'}
           </a>
         </div>
 
@@ -111,6 +117,8 @@ export function LiveKudosFeed() {
   }
 
   const recent = kudos?.slice(0, 5);
+  const blockNumbers = recent?.map((k) => k.blockNumber) || [];
+  const { data: timestamps } = useBlockTimestamps(blockNumbers);
 
   return (
     <div className="rounded-xl border border-border overflow-hidden bg-card/50 flex flex-col">
@@ -163,6 +171,7 @@ export function LiveKudosFeed() {
               kudos={k}
               agent={agentMap.get(k.agentId)}
               senderAgent={senderMap.get(k.sender.toLowerCase())}
+              timestamp={timestamps?.get(k.blockNumber.toString())}
             />
           ))
         )}

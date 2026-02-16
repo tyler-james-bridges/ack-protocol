@@ -16,6 +16,10 @@ import {
 import type { RecentKudos } from '@/hooks';
 import type { ScanAgent } from '@/lib/api';
 import { AgentAvatar } from '@/components/agent-avatar';
+import {
+  useBlockTimestamps,
+  formatRelativeTime,
+} from '@/hooks/useBlockTimestamps';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -42,11 +46,13 @@ function RecentKudosCard({
   isAgent,
   agent,
   senderAgent,
+  timestamp,
 }: {
   kudos: RecentKudos;
   isAgent: boolean;
   agent?: ScanAgent;
   senderAgent?: ScanAgent;
+  timestamp?: number;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -106,14 +112,15 @@ function RecentKudosCard({
         )}
 
         <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-          <span>Block #{kudos.blockNumber.toString()}</span>
           <a
             href={`https://abscan.org/tx/${kudos.txHash}`}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-[#00DE73] transition-colors"
           >
-            View tx
+            {timestamp
+              ? formatRelativeTime(timestamp)
+              : `Block #${kudos.blockNumber.toString()}`}
           </a>
         </div>
       </div>
@@ -126,6 +133,8 @@ export default function GiveKudosPage() {
   const { address, isConnected } = useAccount();
   const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
   const { data: recentKudos, isLoading: loadingFeed } = useRecentKudos();
+  const blockNumbers = recentKudos?.map((k) => k.blockNumber) || [];
+  const { data: timestamps } = useBlockTimestamps(blockNumbers);
   const senders = recentKudos?.map((k) => k.sender) || [];
   const { data: agentSet } = useIsAgent(senders);
   const { data: agents } = useLeaderboard({
@@ -283,6 +292,7 @@ export default function GiveKudosPage() {
                   isAgent={agentSet?.has(k.sender.toLowerCase()) ?? false}
                   agent={agentMap.get(k.agentId)}
                   senderAgent={senderMap.get(k.sender.toLowerCase())}
+                  timestamp={timestamps?.get(k.blockNumber.toString())}
                 />
               ))}
             </div>

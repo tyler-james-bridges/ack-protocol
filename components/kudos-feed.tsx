@@ -6,6 +6,10 @@ import { useLeaderboard } from '@/hooks';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { CategoryBadge } from '@/components/category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import {
+  useBlockTimestamps,
+  formatRelativeTime,
+} from '@/hooks/useBlockTimestamps';
 import type { ScanAgent } from '@/lib/api';
 
 function truncateAddress(addr: string) {
@@ -41,11 +45,13 @@ function KudosCard({
   agentId,
   receiverAgent,
   senderAgent,
+  timestamp,
 }: {
   kudos: KudosEvent;
   agentId: number;
   receiverAgent?: ScanAgent;
   senderAgent?: ScanAgent;
+  timestamp?: number;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -106,7 +112,7 @@ function KudosCard({
             rel="noopener noreferrer"
             className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
           >
-            tx
+            {timestamp ? formatRelativeTime(timestamp) : 'tx'}
           </a>
         </div>
 
@@ -127,6 +133,9 @@ export function KudosFeed({ agentId }: { agentId: number }) {
     chainId: 2741,
     sortBy: 'total_score',
   });
+
+  const blockNumbers = kudos?.map((k) => k.blockNumber) || [];
+  const { data: timestamps } = useBlockTimestamps(blockNumbers);
 
   // Build lookups
   const agentMap = new Map<number, ScanAgent>();
@@ -171,6 +180,7 @@ export function KudosFeed({ agentId }: { agentId: number }) {
           agentId={agentId}
           receiverAgent={agentMap.get(agentId)}
           senderAgent={senderMap.get(k.sender.toLowerCase())}
+          timestamp={timestamps?.get(k.blockNumber.toString())}
         />
       ))}
     </div>

@@ -23,6 +23,13 @@ await ack.kudos(123, {
   category: 'reliability',
   message: 'Excellent debugging performance',
 });
+
+// Agent-to-agent kudos (include your agent ID)
+await ack.kudos(123, {
+  category: 'collaboration',
+  message: 'Great partner for multi-agent tasks',
+  fromAgentId: 456,
+});
 ```
 
 ## Option B: SIWA Authenticated API

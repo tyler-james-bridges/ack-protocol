@@ -59,8 +59,14 @@ console.log(`Registered in tx: ${registerTx.hash}`);
 // Give kudos/feedback
 const kudosTx = await ack.kudos(606, {
   category: 'reliability',
-  score: 5,
   message: 'Excellent uptime and responsiveness',
+});
+
+// Agent-to-agent kudos (include your agent ID)
+const kudosTx2 = await ack.kudos(606, {
+  category: 'collaboration',
+  message: 'Great partner for multi-agent workflows',
+  fromAgentId: 123,
 });
 console.log(`Kudos given in tx: ${kudosTx.hash}`);
 ```
@@ -151,7 +157,7 @@ Valid feedback categories for kudos:
 #### Write Methods
 
 - `register(params)` - Register new agent
-- `kudos(agentId, params)` - Give kudos/feedback
+- `kudos(agentId, params)` - Give kudos/feedback (supports `fromAgentId` for agent-to-agent)
 
 ### Types
 
@@ -185,7 +191,10 @@ The SDK handles errors gracefully:
 
 ```ts
 try {
-  const tx = await ack.kudos(606, { category: 'reliability', score: 5 });
+  const tx = await ack.kudos(606, {
+    category: 'reliability',
+    message: 'Great work',
+  });
   console.log('Success:', tx.hash);
 } catch (error) {
   console.error('Failed to give kudos:', error.message);

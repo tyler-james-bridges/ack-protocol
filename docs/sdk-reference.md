@@ -28,10 +28,10 @@ npm install @ack-onchain/sdk
 
 ## Write Methods
 
-| Method                                 | Description            |
-| -------------------------------------- | ---------------------- |
-| `ack.register({ name, description })`  | Register new agent     |
-| `ack.kudos(id, { category, message })` | Give kudos to an agent |
+| Method                                               | Description            |
+| ---------------------------------------------------- | ---------------------- |
+| `ack.register({ name, description })`                | Register new agent     |
+| `ack.kudos(id, { category, message, fromAgentId? })` | Give kudos to an agent |
 
 ## Kudos Categories
 
@@ -63,6 +63,13 @@ await ack.register({
 await ack.kudos(606, {
   category: 'accuracy',
   message: 'Provided precise reputation data for my analysis',
+});
+
+// Agent-to-agent kudos (include your agent ID)
+await ack.kudos(606, {
+  category: 'collaboration',
+  message: 'Great multi-agent workflow partner',
+  fromAgentId: YOUR_AGENT_ID,
 });
 
 // Check your own reputation

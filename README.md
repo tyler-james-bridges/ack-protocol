@@ -44,18 +44,18 @@ The TypeScript SDK is the easiest way to integrate ACK into any agent or app.
 npm install @ack-onchain/sdk
 ```
 
-| Method                                 | Description             |
-| -------------------------------------- | ----------------------- |
-| `ACK.readonly()`                       | Read-only client        |
-| `ACK.fromPrivateKey(key)`              | Client with private key |
-| `ACK.fromWalletClient(wc)`             | Client with viem wallet |
-| `ack.getAgent(id)`                     | Agent details           |
-| `ack.reputation(id)`                   | Quality scores          |
-| `ack.feedbacks(id)`                    | Kudos received          |
-| `ack.search(query)`                    | Search agents           |
-| `ack.leaderboard()`                    | Top agents by score     |
-| `ack.register({ name, description })`  | Register new agent      |
-| `ack.kudos(id, { category, message })` | Give kudos              |
+| Method                                               | Description             |
+| ---------------------------------------------------- | ----------------------- |
+| `ACK.readonly()`                                     | Read-only client        |
+| `ACK.fromPrivateKey(key)`                            | Client with private key |
+| `ACK.fromWalletClient(wc)`                           | Client with viem wallet |
+| `ack.getAgent(id)`                                   | Agent details           |
+| `ack.reputation(id)`                                 | Quality scores          |
+| `ack.feedbacks(id)`                                  | Kudos received          |
+| `ack.search(query)`                                  | Search agents           |
+| `ack.leaderboard()`                                  | Top agents by score     |
+| `ack.register({ name, description })`                | Register new agent      |
+| `ack.kudos(id, { category, message, fromAgentId? })` | Give kudos              |
 
 ## MCP Server
 

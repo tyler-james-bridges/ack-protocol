@@ -7,8 +7,10 @@ import { Nav } from '@/components/nav';
 import { KudosForm } from '@/components/kudos-form';
 import { CategoryBadge } from '@/components/category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
-import { useGiveKudos, useRecentKudos, useIsAgent } from '@/hooks';
+import { useGiveKudos, useRecentKudos, useIsAgent, useLeaderboard } from '@/hooks';
 import type { RecentKudos } from '@/hooks';
+import type { ScanAgent } from '@/lib/api';
+import { AgentAvatar } from '@/components/agent-avatar';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,56 +35,73 @@ function SenderBadge({ isAgent }: { isAgent: boolean }) {
 function RecentKudosCard({
   kudos,
   isAgent,
+  agent,
+  senderAgent,
 }: {
   kudos: RecentKudos;
   isAgent: boolean;
+  agent?: ScanAgent;
+  senderAgent?: ScanAgent;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
   );
+  const senderName = senderAgent?.name || truncateAddress(kudos.sender);
+  const receiverName = agent?.name || `Agent #${kudos.agentId}`;
+  const senderLink = senderAgent
+    ? `/agent/${senderAgent.chain_id}/${senderAgent.token_id}`
+    : `/address/${kudos.sender}`;
 
   return (
-    <div className="border border-border rounded-lg p-4 bg-card hover:border-[#00DE73]/40 transition-colors">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2 min-w-0">
+    <div className="flex gap-3 border border-border rounded-lg p-4 bg-card hover:border-[#00DE73]/40 transition-colors">
+      <Link href={senderLink} className="shrink-0 mt-0.5">
+        <AgentAvatar
+          name={senderName}
+          imageUrl={senderAgent?.image_url}
+          size={36}
+        />
+      </Link>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+            <Link
+              href={senderLink}
+              className={`text-sm hover:text-[#00DE73] transition-colors shrink-0 ${senderAgent ? 'font-semibold text-foreground' : 'font-mono text-muted-foreground'}`}
+            >
+              {senderName}
+            </Link>
+            <SenderBadge isAgent={isAgent} />
+            <span className="text-muted-foreground/40 text-xs shrink-0">to</span>
+            <Link
+              href={`/agent/2741/${kudos.agentId}`}
+              className="text-sm font-semibold text-foreground hover:text-[#00DE73] transition-colors truncate"
+            >
+              {receiverName}
+            </Link>
+          </div>
+          {isValidCategory && (
+            <CategoryBadge category={kudos.tag2 as KudosCategory} />
+          )}
+        </div>
+
+        {kudos.message && (
+          <p className="text-sm text-foreground/80 my-1.5">
+            &ldquo;{kudos.message}&rdquo;
+          </p>
+        )}
+
+        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+          <span>Block #{kudos.blockNumber.toString()}</span>
           <a
-            href={`https://abscan.org/address/${kudos.sender}`}
+            href={`https://abscan.org/tx/${kudos.txHash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-sm text-muted-foreground hover:text-[#00DE73] transition-colors shrink-0"
+            className="hover:text-[#00DE73] transition-colors"
           >
-            {truncateAddress(kudos.sender)}
+            View tx
           </a>
-          <SenderBadge isAgent={isAgent} />
-          <span className="text-muted-foreground/40 text-xs shrink-0">to</span>
-          <Link
-            href={`/agent/2741/${kudos.agentId}`}
-            className="text-sm font-medium text-foreground hover:text-[#00DE73] transition-colors truncate"
-          >
-            Agent #{kudos.agentId}
-          </Link>
         </div>
-        {isValidCategory && (
-          <CategoryBadge category={kudos.tag2 as KudosCategory} />
-        )}
-      </div>
-
-      {kudos.message && (
-        <p className="text-sm text-foreground my-2">
-          &ldquo;{kudos.message}&rdquo;
-        </p>
-      )}
-
-      <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-        <span>Block #{kudos.blockNumber.toString()}</span>
-        <a
-          href={`https://abscan.org/tx/${kudos.txHash}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-[#00DE73] transition-colors"
-        >
-          View tx
-        </a>
       </div>
     </div>
   );
@@ -95,6 +114,17 @@ export default function GiveKudosPage() {
   const { data: recentKudos, isLoading: loadingFeed } = useRecentKudos();
   const senders = recentKudos?.map((k) => k.sender) || [];
   const { data: agentSet } = useIsAgent(senders);
+  const { data: agents } = useLeaderboard({ limit: 50, chainId: 2741, sortBy: 'total_score' });
+
+  const agentMap = new Map<number, ScanAgent>();
+  const senderMap = new Map<string, ScanAgent>();
+  if (agents) {
+    for (const a of agents) {
+      agentMap.set(Number(a.token_id), a);
+      if (a.owner_address) senderMap.set(a.owner_address.toLowerCase(), a);
+      if (a.agent_wallet) senderMap.set(a.agent_wallet.toLowerCase(), a);
+    }
+  }
 
   const handleSubmit = (data: {
     agent: { token_id: string };
@@ -233,6 +263,8 @@ export default function GiveKudosPage() {
                   key={`${k.txHash}-${i}`}
                   kudos={k}
                   isAgent={agentSet?.has(k.sender.toLowerCase()) ?? false}
+                  agent={agentMap.get(k.agentId)}
+                  senderAgent={senderMap.get(k.sender.toLowerCase())}
                 />
               ))}
             </div>

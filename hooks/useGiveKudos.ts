@@ -2,13 +2,10 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { useWriteContractSponsored } from '@abstract-foundation/agw-react';
-import { getGeneralPaymasterInput } from 'viem/zksync';
 import { useQueryClient } from '@tanstack/react-query';
 import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
 import {
   REPUTATION_REGISTRY_ADDRESS,
-  ABSTRACT_PAYMASTER_ADDRESS,
   KUDOS_TAG1,
   KUDOS_VALUE,
   KUDOS_VALUE_DECIMALS,
@@ -30,44 +27,21 @@ type KudosStatus = 'idle' | 'confirming' | 'waiting' | 'success' | 'error';
 /**
  * Hook to give kudos to an agent.
  *
- * Tries gas-sponsored tx first (Abstract paymaster).
- * Falls back to regular tx (user pays gas) if paymaster rejects.
+ * Uses standard writeContract (AGW handles gas sponsorship natively).
  */
 export function useGiveKudos() {
   const [status, setStatus] = useState<KudosStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
   const [kudosAgentId, setKudosAgentId] = useState<number | null>(null);
-  const [activeTxHash, setActiveTxHash] = useState<`0x${string}` | undefined>();
   const queryClient = useQueryClient();
 
-  // Sponsored path
-  const {
-    writeContractSponsored,
-    data: sponsoredHash,
-    reset: resetSponsored,
-  } = useWriteContractSponsored();
-
-  // Fallback: user-pays-gas path
-  const {
-    writeContract,
-    data: regularHash,
-    reset: resetRegular,
-  } = useWriteContract();
-
-  // Track whichever hash is active
-  useEffect(() => {
-    if (sponsoredHash) setActiveTxHash(sponsoredHash);
-  }, [sponsoredHash]);
-  useEffect(() => {
-    if (regularHash) setActiveTxHash(regularHash);
-  }, [regularHash]);
+  const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
 
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
-    hash: activeTxHash,
+    hash: txHash,
     chainId: chain.id,
   });
 
-  // Invalidate queries on confirmation
   useEffect(() => {
     if (!txConfirmed) return;
     const timer = setTimeout(() => {
@@ -89,7 +63,6 @@ export function useGiveKudos() {
       setError(null);
       setStatus('confirming');
       setKudosAgentId(params.agentId);
-      setActiveTxHash(undefined);
 
       try {
         const { feedbackURI, feedbackHash } = buildFeedback({
@@ -100,41 +73,28 @@ export function useGiveKudos() {
           fromAgentId: params.fromAgentId,
         });
 
-        const contractArgs = {
-          address: REPUTATION_REGISTRY_ADDRESS,
-          abi: REPUTATION_REGISTRY_ABI,
-          functionName: 'giveFeedback' as const,
-          args: [
-            BigInt(params.agentId),
-            BigInt(KUDOS_VALUE),
-            KUDOS_VALUE_DECIMALS,
-            KUDOS_TAG1,
-            params.category,
-            '',
-            feedbackURI,
-            feedbackHash,
-          ] as const,
-          chainId: chain.id,
-        };
-
-        // Try sponsored first
-        writeContractSponsored(
+        writeContract(
           {
-            ...contractArgs,
-            paymaster: ABSTRACT_PAYMASTER_ADDRESS,
-            paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
+            address: REPUTATION_REGISTRY_ADDRESS,
+            abi: REPUTATION_REGISTRY_ABI,
+            functionName: 'giveFeedback',
+            args: [
+              BigInt(params.agentId),
+              BigInt(KUDOS_VALUE),
+              KUDOS_VALUE_DECIMALS,
+              KUDOS_TAG1,
+              params.category,
+              '',
+              feedbackURI,
+              feedbackHash,
+            ],
+            chainId: chain.id,
           },
           {
             onSuccess: () => setStatus('waiting'),
-            onError: () => {
-              // Paymaster rejected, fall back to regular tx
-              writeContract(contractArgs, {
-                onSuccess: () => setStatus('waiting'),
-                onError: (err) => {
-                  setError(err instanceof Error ? err : new Error(String(err)));
-                  setStatus('error');
-                },
-              });
+            onError: (err) => {
+              setError(err instanceof Error ? err : new Error(String(err)));
+              setStatus('error');
             },
           }
         );
@@ -143,16 +103,14 @@ export function useGiveKudos() {
         setStatus('error');
       }
     },
-    [writeContractSponsored, writeContract]
+    [writeContract]
   );
 
   const reset = useCallback(() => {
     setStatus('idle');
     setError(null);
-    setActiveTxHash(undefined);
-    resetSponsored();
-    resetRegular();
-  }, [resetSponsored, resetRegular]);
+    resetWrite();
+  }, [resetWrite]);
 
   const finalStatus: KudosStatus = txConfirmed ? 'success' : status;
 
@@ -160,7 +118,7 @@ export function useGiveKudos() {
     giveKudos,
     status: finalStatus,
     error,
-    txHash: activeTxHash,
+    txHash,
     reset,
     isLoading: finalStatus === 'confirming' || finalStatus === 'waiting',
   };

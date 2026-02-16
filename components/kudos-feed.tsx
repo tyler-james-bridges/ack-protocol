@@ -2,8 +2,11 @@
 
 import Link from 'next/link';
 import { useKudosReceived, type KudosEvent } from '@/hooks/useKudosReceived';
+import { useLeaderboard } from '@/hooks';
+import { AgentAvatar } from '@/components/agent-avatar';
 import { CategoryBadge } from '@/components/category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import type { ScanAgent } from '@/lib/api';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -11,7 +14,6 @@ function truncateAddress(addr: string) {
 
 function parseMessage(feedbackURI: string): string | null {
   try {
-    // ERC-8004 best practices: data:application/json;base64,<base64 JSON>
     if (feedbackURI.startsWith('data:application/json;base64,')) {
       const json = decodeURIComponent(
         escape(atob(feedbackURI.replace('data:application/json;base64,', '')))
@@ -19,15 +21,12 @@ function parseMessage(feedbackURI: string): string | null {
       const payload = JSON.parse(json);
       return payload.reasoning || payload.message || null;
     }
-    // Legacy format: data:,<url-encoded content>
     if (feedbackURI.startsWith('data:,')) {
       const decoded = decodeURIComponent(feedbackURI.slice(6));
-      // If it's JSON, extract the message field
       try {
         const payload = JSON.parse(decoded);
         return payload.reasoning || payload.message || null;
       } catch {
-        // Plain text message
         return decoded || null;
       }
     }
@@ -37,45 +36,78 @@ function parseMessage(feedbackURI: string): string | null {
   return null;
 }
 
-function KudosCard({ kudos }: { kudos: KudosEvent }) {
+function KudosCard({
+  kudos,
+  agentId,
+  receiverAgent,
+  senderAgent,
+}: {
+  kudos: KudosEvent;
+  agentId: number;
+  receiverAgent?: ScanAgent;
+  senderAgent?: ScanAgent;
+}) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
   );
   const message = parseMessage(kudos.feedbackURI);
 
+  const senderName = senderAgent?.name || truncateAddress(kudos.sender);
+  const receiverName = receiverAgent?.name || `Agent #${agentId}`;
+  const senderLink = senderAgent
+    ? `/agent/${senderAgent.chain_id}/${senderAgent.token_id}`
+    : `/address/${kudos.sender}`;
+
   return (
-    <div className="border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors">
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-sm text-muted-foreground">
-          <span className="text-foreground/60">from</span>{' '}
-          <Link
-            href={`/address/${kudos.sender}`}
-            className="font-mono hover:text-[#00DE73] transition-colors"
+    <div className="flex gap-3 border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors">
+      {/* Sender avatar */}
+      <Link href={senderLink} className="shrink-0 mt-0.5">
+        <AgentAvatar
+          name={senderName}
+          imageUrl={senderAgent?.image_url}
+          size={32}
+        />
+      </Link>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            <Link
+              href={senderLink}
+              className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
+            >
+              {senderName}
+            </Link>
+            {' gave '}
+            <Link
+              href={`/agent/2741/${agentId}`}
+              className="font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+            >
+              {receiverName}
+            </Link>
+            {' kudos'}
+            {isValidCategory && (
+              <>
+                {' for '}
+                <CategoryBadge category={kudos.tag2 as KudosCategory} />
+              </>
+            )}
+          </p>
+          <a
+            href={`https://abscan.org/tx/${kudos.txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
           >
-            {truncateAddress(kudos.sender)}
-          </Link>
-        </p>
-        {isValidCategory ? (
-          <CategoryBadge category={kudos.tag2 as KudosCategory} />
-        ) : (
-          <span className="text-xs text-muted-foreground">{kudos.tag2}</span>
+            tx
+          </a>
+        </div>
+
+        {message && (
+          <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed">
+            &ldquo;{message}&rdquo;
+          </p>
         )}
-      </div>
-
-      {message && (
-        <p className="text-sm text-foreground my-2">&ldquo;{message}&rdquo;</p>
-      )}
-
-      <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-        <span>Block #{kudos.blockNumber.toString()}</span>
-        <a
-          href={`https://abscan.org/tx/${kudos.txHash}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-[#00DE73] transition-colors"
-        >
-          View tx ↗
-        </a>
       </div>
     </div>
   );
@@ -83,6 +115,22 @@ function KudosCard({ kudos }: { kudos: KudosEvent }) {
 
 export function KudosFeed({ agentId }: { agentId: number }) {
   const { data: kudos, isLoading, error } = useKudosReceived(agentId);
+  const { data: agents } = useLeaderboard({
+    limit: 50,
+    chainId: 2741,
+    sortBy: 'total_score',
+  });
+
+  // Build lookups
+  const agentMap = new Map<number, ScanAgent>();
+  const senderMap = new Map<string, ScanAgent>();
+  if (agents) {
+    for (const a of agents) {
+      agentMap.set(Number(a.token_id), a);
+      if (a.owner_address) senderMap.set(a.owner_address.toLowerCase(), a);
+      if (a.agent_wallet) senderMap.set(a.agent_wallet.toLowerCase(), a);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -110,7 +158,13 @@ export function KudosFeed({ agentId }: { agentId: number }) {
         Onchain Kudos ({kudos.length})
       </h3>
       {kudos.map((k, i) => (
-        <KudosCard key={`${k.txHash}-${i}`} kudos={k} />
+        <KudosCard
+          key={`${k.txHash}-${i}`}
+          kudos={k}
+          agentId={agentId}
+          receiverAgent={agentMap.get(agentId)}
+          senderAgent={senderMap.get(k.sender.toLowerCase())}
+        />
       ))}
     </div>
   );

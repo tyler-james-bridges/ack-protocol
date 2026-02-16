@@ -1,14 +1,11 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useWaitForTransactionReceipt } from 'wagmi';
-import { useWriteContractSponsored } from '@abstract-foundation/agw-react';
-import { getGeneralPaymasterInput } from 'viem/zksync';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
 import {
   REPUTATION_REGISTRY_ADDRESS,
-  ABSTRACT_PAYMASTER_ADDRESS,
   KUDOS_TAG1,
   KUDOS_VALUE,
   KUDOS_VALUE_DECIMALS,
@@ -28,9 +25,11 @@ interface GiveKudosParams {
 type KudosStatus = 'idle' | 'confirming' | 'waiting' | 'success' | 'error';
 
 /**
- * Hook to give kudos to an agent with gas-sponsored transactions.
+ * Hook to give kudos to an agent.
  *
- * Uses Abstract's paymaster for gas sponsorship via useWriteContractSponsored.
+ * Uses standard writeContract. Gas is paid by the user (~$0.001 on Abstract).
+ * Abstract's paymaster rejects giveFeedback with a Panic error during
+ * validation, so we skip sponsorship entirely for honest UX.
  */
 export function useGiveKudos() {
   const [status, setStatus] = useState<KudosStatus>('idle');
@@ -38,11 +37,8 @@ export function useGiveKudos() {
   const [kudosAgentId, setKudosAgentId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
-  const {
-    writeContractSponsored,
-    data: txHash,
-    reset: resetWrite,
-  } = useWriteContractSponsored();
+  const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
+
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
     chainId: chain.id,
@@ -79,7 +75,7 @@ export function useGiveKudos() {
           fromAgentId: params.fromAgentId,
         });
 
-        writeContractSponsored(
+        writeContract(
           {
             address: REPUTATION_REGISTRY_ADDRESS,
             abi: REPUTATION_REGISTRY_ABI,
@@ -95,8 +91,6 @@ export function useGiveKudos() {
               feedbackHash,
             ],
             chainId: chain.id,
-            paymaster: ABSTRACT_PAYMASTER_ADDRESS,
-            paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
           },
           {
             onSuccess: () => setStatus('waiting'),
@@ -111,7 +105,7 @@ export function useGiveKudos() {
         setStatus('error');
       }
     },
-    [writeContractSponsored]
+    [writeContract]
   );
 
   const reset = useCallback(() => {

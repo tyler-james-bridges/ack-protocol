@@ -64,66 +64,56 @@ function RecentKudosCard({
     : `/address/${kudos.sender}`;
 
   return (
-    <div className="flex gap-3 border border-border rounded-lg p-4 bg-card hover:border-[#00DE73]/40 transition-colors">
-      <Link href={senderLink} className="shrink-0 mt-0.5">
-        <AgentAvatar
-          name={senderName}
-          imageUrl={senderAgent?.image_url}
-          size={36}
-        />
-      </Link>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2 min-w-0 flex-wrap">
-            <Link
-              href={senderLink}
-              className={`text-sm hover:text-[#00DE73] transition-colors shrink-0 ${senderAgent ? 'font-semibold text-foreground' : 'font-mono text-muted-foreground'}`}
-            >
-              {senderName}
-            </Link>
-            <SenderBadge isAgent={isAgent} />
-            <span className="text-muted-foreground/40 text-xs shrink-0">
-              to
-            </span>
-            <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
-              <AgentAvatar
-                name={receiverName}
-                imageUrl={agent?.image_url}
-                size={36}
-              />
-            </Link>
-            <Link
-              href={`/agent/2741/${kudos.agentId}`}
-              className="text-sm font-semibold text-foreground hover:text-[#00DE73] transition-colors"
-            >
-              {receiverName}
-            </Link>
-          </div>
-          {isValidCategory && (
-            <CategoryBadge category={kudos.tag2 as KudosCategory} />
-          )}
-        </div>
-
-        {kudos.message && (
-          <p className="text-sm text-foreground/80 my-1.5">
-            &ldquo;{kudos.message}&rdquo;
-          </p>
+    <div className="border border-border rounded-lg p-3 sm:p-4 bg-card hover:border-[#00DE73]/40 transition-colors">
+      <div className="flex items-center gap-1.5 flex-wrap mb-1">
+        <Link href={senderLink} className="shrink-0">
+          <AgentAvatar
+            name={senderName}
+            imageUrl={senderAgent?.image_url}
+            size={24}
+          />
+        </Link>
+        <Link
+          href={senderLink}
+          className={`text-xs sm:text-sm hover:text-[#00DE73] transition-colors shrink-0 ${senderAgent ? 'font-semibold text-foreground' : 'font-mono text-muted-foreground'}`}
+        >
+          {senderName}
+        </Link>
+        <SenderBadge isAgent={isAgent} />
+        <span className="text-muted-foreground/40 text-xs shrink-0">to</span>
+        <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
+          <AgentAvatar
+            name={receiverName}
+            imageUrl={agent?.image_url}
+            size={24}
+          />
+        </Link>
+        <Link
+          href={`/agent/2741/${kudos.agentId}`}
+          className="text-xs sm:text-sm font-semibold text-foreground hover:text-[#00DE73] transition-colors truncate"
+        >
+          {receiverName}
+        </Link>
+        {isValidCategory && (
+          <CategoryBadge category={kudos.tag2 as KudosCategory} />
         )}
-
-        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-          <a
-            href={`https://abscan.org/tx/${kudos.txHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-[#00DE73] transition-colors"
-          >
-            {timestamp
-              ? formatRelativeTime(timestamp)
-              : `Block #${kudos.blockNumber.toString()}`}
-          </a>
-        </div>
       </div>
+      {kudos.message && (
+        <p className="text-xs sm:text-sm text-foreground/80 my-1 line-clamp-3">
+          &ldquo;{kudos.message}&rdquo;
+        </p>
+      )}
+
+      <a
+        href={`https://abscan.org/tx/${kudos.txHash}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+      >
+        {timestamp
+          ? formatRelativeTime(timestamp)
+          : `Block #${kudos.blockNumber.toString()}`}
+      </a>
     </div>
   );
 }

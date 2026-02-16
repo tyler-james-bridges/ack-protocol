@@ -71,33 +71,35 @@ function KudosCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-muted-foreground">
             <Link
               href={senderLink}
               className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
             >
               {senderName}
             </Link>
-            {' gave '}
-            <Link
-              href={`/agent/2741/${agentId}`}
-              className="inline-flex items-center gap-1 font-semibold text-foreground hover:text-[#00DE73] transition-colors align-middle"
-            >
+            <span>gave</span>
+            <Link href={`/agent/2741/${agentId}`} className="shrink-0">
               <AgentAvatar
                 name={receiverName}
                 imageUrl={receiverAgent?.image_url}
-                size={18}
+                size={28}
               />
+            </Link>
+            <Link
+              href={`/agent/2741/${agentId}`}
+              className="font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+            >
               {receiverName}
             </Link>
-            {' kudos'}
+            <span>kudos</span>
             {isValidCategory && (
               <>
-                {' for '}
+                <span>for</span>
                 <CategoryBadge category={kudos.tag2 as KudosCategory} />
               </>
             )}
-          </p>
+          </div>
           <a
             href={`https://abscan.org/tx/${kudos.txHash}`}
             target="_blank"

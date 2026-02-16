@@ -80,18 +80,18 @@ function RecentKudosCard({
             <span className="text-muted-foreground/40 text-xs shrink-0">
               to
             </span>
-            <Link
-              href={`/agent/2741/${kudos.agentId}`}
-              className="flex items-center gap-1.5 hover:text-[#00DE73] transition-colors shrink-0"
-            >
+            <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
               <AgentAvatar
                 name={receiverName}
                 imageUrl={agent?.image_url}
-                size={20}
+                size={36}
               />
-              <span className="text-sm font-semibold text-foreground">
-                {receiverName}
-              </span>
+            </Link>
+            <Link
+              href={`/agent/2741/${kudos.agentId}`}
+              className="text-sm font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+            >
+              {receiverName}
             </Link>
           </div>
           {isValidCategory && (

@@ -36,40 +36,36 @@ function FeedItem({
         <AgentAvatar
           name={senderName}
           imageUrl={senderAgent?.image_url}
-          size={32}
+          size={28}
         />
       </Link>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">
-              <Link
-                href={senderLink}
-                className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
-              >
-                {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
-              </Link>
-              {' gave '}
-              <Link
-                href={`/agent/2741/${kudos.agentId}`}
-                className="inline-flex items-center gap-1 font-semibold text-foreground hover:text-[#00DE73] transition-colors align-middle"
-              >
-                <AgentAvatar
-                  name={name}
-                  imageUrl={agent?.image_url}
-                  size={16}
-                />
-                {name}
-              </Link>
-              {' kudos'}
-              {isValidCategory && (
-                <>
-                  {' for '}
-                  <CategoryBadge category={kudos.tag2 as KudosCategory} />
-                </>
-              )}
-            </p>
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+            <Link
+              href={senderLink}
+              className={`text-xs hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono text-muted-foreground'}`}
+            >
+              {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
+            </Link>
+            <span className="text-xs text-muted-foreground">gave</span>
+            <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
+              <AgentAvatar name={name} imageUrl={agent?.image_url} size={28} />
+            </Link>
+            <Link
+              href={`/agent/2741/${kudos.agentId}`}
+              className="text-xs font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+            >
+              {name}
+            </Link>
+            <span className="text-xs text-muted-foreground">kudos</span>
+            {isValidCategory && (
+              <>
+                <span className="text-xs text-muted-foreground">for</span>
+                <CategoryBadge category={kudos.tag2 as KudosCategory} />
+              </>
+            )}
           </div>
           <a
             href={`https://abscan.org/tx/${kudos.txHash}`}

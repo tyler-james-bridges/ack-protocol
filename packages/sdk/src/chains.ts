@@ -24,6 +24,56 @@ export const CHAIN_CONFIGS: Record<ChainId, ChainConfig> = {
     name: 'BNB Smart Chain',
     rpcUrl: 'https://bsc-dataseed.binance.org',
   },
+  celo: {
+    id: 42220,
+    name: 'Celo',
+    rpcUrl: 'https://forno.celo.org',
+  },
+  gnosis: {
+    id: 100,
+    name: 'Gnosis',
+    rpcUrl: 'https://rpc.gnosischain.com',
+  },
+  arbitrum: {
+    id: 42161,
+    name: 'Arbitrum',
+    rpcUrl: 'https://arb1.arbitrum.io/rpc',
+  },
+  optimism: {
+    id: 10,
+    name: 'Optimism',
+    rpcUrl: 'https://mainnet.optimism.io',
+  },
+  polygon: {
+    id: 137,
+    name: 'Polygon',
+    rpcUrl: 'https://polygon-rpc.com',
+  },
+  scroll: {
+    id: 534352,
+    name: 'Scroll',
+    rpcUrl: 'https://rpc.scroll.io',
+  },
+  avalanche: {
+    id: 43114,
+    name: 'Avalanche',
+    rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+  },
+  linea: {
+    id: 59144,
+    name: 'Linea',
+    rpcUrl: 'https://rpc.linea.build',
+  },
+  taiko: {
+    id: 167000,
+    name: 'Taiko',
+    rpcUrl: 'https://rpc.mainnet.taiko.xyz',
+  },
+  xlayer: {
+    id: 196,
+    name: 'X Layer',
+    rpcUrl: 'https://rpc.xlayer.tech',
+  },
 };
 
 /**

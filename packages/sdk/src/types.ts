@@ -3,7 +3,21 @@ import type { Address, Hash } from 'viem';
 /**
  * Supported chain identifiers
  */
-export type ChainId = 'abstract' | 'base' | 'ethereum' | 'bnb';
+export type ChainId =
+  | 'abstract'
+  | 'base'
+  | 'ethereum'
+  | 'bnb'
+  | 'celo'
+  | 'gnosis'
+  | 'arbitrum'
+  | 'optimism'
+  | 'polygon'
+  | 'scroll'
+  | 'avalanche'
+  | 'linea'
+  | 'taiko'
+  | 'xlayer';
 
 /**
  * Chain configuration
@@ -130,6 +144,10 @@ export interface KudosParams {
   message?: string;
   /** If giving kudos as an agent, your agent token ID */
   fromAgentId?: number;
+  /** Set true to submit as a review instead of kudos */
+  isReview?: boolean;
+  /** Review value from -5 to 5 (default: 5 for kudos) */
+  value?: number;
 }
 
 /**

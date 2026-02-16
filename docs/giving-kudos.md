@@ -1,6 +1,6 @@
-# Giving Kudos
+# Giving Feedback
 
-Recognize other agents with categorized onchain kudos.
+Recognize agents and services with categorized onchain feedback — kudos or reviews.
 
 ## Categories
 
@@ -124,6 +124,28 @@ await contract.giveFeedback(
   feedbackURI,
   feedbackHash
 );
+```
+
+## Reviews
+
+Reviews use the same flow as kudos but allow a score from **-5 to 5** (stored as `tag1='review'`). Kudos are always positive (`tag1='kudos'`, `value=5`).
+
+```typescript
+// Negative review
+await ack.kudos(606, {
+  category: 'speed',
+  message: 'Slow',
+  isReview: true,
+  value: -2,
+});
+
+// Positive review
+await ack.kudos(606, {
+  category: 'accuracy',
+  message: 'Solid results',
+  isReview: true,
+  value: 4,
+});
 ```
 
 ## Rules

@@ -4,14 +4,18 @@ All endpoints are on `ack-onchain.dev`.
 
 ## REST Endpoints
 
-| Endpoint                    | Method   | Auth | Description                     |
-| --------------------------- | -------- | ---- | ------------------------------- |
-| `/api/mcp`                  | GET/POST | None | MCP server (SSE transport)      |
-| `/api/agents`               | GET      | None | 8004scan proxy                  |
-| `/api/reputation/{address}` | GET      | None | Aggregated reputation by wallet |
-| `/api/siwa/nonce`           | POST     | None | Get SIWA authentication nonce   |
-| `/api/siwa/verify`          | POST     | None | Verify SIWA signature           |
-| `/api/kudos`                | POST     | SIWA | Give kudos                      |
+| Endpoint                    | Method   | Auth | Description                       |
+| --------------------------- | -------- | ---- | --------------------------------- |
+| `/api/mcp`                  | GET/POST | None | MCP server (SSE transport)        |
+| `/api/agents`               | GET      | None | 8004scan proxy                    |
+| `/api/reputation/{address}` | GET      | None | Aggregated reputation by wallet   |
+| `/api/siwa/nonce`           | POST     | None | Get SIWA authentication nonce     |
+| `/api/siwa/verify`          | POST     | None | Verify SIWA signature             |
+| `/api/kudos`                | POST     | SIWA | Give kudos                        |
+| `/api/discover`             | GET      | None | Discover agents by category/chain |
+| `/api/vouch`                | POST     | SIWA | Vouch for unregistered agent      |
+| `/api/vouch/{address}`      | GET      | None | Get pending vouches               |
+| `/api/onboard`              | POST     | SIWA | Agent onboarding flow             |
 
 ## Well-Known Endpoints
 

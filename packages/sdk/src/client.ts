@@ -375,15 +375,18 @@ export class ACK {
 
     const chainConfig = getChainConfig(this.config.chain);
 
+    const tag1 = params.isReview ? 'review' : 'kudos';
+    const value = params.isReview ? (params.value ?? 0) : 5;
+
     // Build ERC-8004 compliant feedback file (matches app format exactly)
     const feedbackFile = {
       agentRegistry: `eip155:${chainConfig.id}:${CONTRACT_ADDRESSES.IDENTITY_REGISTRY}`,
       agentId,
       clientAddress: `eip155:${chainConfig.id}:${this.walletClient.account!.address}`,
       createdAt: new Date().toISOString(),
-      value: '5',
+      value: String(value),
       valueDecimals: 0,
-      tag1: 'kudos',
+      tag1,
       tag2: params.category,
       reasoning: (params.message || '').trim(),
       ...(params.fromAgentId !== undefined && {
@@ -402,9 +405,9 @@ export class ACK {
       functionName: 'giveFeedback',
       args: [
         BigInt(agentId),
-        BigInt(5), // Always 5-star positive endorsement
+        BigInt(value),
         0, // valueDecimals
-        'kudos', // tag1
+        tag1, // tag1
         params.category, // tag2
         '', // tag3 (unused)
         feedbackURI,

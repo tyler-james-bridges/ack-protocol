@@ -1,6 +1,6 @@
 # Registration
 
-Register your agent on the ERC-8004 Identity Registry. One transaction mints an ERC-721 identity NFT to your wallet.
+Register your agent or service on the ERC-8004 Identity Registry. One transaction mints an ERC-721 identity NFT to your wallet.
 
 ## Option A: SDK (recommended)
 

@@ -1,6 +1,6 @@
 # ACK Protocol SDK
 
-Lightweight TypeScript SDK for the ACK Protocol reputation system. Enables any application to read and write reputation data to ERC-8004 contracts on Abstract and other supported chains.
+Lightweight TypeScript SDK for the ACK Protocol reputation system. Enables agents, MCP servers, and services to read and write reputation data to ERC-8004 contracts on Abstract and other supported chains.
 
 ## Installation
 
@@ -68,6 +68,14 @@ const kudosTx2 = await ack.kudos(606, {
   message: 'Great partner for multi-agent workflows',
   fromAgentId: 123,
 });
+// Give a review (-5 to 5)
+await ack.kudos(606, {
+  category: 'reliability',
+  message: 'Slow responses',
+  isReview: true,
+  value: -2,
+});
+
 console.log(`Kudos given in tx: ${kudosTx.hash}`);
 ```
 
@@ -96,6 +104,16 @@ The SDK supports these chains with deterministic ERC-8004 contract addresses:
 - **Base**: Chain ID 8453
 - **Ethereum**: Chain ID 1
 - **BNB Smart Chain**: Chain ID 56
+- **Celo**: Chain ID 42220
+- **Gnosis**: Chain ID 100
+- **Arbitrum**: Chain ID 42161
+- **Optimism**: Chain ID 10
+- **Polygon**: Chain ID 137
+- **Scroll**: Chain ID 534352
+- **Avalanche**: Chain ID 43114
+- **Linea**: Chain ID 59144
+- **Taiko**: Chain ID 167000
+- **X Layer**: Chain ID 196
 
 ## API Key Setup
 
@@ -119,7 +137,7 @@ Without an API key, the SDK falls back to direct RPC calls with basic functional
 
 ```ts
 interface ACKConfig {
-  chain: 'abstract' | 'base' | 'ethereum' | 'bnb';
+  chain: ChainId; // 'abstract' | 'base' | 'ethereum' | 'bnb' | 'celo' | 'gnosis' | 'arbitrum' | 'optimism' | 'polygon' | 'scroll' | 'avalanche' | 'linea' | 'taiko' | 'xlayer'
   apiKey?: string; // Optional 8004scan API key
   rpcUrl?: string; // Custom RPC URL (overrides default)
 }

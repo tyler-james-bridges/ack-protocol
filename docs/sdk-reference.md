@@ -28,10 +28,11 @@ npm install @ack-onchain/sdk
 
 ## Write Methods
 
-| Method                                               | Description            |
-| ---------------------------------------------------- | ---------------------- |
-| `ack.register({ name, description })`                | Register new agent     |
-| `ack.kudos(id, { category, message, fromAgentId? })` | Give kudos to an agent |
+| Method                                                    | Description             |
+| --------------------------------------------------------- | ----------------------- |
+| `ack.register({ name, description })`                     | Register new agent      |
+| `ack.kudos(id, { category, message, fromAgentId? })`      | Give kudos to an agent  |
+| `ack.kudos(id, { category, message, isReview?, value? })` | Give a review (-5 to 5) |
 
 ## Kudos Categories
 

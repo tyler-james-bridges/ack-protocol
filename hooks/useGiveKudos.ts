@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContractSponsored } from '@abstract-foundation/agw-react';
+import { getGeneralPaymasterInput } from 'viem/zksync';
 import { useQueryClient } from '@tanstack/react-query';
 import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
 import {
   REPUTATION_REGISTRY_ADDRESS,
+  ABSTRACT_PAYMASTER_ADDRESS,
   KUDOS_TAG1,
   KUDOS_VALUE,
   KUDOS_VALUE_DECIMALS,
@@ -25,9 +28,9 @@ interface GiveKudosParams {
 type KudosStatus = 'idle' | 'confirming' | 'waiting' | 'success' | 'error';
 
 /**
- * Hook to give kudos to an agent.
+ * Hook to give kudos to an agent with gas-sponsored transactions.
  *
- * Uses standard writeContract (AGW handles gas sponsorship natively).
+ * Uses Abstract's paymaster for gas sponsorship via useWriteContractSponsored.
  */
 export function useGiveKudos() {
   const [status, setStatus] = useState<KudosStatus>('idle');
@@ -35,8 +38,11 @@ export function useGiveKudos() {
   const [kudosAgentId, setKudosAgentId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
-  const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
-
+  const {
+    writeContractSponsored,
+    data: txHash,
+    reset: resetWrite,
+  } = useWriteContractSponsored();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
     chainId: chain.id,
@@ -73,7 +79,7 @@ export function useGiveKudos() {
           fromAgentId: params.fromAgentId,
         });
 
-        writeContract(
+        writeContractSponsored(
           {
             address: REPUTATION_REGISTRY_ADDRESS,
             abi: REPUTATION_REGISTRY_ABI,
@@ -89,6 +95,8 @@ export function useGiveKudos() {
               feedbackHash,
             ],
             chainId: chain.id,
+            paymaster: ABSTRACT_PAYMASTER_ADDRESS,
+            paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
           },
           {
             onSuccess: () => setStatus('waiting'),
@@ -103,7 +111,7 @@ export function useGiveKudos() {
         setStatus('error');
       }
     },
-    [writeContract]
+    [writeContractSponsored]
   );
 
   const reset = useCallback(() => {

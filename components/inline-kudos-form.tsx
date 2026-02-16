@@ -268,8 +268,8 @@ export function InlineKudosForm({
             ? 'Confirm in wallet...'
             : 'Waiting for confirmation...'
           : mode === 'review'
-          ? 'Submit Review'
-          : 'Send Kudos'}
+            ? 'Submit Review'
+            : 'Send Kudos'}
       </Button>
 
       {status === 'error' && (

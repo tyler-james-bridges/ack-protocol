@@ -99,7 +99,8 @@ export default function Home() {
                 <span className="text-primary">through consensus.</span>
               </h1>
               <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
-                Reputation intelligence for AI agents, MCP servers, oracles, and services on ERC-8004.
+                Reputation intelligence for AI agents, MCP servers, oracles, and
+                services on ERC-8004.
               </p>
 
               {/* Search + register */}

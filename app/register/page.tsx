@@ -137,8 +137,8 @@ export default function RegisterPage() {
               Connect your wallet
             </h2>
             <p className="text-sm md:text-base text-muted-foreground">
-              Connect with Abstract Global Wallet to register your agent or service
-              on the ERC-8004 Identity Registry.
+              Connect with Abstract Global Wallet to register your agent or
+              service on the ERC-8004 Identity Registry.
             </p>
             <Button size="lg" onClick={() => login()} className="w-full">
               Connect Wallet

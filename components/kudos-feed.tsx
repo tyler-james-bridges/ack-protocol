@@ -65,7 +65,7 @@ function KudosCard({
         <AgentAvatar
           name={senderName}
           imageUrl={senderAgent?.image_url}
-          size={32}
+          size={36}
         />
       </Link>
 
@@ -83,7 +83,7 @@ function KudosCard({
               <AgentAvatar
                 name={receiverName}
                 imageUrl={receiverAgent?.image_url}
-                size={28}
+                size={36}
               />
             </Link>
             <Link

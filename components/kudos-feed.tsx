@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useKudosReceived, type KudosEvent } from '@/hooks/useKudosReceived';
 import { CategoryBadge } from '@/components/category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
@@ -47,14 +48,12 @@ function KudosCard({ kudos }: { kudos: KudosEvent }) {
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm text-muted-foreground">
           <span className="text-foreground/60">from</span>{' '}
-          <a
-            href={`https://abscan.org/address/${kudos.sender}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href={`/address/${kudos.sender}`}
             className="font-mono hover:text-[#00DE73] transition-colors"
           >
             {truncateAddress(kudos.sender)}
-          </a>
+          </Link>
         </p>
         {isValidCategory ? (
           <CategoryBadge category={kudos.tag2 as KudosCategory} />

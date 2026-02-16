@@ -26,28 +26,30 @@ function FeedItem({
   const name = agent?.name || `Agent #${kudos.agentId}`;
   const senderName = senderAgent?.name || kudos.sender;
 
+  const senderLink = senderAgent
+    ? `/agent/${senderAgent.chain_id}/${senderAgent.token_id}`
+    : `/address/${kudos.sender}`;
+
   return (
     <div className="flex gap-3 px-4 py-3 border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors">
-      <div className="shrink-0 mt-0.5">
+      <Link href={senderLink} className="shrink-0 mt-0.5">
         <AgentAvatar
           name={senderName}
           imageUrl={senderAgent?.image_url}
           size={32}
         />
-      </div>
+      </Link>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground">
-              <a
-                href={`https://abscan.org/address/${kudos.sender}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={senderLink}
                 className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
               >
                 {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
-              </a>
+              </Link>
               {' gave '}
               <Link
                 href={`/agent/2741/${kudos.agentId}`}

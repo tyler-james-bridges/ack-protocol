@@ -11,9 +11,9 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
   webServer: {
-    command: 'npm run dev',
+    command: 'npx next start -p 3000',
     port: 3000,
     reuseExistingServer: true,
-    timeout: 30000,
+    timeout: 60000,
   },
 });

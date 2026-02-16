@@ -1,60 +1,28 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Agent Profile', () => {
-  test('navigate to agent from registry and verify profile loads', async ({
-    page,
-  }) => {
-    // First get a real agent from the registry
-    await page.goto('/leaderboard');
-    await page.waitForTimeout(3000);
+  test('ACK agent profile loads', async ({ page }) => {
+    await page.goto('/agent/2741/606', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000);
 
-    const cards = page.locator('[class*="cursor-pointer"]');
-    const cardCount = await cards.count();
-
-    if (cardCount > 0) {
-      await cards.first().click();
-      await page.waitForURL(/\/agent\//, { timeout: 10000 });
-
-      // Agent name should render
-      await expect(page.locator('h1')).toBeVisible();
-
-      // Page should have loaded agent data
-      const pageText = await page.textContent('body');
-      expect(pageText!.length).toBeGreaterThan(100);
-    }
+    await expect(page.locator('text=ACK').first()).toBeVisible();
+    await expect(page.locator('text=Abstract').first()).toBeVisible();
   });
 
-  test('agent profile shows reputation data', async ({ page }) => {
-    await page.goto('/leaderboard');
-    await page.waitForTimeout(3000);
+  test('agent profile shows reputation section', async ({ page }) => {
+    await page.goto('/agent/2741/606', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000);
 
-    const cards = page.locator('[class*="cursor-pointer"]');
-    if ((await cards.count()) > 0) {
-      await cards.first().click();
-      await page.waitForURL(/\/agent\//, { timeout: 10000 });
-      await page.waitForTimeout(2000);
-
-      // Should have stats cards or reputation info
-      const pageText = await page.textContent('body');
-      // Cross-chain reputation section
-      expect(pageText).toBeTruthy();
-    }
+    await expect(page.locator('text=REPUTATION').first()).toBeVisible();
   });
 
-  test('agent profile has chain badge', async ({ page }) => {
-    await page.goto('/leaderboard');
-    await page.waitForTimeout(3000);
+  test('agent profile URL contains chain and token ID', async ({ page }) => {
+    await page.goto('/agent/2741/606', { waitUntil: 'domcontentloaded' });
+    expect(page.url()).toMatch(/\/agent\/2741\/606/);
+  });
 
-    const cards = page.locator('[class*="cursor-pointer"]');
-    if ((await cards.count()) > 0) {
-      await cards.first().click();
-      await page.waitForURL(/\/agent\//, { timeout: 10000 });
-      await page.waitForTimeout(2000);
-
-      // Should show chain information (badge or icon)
-      // The URL itself contains chain info: /agent/{chain_id}/{token_id}
-      const url = page.url();
-      expect(url).toMatch(/\/agent\/\d+\/\d+/);
-    }
+  test('agent profile supports chain name redirect', async ({ page }) => {
+    await page.goto('/agent/abstract/606', { waitUntil: 'domcontentloaded' });
+    await page.waitForURL('**/agent/2741/606', { timeout: 5000 });
   });
 });

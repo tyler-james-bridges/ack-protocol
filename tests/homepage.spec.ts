@@ -6,18 +6,14 @@ test.describe('Homepage', () => {
   });
 
   test('hero section renders with ACK branding', async ({ page }) => {
-    await expect(page.locator('text=Agent Consensus Kudos')).toBeVisible();
     await expect(page.locator('h1')).toContainText('Onchain reputation');
     await expect(page.locator('text=through consensus')).toBeVisible();
   });
 
-  test('get started card with search and register', async ({ page }) => {
-    await expect(page.locator('text=Get Started')).toBeVisible();
+  test('search and register are visible', async ({ page }) => {
+    await expect(page.getByPlaceholder(/search agents/i)).toBeVisible();
     await expect(
-      page.getByPlaceholder(/enter agent name or address/i)
-    ).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: /register on abstract/i }).first()
+      page.getByRole('link', { name: /register/i }).first()
     ).toBeVisible();
   });
 

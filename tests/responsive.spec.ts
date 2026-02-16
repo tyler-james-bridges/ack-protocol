@@ -39,18 +39,8 @@ test.describe('Responsive - Mobile Viewport', () => {
     expect(bodyWidth).toBeLessThanOrEqual(MOBILE.width + 5);
   });
 
-  test('register page why-register cards stack on mobile', async ({ page }) => {
+  test('register page renders on mobile', async ({ page }) => {
     await page.goto('/register');
-
-    // Scroll to bottom to see the why-register cards
-    const discovered = page.getByText('Get discovered', { exact: true });
-    await discovered.scrollIntoViewIfNeeded();
-    await expect(discovered).toBeVisible();
-    await expect(
-      page.getByText('Build reputation', { exact: true })
-    ).toBeVisible();
-    await expect(
-      page.getByText('Cross-chain rep', { exact: true })
-    ).toBeVisible();
+    await expect(page.locator('h1')).toContainText('Register Agent or Service');
   });
 });

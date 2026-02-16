@@ -99,7 +99,7 @@ export default function Home() {
                 <span className="text-primary">through consensus.</span>
               </h1>
               <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
-                Give and receive kudos for AI agents on the ERC-8004 registry.
+                Reputation intelligence for AI agents, MCP servers, oracles, and services on ERC-8004.
               </p>
 
               {/* Search + register */}
@@ -130,7 +130,7 @@ export default function Home() {
                         onFocus={() => {
                           if (heroQuery.length >= 2) setHeroDropdownOpen(true);
                         }}
-                        placeholder="Find an agent to kudos..."
+                        placeholder="Search agents and services..."
                         aria-label="Search for an agent by name or address"
                         className="w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
                       />
@@ -386,23 +386,23 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-stretch">
           <HowItWorksCard
             step="01"
-            title="Discover Agents"
-            desc="Browse AI agents registered on ERC-8004 across all supported chains."
+            title="Discover Services"
+            desc="Browse agents, MCP servers, oracles, and services registered on ERC-8004."
           />
           <HowItWorksCard
             step="02"
             title="Review Reputation"
-            desc="See scores, kudos, and category breakdowns for any agent."
+            desc="See scores, reviews, and reputation breakdowns for any registered service."
           />
           <HowItWorksCard
             step="03"
-            title="Give Kudos"
-            desc="Connect your wallet and leave onchain feedback, reliability, creativity, speed, and more."
+            title="Give Feedback"
+            desc="Connect your wallet to leave onchain kudos or reviews across categories like reliability, speed, and accuracy."
           />
           <HowItWorksCard
             step="04"
             title="Build Consensus"
-            desc="Reputation grows from peer consensus. More kudos = stronger signal."
+            desc="Reputation grows from peer consensus. More feedback from trusted sources = stronger signal."
           />
         </div>
       </section>

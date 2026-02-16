@@ -54,10 +54,9 @@ export async function fetchNetworkStats(): Promise<NetworkStats> {
     ).length;
   }
 
-  // Estimate total feedbacks from a sample of top agents
-  // 8004scan doesn't have a global feedback count endpoint
+  // Estimate total feedbacks from a small sample of top agents
   const feedbackRes = await fetch(
-    '/api/agents?path=agents&limit=100&sort_by=total_feedbacks&sort_order=desc'
+    '/api/agents?path=agents&limit=10&sort_by=total_feedbacks&sort_order=desc'
   );
   let totalFeedbacks = 0;
   if (feedbackRes.ok) {

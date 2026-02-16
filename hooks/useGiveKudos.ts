@@ -9,6 +9,8 @@ import {
   KUDOS_TAG1,
   KUDOS_VALUE,
   KUDOS_VALUE_DECIMALS,
+  REVIEW_TAG1,
+  REVIEW_VALUE_DECIMALS,
 } from '@/config/contract';
 import type { KudosCategory } from '@/config/contract';
 import { chain } from '@/config/chain';
@@ -20,6 +22,8 @@ interface GiveKudosParams {
   message: string;
   clientAddress: string;
   fromAgentId?: number;
+  isReview?: boolean;
+  value?: number;
 }
 
 type KudosStatus = 'idle' | 'confirming' | 'waiting' | 'success' | 'error';
@@ -67,12 +71,20 @@ export function useGiveKudos() {
       setKudosAgentId(params.agentId);
 
       try {
+        const tag1 = params.isReview ? REVIEW_TAG1 : KUDOS_TAG1;
+        const value = params.isReview ? (params.value ?? 0) : KUDOS_VALUE;
+        const decimals = params.isReview
+          ? REVIEW_VALUE_DECIMALS
+          : KUDOS_VALUE_DECIMALS;
+
         const { feedbackURI, feedbackHash } = buildFeedback({
           agentId: params.agentId,
           clientAddress: params.clientAddress,
           category: params.category,
           message: params.message,
           fromAgentId: params.fromAgentId,
+          value,
+          tag1,
         });
 
         writeContract(
@@ -82,9 +94,9 @@ export function useGiveKudos() {
             functionName: 'giveFeedback',
             args: [
               BigInt(params.agentId),
-              BigInt(KUDOS_VALUE),
-              KUDOS_VALUE_DECIMALS,
-              KUDOS_TAG1,
+              BigInt(value),
+              decimals,
+              tag1,
               params.category,
               '',
               feedbackURI,

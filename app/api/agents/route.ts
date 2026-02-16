@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const timeout = setTimeout(() => controller.abort(), 8000);
     const response = await fetch(url, {
       headers: { Accept: 'application/json' },
-      next: { revalidate: 30 },
+      next: { revalidate: 120 },
       signal: controller.signal,
     });
     clearTimeout(timeout);

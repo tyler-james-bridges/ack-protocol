@@ -14,6 +14,8 @@ export interface FeedbackFileParams {
   category: KudosCategory;
   message: string;
   fromAgentId?: number;
+  value?: number;
+  tag1?: string;
 }
 
 export interface FeedbackResult {
@@ -35,9 +37,9 @@ export function buildFeedback(params: FeedbackFileParams): FeedbackResult {
     agentId: params.agentId,
     clientAddress: toCAIP10Address(params.clientAddress),
     createdAt: new Date().toISOString(),
-    value: String(KUDOS_VALUE),
+    value: String(params.value ?? KUDOS_VALUE),
     valueDecimals: KUDOS_VALUE_DECIMALS,
-    tag1: KUDOS_TAG1,
+    tag1: params.tag1 ?? KUDOS_TAG1,
     tag2: params.category,
     reasoning: params.message.trim(),
     ...(params.fromAgentId !== undefined && {

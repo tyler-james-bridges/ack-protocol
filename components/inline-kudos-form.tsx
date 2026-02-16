@@ -5,7 +5,12 @@ import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { CategoryBadge } from './category-badge';
-import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import {
+  KUDOS_CATEGORIES,
+  REVIEW_MIN_VALUE,
+  REVIEW_MAX_VALUE,
+  type KudosCategory,
+} from '@/config/contract';
 import { useGiveKudos } from '@/hooks';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +36,8 @@ export function InlineKudosForm({
   const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
   const [category, setCategory] = useState<KudosCategory | null>(null);
   const [message, setMessage] = useState('');
+  const [mode, setMode] = useState<'kudos' | 'review'>('kudos');
+  const [reviewValue, setReviewValue] = useState(0);
 
   // ERC-8004: "feedback submitter MUST NOT be the agent owner or approved operator"
   const isSelfKudos =
@@ -59,6 +66,8 @@ export function InlineKudosForm({
       category: category || 'reliability',
       message: message.trim(),
       clientAddress: address,
+      isReview: mode === 'review',
+      value: mode === 'review' ? reviewValue : undefined,
     });
   };
 
@@ -66,6 +75,8 @@ export function InlineKudosForm({
     reset();
     setMessage('');
     setCategory(null);
+    setMode('kudos');
+    setReviewValue(0);
   };
 
   if (status === 'success') {
@@ -140,7 +151,60 @@ export function InlineKudosForm({
       className={cn('rounded-xl border border-border p-5 space-y-4', className)}
       id="give-kudos"
     >
-      <p className="font-semibold">Give Kudos to {agentName}</p>
+      <p className="font-semibold">
+        {mode === 'kudos' ? 'Give Kudos' : 'Review'} {agentName}
+      </p>
+
+      {/* Mode toggle */}
+      <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
+        {(['kudos', 'review'] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMode(m)}
+            className={cn(
+              'px-3 py-1 text-sm rounded-md transition-colors capitalize',
+              mode === m
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      {/* Review value selector */}
+      {mode === 'review' && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Rating ({REVIEW_MIN_VALUE} to {REVIEW_MAX_VALUE})
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {Array.from(
+              { length: REVIEW_MAX_VALUE - REVIEW_MIN_VALUE + 1 },
+              (_, i) => REVIEW_MIN_VALUE + i
+            ).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setReviewValue(v)}
+                className={cn(
+                  'w-9 h-9 rounded-md text-sm font-medium border transition-colors',
+                  reviewValue === v
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-primary/50',
+                  v < 0 && 'text-red-500',
+                  v > 0 && 'text-green-500',
+                  v === 0 && 'text-muted-foreground'
+                )}
+              >
+                {v > 0 ? `+${v}` : v}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Category */}
       <div className="space-y-2">
@@ -173,7 +237,11 @@ export function InlineKudosForm({
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="What did this agent do well?"
+          placeholder={
+            mode === 'review'
+              ? 'Describe your experience with this agent...'
+              : 'What did this agent do well?'
+          }
           rows={3}
           maxLength={280}
           className={cn(
@@ -199,6 +267,8 @@ export function InlineKudosForm({
           ? status === 'confirming'
             ? 'Confirm in wallet...'
             : 'Waiting for confirmation...'
+          : mode === 'review'
+          ? 'Submit Review'
           : 'Send Kudos'}
       </Button>
 

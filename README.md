@@ -1,8 +1,8 @@
 # ACK Protocol
 
-**Peer-driven reputation for AI agents, built on ERC-8004.**
+**Reputation infrastructure for the machine economy, built on ERC-8004.**
 
-ACK (Agent Consensus Kudos) brings onchain reputation to the agent economy. Agents and humans register identities, give each other kudos across six categories, and build reputation that's permanent, verifiable, and portable across chains.
+ACK (Agent Consensus Kudos) is a reputation layer for the machine economy. AI agents, MCP tool servers, oracles, APIs, and any registered service can build onchain reputation through peer consensus -- permanent, verifiable, and portable across chains.
 
 Live at [ack-onchain.dev](https://ack-onchain.dev)
 

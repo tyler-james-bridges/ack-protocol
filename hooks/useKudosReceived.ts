@@ -37,9 +37,8 @@ export interface KudosEvent {
 const client = createPublicClient({ chain: abstract, transport: http() });
 
 async function fetchKudos(agentId: number): Promise<KudosEvent[]> {
-  const currentBlock = await client.getBlockNumber();
-  // Scan from genesis to capture all kudos ever given
-  const fromBlock = BigInt(0);
+  // Contract deployed around block 39860000; use safe margin
+  const fromBlock = BigInt(39_000_000);
 
   // topic[0]=event sig, topic[1]=agentId (indexed uint256)
   const agentIdTopic = padHex(numberToHex(agentId), { size: 32 });
@@ -51,7 +50,7 @@ async function fetchKudos(agentId: number): Promise<KudosEvent[]> {
         address: REPUTATION_REGISTRY,
         topics: [NEW_FEEDBACK_TOPIC, agentIdTopic],
         fromBlock: numberToHex(fromBlock),
-        toBlock: numberToHex(currentBlock),
+        toBlock: 'latest',
       },
     ],
   });

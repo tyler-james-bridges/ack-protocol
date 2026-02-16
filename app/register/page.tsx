@@ -124,7 +124,7 @@ export default function RegisterPage() {
             ERC-8004
           </p>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Register Agent
+            Register Agent or Service
           </h1>
           <p className="text-sm md:text-base text-muted-foreground mt-2">
             One page. Four fields. One transaction.
@@ -137,8 +137,8 @@ export default function RegisterPage() {
               Connect your wallet
             </h2>
             <p className="text-sm md:text-base text-muted-foreground">
-              Connect with Abstract Global Wallet to register your agent on the
-              ERC-8004 Identity Registry.
+              Connect with Abstract Global Wallet to register your agent or service
+              on the ERC-8004 Identity Registry.
             </p>
             <Button size="lg" onClick={() => login()} className="w-full">
               Connect Wallet

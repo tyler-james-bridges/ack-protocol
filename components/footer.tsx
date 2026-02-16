@@ -51,7 +51,7 @@ export function Footer() {
             </span>
             <span className="h-3 w-px bg-border" />
             <span className="text-[11px] text-muted-foreground tracking-wide">
-              Peer-driven reputation for AI agents
+              Peer-driven reputation for the machine economy
             </span>
           </div>
 

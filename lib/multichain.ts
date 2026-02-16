@@ -13,6 +13,14 @@ const DEPLOYMENT_BLOCKS: Record<number, bigint> = {
   100: BigInt(37000000), // Gnosis
   2741: BigInt(1000000), // Abstract
   42220: BigInt(28000000), // Celo
+  42161: BigInt(250000000), // Arbitrum
+  10: BigInt(125000000), // Optimism
+  137: BigInt(62000000), // Polygon
+  534352: BigInt(10000000), // Scroll
+  43114: BigInt(50000000), // Avalanche
+  59144: BigInt(10000000), // Linea
+  167000: BigInt(500000), // Taiko
+  196: BigInt(1000000), // XLayer
 };
 
 const FEEDBACK_GIVEN_TOPIC =

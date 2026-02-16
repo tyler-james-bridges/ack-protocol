@@ -135,9 +135,10 @@ export async function GET(request: NextRequest) {
     const enriched: DiscoverAgent[] = [];
 
     if (category) {
-      // Fetch feedback in parallel for all candidates
+      // Cap feedback fetches to first 50 agents to limit upstream calls
+      const candidateAgents = agents.slice(0, 50);
       const withFeedback = await Promise.all(
-        agents.map((agent) =>
+        candidateAgents.map((agent) =>
           fetchFeedback(agent.chain_id, agent.token_id).then((feedbacks) =>
             enrichAgent(agent, feedbacks)
           )
@@ -256,7 +257,7 @@ async function fetchFeedback(
 async function scanFetch<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE}/${path}`, {
     headers: { Accept: 'application/json' },
-    next: { revalidate: 30 },
+    next: { revalidate: 120 },
   });
   if (!response.ok) {
     throw new Error(`8004scan error: ${response.status}`);

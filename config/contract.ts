@@ -43,6 +43,14 @@ export const KUDOS_VALUE_DECIMALS = 0;
  */
 export const KUDOS_TAG1 = 'kudos' as const;
 
+/**
+ * Review feedback constants — supports negative values (-5 to +5)
+ */
+export const REVIEW_TAG1 = 'review' as const;
+export const REVIEW_MIN_VALUE = -5;
+export const REVIEW_MAX_VALUE = 5;
+export const REVIEW_VALUE_DECIMALS = 0;
+
 export const KUDOS_CATEGORIES = [
   'reliability',
   'speed',

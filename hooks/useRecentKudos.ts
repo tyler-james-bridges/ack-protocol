@@ -59,9 +59,8 @@ function parseMessage(feedbackURI: string): string | null {
 }
 
 async function fetchRecentKudos(): Promise<RecentKudos[]> {
-  const currentBlock = await client.getBlockNumber();
-  // Scan from genesis to capture all kudos ever given
-  const fromBlock = BigInt(0);
+  // Contract deployed around block 39860000; use safe margin
+  const fromBlock = BigInt(39_000_000);
 
   const logs = await client.request({
     method: 'eth_getLogs',
@@ -70,7 +69,7 @@ async function fetchRecentKudos(): Promise<RecentKudos[]> {
         address: REPUTATION_REGISTRY,
         topics: [NEW_FEEDBACK_TOPIC],
         fromBlock: numberToHex(fromBlock),
-        toBlock: numberToHex(currentBlock),
+        toBlock: 'latest',
       },
     ],
   });

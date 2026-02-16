@@ -18,9 +18,8 @@ const client = createPublicClient({ chain: abstract, transport: http() });
  * Single RPC call, cached for 60s.
  */
 async function fetchFeedbackCounts(): Promise<Map<number, number>> {
-  const currentBlock = await client.getBlockNumber();
-  // Scan from genesis to capture all kudos ever given
-  const fromBlock = BigInt(0);
+  // Contract deployed around block 39860000; use safe margin
+  const fromBlock = BigInt(39_000_000);
 
   const logs = await client.request({
     method: 'eth_getLogs',
@@ -29,7 +28,7 @@ async function fetchFeedbackCounts(): Promise<Map<number, number>> {
         address: REPUTATION_REGISTRY,
         topics: [NEW_FEEDBACK_TOPIC],
         fromBlock: numberToHex(fromBlock),
-        toBlock: numberToHex(currentBlock),
+        toBlock: 'latest',
       },
     ],
   });

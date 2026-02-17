@@ -1,5 +1,12 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { http } from 'wagmi';
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import {
+  metaMaskWallet,
+  rainbowWallet,
+  walletConnectWallet,
+  coinbaseWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { abstractWallet } from '@abstract-foundation/agw-react/connectors';
+import { createConfig, http } from 'wagmi';
 import {
   abstract,
   arbitrum,
@@ -15,20 +22,38 @@ import {
 const projectId =
   process.env.NEXT_PUBLIC_WC_PROJECT_ID || '00000000000000000000000000000000';
 
-export const wagmiConfig = getDefaultConfig({
-  appName: 'ACK Protocol',
-  projectId,
-  chains: [
-    abstract,
-    arbitrum,
-    optimism,
-    polygon,
-    base,
-    scroll,
-    avalanche,
-    linea,
-    mainnet,
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: 'Recommended',
+      wallets: [abstractWallet, metaMaskWallet, coinbaseWallet, rainbowWallet],
+    },
+    {
+      groupName: 'Other',
+      wallets: [walletConnectWallet],
+    },
   ],
+  {
+    appName: 'ACK Protocol',
+    projectId,
+  }
+);
+
+const chains = [
+  abstract,
+  arbitrum,
+  optimism,
+  polygon,
+  base,
+  scroll,
+  avalanche,
+  linea,
+  mainnet,
+] as const;
+
+export const wagmiConfig = createConfig({
+  connectors,
+  chains,
   transports: {
     [abstract.id]: http(),
     [arbitrum.id]: http(),

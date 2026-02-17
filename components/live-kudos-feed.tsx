@@ -42,7 +42,7 @@ function FeedItem({
         <AgentAvatar
           name={senderName}
           imageUrl={senderAgent?.image_url}
-          size={28}
+          size={32}
         />
       </Link>
 
@@ -57,7 +57,7 @@ function FeedItem({
             </Link>
             <span className="text-xs text-muted-foreground">gave</span>
             <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
-              <AgentAvatar name={name} imageUrl={agent?.image_url} size={28} />
+              <AgentAvatar name={name} imageUrl={agent?.image_url} size={32} />
             </Link>
             <Link
               href={`/agent/2741/${kudos.agentId}`}

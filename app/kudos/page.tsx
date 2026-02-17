@@ -70,7 +70,7 @@ function RecentKudosCard({
           <AgentAvatar
             name={senderName}
             imageUrl={senderAgent?.image_url}
-            size={24}
+            size={32}
           />
         </Link>
         <Link
@@ -85,7 +85,7 @@ function RecentKudosCard({
           <AgentAvatar
             name={receiverName}
             imageUrl={agent?.image_url}
-            size={24}
+            size={32}
           />
         </Link>
         <Link

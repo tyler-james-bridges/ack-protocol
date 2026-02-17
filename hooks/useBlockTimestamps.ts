@@ -1,15 +1,10 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { createPublicClient, http } from 'viem';
-import { abstract } from 'viem/chains';
-
-const client = createPublicClient({ chain: abstract, transport: http() });
 
 /**
- * Fetches timestamps for a list of block numbers.
- * Returns a Map<bigint, number> of blockNumber -> unix seconds.
- * Deduplicates and caches the batch.
+ * Fetches timestamps for a list of block numbers via server-side cached API.
+ * Returns a Map<string, number> of blockNumber -> unix seconds.
  */
 export function useBlockTimestamps(blockNumbers: bigint[]) {
   const unique = [...new Set(blockNumbers.map((b) => b.toString()))];
@@ -19,20 +14,20 @@ export function useBlockTimestamps(blockNumbers: bigint[]) {
     queryKey: ['block-timestamps', key],
     queryFn: async () => {
       const map = new Map<string, number>();
-      await Promise.all(
-        unique.map(async (bn) => {
-          try {
-            const block = await client.getBlock({ blockNumber: BigInt(bn) });
-            map.set(bn, Number(block.timestamp));
-          } catch {
-            // skip failed lookups
-          }
-        })
-      );
+      if (unique.length === 0) return map;
+
+      // Batch up to 50 at a time via server endpoint
+      const res = await fetch(`/api/timestamps?blocks=${unique.join(',')}`);
+      if (!res.ok) return map;
+
+      const data: Record<string, number> = await res.json();
+      for (const [bn, ts] of Object.entries(data)) {
+        map.set(bn, ts);
+      }
       return map;
     },
     enabled: unique.length > 0,
-    staleTime: Infinity, // block timestamps never change
+    staleTime: Infinity,
   });
 }
 

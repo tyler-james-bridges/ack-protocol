@@ -43,11 +43,10 @@ function CopyableAddress({ address }: { address: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="group flex items-center gap-1.5 font-mono text-sm text-muted-foreground hover:text-foreground transition-colors"
-      title={address}
+      className="group flex items-center gap-1.5 font-mono text-base font-bold text-foreground hover:text-primary transition-colors"
+      title={`Click to copy: ${address}`}
     >
-      <span className="hidden sm:inline">{address}</span>
-      <span className="sm:hidden">{truncateAddress(address)}</span>
+      <span>{truncateAddress(address)}</span>
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
@@ -215,9 +214,6 @@ export default function UserProfilePage() {
                   <AgentAvatar name={address} size={64} />
                 </div>
                 <div className="min-w-0 flex-1 pt-0.5">
-                  <h1 className="text-lg font-bold truncate leading-tight">
-                    {truncateAddress(address)}
-                  </h1>
                   <CopyableAddress address={address} />
                   <div className="flex items-center gap-2 mt-1.5">
                     {balance !== undefined && (

@@ -210,6 +210,80 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Handle prompts/list requests
+    if (body.method === 'prompts/list') {
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: body.id,
+        result: {
+          prompts: [
+            {
+              name: 'reputation_check',
+              description:
+                'Check the onchain reputation of an ERC-8004 registered agent including quality score, feedback count, and category breakdown',
+              arguments: [
+                {
+                  name: 'chain_id',
+                  description:
+                    'The chain ID where the agent is registered (e.g. 2741 for Abstract)',
+                  required: true,
+                },
+                {
+                  name: 'token_id',
+                  description: 'The token ID of the agent to check',
+                  required: true,
+                },
+              ],
+            },
+            {
+              name: 'trust_assessment',
+              description:
+                'Assess whether an agent should be trusted based on their reputation history, feedback patterns, peer endorsements, and verification status',
+              arguments: [
+                {
+                  name: 'chain_id',
+                  description:
+                    'The chain ID where the agent is registered (e.g. 2741 for Abstract)',
+                  required: true,
+                },
+                {
+                  name: 'token_id',
+                  description: 'The token ID of the agent to assess',
+                  required: true,
+                },
+              ],
+            },
+          ],
+        },
+      });
+    }
+
+    // Handle resources/list requests
+    if (body.method === 'resources/list') {
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: body.id,
+        result: {
+          resources: [
+            {
+              uri: 'erc8004://registry/agents',
+              name: 'agent_registry',
+              description:
+                'ERC-8004 Identity Registry containing all registered agents across supported chains',
+              mimeType: 'application/json',
+            },
+            {
+              uri: 'erc8004://registry/reputation',
+              name: 'reputation_registry',
+              description:
+                'ERC-8004 Reputation Registry containing feedback, kudos, and scores for all agents',
+              mimeType: 'application/json',
+            },
+          ],
+        },
+      });
+    }
+
     // Handle tools/list requests
     if (body.method === 'tools/list') {
       return NextResponse.json({

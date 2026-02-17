@@ -57,6 +57,8 @@ const agentCard = {
         'Search for reputation agents',
         'List top agents by quality score',
       ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
     },
     {
       id: 'get-reputation',
@@ -68,6 +70,8 @@ const agentCard = {
         "What is agent 606's reputation?",
         'Show reputation for ACK on Abstract',
       ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
     },
     {
       id: 'give-kudos',
@@ -79,6 +83,8 @@ const agentCard = {
         'Give reliability kudos to agent 606',
         'Rate agent accuracy 5 stars',
       ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
     },
     {
       id: 'check-trust',
@@ -90,6 +96,96 @@ const agentCard = {
         'Is agent 603 trustworthy?',
         'Should I interact with this agent?',
       ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
+    },
+    {
+      id: 'agent-discovery',
+      name: 'Agent Discovery',
+      description:
+        'Discover and browse ERC-8004 registered agents with filtering by chain, category, protocol support, and verification status',
+      tags: ['discovery', 'registry', 'browse', 'agents'],
+      examples: [
+        'Show me verified agents on Abstract',
+        'Which agents support MCP?',
+      ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
+    },
+    {
+      id: 'reputation-analysis',
+      name: 'Reputation Analysis',
+      description:
+        'Analyze reputation trends and patterns for agents over time, including score distribution across categories and feedback velocity',
+      tags: ['reputation', 'analytics', 'trends', 'scoring'],
+      examples: [
+        'How has agent 606 reputation changed?',
+        'Show reputation distribution for top agents',
+      ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
+    },
+    {
+      id: 'feedback-aggregation',
+      name: 'Feedback Aggregation',
+      description:
+        'Aggregate and summarize kudos and review feedback across multiple agents, categories, and time periods',
+      tags: ['feedback', 'aggregation', 'kudos', 'summary'],
+      examples: [
+        'Summarize all feedback for agent 606',
+        'Which category gets the most kudos?',
+      ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
+    },
+    {
+      id: 'leaderboard-ranking',
+      name: 'Leaderboard Ranking',
+      description:
+        'Retrieve and display agent leaderboards ranked by quality score, feedback count, or star count across chains',
+      tags: ['leaderboard', 'ranking', 'top-agents', 'competition'],
+      examples: [
+        'Show the top 10 agents on Abstract',
+        'Who has the highest quality score?',
+      ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
+    },
+    {
+      id: 'cross-chain-lookup',
+      name: 'Cross-Chain Lookup',
+      description:
+        'Look up agent registrations and reputation data across multiple EVM chains where ERC-8004 is deployed',
+      tags: ['cross-chain', 'multi-chain', 'evm', 'lookup'],
+      examples: [
+        'Is this agent registered on Ethereum mainnet?',
+        'Compare agent scores across chains',
+      ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
+    },
+    {
+      id: 'category-scoring',
+      name: 'Category Scoring',
+      description:
+        'Break down and compare agent scores across the six trust categories: reliability, speed, accuracy, creativity, collaboration, and security',
+      tags: ['categories', 'scoring', 'breakdown', 'comparison'],
+      examples: [
+        'What are agent 606 scores per category?',
+        'Which agents score highest in security?',
+      ],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
+    },
+    {
+      id: 'trust-verification',
+      name: 'Trust Verification',
+      description:
+        'Verify agent identity and trust level using onchain registration data, domain verification, and peer endorsement history',
+      tags: ['trust', 'verification', 'identity', 'endorsement'],
+      examples: ['Verify agent 606 identity', 'Is this agent domain-verified?'],
+      inputModes: ['text/plain'],
+      outputModes: ['application/json'],
     },
   ],
 };

@@ -34,7 +34,12 @@ export function InlineKudosForm({
   className,
 }: InlineKudosFormProps) {
   const { openConnectModal } = useConnectModal();
-  const { address, isConnected, connector } = useAccount();
+  const {
+    address,
+    isConnected,
+    connector,
+    status: accountStatus,
+  } = useAccount();
   const { giveKudos, status, error, txHash, reset, isLoading } = useGiveKudos();
   const [category, setCategory] = useState<KudosCategory | null>(null);
   const [message, setMessage] = useState('');
@@ -140,6 +145,21 @@ export function InlineKudosForm({
         <Button variant="outline" size="sm" onClick={handleReset}>
           Give Another
         </Button>
+      </div>
+    );
+  }
+
+  // While wagmi is reconnecting after page load, show loading instead of "Connect"
+  if (accountStatus === 'reconnecting') {
+    return (
+      <div
+        className={cn(
+          'rounded-xl border-2 border-dashed border-primary/30 p-6 text-center space-y-3',
+          className
+        )}
+      >
+        <p className="font-semibold">Give Kudos to {agentName}</p>
+        <p className="text-sm text-muted-foreground">Reconnecting wallet...</p>
       </div>
     );
   }

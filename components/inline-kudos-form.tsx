@@ -34,7 +34,7 @@ export function InlineKudosForm({
   className,
 }: InlineKudosFormProps) {
   const { openConnectModal } = useConnectModal();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, connector } = useAccount();
   const { giveKudos, status, error, txHash, reset, isLoading } = useGiveKudos();
   const [category, setCategory] = useState<KudosCategory | null>(null);
   const [message, setMessage] = useState('');
@@ -47,7 +47,19 @@ export function InlineKudosForm({
     ownerAddress &&
     address.toLowerCase() === ownerAddress.toLowerCase();
 
-  const canSubmit = message.trim().length > 0 && !isLoading && !isSelfKudos;
+  // Abstract Global Wallet only supports Abstract (chain 2741)
+  const isAbstractWallet = connector?.id === 'xyz.abs.privy';
+  const ABSTRACT_CHAIN_ID = 2741;
+  const isCrossChainFromAGW =
+    isAbstractWallet &&
+    targetChainId !== undefined &&
+    targetChainId !== ABSTRACT_CHAIN_ID;
+
+  const canSubmit =
+    message.trim().length > 0 &&
+    !isLoading &&
+    !isSelfKudos &&
+    !isCrossChainFromAGW;
 
   // After successful kudos, scroll to the kudos feed so the user sees their new kudos
   useEffect(() => {
@@ -264,6 +276,13 @@ export function InlineKudosForm({
         <p className="text-sm text-muted-foreground text-center">
           You own this agent - you can&apos;t give kudos to yourself.
         </p>
+      )}
+      {isCrossChainFromAGW && (
+        <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-200 text-center">
+          This agent is on a different chain. Abstract Global Wallet only
+          supports Abstract. Connect with MetaMask, Rainbow, or another
+          multi-chain wallet to give cross-chain kudos.
+        </div>
       )}
       <Button onClick={handleSubmit} disabled={!canSubmit} className="w-full">
         {isLoading

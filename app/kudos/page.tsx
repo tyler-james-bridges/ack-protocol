@@ -120,7 +120,7 @@ function RecentKudosCard({
 
 export default function GiveKudosPage() {
   const { openConnectModal } = useConnectModal();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, status: accountStatus } = useAccount();
   const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
   const { data: recentKudos, isLoading: loadingFeed } = useRecentKudos();
   const blockNumbers = recentKudos?.map((k) => k.blockNumber) || [];
@@ -210,7 +210,7 @@ export default function GiveKudosPage() {
                 </p>
               </div>
 
-              {!isConnected ? (
+              {!isConnected && accountStatus !== 'reconnecting' ? (
                 <div className="rounded-xl border border-border p-8 text-center space-y-4">
                   <p className="text-muted-foreground">
                     Connect your wallet to give kudos.
@@ -218,6 +218,12 @@ export default function GiveKudosPage() {
                   <Button size="lg" onClick={() => openConnectModal?.()}>
                     Connect Wallet
                   </Button>
+                </div>
+              ) : accountStatus === 'reconnecting' ? (
+                <div className="rounded-xl border border-border p-8 text-center">
+                  <p className="text-muted-foreground">
+                    Reconnecting wallet...
+                  </p>
                 </div>
               ) : (
                 <>

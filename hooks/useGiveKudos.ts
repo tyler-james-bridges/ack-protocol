@@ -13,7 +13,7 @@ import {
   REVIEW_VALUE_DECIMALS,
 } from '@/config/contract';
 import type { KudosCategory } from '@/config/contract';
-import { chain } from '@/config/chain';
+import { chain as defaultChain } from '@/config/chain';
 import { buildFeedback } from '@/lib/feedback';
 
 interface GiveKudosParams {
@@ -24,6 +24,8 @@ interface GiveKudosParams {
   fromAgentId?: number;
   isReview?: boolean;
   value?: number;
+  /** Chain ID of the target agent. Defaults to Abstract. */
+  targetChainId?: number;
 }
 
 type KudosStatus = 'idle' | 'confirming' | 'waiting' | 'success' | 'error';
@@ -39,13 +41,14 @@ export function useGiveKudos() {
   const [status, setStatus] = useState<KudosStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
   const [kudosAgentId, setKudosAgentId] = useState<number | null>(null);
+  const [txChainId, setTxChainId] = useState<number>(defaultChain.id);
   const queryClient = useQueryClient();
 
   const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
 
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
-    chainId: chain.id,
+    chainId: txChainId,
   });
 
   useEffect(() => {
@@ -66,9 +69,11 @@ export function useGiveKudos() {
 
   const giveKudos = useCallback(
     async (params: GiveKudosParams) => {
+      const chainId = params.targetChainId ?? defaultChain.id;
       setError(null);
       setStatus('confirming');
       setKudosAgentId(params.agentId);
+      setTxChainId(chainId);
 
       try {
         const tag1 = params.isReview ? REVIEW_TAG1 : KUDOS_TAG1;
@@ -102,7 +107,7 @@ export function useGiveKudos() {
               feedbackURI,
               feedbackHash,
             ],
-            chainId: chain.id,
+            chainId,
           },
           {
             onSuccess: () => setStatus('waiting'),

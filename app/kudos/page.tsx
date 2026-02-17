@@ -144,7 +144,7 @@ export default function GiveKudosPage() {
   }
 
   const handleSubmit = (data: {
-    agent: { token_id: string };
+    agent: { token_id: string; chain_id?: number };
     category: string;
     message: string;
   }) => {
@@ -154,6 +154,7 @@ export default function GiveKudosPage() {
       category: data.category as Parameters<typeof giveKudos>[0]['category'],
       message: data.message,
       clientAddress: address,
+      targetChainId: data.agent.chain_id,
     });
   };
 

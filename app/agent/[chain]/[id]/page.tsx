@@ -540,6 +540,7 @@ export default function AgentProfilePage({
                 agentTokenId={agent.token_id}
                 agentName={agent.name}
                 ownerAddress={agent.owner_address}
+                targetChainId={agent.chain_id}
               />
             </div>
           </main>

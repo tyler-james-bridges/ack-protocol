@@ -18,6 +18,7 @@ interface InlineKudosFormProps {
   agentTokenId: string;
   agentName: string;
   ownerAddress?: string;
+  targetChainId?: number;
   className?: string;
 }
 
@@ -29,6 +30,7 @@ export function InlineKudosForm({
   agentTokenId,
   agentName,
   ownerAddress,
+  targetChainId,
   className,
 }: InlineKudosFormProps) {
   const { openConnectModal } = useConnectModal();
@@ -68,6 +70,7 @@ export function InlineKudosForm({
       clientAddress: address,
       isReview: mode === 'review',
       value: mode === 'review' ? reviewValue : undefined,
+      targetChainId,
     });
   };
 

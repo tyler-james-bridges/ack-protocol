@@ -14,8 +14,8 @@
  * All data is proxied from the 8004scan API with authentication.
  *
  * Usage:
- * - GET /api/mcp: Establish SSE connection
- * - POST /api/mcp: Send tool calls and list requests
+ * - GET /api/mcp: Server info and health check (JSON)
+ * - POST /api/mcp: MCP tool calls and list requests (JSON-RPC)
  * - OPTIONS /api/mcp: CORS preflight
  */
 
@@ -95,67 +95,45 @@ async function apiRequest(path: string): Promise<any> {
 }
 
 /**
- * Handle SSE (Server-Sent Events) connection for MCP transport
- * GET requests establish the SSE connection
+ * Handle GET requests for MCP endpoint discovery and health checks.
+ * Returns a JSON info response describing the server capabilities.
+ * This allows 8004scan and other crawlers to verify the endpoint is alive.
  */
-export async function GET(request: NextRequest) {
-  if (!API_KEY) {
-    return NextResponse.json(
-      { error: 'Server configuration error: API key not set' },
-      { status: 500 }
-    );
-  }
-
-  // Set up SSE headers
-  const headers = new Headers({
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    Connection: 'keep-alive',
-    'Access-Control-Allow-Origin': getAllowedOrigin(),
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'X-API-Version': '1',
-  });
-
-  // Create a readable stream for SSE
-  const stream = new ReadableStream({
-    start(controller) {
-      // Send initial connection message
-      const welcome = {
-        jsonrpc: '2.0',
-        method: 'notifications/initialized',
-        params: {
-          protocolVersion: '2024-11-05',
-          capabilities: {
-            tools: {},
-          },
-          serverInfo: {
-            name: 'ack-protocol-server',
-            version: '1.0.0',
-          },
-        },
-      };
-
-      controller.enqueue(`data: ${JSON.stringify(welcome)}\n\n`);
-
-      // Keep connection alive with periodic pings
-      const pingInterval = setInterval(() => {
-        try {
-          controller.enqueue(`data: ${JSON.stringify({ type: 'ping' })}\n\n`);
-        } catch {
-          clearInterval(pingInterval);
-        }
-      }, 30000);
-
-      // Cleanup when client disconnects
-      request.signal?.addEventListener('abort', () => {
-        clearInterval(pingInterval);
-        controller.close();
-      });
+export async function GET() {
+  return NextResponse.json(
+    {
+      name: 'ACK Protocol MCP Server',
+      version: '1.0.0',
+      protocolVersion: '2025-06-18',
+      description:
+        'Model Context Protocol endpoint for ERC-8004 agent reputation data on Abstract.',
+      transport: 'streamable-http',
+      methods: ['POST'],
+      capabilities: {
+        tools: true,
+        prompts: true,
+        resources: true,
+      },
+      tools: [
+        'search_agents',
+        'get_agent',
+        'get_reputation',
+        'get_agent_feedbacks',
+        'list_leaderboard',
+      ],
+      prompts: ['reputation_check', 'trust_assessment'],
+      resources: ['agent_registry', 'reputation_registry'],
     },
-  });
-
-  return new NextResponse(stream, { headers });
+    {
+      headers: {
+        'Access-Control-Allow-Origin': getAllowedOrigin(),
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'X-API-Version': '1',
+        'Cache-Control': 'public, max-age=60',
+      },
+    }
+  );
 }
 
 /**
@@ -180,7 +158,7 @@ export async function POST(request: NextRequest) {
         jsonrpc: '2.0',
         id: body.id,
         result: {
-          protocolVersion: '2024-11-05',
+          protocolVersion: '2025-06-18',
           capabilities: {
             tools: {},
           },

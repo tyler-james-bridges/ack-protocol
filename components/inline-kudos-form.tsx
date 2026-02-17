@@ -35,7 +35,7 @@ export function InlineKudosForm({
 }: InlineKudosFormProps) {
   const { openConnectModal } = useConnectModal();
   const { address, isConnected } = useAccount();
-  const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
+  const { giveKudos, status, error, txHash, reset, isLoading } = useGiveKudos();
   const [category, setCategory] = useState<KudosCategory | null>(null);
   const [message, setMessage] = useState('');
   const [mode, setMode] = useState<'kudos' | 'review'>('kudos');
@@ -275,6 +275,11 @@ export function InlineKudosForm({
             : 'Send Kudos'}
       </Button>
 
+      {status === 'error' && error && (
+        <p className="text-xs text-muted-foreground mt-1 font-mono break-all">
+          {error.message?.slice(0, 200)}
+        </p>
+      )}
       {status === 'error' && (
         <p className="text-sm text-destructive text-center">
           Something went wrong. Please try again.

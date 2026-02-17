@@ -93,9 +93,17 @@ export default function RegisterPage() {
         description: description.trim(),
         created_at: new Date().toISOString(),
         registered_via: 'ACK Protocol',
+        services: [
+          {
+            name: 'Web',
+            type: 'web',
+            endpoint: 'https://ack-onchain.dev',
+          },
+        ],
       };
 
-      // Encode as base64 data URI (on-chain storage, no IPFS dependency)
+      // Encode as base64 data URI (on-chain storage)
+      // For production agents, consider pinning to IPFS and using ipfs://<CID> instead
       // Use encodeURIComponent for UTF-8 safety (emoji, CJK, etc.)
       const encoded = btoa(
         unescape(encodeURIComponent(JSON.stringify(metadata)))

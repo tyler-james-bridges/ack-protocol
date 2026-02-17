@@ -165,6 +165,42 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
 
+    // Handle initialize requests (MCP protocol handshake)
+    if (body.method === 'initialize') {
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: body.id,
+        result: {
+          protocolVersion: '2024-11-05',
+          capabilities: {
+            tools: {},
+          },
+          serverInfo: {
+            name: 'ack-protocol-server',
+            version: '1.0.0',
+          },
+        },
+      });
+    }
+
+    // Handle notifications (no response needed per spec, but return OK)
+    if (body.method === 'notifications/initialized') {
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: body.id,
+        result: {},
+      });
+    }
+
+    // Handle ping
+    if (body.method === 'ping') {
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: body.id,
+        result: {},
+      });
+    }
+
     // Handle tools/list requests
     if (body.method === 'tools/list') {
       return NextResponse.json({

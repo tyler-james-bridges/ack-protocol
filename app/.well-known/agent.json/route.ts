@@ -19,6 +19,32 @@ const agentCard = {
   },
   defaultInputModes: ['text/plain'],
   defaultOutputModes: ['application/json'],
+  services: [
+    {
+      name: 'MCP',
+      type: 'mcp',
+      endpoint: 'https://ack-onchain.dev/api/mcp',
+      description: 'Model Context Protocol server for ERC-8004 agent data.',
+    },
+    {
+      name: 'A2A',
+      type: 'a2a',
+      endpoint: 'https://ack-onchain.dev/.well-known/agent.json',
+      description: 'Agent-to-Agent protocol agent card.',
+    },
+    {
+      name: 'OASF',
+      type: 'oasf',
+      endpoint: 'https://ack-onchain.dev/.well-known/oasf.json',
+      description: 'Open Agentic Schema Framework profile.',
+    },
+    {
+      name: 'Web',
+      type: 'web',
+      endpoint: 'https://ack-onchain.dev',
+      description: 'ACK Protocol web application.',
+    },
+  ],
   skills: [
     {
       id: 'search-agents',

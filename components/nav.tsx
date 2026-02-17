@@ -87,33 +87,18 @@ export function Nav() {
                     className="flex items-center gap-1"
                   >
                     {connected ? (
-                      <>
-                        <button
-                          onClick={openChainModal}
-                          className="flex items-center justify-center h-7 w-7 rounded-full border border-border/60 bg-muted/30 hover:border-foreground/20 transition-all"
-                          type="button"
-                        >
-                          {connectedChain.hasIcon && connectedChain.iconUrl && (
-                            <img
-                              alt={connectedChain.name ?? 'Chain'}
-                              src={connectedChain.iconUrl}
-                              className="h-4 w-4 rounded-full"
-                            />
-                          )}
-                        </button>
-                        <button
-                          onClick={openAccountModal}
-                          className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 pl-1 pr-2.5 py-1 text-[11px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-all"
-                          type="button"
-                        >
-                          <AgentAvatar
-                            name={account.address}
-                            size={22}
-                            className="rounded-full"
-                          />
-                          {account.displayName}
-                        </button>
-                      </>
+                      <button
+                        onClick={openAccountModal}
+                        className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 pl-1 pr-2.5 py-1 text-[11px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-all"
+                        type="button"
+                      >
+                        <AgentAvatar
+                          name={account.address}
+                          size={22}
+                          className="rounded-full"
+                        />
+                        {account.displayName}
+                      </button>
                     ) : (
                       <button
                         onClick={openConnectModal}

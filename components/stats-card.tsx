@@ -38,7 +38,9 @@ export async function fetchNetworkStats(): Promise<NetworkStats> {
   const [agentsRes, chainsRes, feedbackRes] = await Promise.all([
     fetch('/api/agents?path=agents&limit=1'),
     fetch('/api/agents?path=chains'),
-    fetch('/api/agents?path=agents&limit=10&sort_by=total_feedbacks&sort_order=desc'),
+    fetch(
+      '/api/agents?path=agents&limit=10&sort_by=total_feedbacks&sort_order=desc'
+    ),
   ]);
 
   let totalAgents = 0;

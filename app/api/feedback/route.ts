@@ -48,12 +48,15 @@ export async function GET(request: NextRequest) {
         counts[e.agentId] = (counts[e.agentId] || 0) + 1;
       }
       const total = Object.values(counts).reduce((sum, c) => sum + c, 0);
-      return NextResponse.json({ counts, total }, {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-          'X-API-Version': '1',
-        },
-      });
+      return NextResponse.json(
+        { counts, total },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+            'X-API-Version': '1',
+          },
+        }
+      );
     }
 
     let filtered = all;
@@ -73,15 +76,20 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => parseInt(b.blockNumber) - parseInt(a.blockNumber))
       .slice(0, limitParam);
 
-    return NextResponse.json({ events: filtered, total: filtered.length }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
-        'X-API-Version': '1',
-      },
-    });
+    return NextResponse.json(
+      { events: filtered, total: filtered.length },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+          'X-API-Version': '1',
+        },
+      }
+    );
   } catch (error) {
     return NextResponse.json(
-      { error: `Failed to fetch feedback: ${error instanceof Error ? error.message : String(error)}` },
+      {
+        error: `Failed to fetch feedback: ${error instanceof Error ? error.message : String(error)}`,
+      },
       { status: 502 }
     );
   }

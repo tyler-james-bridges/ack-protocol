@@ -42,7 +42,11 @@ export interface FeedbackEvent {
   txHash: string;
 }
 
-let allEventsCache: { events: FeedbackEvent[]; ts: number; toBlock: number } | null = null;
+let allEventsCache: {
+  events: FeedbackEvent[];
+  ts: number;
+  toBlock: number;
+} | null = null;
 const CACHE_TTL = 60_000; // 1 minute
 
 // Contract deployed around block 39860000
@@ -132,7 +136,9 @@ export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
 /**
  * Get feedback events filtered by agent token ID.
  */
-export async function getFeedbackByAgentId(agentId: number): Promise<FeedbackEvent[]> {
+export async function getFeedbackByAgentId(
+  agentId: number
+): Promise<FeedbackEvent[]> {
   const all = await getAllFeedbackEvents();
   return all.filter((e) => e.agentId === agentId);
 }

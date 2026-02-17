@@ -9,7 +9,8 @@ import { useQuery } from '@tanstack/react-query';
  */
 async function fetchFeedbackCounts(): Promise<Map<number, number>> {
   const res = await fetch('/api/feedback?counts=true');
-  if (!res.ok) throw new Error(`Failed to fetch feedback counts: ${res.status}`);
+  if (!res.ok)
+    throw new Error(`Failed to fetch feedback counts: ${res.status}`);
   const data: Record<string, number> = await res.json();
 
   const counts = new Map<number, number>();

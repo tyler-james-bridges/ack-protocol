@@ -77,7 +77,7 @@ export async function GET(
     return NextResponse.json(cached.data, {
       headers: {
         'X-Cache': 'HIT',
-          'X-API-Version': '1',
+        'X-API-Version': '1',
         'X-RateLimit-Remaining': String(rl.remaining),
       },
     });
@@ -123,9 +123,7 @@ export async function GET(
 
     for (const { agent, feedbacks } of feedbackResults) {
       // Count kudos from feedbacks where tag1 === "kudos"
-      const kudosFeedbacks = feedbacks.filter(
-        (f) => f.tag1 === 'kudos'
-      );
+      const kudosFeedbacks = feedbacks.filter((f) => f.tag1 === 'kudos');
       totalKudos += kudosFeedbacks.length;
 
       for (const f of kudosFeedbacks) {
@@ -174,7 +172,7 @@ export async function GET(
     return NextResponse.json(result, {
       headers: {
         'X-Cache': 'MISS',
-          'X-API-Version': '1',
+        'X-API-Version': '1',
         'X-RateLimit-Remaining': String(rl.remaining),
       },
     });

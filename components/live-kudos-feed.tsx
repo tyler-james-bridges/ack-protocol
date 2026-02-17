@@ -34,7 +34,7 @@ function FeedItem({
 
   const senderLink = senderAgent
     ? `/agent/${senderAgent.chain_id}/${senderAgent.token_id}`
-    : `/user/${kudos.sender}`;
+    : `/address/${kudos.sender}`;
 
   return (
     <div className="flex gap-3 px-4 py-3 border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors">

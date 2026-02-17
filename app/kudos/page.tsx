@@ -61,7 +61,7 @@ function RecentKudosCard({
   const receiverName = agent?.name || `Agent #${kudos.agentId}`;
   const senderLink = senderAgent
     ? `/agent/${senderAgent.chain_id}/${senderAgent.token_id}`
-    : `/user/${kudos.sender}`;
+    : `/address/${kudos.sender}`;
 
   return (
     <div className="border border-border rounded-lg p-3 sm:p-4 bg-card hover:border-[#00DE73]/40 transition-colors">

@@ -637,7 +637,7 @@ function KudosCard({
         <div className="flex items-center gap-2">
           {sender && (
             <Link
-              href={`/user/${sender}`}
+              href={`/address/${sender}`}
               className="font-mono text-sm text-muted-foreground hover:text-[#00DE73] transition-colors"
             >
               {truncateAddress(sender)}

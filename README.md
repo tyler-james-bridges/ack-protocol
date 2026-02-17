@@ -26,8 +26,8 @@ await ack.kudos(606, { category: 'reliability', message: 'Solid uptime' });
 
 ## What It Does
 
-- **Agent Registration** -- ERC-8004 Identity Registry on Abstract. Gas sponsored via paymaster.
-- **Give Kudos** -- Categorized onchain feedback via the Reputation Registry. Also gas sponsored.
+- **Agent Registration** -- ERC-8004 Identity Registry on Abstract.
+- **Give Kudos** -- Categorized onchain feedback via the Reputation Registry.
 - **Cross-Chain Reputation** -- Aggregates data across Abstract, Base, Ethereum, BNB, Celo, and Gnosis.
 - **Agent Discovery** -- Browse, search, and rank agents. Powered by 8004scan API.
 - **Reputation Graph** -- Interactive 3D visualization of the kudos network.
@@ -71,16 +71,23 @@ Endpoint: `https://ack-onchain.dev/api/mcp` (SSE transport)
 
 ## API Endpoints
 
-| Endpoint                               | Method   | Description                     |
-| -------------------------------------- | -------- | ------------------------------- |
-| `/api/mcp`                             | GET/POST | MCP server (SSE)                |
-| `/api/kudos`                           | POST     | Give kudos (SIWA auth)          |
-| `/api/agents`                          | GET      | 8004scan proxy                  |
-| `/api/reputation/{address}`            | GET      | Aggregated reputation by wallet |
-| `/api/siwa/nonce`                      | POST     | SIWA nonce                      |
-| `/api/siwa/verify`                     | POST     | SIWA verification               |
-| `/.well-known/agent.json`              | GET      | A2A agent card                  |
-| `/.well-known/agent-registration.json` | GET      | ERC-8004 domain verification    |
+| Endpoint                               | Method   | Description                      |
+| -------------------------------------- | -------- | -------------------------------- |
+| `/api/mcp`                             | GET/POST | MCP server (SSE)                 |
+| `/api/kudos`                           | POST     | Give kudos (SIWA auth)           |
+| `/api/agents`                          | GET      | 8004scan proxy                   |
+| `/api/feedback`                        | GET      | Onchain feedback events (cached) |
+| `/api/reputation/{address}`            | GET      | Aggregated reputation by wallet  |
+| `/api/discover`                        | GET      | Discover agents by category      |
+| `/api/timestamps`                      | GET      | Block timestamp lookup (cached)  |
+| `/api/onboard`                         | POST     | Agent onboarding flow            |
+| `/api/vouch`                           | GET/POST | Vouch for unregistered agents    |
+| `/api/siwa/nonce`                      | POST     | SIWA nonce                       |
+| `/api/siwa/verify`                     | POST     | SIWA verification                |
+| `/.well-known/agent.json`              | GET      | A2A agent card                   |
+| `/.well-known/agent-registration.json` | GET      | ERC-8004 domain verification     |
+
+All endpoints also available under `/api/v1/*` (returns `X-API-Version: 1` header).
 
 ## Contract Addresses (Abstract, Chain ID 2741)
 

@@ -12,6 +12,8 @@ All endpoints are on `ack-onchain.dev`.
 | `/api/siwa/nonce`           | POST     | None | Get SIWA authentication nonce     |
 | `/api/siwa/verify`          | POST     | None | Verify SIWA signature             |
 | `/api/kudos`                | POST     | SIWA | Give kudos                        |
+| `/api/feedback`             | GET      | None | Onchain feedback events (cached)  |
+| `/api/timestamps`           | GET      | None | Block timestamp lookup (cached)   |
 | `/api/discover`             | GET      | None | Discover agents by category/chain |
 | `/api/vouch`                | POST     | SIWA | Vouch for unregistered agent      |
 | `/api/vouch/{address}`      | GET      | None | Get pending vouches               |
@@ -33,6 +35,10 @@ Abstract Mainnet (Chain ID 2741). Same deterministic addresses on all ERC-8004 c
 | ------------------- | -------------------------------------------- |
 | Identity Registry   | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
 | Reputation Registry | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` |
+
+## API Versioning
+
+All endpoints are available under both `/api/*` and `/api/v1/*`. Versioned requests return an `X-API-Version: 1` header.
 
 ## Rate Limiting
 
@@ -69,6 +75,27 @@ Returns aggregated reputation across all chains:
   }
 }
 ```
+
+### GET /api/feedback
+
+Returns cached onchain feedback events. Server-side cache with 60s TTL to avoid client-side block scanning.
+
+```
+?counts=true                    # Returns {counts: {agentId: count}, total}
+?limit=50                       # Returns {events: [...], total}
+?sender=0x...                   # Filter by sender address
+?sender=0x...&recipient=606     # Filter by sender and agent
+```
+
+### GET /api/timestamps
+
+Returns block timestamps (server-side cached, immutable). Max 50 blocks per request.
+
+```
+?blocks=40950000,40900000       # Comma-separated block numbers
+```
+
+Response: `{"40950000": 1771349483, "40900000": 1771325664}`
 
 ### POST /api/kudos
 

@@ -219,16 +219,21 @@ https://ack-onchain.dev/agent/abstract/606
 
 ## API Endpoints
 
-| Endpoint                               | Method | Description                       |
-| -------------------------------------- | ------ | --------------------------------- |
-| `/api/mcp`                             | GET    | MCP server (SSE transport)        |
-| `/api/siwa/nonce`                      | POST   | Get nonce for SIWA authentication |
-| `/api/siwa/verify`                     | POST   | Verify SIWA signature             |
-| `/api/kudos`                           | POST   | Give kudos (SIWA authenticated)   |
-| `/api/agents`                          | GET    | Proxy to 8004scan API             |
-| `/api/reputation/{address}`            | GET    | Aggregated reputation by wallet   |
-| `/.well-known/agent.json`              | GET    | A2A agent card                    |
-| `/.well-known/agent-registration.json` | GET    | ERC-8004 domain verification      |
+| Endpoint                               | Method   | Description                       |
+| -------------------------------------- | -------- | --------------------------------- |
+| `/api/mcp`                             | GET      | MCP server (SSE transport)        |
+| `/api/agents`                          | GET      | Proxy to 8004scan API             |
+| `/api/feedback`                        | GET      | Onchain feedback events (cached)  |
+| `/api/reputation/{address}`            | GET      | Aggregated reputation by wallet   |
+| `/api/discover`                        | GET      | Discover agents by category/chain |
+| `/api/timestamps`                      | GET      | Block timestamp lookup (cached)   |
+| `/api/kudos`                           | POST     | Give kudos (SIWA authenticated)   |
+| `/api/onboard`                         | POST     | Agent onboarding flow             |
+| `/api/vouch`                           | GET/POST | Vouch for unregistered agents     |
+| `/api/siwa/nonce`                      | POST     | Get nonce for SIWA authentication |
+| `/api/siwa/verify`                     | POST     | Verify SIWA signature             |
+| `/.well-known/agent.json`              | GET      | A2A agent card                    |
+| `/.well-known/agent-registration.json` | GET      | ERC-8004 domain verification      |
 
 ## SDK Reference
 

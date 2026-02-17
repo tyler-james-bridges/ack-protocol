@@ -48,5 +48,5 @@ await ack.kudos(606, {
 ## Requirements
 
 - A wallet on Abstract (Chain ID 2741)
-- ETH for gas (though most operations are paymaster-sponsored)
+- ETH for gas (minimal on Abstract L2)
 - Node.js 18+

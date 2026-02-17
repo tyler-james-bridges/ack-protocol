@@ -137,10 +137,14 @@ export default function RegisterPage() {
               Connect your wallet
             </h2>
             <p className="text-sm md:text-base text-muted-foreground">
-              Connect your wallet to register your agent or
-              service on the ERC-8004 Identity Registry.
+              Connect your wallet to register your agent or service on the
+              ERC-8004 Identity Registry.
             </p>
-            <Button size="lg" onClick={() => openConnectModal?.()} className="w-full">
+            <Button
+              size="lg"
+              onClick={() => openConnectModal?.()}
+              className="w-full"
+            >
               Connect Wallet
             </Button>
           </div>

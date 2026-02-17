@@ -126,7 +126,11 @@ export default function ProfilePage() {
               Connect your Abstract Global Wallet to view your agent profile and
               reputation.
             </p>
-            <Button size="lg" onClick={() => openConnectModal?.()} className="px-8">
+            <Button
+              size="lg"
+              onClick={() => openConnectModal?.()}
+              className="px-8"
+            >
               Connect Wallet
             </Button>
           </div>

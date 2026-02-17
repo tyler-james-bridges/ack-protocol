@@ -130,13 +130,30 @@ export default function UserProfilePage() {
     queryKey: ['address-agent', address],
     queryFn: async (): Promise<ScanAgent | null> => {
       try {
-        // Find Transfer events where this address received a token
+        // Check onchain balance first
+        const balance = await abstractClient.readContract({
+          address: IDENTITY_REGISTRY_ADDRESS,
+          abi: [
+            {
+              inputs: [{ name: 'owner', type: 'address' }],
+              name: 'balanceOf',
+              outputs: [{ name: '', type: 'uint256' }],
+              stateMutability: 'view' as const,
+              type: 'function' as const,
+            },
+          ] as const,
+          functionName: 'balanceOf',
+          args: [address],
+        });
+        if (Number(balance) === 0) return null;
+
+        // Find Transfer events to get token ID
         const logs = await abstractClient.getLogs({
           address: IDENTITY_REGISTRY_ADDRESS,
           event: parseAbiItem(
             'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
           ),
-          args: { to: address.toLowerCase() as `0x${string}` },
+          args: { to: address },
           fromBlock: BigInt(39000000),
           toBlock: 'latest',
         });
@@ -144,23 +161,6 @@ export default function UserProfilePage() {
 
         const tokenId = logs[logs.length - 1].args.tokenId;
         if (tokenId === undefined) return null;
-
-        // Verify current ownership
-        const owner = await abstractClient.readContract({
-          address: IDENTITY_REGISTRY_ADDRESS,
-          abi: [
-            {
-              inputs: [{ name: 'tokenId', type: 'uint256' }],
-              name: 'ownerOf',
-              outputs: [{ name: '', type: 'address' }],
-              stateMutability: 'view' as const,
-              type: 'function' as const,
-            },
-          ] as const,
-          functionName: 'ownerOf',
-          args: [tokenId],
-        });
-        if (owner.toLowerCase() !== address.toLowerCase()) return null;
 
         const result = await fetchAgents({
           chainId: 2741,

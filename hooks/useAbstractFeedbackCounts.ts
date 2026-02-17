@@ -1,53 +1,24 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { createPublicClient, http, numberToHex, type Hex } from 'viem';
-import { abstract } from 'viem/chains';
-
-const REPUTATION_REGISTRY =
-  '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63' as const;
-
-// NewFeedback event topic
-const NEW_FEEDBACK_TOPIC =
-  '0x6a4a61743519c9d648a14e6493f47dbe3ff1aa29e7785c96c8326a205e58febc' as const;
-
-const client = createPublicClient({ chain: abstract, transport: http() });
-
-/**
- * Fetch ALL feedback events on Abstract and return a map of agentTokenId -> count.
- * Single RPC call, cached for 60s.
- */
-async function fetchFeedbackCounts(): Promise<Map<number, number>> {
-  // Contract deployed around block 39860000; use safe margin
-  const fromBlock = BigInt(39_000_000);
-
-  const logs = await client.request({
-    method: 'eth_getLogs',
-    params: [
-      {
-        address: REPUTATION_REGISTRY,
-        topics: [NEW_FEEDBACK_TOPIC],
-        fromBlock: numberToHex(fromBlock),
-        toBlock: 'latest',
-      },
-    ],
-  });
-
-  const counts = new Map<number, number>();
-
-  for (const log of logs as Array<{ topics: Hex[] }>) {
-    // topic[1] is the indexed agentId (uint256, padded to 32 bytes)
-    const agentId = Number(BigInt(log.topics[1]));
-    counts.set(agentId, (counts.get(agentId) || 0) + 1);
-  }
-
-  return counts;
-}
 
 /**
  * Returns a map of Abstract agent tokenId -> onchain feedback count.
- * Uses a single eth_getLogs call to count all NewFeedback events.
+ * Uses the server-side cached /api/feedback?counts=true endpoint
+ * instead of scanning millions of blocks client-side.
  */
+async function fetchFeedbackCounts(): Promise<Map<number, number>> {
+  const res = await fetch('/api/feedback?counts=true');
+  if (!res.ok) throw new Error(`Failed to fetch feedback counts: ${res.status}`);
+  const data: Record<string, number> = await res.json();
+
+  const counts = new Map<number, number>();
+  for (const [id, count] of Object.entries(data)) {
+    counts.set(Number(id), count);
+  }
+  return counts;
+}
+
 export function useAbstractFeedbackCounts() {
   return useQuery({
     queryKey: ['abstract-feedback-counts'],

@@ -1,24 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import {
-  createPublicClient,
-  http,
-  numberToHex,
-  padHex,
-  type Address,
-  type Hex,
-  decodeAbiParameters,
-} from 'viem';
-import { abstract } from 'viem/chains';
-
-const REPUTATION_REGISTRY =
-  '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63' as const;
-
-const NEW_FEEDBACK_TOPIC =
-  '0x6a4a61743519c9d648a14e6493f47dbe3ff1aa29e7785c96c8326a205e58febc' as const;
-
-const client = createPublicClient({ chain: abstract, transport: http() });
+import type { Address, Hex } from 'viem';
 
 export interface KudosGivenEvent {
   agentId: number;
@@ -49,66 +32,30 @@ function parseMessage(feedbackURI: string): string | null {
 }
 
 async function fetchKudosGiven(address: Address): Promise<KudosGivenEvent[]> {
-  // Contract deployed around block 39860000; use safe margin
-  const fromBlock = BigInt(39_000_000);
+  const res = await fetch(
+    `/api/feedback?sender=${address.toLowerCase()}&limit=500`
+  );
+  if (!res.ok) throw new Error(`Failed to fetch kudos given: ${res.status}`);
+  const data = await res.json();
 
-  // topic[2] is the indexed clientAddress (the person giving feedback)
-  const senderTopic = padHex(address.toLowerCase() as Hex, { size: 32 });
-
-  const logs = await client.request({
-    method: 'eth_getLogs',
-    params: [
-      {
-        address: REPUTATION_REGISTRY,
-        topics: [NEW_FEEDBACK_TOPIC, null, senderTopic],
-        fromBlock: numberToHex(fromBlock),
-        toBlock: 'latest',
-      },
-    ],
-  });
-
-  const events: KudosGivenEvent[] = [];
-
-  for (const log of logs as Array<{
-    topics: Hex[];
-    data: Hex;
-    blockNumber: Hex;
-    transactionHash: Hex;
-  }>) {
-    try {
-      const agentId = Number(BigInt(log.topics[1]));
-
-      const decoded = decodeAbiParameters(
-        [
-          { name: 'feedbackIndex', type: 'uint64' },
-          { name: 'value', type: 'int128' },
-          { name: 'valueDecimals', type: 'uint8' },
-          { name: 'tag1', type: 'string' },
-          { name: 'tag2', type: 'string' },
-          { name: 'endpoint', type: 'string' },
-          { name: 'feedbackURI', type: 'string' },
-          { name: 'feedbackHash', type: 'bytes32' },
-        ],
-        log.data
-      );
-
-      const feedbackURI = decoded[6];
-
-      events.push({
-        agentId,
-        tag1: decoded[3],
-        tag2: decoded[4],
-        message: parseMessage(feedbackURI),
-        feedbackURI,
-        txHash: log.transactionHash,
-        blockNumber: BigInt(log.blockNumber),
-      });
-    } catch {
-      // skip malformed events
-    }
-  }
-
-  return events.sort((a, b) => Number(b.blockNumber - a.blockNumber));
+  return (data.events || []).map(
+    (e: {
+      agentId: number;
+      tag1: string;
+      tag2: string;
+      feedbackURI: string;
+      txHash: string;
+      blockNumber: string;
+    }) => ({
+      agentId: e.agentId,
+      tag1: e.tag1,
+      tag2: e.tag2,
+      message: parseMessage(e.feedbackURI),
+      feedbackURI: e.feedbackURI,
+      txHash: e.txHash as Hex,
+      blockNumber: BigInt(e.blockNumber),
+    })
+  );
 }
 
 export function useKudosGiven(address: Address | undefined) {
@@ -117,5 +64,6 @@ export function useKudosGiven(address: Address | undefined) {
     queryFn: () => fetchKudosGiven(address!),
     enabled: !!address,
     staleTime: 60_000,
+    gcTime: 300_000,
   });
 }

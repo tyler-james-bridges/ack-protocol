@@ -34,9 +34,11 @@ export interface NetworkStats {
 }
 
 export async function fetchNetworkStats(): Promise<NetworkStats> {
-  const [agentsRes, chainsRes] = await Promise.all([
+  // Fetch all three in parallel to avoid waterfall
+  const [agentsRes, chainsRes, feedbackRes] = await Promise.all([
     fetch('/api/agents?path=agents&limit=1'),
     fetch('/api/agents?path=chains'),
+    fetch('/api/agents?path=agents&limit=10&sort_by=total_feedbacks&sort_order=desc'),
   ]);
 
   let totalAgents = 0;
@@ -54,10 +56,6 @@ export async function fetchNetworkStats(): Promise<NetworkStats> {
     ).length;
   }
 
-  // Estimate total feedbacks from a small sample of top agents
-  const feedbackRes = await fetch(
-    '/api/agents?path=agents&limit=10&sort_by=total_feedbacks&sort_order=desc'
-  );
   let totalFeedbacks = 0;
   if (feedbackRes.ok) {
     const feedbackData = await feedbackRes.json();

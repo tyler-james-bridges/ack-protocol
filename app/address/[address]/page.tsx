@@ -247,9 +247,7 @@ export default function UserProfilePage() {
               </div>
 
               {/* Agent badge if they own one */}
-              {loadingAgent ? (
-                <div className="h-8 w-40 animate-pulse rounded bg-muted" />
-              ) : agent ? (
+              {agent ? (
                 <div className="pt-3 border-t border-border/50">
                   <Link
                     href={`/agent/${agent.chain_id}/${agent.token_id}`}

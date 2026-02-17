@@ -1,6 +1,6 @@
 'use client';
 
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Nav } from '@/components/nav';
@@ -119,7 +119,7 @@ function RecentKudosCard({
 }
 
 export default function GiveKudosPage() {
-  const { login } = useLoginWithAbstract();
+  const { openConnectModal } = useConnectModal();
   const { address, isConnected } = useAccount();
   const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
   const { data: recentKudos, isLoading: loadingFeed } = useRecentKudos();
@@ -214,8 +214,8 @@ export default function GiveKudosPage() {
                   <p className="text-muted-foreground">
                     Connect your wallet to give kudos.
                   </p>
-                  <Button size="lg" onClick={() => login()}>
-                    Connect with Abstract
+                  <Button size="lg" onClick={() => openConnectModal?.()}>
+                    Connect Wallet
                   </Button>
                 </div>
               ) : (

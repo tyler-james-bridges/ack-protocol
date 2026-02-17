@@ -7,7 +7,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from 'wagmi';
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
@@ -35,7 +35,7 @@ const BALANCE_OF_ABI = [
 
 export default function ProfilePage() {
   const { address, isConnected, chain: connectedChain } = useAccount();
-  const { login } = useLoginWithAbstract();
+  const { openConnectModal } = useConnectModal();
 
   // Check if wallet owns an agent
   const { data: balance } = useReadContract({
@@ -126,8 +126,8 @@ export default function ProfilePage() {
               Connect your Abstract Global Wallet to view your agent profile and
               reputation.
             </p>
-            <Button size="lg" onClick={() => login()} className="px-8">
-              Connect with Abstract
+            <Button size="lg" onClick={() => openConnectModal?.()} className="px-8">
+              Connect Wallet
             </Button>
           </div>
         </main>

@@ -1,15 +1,14 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useReadContract, useWaitForTransactionReceipt } from 'wagmi';
-import { useWriteContractSponsored } from '@abstract-foundation/agw-react';
-import { getGeneralPaymasterInput } from 'viem/zksync';
+import {
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from 'wagmi';
 import { toHex, fromHex, type Hex } from 'viem';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
-import {
-  IDENTITY_REGISTRY_ADDRESS,
-  ABSTRACT_PAYMASTER_ADDRESS,
-} from '@/config/contract';
+import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { chain } from '@/config/chain';
 
 /**
@@ -108,10 +107,10 @@ export function useAckMetadata(agentId: number | undefined) {
   const [writeError, setWriteError] = useState<Error | null>(null);
 
   const {
-    writeContractSponsored,
+    writeContract,
     data: writeTxHash,
     reset: resetWrite,
-  } = useWriteContractSponsored();
+  } = useWriteContract();
 
   const { isSuccess: writeTxConfirmed } = useWaitForTransactionReceipt({
     hash: writeTxHash,
@@ -139,15 +138,13 @@ export function useAckMetadata(agentId: number | undefined) {
         const metadataKey = ACK_KEYS[key];
         const metadataValue = toHex(value);
 
-        writeContractSponsored(
+        writeContract(
           {
             address: IDENTITY_REGISTRY_ADDRESS,
             abi: IDENTITY_REGISTRY_ABI,
             functionName: 'setMetadata',
             args: [agentIdBigInt, metadataKey, metadataValue],
             chainId: chain.id,
-            paymaster: ABSTRACT_PAYMASTER_ADDRESS,
-            paymasterInput: getGeneralPaymasterInput({ innerInput: '0x' }),
           },
           {
             onSuccess: () => setWriteStatus('waiting'),
@@ -164,7 +161,7 @@ export function useAckMetadata(agentId: number | undefined) {
         setWriteStatus('error');
       }
     },
-    [enabled, agentIdBigInt, writeContractSponsored]
+    [enabled, agentIdBigInt, writeContract]
   );
 
   const resetWriteState = useCallback(() => {

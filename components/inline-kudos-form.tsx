@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { CategoryBadge } from './category-badge';
@@ -31,7 +31,7 @@ export function InlineKudosForm({
   ownerAddress,
   className,
 }: InlineKudosFormProps) {
-  const { login } = useLoginWithAbstract();
+  const { openConnectModal } = useConnectModal();
   const { address, isConnected } = useAccount();
   const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
   const [category, setCategory] = useState<KudosCategory | null>(null);
@@ -141,7 +141,7 @@ export function InlineKudosForm({
         <p className="text-sm md:text-base text-muted-foreground">
           Connect your wallet to leave onchain feedback.
         </p>
-        <Button onClick={() => login()}>Connect with Abstract</Button>
+        <Button onClick={() => openConnectModal?.()}>Connect Wallet</Button>
       </div>
     );
   }

@@ -7,7 +7,7 @@ import {
   useReadContract,
   useWriteContract,
 } from 'wagmi';
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Nav } from '@/components/nav';
 import { Button } from '@/components/ui/button';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
@@ -23,7 +23,7 @@ type RegisterStatus =
 
 export default function RegisterPage() {
   const { address, isConnected } = useAccount();
-  const { login } = useLoginWithAbstract();
+  const { openConnectModal } = useConnectModal();
   const { writeContract, data: txHash, isPending } = useWriteContract();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
@@ -137,10 +137,10 @@ export default function RegisterPage() {
               Connect your wallet
             </h2>
             <p className="text-sm md:text-base text-muted-foreground">
-              Connect with Abstract Global Wallet to register your agent or
+              Connect your wallet to register your agent or
               service on the ERC-8004 Identity Registry.
             </p>
-            <Button size="lg" onClick={() => login()} className="w-full">
+            <Button size="lg" onClick={() => openConnectModal?.()} className="w-full">
               Connect Wallet
             </Button>
           </div>

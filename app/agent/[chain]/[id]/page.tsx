@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AgentAvatar } from '@/components/agent-avatar';
@@ -25,7 +25,7 @@ export default function AgentProfilePage({
   const { chain, id } = use(params);
   const router = useRouter();
   const { isConnected } = useAccount();
-  const { login } = useLoginWithAbstract();
+  const { openConnectModal } = useConnectModal();
   const [agent, setAgent] = useState<ScanAgent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -342,7 +342,7 @@ export default function AgentProfilePage({
                       .getElementById('give-kudos')
                       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   } else {
-                    login();
+                    openConnectModal?.();
                   }
                 }}
               >
@@ -510,7 +510,7 @@ export default function AgentProfilePage({
                       .getElementById('give-kudos')
                       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   } else {
-                    login();
+                    openConnectModal?.();
                   }
                 }}
               >

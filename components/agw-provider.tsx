@@ -1,11 +1,13 @@
 'use client';
 
-import { AbstractWalletProvider } from '@abstract-foundation/agw-react';
-import { QueryClient } from '@tanstack/react-query';
-import { chain } from '@/config/chain';
+import '@rainbow-me/rainbowkit/styles.css';
 
-// Learn more about Tanstack Query: https://tanstack.com/query/latest/docs/framework/react/reference/QueryClientProvider
-// We create our own query client to share our app's query cache with the AbstractWalletProvider.
+import { useState, useEffect } from 'react';
+import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { WagmiProvider } from 'wagmi';
+import { wagmiConfig } from '@/config/wagmi';
+
 const queryClient = new QueryClient();
 
 export function NextAbstractWalletProvider({
@@ -13,11 +15,29 @@ export function NextAbstractWalletProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    // "chain" is loaded from @config/chain and is environment-aware.
-    // i.e. use testnet or mainnet based on the environment (local, dev, prod)
-    <AbstractWalletProvider chain={chain} queryClient={queryClient}>
-      {children}
-    </AbstractWalletProvider>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        {mounted ? (
+          <RainbowKitProvider
+            theme={darkTheme({
+              accentColor: '#a78bfa',
+              accentColorForeground: 'white',
+              borderRadius: 'medium',
+            })}
+          >
+            {children}
+          </RainbowKitProvider>
+        ) : (
+          children
+        )}
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }

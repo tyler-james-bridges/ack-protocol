@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { Nav } from '@/components/nav';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { CategoryBadge } from '@/components/category-badge';
-import { StatsCard } from '@/components/stats-card';
 import {
   KUDOS_CATEGORIES,
   CATEGORY_META,
@@ -64,62 +63,6 @@ function CopyableAddress({ address }: { address: string }) {
   );
 }
 
-function CategoryBreakdown({ kudos }: { kudos: KudosGivenEvent[] }) {
-  const counts: Record<string, number> = {};
-  for (const k of kudos) {
-    if (KUDOS_CATEGORIES.includes(k.tag2 as KudosCategory)) {
-      counts[k.tag2] = (counts[k.tag2] || 0) + 1;
-    }
-  }
-
-  const total = Object.values(counts).reduce((s, c) => s + c, 0);
-  if (total === 0) return null;
-
-  const sorted = KUDOS_CATEGORIES.filter((c) => counts[c]).sort(
-    (a, b) => (counts[b] || 0) - (counts[a] || 0)
-  );
-
-  return (
-    <section className="rounded-2xl border border-border bg-card p-6">
-      <h2 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-4">
-        Category Breakdown
-      </h2>
-      <div className="space-y-3">
-        {sorted.map((cat) => {
-          const count = counts[cat] || 0;
-          const pct = Math.round((count / total) * 100);
-          const meta = CATEGORY_META[cat];
-          return (
-            <div key={cat}>
-              <div className="flex items-center justify-between mb-1">
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: meta.color }}
-                >
-                  {meta.label}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {count} ({pct}%)
-                </span>
-              </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${pct}%`,
-                    backgroundColor: meta.color,
-                    opacity: 0.7,
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 function KudosHistoryCard({
   kudos,
   agent,
@@ -173,7 +116,6 @@ export default function UserProfilePage() {
   const { address: rawAddress } = useParams<{ address: string }>();
   const address = rawAddress as `0x${string}`;
 
-  // ETH balance on Abstract
   const { data: balance } = useQuery({
     queryKey: ['eth-balance', address],
     queryFn: async () => {
@@ -184,7 +126,6 @@ export default function UserProfilePage() {
     staleTime: 60_000,
   });
 
-  // Check if address owns an agent
   const { data: agent, isLoading: loadingAgent } = useQuery({
     queryKey: ['address-agent', address],
     queryFn: async (): Promise<ScanAgent | null> => {
@@ -201,10 +142,8 @@ export default function UserProfilePage() {
     staleTime: 120_000,
   });
 
-  // Kudos given
   const { data: kudosGiven, isLoading: loadingGiven } = useKudosGiven(address);
 
-  // Resolve agent names for kudos targets
   const agentIds = [...new Set(kudosGiven?.map((k) => k.agentId) || [])];
   const { data: agentMap } = useQuery({
     queryKey: ['agents-batch', agentIds.join(',')],
@@ -221,7 +160,6 @@ export default function UserProfilePage() {
     staleTime: 120_000,
   });
 
-  // Block timestamps
   const blockNumbers = kudosGiven?.map((k) => k.blockNumber) || [];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
 
@@ -244,7 +182,6 @@ export default function UserProfilePage() {
     (a, b) => b[1] - a[1]
   )[0];
 
-  // Get first kudos timestamp
   const firstTimestamp = firstBlock && timestamps?.get(firstBlock.toString());
   const firstKudosDate = firstTimestamp
     ? new Date(firstTimestamp * 1000).toLocaleDateString('en-US', {
@@ -256,123 +193,230 @@ export default function UserProfilePage() {
       ? `Block #${firstBlock.toString()}`
       : '--';
 
+  const sortedCategories = KUDOS_CATEGORIES.filter(
+    (c) => categoryCounts[c]
+  ).sort((a, b) => (categoryCounts[b] || 0) - (categoryCounts[a] || 0));
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen">
       <Nav />
-      <main className="mx-auto max-w-2xl px-4 pt-10 pb-24">
-        {/* Header */}
-        <section className="rounded-2xl border border-border bg-card p-6 mb-5">
-          <div className="flex items-center gap-4">
-            <div className="rounded-xl overflow-hidden ring-2 ring-border ring-offset-2 ring-offset-background">
-              <AgentAvatar name={address} size={56} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-1">
-                User Profile
-              </p>
-              <CopyableAddress address={address} />
-              <div className="flex items-center gap-3 mt-1.5">
-                {balance !== undefined && (
-                  <span className="text-xs text-muted-foreground">
-                    {parseFloat(balance).toFixed(4)} ETH
-                  </span>
-                )}
-                <a
-                  href={`https://abscan.org/address/${address}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-muted-foreground hover:text-[#00DE73] transition-colors"
-                >
-                  Abscan
-                </a>
-              </div>
-            </div>
-          </div>
 
-          {/* Agent badge if they own one */}
-          {loadingAgent ? (
-            <div className="mt-4 h-8 w-40 animate-pulse rounded bg-muted" />
-          ) : agent ? (
-            <div className="mt-4 pt-4 border-t border-border">
-              <Link
-                href={`/agent/${agent.chain_id}/${agent.token_id}`}
-                className="inline-flex items-center gap-2 text-sm text-[#00DE73] hover:text-[#00DE73]/80 transition-colors font-medium"
-              >
-                <AgentAvatar
-                  name={agent.name}
-                  imageUrl={agent.image_url}
-                  size={20}
-                />
-                {agent.name} (Agent #{agent.token_id})
-              </Link>
-            </div>
-          ) : null}
-        </section>
-
-        {/* Stats */}
-        {!loadingGiven && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-            <StatsCard label="Kudos Given" value={totalKudos} />
-            <StatsCard label="Agents Reviewed" value={uniqueAgents} />
-            <StatsCard
-              label="Top Category"
-              value={
-                mostUsedCategory
-                  ? CATEGORY_META[mostUsedCategory[0] as KudosCategory].label
-                  : '--'
-              }
-            />
-            <StatsCard label="First Kudos" value={firstKudosDate} />
-          </div>
-        )}
-
-        {/* Category Breakdown */}
-        {kudosGiven && kudosGiven.length > 0 && (
-          <div className="mb-5">
-            <CategoryBreakdown kudos={kudosGiven} />
-          </div>
-        )}
-
-        {/* Kudos Given History */}
-        <section className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-4">
-            Kudos Given
-            {totalKudos > 0 && (
-              <span className="ml-2 text-[#00DE73]">({totalKudos})</span>
-            )}
-          </h2>
-          {loadingGiven ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="border border-border rounded-lg p-4 animate-pulse"
-                >
-                  <div className="h-4 bg-muted rounded w-2/3 mb-3" />
-                  <div className="h-3 bg-muted rounded w-1/2" />
+      <div className="mx-auto max-w-5xl px-4 pt-6 pb-16">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+          {/* ================================================================ */}
+          {/* LEFT COLUMN - Profile Sidebar                                    */}
+          {/* ================================================================ */}
+          <aside className="w-full lg:w-80 shrink-0 lg:sticky lg:top-20 space-y-4">
+            {/* Profile Card */}
+            <div className="gradient-border card-glow rounded-xl p-5 space-y-4">
+              {/* Identity header */}
+              <div className="flex items-start gap-3.5">
+                <div className="rounded-xl overflow-hidden shrink-0 ring-2 ring-primary/20">
+                  <AgentAvatar name={address} size={64} />
                 </div>
-              ))}
+                <div className="min-w-0 flex-1 pt-0.5">
+                  <h1 className="text-lg font-bold truncate leading-tight">
+                    {truncateAddress(address)}
+                  </h1>
+                  <CopyableAddress address={address} />
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {balance !== undefined && (
+                      <span className="text-xs text-muted-foreground">
+                        {parseFloat(balance).toFixed(4)} ETH
+                      </span>
+                    )}
+                    <a
+                      href={`https://abscan.org/address/${address}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <svg
+                        className="h-3 w-3"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                        />
+                      </svg>
+                      Abscan
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Agent badge if they own one */}
+              {loadingAgent ? (
+                <div className="h-8 w-40 animate-pulse rounded bg-muted" />
+              ) : agent ? (
+                <div className="pt-3 border-t border-border/50">
+                  <Link
+                    href={`/agent/${agent.chain_id}/${agent.token_id}`}
+                    className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 text-sm text-[#00DE73] hover:bg-muted transition-colors font-medium"
+                  >
+                    <AgentAvatar
+                      name={agent.name}
+                      imageUrl={agent.image_url}
+                      size={20}
+                    />
+                    {agent.name} (Agent #{agent.token_id})
+                  </Link>
+                </div>
+              ) : null}
+
+              {/* Stats */}
+              <div className="rounded-lg bg-muted/30 border border-border/50 p-4">
+                <div className="flex items-center gap-4">
+                  <div className="text-center shrink-0">
+                    <div className="text-3xl font-bold text-primary leading-none">
+                      {totalKudos}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider font-medium">
+                      Kudos
+                    </div>
+                  </div>
+
+                  <div className="w-px h-10 bg-border/60" />
+
+                  <div className="grid grid-cols-1 gap-y-1.5 flex-1 text-sm">
+                    <div>
+                      <span className="text-foreground font-semibold">
+                        {uniqueAgents}
+                      </span>
+                      <span className="text-muted-foreground ml-1 text-xs">
+                        {uniqueAgents === 1 ? 'agent' : 'agents'} reviewed
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-foreground font-semibold">
+                        {mostUsedCategory
+                          ? CATEGORY_META[mostUsedCategory[0] as KudosCategory]
+                              .label
+                          : '--'}
+                      </span>
+                      <span className="text-muted-foreground ml-1 text-xs">
+                        top category
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-foreground font-semibold text-xs">
+                        {firstKudosDate}
+                      </span>
+                      <span className="text-muted-foreground ml-1 text-xs">
+                        first kudos
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reputation / Category Breakdown */}
+              {sortedCategories.length > 0 && (
+                <div>
+                  <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+                    Reputation
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {sortedCategories.map((cat) => (
+                      <CategoryBadge
+                        key={cat}
+                        category={cat}
+                        count={categoryCounts[cat]}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Category Progress */}
+              {sortedCategories.length > 1 && (
+                <div className="space-y-2">
+                  {sortedCategories.map((cat) => {
+                    const count = categoryCounts[cat] || 0;
+                    const pct = Math.round((count / totalKudos) * 100);
+                    const meta = CATEGORY_META[cat];
+                    return (
+                      <div key={cat}>
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span
+                            className="text-xs font-medium"
+                            style={{ color: meta.color }}
+                          >
+                            {meta.label}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {count} ({pct}%)
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${pct}%`,
+                              backgroundColor: meta.color,
+                              opacity: 0.7,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          ) : !kudosGiven?.length ? (
-            <div className="text-center py-6">
-              <p className="text-sm text-muted-foreground">
-                No kudos given yet.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {kudosGiven.map((k, i) => (
-                <KudosHistoryCard
-                  key={`${k.txHash}-${i}`}
-                  kudos={k}
-                  agent={agentMap?.get(k.agentId)}
-                  timestamp={timestamps?.get(k.blockNumber.toString())}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      </main>
+          </aside>
+
+          {/* ================================================================ */}
+          {/* RIGHT COLUMN - Kudos Feed                                        */}
+          {/* ================================================================ */}
+          <section className="flex-1 min-w-0">
+            <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
+              Kudos Given
+              {totalKudos > 0 && (
+                <span className="text-[#00DE73] text-xs font-normal">
+                  {totalKudos}
+                </span>
+              )}
+            </h2>
+
+            {loadingGiven ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="border border-border rounded-lg p-4 animate-pulse"
+                  >
+                    <div className="h-4 bg-muted rounded w-2/3 mb-3" />
+                    <div className="h-3 bg-muted rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : !kudosGiven?.length ? (
+              <div className="text-center py-12 border border-dashed border-border rounded-xl">
+                <p className="text-sm text-muted-foreground">
+                  No kudos given yet.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {kudosGiven.map((k, i) => (
+                  <KudosHistoryCard
+                    key={`${k.txHash}-${i}`}
+                    kudos={k}
+                    agent={agentMap?.get(k.agentId)}
+                    timestamp={timestamps?.get(k.blockNumber.toString())}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

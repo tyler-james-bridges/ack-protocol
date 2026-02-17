@@ -108,7 +108,7 @@ export function Nav() {
                         >
                           <AgentAvatar
                             name={account.address}
-                            size={18}
+                            size={22}
                             className="rounded-full"
                           />
                           {account.displayName}

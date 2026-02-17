@@ -71,6 +71,20 @@ export function AgentAvatar({
 
   const colors = pickPalette(name);
 
+  // At small sizes, Facehash 3D renders as a dark blob — use a gradient circle instead
+  if (size <= 28) {
+    return (
+      <div
+        className={cn('shrink-0 rounded-full', className)}
+        style={{
+          width: size,
+          height: size,
+          background: `linear-gradient(135deg, ${colors[0]}, ${colors[2]})`,
+        }}
+      />
+    );
+  }
+
   return (
     <div className={cn('shrink-0 rounded-lg overflow-hidden', className)}>
       <Facehash

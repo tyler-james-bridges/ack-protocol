@@ -17,8 +17,8 @@ export function WalletProviderInner({
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           theme={darkTheme({
-            accentColor: '#a78bfa',
-            accentColorForeground: 'white',
+            accentColor: '#00DE73',
+            accentColorForeground: 'black',
             borderRadius: 'medium',
           })}
         >

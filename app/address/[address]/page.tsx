@@ -21,6 +21,7 @@ import {
 } from '@/hooks/useBlockTimestamps';
 import { createPublicClient, http, formatEther } from 'viem';
 import { abstract } from 'viem/chains';
+import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 
 const abstractClient = createPublicClient({
   chain: abstract,
@@ -125,17 +126,60 @@ export default function UserProfilePage() {
     staleTime: 60_000,
   });
 
-  const { data: agent, isLoading: loadingAgent } = useQuery({
+  const { data: agent } = useQuery({
     queryKey: ['address-agent', address],
     queryFn: async (): Promise<ScanAgent | null> => {
-      const result = await fetchAgents({ search: address, limit: 10 });
-      return (
-        result.items.find(
-          (a) =>
-            a.owner_address.toLowerCase() === address.toLowerCase() ||
-            a.creator_address.toLowerCase() === address.toLowerCase()
-        ) || null
-      );
+      // Check onchain if this address owns an agent on Abstract
+      const balanceOfAbi = [
+        {
+          inputs: [{ name: 'owner', type: 'address' }],
+          name: 'balanceOf',
+          outputs: [{ name: '', type: 'uint256' }],
+          stateMutability: 'view' as const,
+          type: 'function' as const,
+        },
+      ] as const;
+      const tokenOfOwnerAbi = [
+        {
+          inputs: [
+            { name: 'owner', type: 'address' },
+            { name: 'index', type: 'uint256' },
+          ],
+          name: 'tokenOfOwnerByIndex',
+          outputs: [{ name: '', type: 'uint256' }],
+          stateMutability: 'view' as const,
+          type: 'function' as const,
+        },
+      ] as const;
+
+      try {
+        const balance = await abstractClient.readContract({
+          address: IDENTITY_REGISTRY_ADDRESS,
+          abi: balanceOfAbi,
+          functionName: 'balanceOf',
+          args: [address],
+        });
+        if (Number(balance) === 0) return null;
+
+        const tokenId = await abstractClient.readContract({
+          address: IDENTITY_REGISTRY_ADDRESS,
+          abi: tokenOfOwnerAbi,
+          functionName: 'tokenOfOwnerByIndex',
+          args: [address, BigInt(0)],
+        });
+
+        const result = await fetchAgents({
+          chainId: 2741,
+          limit: 1,
+          search: String(tokenId),
+        });
+        return (
+          result.items.find((a) => String(a.token_id) === String(tokenId)) ||
+          null
+        );
+      } catch {
+        return null;
+      }
     },
     enabled: !!address,
     staleTime: 120_000,

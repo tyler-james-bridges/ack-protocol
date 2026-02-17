@@ -492,14 +492,19 @@ function StatBlock({
   );
 }
 
+const OWNER_ADDRESS = '0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c';
+const DEFAULT_AGENT_URI = 'ipfs://QmSiX4rnJ119Ag5irvPgRCoqsCvV4wV7tYRYDmvsS9RC7o';
+
 function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
-  const [newURI, setNewURI] = useState('');
+  const { address } = useAccount();
+  const [newURI, setNewURI] = useState(DEFAULT_AGENT_URI);
   const [expanded, setExpanded] = useState(false);
   const { writeContract, data: txHash } = useWriteContract();
   const { isSuccess: txConfirmed, isLoading: txPending } =
     useWaitForTransactionReceipt({ hash: txHash, chainId: chain.id });
 
-  if (!agent) return null;
+  // Only show for owner wallet
+  if (!agent || !address || address.toLowerCase() !== OWNER_ADDRESS.toLowerCase()) return null;
 
   function handleSubmit() {
     if (!newURI.trim() || !agent) return;

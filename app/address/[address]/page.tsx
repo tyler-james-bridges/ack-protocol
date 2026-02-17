@@ -19,7 +19,7 @@ import {
   useBlockTimestamps,
   formatRelativeTime,
 } from '@/hooks/useBlockTimestamps';
-import { createPublicClient, http, formatEther } from 'viem';
+import { createPublicClient, http, formatEther, parseAbiItem } from 'viem';
 import { abstract } from 'viem/chains';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 
@@ -129,44 +129,38 @@ export default function UserProfilePage() {
   const { data: agent } = useQuery({
     queryKey: ['address-agent', address],
     queryFn: async (): Promise<ScanAgent | null> => {
-      // Check onchain if this address owns an agent on Abstract
-      const balanceOfAbi = [
-        {
-          inputs: [{ name: 'owner', type: 'address' }],
-          name: 'balanceOf',
-          outputs: [{ name: '', type: 'uint256' }],
-          stateMutability: 'view' as const,
-          type: 'function' as const,
-        },
-      ] as const;
-      const tokenOfOwnerAbi = [
-        {
-          inputs: [
-            { name: 'owner', type: 'address' },
-            { name: 'index', type: 'uint256' },
-          ],
-          name: 'tokenOfOwnerByIndex',
-          outputs: [{ name: '', type: 'uint256' }],
-          stateMutability: 'view' as const,
-          type: 'function' as const,
-        },
-      ] as const;
-
       try {
-        const balance = await abstractClient.readContract({
+        // Find Transfer events where this address received a token
+        const logs = await abstractClient.getLogs({
           address: IDENTITY_REGISTRY_ADDRESS,
-          abi: balanceOfAbi,
-          functionName: 'balanceOf',
-          args: [address],
+          event: parseAbiItem(
+            'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
+          ),
+          args: { to: address.toLowerCase() as `0x${string}` },
+          fromBlock: BigInt(39000000),
+          toBlock: 'latest',
         });
-        if (Number(balance) === 0) return null;
+        if (logs.length === 0) return null;
 
-        const tokenId = await abstractClient.readContract({
+        const tokenId = logs[logs.length - 1].args.tokenId;
+        if (tokenId === undefined) return null;
+
+        // Verify current ownership
+        const owner = await abstractClient.readContract({
           address: IDENTITY_REGISTRY_ADDRESS,
-          abi: tokenOfOwnerAbi,
-          functionName: 'tokenOfOwnerByIndex',
-          args: [address, BigInt(0)],
+          abi: [
+            {
+              inputs: [{ name: 'tokenId', type: 'uint256' }],
+              name: 'ownerOf',
+              outputs: [{ name: '', type: 'address' }],
+              stateMutability: 'view' as const,
+              type: 'function' as const,
+            },
+          ] as const,
+          functionName: 'ownerOf',
+          args: [tokenId],
         });
+        if (owner.toLowerCase() !== address.toLowerCase()) return null;
 
         const result = await fetchAgents({
           chainId: 2741,

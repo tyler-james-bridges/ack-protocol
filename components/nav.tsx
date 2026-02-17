@@ -87,18 +87,37 @@ export function Nav() {
                     className="flex items-center gap-1"
                   >
                     {connected ? (
-                      <button
-                        onClick={openAccountModal}
-                        className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 pl-1 pr-2.5 py-1 text-[11px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-all"
-                        type="button"
-                      >
-                        <AgentAvatar
-                          name={account.address}
-                          size={22}
-                          className="rounded-full"
-                        />
-                        {account.displayName}
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <Link
+                          href={`/user/${account.address}`}
+                          className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 pl-1 pr-2.5 py-1 text-[11px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-all"
+                        >
+                          <AgentAvatar
+                            name={account.address}
+                            size={22}
+                            className="rounded-full"
+                          />
+                          {account.displayName}
+                        </Link>
+                        <button
+                          onClick={openAccountModal}
+                          className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                          type="button"
+                          aria-label="Wallet settings"
+                        >
+                          <svg
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            className="h-3.5 w-3.5"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     ) : (
                       <button
                         onClick={openConnectModal}
@@ -185,17 +204,17 @@ export function Nav() {
                   {link.label}
                 </Link>
               ))}
-              {isConnected && (
+              {isConnected && address && (
                 <Link
-                  href="/profile"
+                  href={`/user/${address}`}
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center px-3 py-2 rounded-md text-[13px] transition-colors ${
-                    isActive('/profile')
+                    pathname.startsWith('/user/')
                       ? 'text-foreground bg-muted/40'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
                   }`}
                 >
-                  Profile
+                  My Profile
                 </Link>
               )}
             </div>

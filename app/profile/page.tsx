@@ -636,14 +636,12 @@ function KudosCard({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {sender && (
-            <a
-              href={`https://abscan.org/address/${sender}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href={`/user/${sender}`}
               className="font-mono text-sm text-muted-foreground hover:text-[#00DE73] transition-colors"
             >
               {truncateAddress(sender)}
-            </a>
+            </Link>
           )}
           {agentId !== null && (
             <Link

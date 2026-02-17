@@ -61,11 +61,66 @@ export function Nav() {
           <div className="flex items-center gap-1">
             <ThemeToggle />
 
-            <ConnectButton
-              chainStatus="icon"
-              accountStatus="avatar"
-              showBalance={false}
-            />
+            <ConnectButton.Custom>
+              {({
+                account,
+                chain: connectedChain,
+                openAccountModal,
+                openChainModal,
+                openConnectModal,
+                mounted,
+              }) => {
+                const ready = mounted;
+                const connected = ready && account && connectedChain;
+
+                return (
+                  <div
+                    {...(!ready && {
+                      'aria-hidden': true,
+                      style: {
+                        opacity: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                      },
+                    })}
+                    className="flex items-center gap-1"
+                  >
+                    {connected ? (
+                      <>
+                        <button
+                          onClick={openChainModal}
+                          className="flex items-center justify-center h-7 w-7 rounded-full border border-border/60 bg-muted/30 hover:border-foreground/20 transition-all"
+                          type="button"
+                        >
+                          {connectedChain.hasIcon && connectedChain.iconUrl && (
+                            <img
+                              alt={connectedChain.name ?? 'Chain'}
+                              src={connectedChain.iconUrl}
+                              className="h-4 w-4 rounded-full"
+                            />
+                          )}
+                        </button>
+                        <button
+                          onClick={openAccountModal}
+                          className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 text-[11px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-all"
+                          type="button"
+                        >
+                          {account.displayName}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={openConnectModal}
+                        className="ml-1 h-7 px-3 text-[12px] rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors"
+                        type="button"
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+                );
+              }}
+            </ConnectButton.Custom>
 
             <button
               onClick={() => setMobileOpen((v) => !v)}

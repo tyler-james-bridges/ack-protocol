@@ -493,7 +493,8 @@ function StatBlock({
 }
 
 const OWNER_ADDRESS = '0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c';
-const DEFAULT_AGENT_URI = 'ipfs://QmSiX4rnJ119Ag5irvPgRCoqsCvV4wV7tYRYDmvsS9RC7o';
+const DEFAULT_AGENT_URI =
+  'ipfs://QmSiX4rnJ119Ag5irvPgRCoqsCvV4wV7tYRYDmvsS9RC7o';
 
 function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
   const { address } = useAccount();
@@ -504,7 +505,12 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
     useWaitForTransactionReceipt({ hash: txHash, chainId: chain.id });
 
   // Only show for owner wallet
-  if (!agent || !address || address.toLowerCase() !== OWNER_ADDRESS.toLowerCase()) return null;
+  if (
+    !agent ||
+    !address ||
+    address.toLowerCase() !== OWNER_ADDRESS.toLowerCase()
+  )
+    return null;
 
   function handleSubmit() {
     if (!newURI.trim() || !agent) return;

@@ -11,10 +11,11 @@ async function fetchFeedbackCounts(): Promise<Map<number, number>> {
   const res = await fetch('/api/feedback?counts=true');
   if (!res.ok)
     throw new Error(`Failed to fetch feedback counts: ${res.status}`);
-  const data: Record<string, number> = await res.json();
+  const data = await res.json();
+  const raw: Record<string, number> = data.counts ?? data;
 
   const counts = new Map<number, number>();
-  for (const [id, count] of Object.entries(data)) {
+  for (const [id, count] of Object.entries(raw)) {
     counts.set(Number(id), count);
   }
   return counts;

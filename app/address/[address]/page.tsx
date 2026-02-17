@@ -19,9 +19,8 @@ import {
   useBlockTimestamps,
   formatRelativeTime,
 } from '@/hooks/useBlockTimestamps';
-import { createPublicClient, http, formatEther, parseAbiItem } from 'viem';
+import { createPublicClient, http, formatEther } from 'viem';
 import { abstract } from 'viem/chains';
-import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 
 const abstractClient = createPublicClient({
   chain: abstract,
@@ -124,59 +123,6 @@ export default function UserProfilePage() {
     },
     enabled: !!address,
     staleTime: 60_000,
-  });
-
-  const { data: agent } = useQuery({
-    queryKey: ['address-agent', address],
-    queryFn: async (): Promise<ScanAgent | null> => {
-      try {
-        // Check onchain balance first
-        const balance = await abstractClient.readContract({
-          address: IDENTITY_REGISTRY_ADDRESS,
-          abi: [
-            {
-              inputs: [{ name: 'owner', type: 'address' }],
-              name: 'balanceOf',
-              outputs: [{ name: '', type: 'uint256' }],
-              stateMutability: 'view' as const,
-              type: 'function' as const,
-            },
-          ] as const,
-          functionName: 'balanceOf',
-          args: [address],
-        });
-        if (Number(balance) === 0) return null;
-
-        // Find Transfer events to get token ID
-        const logs = await abstractClient.getLogs({
-          address: IDENTITY_REGISTRY_ADDRESS,
-          event: parseAbiItem(
-            'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
-          ),
-          args: { to: address },
-          fromBlock: BigInt(39000000),
-          toBlock: 'latest',
-        });
-        if (logs.length === 0) return null;
-
-        const tokenId = logs[logs.length - 1].args.tokenId;
-        if (tokenId === undefined) return null;
-
-        const result = await fetchAgents({
-          chainId: 2741,
-          limit: 1,
-          search: String(tokenId),
-        });
-        return (
-          result.items.find((a) => String(a.token_id) === String(tokenId)) ||
-          null
-        );
-      } catch {
-        return null;
-      }
-    },
-    enabled: !!address,
-    staleTime: 120_000,
   });
 
   const { data: kudosGiven, isLoading: loadingGiven } = useKudosGiven(address);
@@ -283,23 +229,6 @@ export default function UserProfilePage() {
                   </div>
                 </div>
               </div>
-
-              {/* Agent badge if they own one */}
-              {agent ? (
-                <div className="pt-3 border-t border-border/50">
-                  <Link
-                    href={`/agent/${agent.chain_id}/${agent.token_id}`}
-                    className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 text-sm text-[#00DE73] hover:bg-muted transition-colors font-medium"
-                  >
-                    <AgentAvatar
-                      name={agent.name}
-                      imageUrl={agent.image_url}
-                      size={20}
-                    />
-                    {agent.name} (Agent #{agent.token_id})
-                  </Link>
-                </div>
-              ) : null}
 
               {/* Stats */}
               <div className="rounded-lg bg-muted/30 border border-border/50 p-4">

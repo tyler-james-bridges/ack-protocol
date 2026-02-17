@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { AgentAvatar } from '@/components/agent-avatar';
 
 const NAV_LINKS = [
   { href: '/leaderboard', label: 'Explore' },
@@ -102,9 +103,14 @@ export function Nav() {
                         </button>
                         <button
                           onClick={openAccountModal}
-                          className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 text-[11px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-all"
+                          className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 pl-1 pr-2.5 py-1 text-[11px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-all"
                           type="button"
                         >
+                          <AgentAvatar
+                            name={account.address}
+                            size={18}
+                            className="rounded-full"
+                          />
                           {account.displayName}
                         </button>
                       </>

@@ -173,16 +173,18 @@ export function KudosFeed({ agentId }: { agentId: number }) {
       <h3 className="text-sm font-medium text-[#00DE73]">
         Onchain Kudos ({kudos.length})
       </h3>
-      {kudos.map((k, i) => (
-        <KudosCard
-          key={`${k.txHash}-${i}`}
-          kudos={k}
-          agentId={agentId}
-          receiverAgent={agentMap.get(agentId)}
-          senderAgent={senderMap.get(k.sender.toLowerCase())}
-          timestamp={timestamps?.get(k.blockNumber.toString())}
-        />
-      ))}
+      {[...kudos]
+        .sort((a, b) => (a.blockNumber > b.blockNumber ? -1 : 1))
+        .map((k, i) => (
+          <KudosCard
+            key={`${k.txHash}-${i}`}
+            kudos={k}
+            agentId={agentId}
+            receiverAgent={agentMap.get(agentId)}
+            senderAgent={senderMap.get(k.sender.toLowerCase())}
+            timestamp={timestamps?.get(k.blockNumber.toString())}
+          />
+        ))}
     </div>
   );
 }

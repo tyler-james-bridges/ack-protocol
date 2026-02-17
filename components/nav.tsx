@@ -61,6 +61,7 @@ function WalletDropdown({
         <div className="absolute right-0 top-full mt-1.5 w-44 rounded-lg border border-border bg-card shadow-lg overflow-hidden z-50">
           <Link
             href={`/address/${address}`}
+            prefetch={false}
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-3 py-2.5 text-sm text-foreground hover:bg-muted/50 transition-colors"
           >
@@ -127,7 +128,11 @@ export function Nav() {
       <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/60 backdrop-blur-2xl">
         <div className="mx-auto flex h-12 max-w-5xl items-center justify-between px-4">
           <div className="flex items-center gap-5">
-            <Link href="/" className="flex items-center gap-1.5">
+            <Link
+              href="/"
+              prefetch={false}
+              className="flex items-center gap-1.5"
+            >
               <span className="text-base font-semibold tracking-tight text-foreground">
                 ACK
               </span>
@@ -137,6 +142,7 @@ export function Nav() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  prefetch={false}
                   className={`relative px-3 py-1 text-[13px] transition-colors ${
                     isActive(link.href)
                       ? 'text-foreground font-medium'
@@ -259,6 +265,7 @@ export function Nav() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  prefetch={false}
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center px-3 py-2 rounded-md text-[13px] transition-colors ${
                     isActive(link.href)
@@ -272,6 +279,7 @@ export function Nav() {
               {isConnected && address && (
                 <Link
                   href={`/address/${address}`}
+                  prefetch={false}
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center px-3 py-2 rounded-md text-[13px] transition-colors ${
                     pathname.startsWith('/address/')

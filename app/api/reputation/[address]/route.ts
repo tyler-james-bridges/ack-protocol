@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RateLimiter } from '@/lib/rate-limit';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
 import type { ScanAgent, ScanAgentsResponse } from '@/lib/api';
+import { getFeedbackByAgentId, type FeedbackEvent } from '@/lib/feedback-cache';
 
 const API_BASE = 'https://www.8004scan.io/api/v1';
 
@@ -11,15 +12,6 @@ const limiter = new RateLimiter({ windowMs: 60_000, maxRequests: 60 });
 // Simple in-memory cache — 5 minute TTL
 const cache = new Map<string, { data: ReputationResponse; ts: number }>();
 const CACHE_TTL = 5 * 60_000;
-
-/** Feedback item shape from 8004scan */
-interface ScanFeedback {
-  tag1?: string;
-  tag2?: string;
-  value?: number;
-  value_decimals?: number;
-  feedback_uri?: string;
-}
 
 interface AgentReputation {
   chainId: number;
@@ -85,6 +77,7 @@ export async function GET(
     return NextResponse.json(cached.data, {
       headers: {
         'X-Cache': 'HIT',
+          'X-API-Version': '1',
         'X-RateLimit-Remaining': String(rl.remaining),
       },
     });
@@ -107,15 +100,16 @@ export async function GET(
       return NextResponse.json(empty, {
         headers: {
           'X-Cache': 'MISS',
+          'X-API-Version': '1',
           'X-RateLimit-Remaining': String(rl.remaining),
         },
       });
     }
 
-    // Fetch feedback for each agent in parallel
+    // Fetch feedback for each agent from shared cache
     const feedbackResults = await Promise.all(
       agentsOwned.map((agent) =>
-        fetchFeedback(agent.chain_id, agent.token_id).then((feedbacks) => ({
+        getFeedbackByAgentId(Number(agent.token_id)).then((feedbacks) => ({
           agent,
           feedbacks,
         }))
@@ -130,7 +124,7 @@ export async function GET(
     for (const { agent, feedbacks } of feedbackResults) {
       // Count kudos from feedbacks where tag1 === "kudos"
       const kudosFeedbacks = feedbacks.filter(
-        (f: ScanFeedback) => f.tag1 === 'kudos'
+        (f) => f.tag1 === 'kudos'
       );
       totalKudos += kudosFeedbacks.length;
 
@@ -180,6 +174,7 @@ export async function GET(
     return NextResponse.json(result, {
       headers: {
         'X-Cache': 'MISS',
+          'X-API-Version': '1',
         'X-RateLimit-Remaining': String(rl.remaining),
       },
     });
@@ -226,21 +221,6 @@ async function fetchAgentsByOwner(ownerAddress: string): Promise<ScanAgent[]> {
     seen.add(a.id);
     return true;
   });
-}
-
-/** Fetch feedback for a specific agent. */
-async function fetchFeedback(
-  chainId: number,
-  tokenId: string
-): Promise<ScanFeedback[]> {
-  try {
-    const data = await scanFetch<{ items?: ScanFeedback[] }>(
-      `agents/${chainId}/${tokenId}/feedbacks`
-    );
-    return data.items || [];
-  } catch {
-    return [];
-  }
 }
 
 /** Direct fetch to 8004scan (server-side, no CORS proxy needed). */

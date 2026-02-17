@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RateLimiter } from '@/lib/rate-limit';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
 import type { ScanAgent, ScanAgentsResponse } from '@/lib/api';
+import { getFeedbackByAgentId, type FeedbackEvent } from '@/lib/feedback-cache';
 
 const API_BASE = 'https://www.8004scan.io/api/v1';
 
@@ -12,11 +13,11 @@ const limiter = new RateLimiter({ windowMs: 60_000, maxRequests: 30 });
 const cache = new Map<string, { data: DiscoverResponse; ts: number }>();
 const CACHE_TTL = 2 * 60_000;
 
-/** Feedback item shape from 8004scan */
+/** Feedback item shape (compatible with both 8004scan and our cache) */
 interface ScanFeedback {
   tag1?: string;
   tag2?: string;
-  value?: number;
+  value?: number | string;
 }
 
 interface DiscoverAgent {
@@ -107,6 +108,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'X-Cache': 'HIT',
         'X-RateLimit-Remaining': String(rl.remaining),
+        'X-API-Version': '1',
       },
     });
   }
@@ -139,7 +141,7 @@ export async function GET(request: NextRequest) {
       const candidateAgents = agents.slice(0, 50);
       const withFeedback = await Promise.all(
         candidateAgents.map((agent) =>
-          fetchFeedback(agent.chain_id, agent.token_id).then((feedbacks) =>
+          getFeedbackByAgentId(Number(agent.token_id)).then((feedbacks) =>
             enrichAgent(agent, feedbacks)
           )
         )
@@ -157,7 +159,7 @@ export async function GET(request: NextRequest) {
       agents = agents.slice(offset, offset + limit);
       const withFeedback = await Promise.all(
         agents.map((agent) =>
-          fetchFeedback(agent.chain_id, agent.token_id).then((feedbacks) =>
+          getFeedbackByAgentId(Number(agent.token_id)).then((feedbacks) =>
             enrichAgent(agent, feedbacks)
           )
         )
@@ -183,6 +185,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'X-Cache': 'MISS',
         'X-RateLimit-Remaining': String(rl.remaining),
+        'X-API-Version': '1',
       },
     });
   } catch (error) {
@@ -236,21 +239,6 @@ function enrichAgent(
     topCategory,
     categories,
   };
-}
-
-/** Fetch feedback for a specific agent. */
-async function fetchFeedback(
-  chainId: number,
-  tokenId: string
-): Promise<ScanFeedback[]> {
-  try {
-    const data = await scanFetch<{ items?: ScanFeedback[] }>(
-      `agents/${chainId}/${tokenId}/feedbacks`
-    );
-    return data.items || [];
-  } catch {
-    return [];
-  }
 }
 
 /** Direct fetch to 8004scan (server-side, no CORS proxy needed). */

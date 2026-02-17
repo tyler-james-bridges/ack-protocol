@@ -125,6 +125,29 @@ export default function UserProfilePage() {
     staleTime: 60_000,
   });
 
+  // Find agent owned by this address via 8004scan
+  const { data: ownedAgent } = useQuery({
+    queryKey: ['address-agent', address],
+    queryFn: async (): Promise<ScanAgent | null> => {
+      try {
+        const result = await fetchAgents({ chainId: 2741, limit: 50 });
+        const addr = address.toLowerCase();
+        return (
+          result.items.find(
+            (a) =>
+              a.owner_address?.toLowerCase() === addr ||
+              a.creator_address?.toLowerCase() === addr ||
+              a.agent_wallet?.toLowerCase() === addr
+          ) || null
+        );
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!address,
+    staleTime: 120_000,
+  });
+
   const { data: kudosGiven, isLoading: loadingGiven } = useKudosGiven(address);
 
   const agentIds = [...new Set(kudosGiven?.map((k) => k.agentId) || [])];
@@ -229,6 +252,23 @@ export default function UserProfilePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Agent badge */}
+              {ownedAgent ? (
+                <div className="pt-3 border-t border-border/50">
+                  <Link
+                    href={`/agent/${ownedAgent.chain_id}/${ownedAgent.token_id}`}
+                    className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 text-sm text-[#00DE73] hover:bg-muted transition-colors font-medium"
+                  >
+                    <AgentAvatar
+                      name={ownedAgent.name}
+                      imageUrl={ownedAgent.image_url}
+                      size={20}
+                    />
+                    {ownedAgent.name} (Agent #{ownedAgent.token_id})
+                  </Link>
+                </div>
+              ) : null}
 
               {/* Stats */}
               <div className="rounded-lg bg-muted/30 border border-border/50 p-4">

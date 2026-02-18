@@ -11,7 +11,7 @@ const agentCard = {
   },
   version: '1.0.0',
   x402Support: true,
-  supportedTrust: ['reputation', 'tee-attestation'],
+  supportedTrust: ['reputation'],
   capabilities: {
     streaming: false,
     pushNotifications: false,

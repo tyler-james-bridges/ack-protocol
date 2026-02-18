@@ -64,7 +64,7 @@ const oasfProfile = {
     },
   ],
   x402Support: true,
-  supportedTrust: ['reputation', 'tee-attestation'],
+  supportedTrust: ['reputation'],
   services: [
     {
       name: 'MCP',

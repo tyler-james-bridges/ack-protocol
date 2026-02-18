@@ -42,15 +42,31 @@ const x402Info = {
     'ACK Protocol supports X402 payment protocol for premium reputation data access.',
 };
 
+const x402Headers = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
 export async function GET() {
   return NextResponse.json(x402Info, {
     status: 200,
     headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      ...x402Headers,
       'Cache-Control': 'public, max-age=3600',
+    },
+  });
+}
+
+export async function POST() {
+  return NextResponse.json(x402Info, {
+    status: 402,
+    headers: {
+      ...x402Headers,
+      'X-Payment-Required': 'true',
+      'X-Payment-Address': AGENT_OWNER_ADDRESS,
+      'X-Payment-Chain': '2741',
     },
   });
 }
@@ -59,11 +75,7 @@ export async function OPTIONS() {
   return NextResponse.json(
     {},
     {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
+      headers: x402Headers,
     }
   );
 }

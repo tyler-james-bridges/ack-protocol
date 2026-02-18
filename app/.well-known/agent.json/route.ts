@@ -33,7 +33,7 @@ const agentCard = {
       name: 'A2A',
       type: 'a2a',
       version: '0.3.0',
-      endpoint: 'https://ack-onchain.dev/.well-known/agent.json',
+      endpoint: 'https://ack-onchain.dev/api/a2a',
       description: 'Agent-to-Agent protocol agent card.',
     },
     {

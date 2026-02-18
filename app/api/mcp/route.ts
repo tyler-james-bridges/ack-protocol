@@ -126,7 +126,8 @@ export async function GET() {
     },
     {
       headers: {
-        'Access-Control-Allow-Origin': getAllowedOrigin(),
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
         'X-API-Version': '1',

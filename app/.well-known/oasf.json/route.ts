@@ -63,24 +63,35 @@ const oasfProfile = {
         'Trust verification, reputation scoring, and agent risk assessment.',
     },
   ],
+  x402Support: true,
+  supportedTrust: ['reputation', 'tee-attestation'],
   services: [
     {
       name: 'MCP',
       type: 'mcp',
+      version: '2025-06-18',
       endpoint: 'https://ack-onchain.dev/api/mcp',
       description: 'Model Context Protocol server for agent data access.',
     },
     {
       name: 'A2A',
       type: 'a2a',
+      version: '0.3.0',
       endpoint: 'https://ack-onchain.dev/.well-known/agent-card.json',
       description: 'Agent-to-Agent protocol agent card.',
     },
     {
       name: 'OASF',
       type: 'oasf',
+      version: '0.8',
       endpoint: 'https://ack-onchain.dev/.well-known/oasf.json',
       description: 'Open Agentic Schema Framework profile.',
+    },
+    {
+      name: 'x402',
+      type: 'x402',
+      endpoint: 'https://ack-onchain.dev/api/x402',
+      description: 'X402 payment protocol for premium reputation queries.',
     },
     {
       name: 'Web',

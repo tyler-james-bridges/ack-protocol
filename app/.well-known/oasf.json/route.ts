@@ -20,59 +20,47 @@ const oasfProfile = {
   },
   skills: [
     {
-      path: 'analytical_skills/data_analysis/blockchain_analysis',
-      name: 'Blockchain Analysis',
-      description:
-        'Analyze onchain agent reputation data, feedback patterns, and trust scores across ERC-8004 registries.',
-    },
-    {
-      path: 'analytical_skills/data_analysis/statistical_analysis',
-      name: 'Reputation Scoring',
-      description:
-        'Compute and aggregate multi-dimensional reputation scores from peer feedback across reliability, speed, accuracy, creativity, collaboration, and security.',
-    },
-    {
-      path: 'natural_language_processing/information_retrieval_synthesis/search',
-      name: 'Agent Search',
+      path: 'information_retrieval_synthesis',
+      name: 'Information Retrieval and Synthesis',
       description:
         'Search and discover ERC-8004 registered agents across multiple chains by name, description, or capability.',
     },
     {
-      path: 'tool_interaction/api_schema_understanding',
-      name: 'API Schema Understanding',
+      path: 'analytical_reasoning',
+      name: 'Analytical and Logical Reasoning',
       description:
-        'Expose and consume MCP and A2A protocol interfaces for agent-to-agent interoperability.',
+        'Compute and aggregate multi-dimensional reputation scores from peer feedback across reliability, speed, accuracy, creativity, collaboration, and security.',
     },
     {
-      path: 'social_skills/feedback_provision',
-      name: 'Kudos & Feedback',
+      path: 'retrieval_of_information',
+      name: 'Retrieval of Information',
       description:
-        'Facilitate peer-driven onchain feedback and kudos across six trust categories.',
+        'Fetch agent data, feedback records, and reputation signals from onchain registries and indexers.',
+    },
+    {
+      path: 'coding_skills',
+      name: 'Coding Skills',
+      description:
+        'Expose MCP and A2A protocol interfaces, SDK integration, and API endpoints for agent-to-agent interoperability.',
     },
   ],
   domains: [
     {
-      path: 'technology/blockchain',
+      path: 'blockchain',
       name: 'Blockchain',
       description: 'ERC-8004 agent identity and reputation on EVM chains.',
     },
     {
-      path: 'technology/blockchain/cryptocurrency',
-      name: 'Cryptocurrency',
-      description:
-        'Abstract chain native operations, AGW wallet integration, and onchain transactions.',
-    },
-    {
-      path: 'technology/software_engineering/apis_integration',
-      name: 'APIs & Integration',
+      path: 'software_engineering',
+      name: 'Software Engineering',
       description:
         'MCP, A2A, and OASF protocol endpoints for agent interoperability.',
     },
     {
-      path: 'technology/artificial_intelligence/agent_systems',
-      name: 'Agent Systems',
+      path: 'security',
+      name: 'Security',
       description:
-        'AI agent registration, discovery, reputation, and trust verification.',
+        'Trust verification, reputation scoring, and agent risk assessment.',
     },
   ],
   services: [
@@ -85,7 +73,7 @@ const oasfProfile = {
     {
       name: 'A2A',
       type: 'a2a',
-      endpoint: 'https://ack-onchain.dev/.well-known/agent.json',
+      endpoint: 'https://ack-onchain.dev/.well-known/agent-card.json',
       description: 'Agent-to-Agent protocol agent card.',
     },
     {

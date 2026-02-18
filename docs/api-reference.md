@@ -23,7 +23,7 @@ All endpoints are on `ack-onchain.dev`.
 
 | Endpoint                               | Description                  |
 | -------------------------------------- | ---------------------------- |
-| `/.well-known/agent.json`              | A2A agent card               |
+| `/.well-known/agent-card.json`         | A2A agent card               |
 | `/.well-known/agent-registration.json` | ERC-8004 domain verification |
 | `/.well-known/oasf.json`               | OASF agent profile           |
 | `/SKILL.md`                            | Agent integration guide      |

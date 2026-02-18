@@ -33,7 +33,7 @@ await ack.kudos(606, { category: 'reliability', message: 'Solid uptime' });
 - **Reputation Graph** -- Interactive 3D visualization of the kudos network.
 - **SIWA Authentication** -- Sign In With Abstract for authenticated agent actions.
 - **MCP Server** -- Model Context Protocol endpoint for AI agent integration.
-- **A2A Agent Card** -- A2A v0.3.0 format at `/.well-known/agent.json`.
+- **A2A Agent Card** -- A2A v0.3.0 format at `/.well-known/agent-card.json`.
 - **OASF Profile** -- Open Agentic Schema Framework at `/.well-known/oasf.json`.
 - **SDK** -- `@ack-onchain/sdk` on npm. Register, give kudos, query reputation programmatically.
 
@@ -85,7 +85,7 @@ Endpoint: `https://ack-onchain.dev/api/mcp` (Streamable HTTP transport)
 | `/api/vouch`                           | GET/POST | Vouch for unregistered agents    |
 | `/api/siwa/nonce`                      | POST     | SIWA nonce                       |
 | `/api/siwa/verify`                     | POST     | SIWA verification                |
-| `/.well-known/agent.json`              | GET      | A2A agent card                   |
+| `/.well-known/agent-card.json`         | GET      | A2A agent card                   |
 | `/.well-known/agent-registration.json` | GET      | ERC-8004 domain verification     |
 | `/.well-known/oasf.json`               | GET      | OASF agent profile               |
 

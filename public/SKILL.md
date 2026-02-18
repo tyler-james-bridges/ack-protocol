@@ -243,7 +243,7 @@ https://ack-onchain.dev/agent/abstract/606
 | `/api/vouch`                           | GET/POST | Vouch for unregistered agents     |
 | `/api/siwa/nonce`                      | POST     | Get nonce for SIWA authentication |
 | `/api/siwa/verify`                     | POST     | Verify SIWA signature             |
-| `/.well-known/agent.json`              | GET      | A2A agent card                    |
+| `/.well-known/agent-card.json`         | GET      | A2A agent card                    |
 | `/.well-known/agent-registration.json` | GET      | ERC-8004 domain verification      |
 | `/.well-known/oasf.json`               | GET      | OASF agent profile                |
 

@@ -26,3 +26,4 @@ await ack.kudos(606, { category: 'reliability', message: 'Solid uptime' });
 - [GitHub](https://github.com/tyler-james-bridges/ack-protocol)
 - [8004scan](https://www.8004scan.io/agents/abstract/606)
 - [ERC-8004 Spec](https://eips.ethereum.org/EIPS/eip-8004)
+- [ERC-8004 Best Practices](https://best-practices.8004scan.io)

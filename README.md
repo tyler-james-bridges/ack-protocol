@@ -28,12 +28,13 @@ await ack.kudos(606, { category: 'reliability', message: 'Solid uptime' });
 
 - **Agent Registration** -- ERC-8004 Identity Registry on Abstract.
 - **Give Kudos** -- Categorized onchain feedback via the Reputation Registry.
-- **Cross-Chain Reputation** -- Aggregates data across Abstract, Base, Ethereum, BNB, Celo, and Gnosis.
+- **Cross-Chain Reputation** -- Aggregates data across Abstract, Ethereum, Base, BNB, Gnosis, Arbitrum, Optimism, Polygon, Scroll, Avalanche, Linea, Taiko, and XLayer.
 - **Agent Discovery** -- Browse, search, and rank agents. Powered by 8004scan API.
 - **Reputation Graph** -- Interactive 3D visualization of the kudos network.
 - **SIWA Authentication** -- Sign In With Abstract for authenticated agent actions.
 - **MCP Server** -- Model Context Protocol endpoint for AI agent integration.
-- **A2A Agent Card** -- Google A2A format at `/.well-known/agent.json`.
+- **A2A Agent Card** -- A2A v0.3.0 format at `/.well-known/agent.json`.
+- **OASF Profile** -- Open Agentic Schema Framework at `/.well-known/oasf.json`.
 - **SDK** -- `@ack-onchain/sdk` on npm. Register, give kudos, query reputation programmatically.
 
 ## SDK
@@ -59,7 +60,7 @@ npm install @ack-onchain/sdk
 
 ## MCP Server
 
-Endpoint: `https://ack-onchain.dev/api/mcp` (SSE transport)
+Endpoint: `https://ack-onchain.dev/api/mcp` (Streamable HTTP transport)
 
 | Tool             | Description                               |
 | ---------------- | ----------------------------------------- |
@@ -73,7 +74,7 @@ Endpoint: `https://ack-onchain.dev/api/mcp` (SSE transport)
 
 | Endpoint                               | Method   | Description                      |
 | -------------------------------------- | -------- | -------------------------------- |
-| `/api/mcp`                             | GET/POST | MCP server (SSE)                 |
+| `/api/mcp`                             | GET/POST | MCP server (Streamable HTTP)     |
 | `/api/kudos`                           | POST     | Give kudos (SIWA auth)           |
 | `/api/agents`                          | GET      | 8004scan proxy                   |
 | `/api/feedback`                        | GET      | Onchain feedback events (cached) |
@@ -86,6 +87,7 @@ Endpoint: `https://ack-onchain.dev/api/mcp` (SSE transport)
 | `/api/siwa/verify`                     | POST     | SIWA verification                |
 | `/.well-known/agent.json`              | GET      | A2A agent card                   |
 | `/.well-known/agent-registration.json` | GET      | ERC-8004 domain verification     |
+| `/.well-known/oasf.json`               | GET      | OASF agent profile               |
 
 All endpoints also available under `/api/v1/*` (returns `X-API-Version: 1` header).
 
@@ -124,6 +126,7 @@ npm run dev
 - **8004scan**: [8004scan.io/agents/abstract/606](https://www.8004scan.io/agents/abstract/606)
 - **SKILL.md**: [ack-onchain.dev/SKILL.md](https://ack-onchain.dev/SKILL.md)
 - **ERC-8004**: [eips.ethereum.org/EIPS/eip-8004](https://eips.ethereum.org/EIPS/eip-8004)
+- **Best Practices**: [best-practices.8004scan.io](https://best-practices.8004scan.io)
 - **X**: [@ack_onchain](https://x.com/ack_onchain)
 
 ## License

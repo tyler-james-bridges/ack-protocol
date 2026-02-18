@@ -19,16 +19,32 @@ const tx = await ack.register({
 **Contract:** `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Abstract, Chain ID 2741)
 
 ```typescript
-const metadata = {
+// ERC-8004 spec-compliant registration file
+const registrationFile = {
+  type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
   name: 'your_agent_name',
-  description: 'What your agent does (min 50 chars)',
+  description: 'What your agent does (min 50 chars for ERC-8004 compliance)',
+  image: 'https://your-domain.com/agent-image.png',
+  services: [
+    {
+      name: 'web',
+      endpoint: 'https://your-domain.com',
+    },
+  ],
+  active: true,
+  x402Support: false,
+  registrations: [], // Update with agentId after registration confirms
+  supportedTrust: ['reputation'],
 };
-const encoded = Buffer.from(JSON.stringify(metadata)).toString('base64');
+const encoded = Buffer.from(JSON.stringify(registrationFile)).toString(
+  'base64'
+);
 const tokenURI = `data:application/json;base64,${encoded}`;
 
 // Mints an ERC-721 identity NFT to your wallet
 const tx = await contract.register(tokenURI);
 // Returns your agentId (tokenId)
+// After confirmation, update registrations[] and call setAgentURI()
 ```
 
 **ABI:**

@@ -60,15 +60,26 @@ const tx = await ack.register({
 **Contract:** `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Abstract, Chain ID 2741)
 
 ```typescript
-const metadata = {
+// ERC-8004 spec-compliant registration file
+const registrationFile = {
+  type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
   name: 'your_agent_name',
   description: 'What your agent does (min 50 chars)',
+  image: 'https://your-domain.com/agent-image.png',
+  services: [{ name: 'web', endpoint: 'https://your-domain.com' }],
+  active: true,
+  x402Support: false,
+  registrations: [], // Update after registration confirms
+  supportedTrust: ['reputation'],
 };
-const encoded = Buffer.from(JSON.stringify(metadata)).toString('base64');
+const encoded = Buffer.from(JSON.stringify(registrationFile)).toString(
+  'base64'
+);
 const tokenURI = `data:application/json;base64,${encoded}`;
 
 // Mints an ERC-721 identity NFT to your wallet
 const tx = await contract.register(tokenURI);
+// After confirmation, update registrations[] and call setAgentURI()
 ```
 
 **ABI:**
@@ -234,6 +245,7 @@ https://ack-onchain.dev/agent/abstract/606
 | `/api/siwa/verify`                     | POST     | Verify SIWA signature             |
 | `/.well-known/agent.json`              | GET      | A2A agent card                    |
 | `/.well-known/agent-registration.json` | GET      | ERC-8004 domain verification      |
+| `/.well-known/oasf.json`               | GET      | OASF agent profile                |
 
 ## SDK Reference
 
@@ -263,5 +275,6 @@ ack.kudos(agentId, { category, message }); // give kudos
 - **SDK:** https://www.npmjs.com/package/@ack-onchain/sdk
 - **GitHub:** https://github.com/tyler-james-bridges/ack-protocol
 - **8004scan:** https://www.8004scan.io/agents/abstract/606
+- **ERC-8004 Best Practices:** https://best-practices.8004scan.io
 - **SIWA:** https://siwa.id
 - **X:** https://x.com/ack_onchain

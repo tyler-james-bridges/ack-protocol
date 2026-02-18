@@ -1,24 +1,22 @@
 /**
- * Update onchain metadata for ACK agent #606 on Abstract (chain 2741).
- *
- * This script calls setAgentURI to update the base64-encoded metadata
- * with all fields needed for 8004scan compliance scoring.
- *
- * Usage: npx tsx scripts/update-metadata.ts
- *
- * Requires PRIVATE_KEY env var set to the agent owner wallet private key.
+ * Update ACK agent #606 onchain metadata via setAgentURI
+ * Adds trust_mechanisms and refreshes the base64 data URI
  */
-
 import { createWalletClient, createPublicClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { abstract } from 'viem/chains';
 
-const IDENTITY_REGISTRY_ADDRESS =
-  '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432' as const;
-
+const IDENTITY_REGISTRY = '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432';
 const AGENT_ID = 606n;
 
-const SET_AGENT_URI_ABI = [
+const ABI = [
+  {
+    inputs: [{ name: 'agentId', type: 'uint256' }],
+    name: 'tokenURI',
+    outputs: [{ name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
   {
     inputs: [
       { name: 'agentId', type: 'uint256' },
@@ -31,126 +29,84 @@ const SET_AGENT_URI_ABI = [
   },
 ] as const;
 
-const metadata = {
-  type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
-  name: 'ACK',
-  description:
-    'ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI agents on Abstract. Agents and humans give onchain kudos across categories like reliability, speed, accuracy, creativity, collaboration, and security. Built on ERC-8004, ACK surfaces trust through consensus, not self-reported stats.',
-  image: 'https://ack-onchain.dev/icon-512.png',
-  agent_type: 'service',
-  active: true,
-  x402Support: true,
-  tags: ['reputation', 'kudos', 'erc-8004', 'abstract', 'peer-review', 'trust'],
-  categories: ['reputation', 'infrastructure', 'social'],
-  supportedTrust: ['reputation'],
-  capabilities: {
-    streaming: false,
-    pushNotifications: false,
-    a2a: true,
-    mcp: true,
-    oasf: true,
-  },
-  services: [
-    {
-      name: 'mcp',
-      endpoint: 'https://ack-onchain.dev/api/mcp',
-      version: '2025-06-18',
-      tools: [
-        'get_agent',
-        'get_reputation',
-        'search_agents',
-        'get_leaderboard',
-        'get_agent_feedbacks',
-      ],
-      prompts: ['reputation_check', 'trust_assessment'],
-      resources: ['agent_registry', 'reputation_registry'],
-    },
-    {
-      name: 'a2a',
-      endpoint: 'https://ack-onchain.dev/.well-known/agent.json',
-      version: '1.0.0',
-      skills: [
-        'search-agents',
-        'get-reputation',
-        'give-kudos',
-        'check-trust',
-        'agent-discovery',
-        'reputation-analysis',
-        'feedback-aggregation',
-        'leaderboard-ranking',
-        'cross-chain-lookup',
-        'category-scoring',
-        'trust-verification',
-      ],
-    },
-    {
-      name: 'oasf',
-      endpoint: 'https://ack-onchain.dev/.well-known/oasf.json',
-      version: '1.0.0',
-    },
-    {
-      name: 'web',
-      endpoint: 'https://ack-onchain.dev',
-    },
-  ],
-  registrations: [
-    {
-      agentId: 606,
-      agentRegistry: 'eip155:2741:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
-    },
-  ],
-};
-
 async function main() {
-  const privateKey = process.env.PRIVATE_KEY;
-  if (!privateKey) {
-    console.error('PRIVATE_KEY env var is required');
-    process.exit(1);
-  }
+  const pk = process.env.AGENT_PRIVATE_KEY;
+  if (!pk) throw new Error('AGENT_PRIVATE_KEY not set');
 
-  const account = privateKeyToAccount(
-    privateKey.startsWith('0x')
-      ? (privateKey as `0x${string}`)
-      : (`0x${privateKey}` as `0x${string}`)
-  );
+  const prefixed = pk.startsWith('0x') ? pk : `0x${pk}`;
+  const account = privateKeyToAccount(prefixed as `0x${string}`);
+  console.log('Wallet:', account.address);
 
-  console.log('Account:', account.address);
-
-  const encoded = Buffer.from(JSON.stringify(metadata)).toString('base64');
-  const dataURI = `data:application/json;base64,${encoded}`;
-
-  console.log('Metadata size:', encoded.length, 'bytes (base64)');
-  console.log('Agent ID:', AGENT_ID.toString());
+  const transport = http('https://api.mainnet.abs.xyz');
 
   const publicClient = createPublicClient({
     chain: abstract,
-    transport: http(),
+    transport,
   });
 
   const walletClient = createWalletClient({
     account,
     chain: abstract,
-    transport: http(),
+    transport,
   });
 
-  console.log('Sending setAgentURI transaction...');
+  // 1. Read current tokenURI
+  console.log('Reading current tokenURI...');
+  const currentURI = await publicClient.readContract({
+    address: IDENTITY_REGISTRY,
+    abi: ABI,
+    functionName: 'tokenURI',
+    args: [AGENT_ID],
+  });
 
+  // 2. Decode current metadata
+  let metadata: Record<string, unknown>;
+  if (currentURI.startsWith('data:application/json;base64,')) {
+    const b64 = currentURI.replace('data:application/json;base64,', '');
+    metadata = JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'));
+  } else if (currentURI.startsWith('data:,')) {
+    metadata = JSON.parse(currentURI.replace('data:,', ''));
+  } else {
+    throw new Error(`Unexpected URI format: ${currentURI.slice(0, 80)}`);
+  }
+
+  console.log('Current metadata keys:', Object.keys(metadata));
+  console.log(
+    'Current trust_mechanisms:',
+    (metadata as Record<string, unknown>).trust_mechanisms || 'none'
+  );
+
+  // 3. Update metadata
+  metadata.trust_mechanisms = ['reputation'];
+
+  console.log('Updated metadata:', JSON.stringify(metadata, null, 2));
+
+  // 4. Encode as base64 data URI
+  const jsonStr = JSON.stringify(metadata);
+  const b64 = Buffer.from(jsonStr).toString('base64');
+  const newURI = `data:application/json;base64,${b64}`;
+
+  console.log(`New URI size: ${newURI.length} bytes`);
+
+  // 5. Send setAgentURI transaction
+  console.log('Sending setAgentURI transaction...');
   const hash = await walletClient.writeContract({
-    address: IDENTITY_REGISTRY_ADDRESS,
-    abi: SET_AGENT_URI_ABI,
+    address: IDENTITY_REGISTRY,
+    abi: ABI,
     functionName: 'setAgentURI',
-    args: [AGENT_ID, dataURI],
+    args: [AGENT_ID, newURI],
   });
 
   console.log('Transaction hash:', hash);
-  console.log('Waiting for confirmation...');
 
+  // 6. Wait for confirmation
+  console.log('Waiting for confirmation...');
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  console.log('Confirmed in block:', receipt.blockNumber.toString());
+  console.log('Confirmed in block:', receipt.blockNumber);
   console.log('Status:', receipt.status);
 }
 
 main().catch((err) => {
-  console.error('Error:', err);
+  console.error('Error:', err.message || err);
   process.exit(1);
 });

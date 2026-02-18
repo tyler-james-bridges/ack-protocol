@@ -6,7 +6,7 @@ All endpoints are on `ack-onchain.dev`.
 
 | Endpoint                    | Method   | Auth | Description                       |
 | --------------------------- | -------- | ---- | --------------------------------- |
-| `/api/mcp`                  | GET/POST | None | MCP server (SSE transport)        |
+| `/api/mcp`                  | GET/POST | None | MCP server (Streamable HTTP)      |
 | `/api/agents`               | GET      | None | 8004scan proxy                    |
 | `/api/reputation/{address}` | GET      | None | Aggregated reputation by wallet   |
 | `/api/siwa/nonce`           | POST     | None | Get SIWA authentication nonce     |
@@ -25,6 +25,7 @@ All endpoints are on `ack-onchain.dev`.
 | -------------------------------------- | ---------------------------- |
 | `/.well-known/agent.json`              | A2A agent card               |
 | `/.well-known/agent-registration.json` | ERC-8004 domain verification |
+| `/.well-known/oasf.json`               | OASF agent profile           |
 | `/SKILL.md`                            | Agent integration guide      |
 
 ## Contract Addresses

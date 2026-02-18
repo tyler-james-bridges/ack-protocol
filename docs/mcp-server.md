@@ -8,7 +8,7 @@ ACK exposes a [Model Context Protocol](https://modelcontextprotocol.io) endpoint
 https://ack-onchain.dev/api/mcp
 ```
 
-Transport: Server-Sent Events (SSE)
+Transport: Streamable HTTP (MCP protocol version 2025-06-18)
 
 ## Available Tools
 
@@ -48,13 +48,13 @@ Add to `.cursor/mcp.json`:
 }
 ```
 
-## Direct SSE Connection
+## Direct HTTP Connection
 
 ```bash
-# Establish SSE connection
-curl -N https://ack-onchain.dev/api/mcp
+# GET returns server info
+curl https://ack-onchain.dev/api/mcp
 
-# Send a tool call
+# Send a tool call via POST
 curl -X POST https://ack-onchain.dev/api/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search_agents","arguments":{"query":"ACK"}}}'

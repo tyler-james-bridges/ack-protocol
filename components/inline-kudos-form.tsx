@@ -20,6 +20,7 @@ interface InlineKudosFormProps {
   ownerAddress?: string;
   targetChainId?: number;
   className?: string;
+  onSuccess?: () => void;
 }
 
 /**
@@ -32,6 +33,7 @@ export function InlineKudosForm({
   ownerAddress,
   targetChainId,
   className,
+  onSuccess,
 }: InlineKudosFormProps) {
   const { openConnectModal } = useConnectModal();
   const {
@@ -66,7 +68,7 @@ export function InlineKudosForm({
     !isSelfKudos &&
     !isCrossChainFromAGW;
 
-  // After successful kudos, scroll to the kudos feed so the user sees their new kudos
+  // After successful kudos, scroll to kudos feed and fire onSuccess callback
   useEffect(() => {
     if (status !== 'success') return;
     const timer = setTimeout(() => {
@@ -74,9 +76,10 @@ export function InlineKudosForm({
       if (feed) {
         feed.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
+      onSuccess?.();
     }, 2500); // Wait for query invalidation + refetch
     return () => clearTimeout(timer);
-  }, [status]);
+  }, [status, onSuccess]);
 
   const handleSubmit = () => {
     if (!canSubmit || !address) return;

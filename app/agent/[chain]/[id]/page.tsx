@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
@@ -32,6 +32,28 @@ export default function AgentProfilePage({
   const { data: kudos } = useKudosReceived(
     agent ? Number(agent.token_id) : undefined
   );
+
+  const refetchAgent = useCallback((scanId: string) => {
+    fetchAgent(scanId)
+      .then(setAgent)
+      .catch(() => {});
+  }, []);
+
+  const handleKudosSuccess = useCallback(() => {
+    const CHAIN_NAMES: Record<string, string> = {
+      abstract: '2741',
+      ethereum: '1',
+      base: '8453',
+      bnb: '56',
+      gnosis: '100',
+      celo: '42220',
+      arbitrum: '42161',
+    };
+    const resolved = CHAIN_NAMES[chain.toLowerCase()] || chain;
+    const scanId = `${resolved}:${id}`;
+    // Delay slightly to let the indexer catch up
+    setTimeout(() => refetchAgent(scanId), 3000);
+  }, [chain, id, refetchAgent]);
 
   useEffect(() => {
     const CHAIN_NAMES: Record<string, string> = {
@@ -541,6 +563,7 @@ export default function AgentProfilePage({
                 agentName={agent.name}
                 ownerAddress={agent.owner_address}
                 targetChainId={agent.chain_id}
+                onSuccess={handleKudosSuccess}
               />
             </div>
           </main>

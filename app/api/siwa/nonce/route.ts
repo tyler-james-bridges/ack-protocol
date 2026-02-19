@@ -3,7 +3,12 @@ import { isAddress, createPublicClient, http } from 'viem';
 import { abstract } from 'viem/chains';
 import { createSIWANonce } from '@buildersgarden/siwa';
 
-const SIWA_SECRET = process.env.RECEIPT_SECRET || process.env.SIWA_SECRET;
+const SIWA_NONCE_SECRET =
+  process.env.SIWA_NONCE_SECRET || process.env.SIWA_SECRET;
+
+if (!SIWA_NONCE_SECRET) {
+  console.error('SIWA_NONCE_SECRET or SIWA_SECRET must be set');
+}
 
 const client = createPublicClient({
   chain: abstract,
@@ -18,9 +23,9 @@ const client = createPublicClient({
  * Body: { address: string, agentId: number, agentRegistry: string }
  */
 export async function POST(request: NextRequest) {
-  if (!SIWA_SECRET) {
+  if (!SIWA_NONCE_SECRET) {
     return NextResponse.json(
-      { error: 'Server misconfigured: SIWA secret not set' },
+      { error: 'Server misconfigured: SIWA nonce secret not set' },
       { status: 500 }
     );
   }
@@ -51,7 +56,7 @@ export async function POST(request: NextRequest) {
       { address, agentId, agentRegistry },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client as any,
-      { secret: SIWA_SECRET }
+      { secret: SIWA_NONCE_SECRET }
     );
 
     return NextResponse.json(result);

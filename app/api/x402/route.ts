@@ -5,9 +5,7 @@ import { NextResponse } from 'next/server';
  * Returns agent payment info including wallet address, supported assets, and pricing.
  */
 
-const AGENT_OWNER_ADDRESS =
-  process.env.AGENT_WALLET_ADDRESS ||
-  '0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c';
+const AGENT_OWNER_ADDRESS = process.env.AGENT_WALLET_ADDRESS;
 
 const x402Info = {
   x402: true,
@@ -52,6 +50,12 @@ const x402Headers = {
 };
 
 export async function GET() {
+  if (!AGENT_OWNER_ADDRESS) {
+    return NextResponse.json(
+      { error: 'x402 service not configured: AGENT_WALLET_ADDRESS not set' },
+      { status: 503, headers: x402Headers }
+    );
+  }
   return NextResponse.json(x402Info, {
     status: 200,
     headers: {
@@ -62,6 +66,12 @@ export async function GET() {
 }
 
 export async function POST() {
+  if (!AGENT_OWNER_ADDRESS) {
+    return NextResponse.json(
+      { error: 'x402 service not configured: AGENT_WALLET_ADDRESS not set' },
+      { status: 503, headers: x402Headers }
+    );
+  }
   return NextResponse.json(x402Info, {
     status: 402,
     headers: {

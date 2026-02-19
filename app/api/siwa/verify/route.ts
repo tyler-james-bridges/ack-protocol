@@ -6,7 +6,9 @@ import { createReceipt } from '@buildersgarden/siwa/receipt';
 import { REPUTATION_REGISTRY_ADDRESS } from '@/config/contract';
 
 const DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'ack-onchain.dev';
-const SIWA_SECRET = process.env.RECEIPT_SECRET || process.env.SIWA_SECRET;
+const SIWA_NONCE_SECRET =
+  process.env.SIWA_NONCE_SECRET || process.env.SIWA_SECRET;
+const RECEIPT_SECRET = process.env.RECEIPT_SECRET || process.env.SIWA_SECRET;
 
 const client = createPublicClient({
   chain: abstract,
@@ -20,9 +22,9 @@ const client = createPublicClient({
  * Body: { message: string, signature: string, nonceToken: string }
  */
 export async function POST(request: NextRequest) {
-  if (!SIWA_SECRET) {
+  if (!SIWA_NONCE_SECRET || !RECEIPT_SECRET) {
     return NextResponse.json(
-      { error: 'Server misconfigured: SIWA secret not set' },
+      { error: 'Server misconfigured: SIWA secrets not set' },
       { status: 500 }
     );
   }
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
       message,
       signature as `0x${string}`,
       DOMAIN,
-      { nonceToken, secret: SIWA_SECRET },
+      { nonceToken, secret: SIWA_NONCE_SECRET },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client as any,
       {
@@ -89,7 +91,7 @@ export async function POST(request: NextRequest) {
         chainId: result.chainId,
         verified: result.verified,
       },
-      { secret: SIWA_SECRET }
+      { secret: RECEIPT_SECRET }
     );
 
     return NextResponse.json({

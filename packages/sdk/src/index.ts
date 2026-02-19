@@ -20,7 +20,30 @@ export { ACK } from './client.js';
 export { getChainConfig, getSupportedChains, CHAIN_CONFIGS } from './chains.js';
 export { CONTRACT_ADDRESSES } from './contracts.js';
 
-// Export all types
+// Constants
+export {
+  KUDOS_VALUE,
+  KUDOS_VALUE_DECIMALS,
+  KUDOS_TAG1,
+  REVIEW_TAG1,
+  REVIEW_MIN_VALUE,
+  REVIEW_MAX_VALUE,
+  REVIEW_VALUE_DECIMALS,
+  KUDOS_CATEGORIES,
+  CATEGORY_META,
+  AGENT_REGISTRY_CAIP10,
+  toCAIP10Address,
+  DEPLOYMENT_BLOCKS,
+  EVENT_TOPICS,
+} from './constants.js';
+
+export type { KudosCategory } from './constants.js';
+
+// Utilities
+export { buildFeedback, parseFeedbackURI, ipfsToHttp } from './utils.js';
+export type { BuildFeedbackParams, BuildFeedbackResult } from './utils.js';
+
+// Types
 export type {
   ChainId,
   ChainConfig,

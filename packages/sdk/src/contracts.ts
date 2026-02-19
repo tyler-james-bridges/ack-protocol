@@ -10,127 +10,238 @@ export const CONTRACT_ADDRESSES = {
 
 /**
  * Identity Registry ABI (ERC-8004 functions)
+ *
+ * Matches the deployed contract at 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432.
+ * register() has three overloads: (agentURI), (), (agentURI, metadata[]).
  */
 export const IDENTITY_REGISTRY_ABI = [
   {
+    inputs: [{ name: 'agentURI', type: 'string' }],
     name: 'register',
-    type: 'function',
+    outputs: [{ name: 'agentId', type: 'uint256' }],
     stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'owner', type: 'address' },
-      { name: 'metadataURI', type: 'string' },
-    ],
-    outputs: [{ name: 'tokenId', type: 'uint256' }],
+    type: 'function',
   },
   {
-    name: 'setAgentURI',
-    type: 'function',
+    inputs: [],
+    name: 'register',
+    outputs: [{ name: 'agentId', type: 'uint256' }],
     stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'tokenId', type: 'uint256' },
-      { name: 'uri', type: 'string' },
-    ],
-    outputs: [],
+    type: 'function',
   },
   {
+    inputs: [
+      { name: 'agentURI', type: 'string' },
+      {
+        components: [
+          { name: 'metadataKey', type: 'string' },
+          { name: 'metadataValue', type: 'bytes' },
+        ],
+        name: 'metadata',
+        type: 'tuple[]',
+      },
+    ],
+    name: 'register',
+    outputs: [{ name: 'agentId', type: 'uint256' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'tokenId', type: 'uint256' }],
     name: 'tokenURI',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'tokenId', type: 'uint256' }],
     outputs: [{ name: '', type: 'string' }],
-  },
-  {
-    name: 'setMetadata',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'tokenId', type: 'uint256' },
-      { name: 'key', type: 'string' },
-      { name: 'value', type: 'bytes' },
-    ],
-    outputs: [],
-  },
-  {
-    name: 'getMetadata',
-    type: 'function',
     stateMutability: 'view',
-    inputs: [
-      { name: 'tokenId', type: 'uint256' },
-      { name: 'key', type: 'string' },
-    ],
-    outputs: [{ name: '', type: 'bytes' }],
+    type: 'function',
   },
   {
-    name: 'balanceOf',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'owner', type: 'address' }],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-  {
-    name: 'ownerOf',
-    type: 'function',
-    stateMutability: 'view',
     inputs: [{ name: 'tokenId', type: 'uint256' }],
+    name: 'ownerOf',
     outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    name: 'tokenOfOwnerByIndex',
-    type: 'function',
+    inputs: [],
+    name: 'totalSupply',
+    outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'metadataKey', type: 'string' },
+    ],
+    name: 'getMetadata',
+    outputs: [{ name: '', type: 'bytes' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'metadataKey', type: 'string' },
+      { name: 'metadataValue', type: 'bytes' },
+    ],
+    name: 'setMetadata',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'newURI', type: 'string' },
+    ],
+    name: 'setAgentURI',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'agentId', type: 'uint256' }],
+    name: 'getAgentWallet',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'owner', type: 'address' }],
+    name: 'balanceOf',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       { name: 'owner', type: 'address' },
       { name: 'index', type: 'uint256' },
     ],
+    name: 'tokenOfOwnerByIndex',
     outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'index', type: 'uint256' }],
+    name: 'tokenByIndex',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'uint256' },
+      { indexed: false, name: 'agentURI', type: 'string' },
+      { indexed: true, name: 'owner', type: 'address' },
+    ],
+    name: 'Registered',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'from', type: 'address' },
+      { indexed: true, name: 'to', type: 'address' },
+      { indexed: true, name: 'tokenId', type: 'uint256' },
+    ],
+    name: 'Transfer',
+    type: 'event',
   },
 ] as const;
 
 /**
  * Reputation Registry ABI (ERC-8004 functions)
+ *
+ * Matches the deployed contract at 0x8004BAa17C55a88189AE136b182e5fdA19dE9b63.
+ * getFeedbackCount and getFeedback take (agentId, clientAddress) params.
  */
 export const REPUTATION_REGISTRY_ABI = [
   {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'value', type: 'int128' },
+      { name: 'valueDecimals', type: 'uint8' },
+      { name: 'tag1', type: 'string' },
+      { name: 'tag2', type: 'string' },
+      { name: 'endpoint', type: 'string' },
+      { name: 'feedbackURI', type: 'string' },
+      { name: 'feedbackHash', type: 'bytes32' },
+    ],
     name: 'giveFeedback',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'agentId', type: 'uint256' },
-      { name: 'value', type: 'int128' },
-      { name: 'valueDecimals', type: 'uint8' },
-      { name: 'tag1', type: 'string' },
-      { name: 'tag2', type: 'string' },
-      { name: 'tag3', type: 'string' },
-      { name: 'feedbackURI', type: 'string' },
-      { name: 'feedbackHash', type: 'bytes32' },
-    ],
     outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    name: 'getFeedback',
-    type: 'function',
+    inputs: [],
+    name: 'getIdentityRegistry',
+    outputs: [{ name: 'identityRegistry', type: 'address' }],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       { name: 'agentId', type: 'uint256' },
-      { name: 'index', type: 'uint256' },
+      { name: 'clientAddress', type: 'address' },
     ],
+    name: 'getFeedbackCount',
+    outputs: [{ name: '', type: 'uint64' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddress', type: 'address' },
+      { name: 'feedbackIndex', type: 'uint64' },
+    ],
+    name: 'getFeedback',
     outputs: [
-      { name: 'from', type: 'address' },
       { name: 'value', type: 'int128' },
       { name: 'valueDecimals', type: 'uint8' },
       { name: 'tag1', type: 'string' },
       { name: 'tag2', type: 'string' },
-      { name: 'tag3', type: 'string' },
-      { name: 'feedbackURI', type: 'string' },
-      { name: 'feedbackHash', type: 'bytes32' },
-      { name: 'timestamp', type: 'uint256' },
+      { name: 'isRevoked', type: 'bool' },
     ],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    name: 'getFeedbackCount',
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddress', type: 'address' },
+      { name: 'feedbackIndex', type: 'uint64' },
+    ],
+    name: 'revokeFeedback',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
-    stateMutability: 'view',
+  },
+  {
     inputs: [{ name: 'agentId', type: 'uint256' }],
-    outputs: [{ name: '', type: 'uint256' }],
+    name: 'getAgentWallet',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'uint256' },
+      { indexed: true, name: 'clientAddress', type: 'address' },
+      { indexed: false, name: 'feedbackIndex', type: 'uint64' },
+      { indexed: false, name: 'value', type: 'int128' },
+      { indexed: false, name: 'valueDecimals', type: 'uint8' },
+      { indexed: true, name: 'indexedTag1', type: 'string' },
+      { indexed: false, name: 'tag1', type: 'string' },
+      { indexed: false, name: 'tag2', type: 'string' },
+      { indexed: false, name: 'endpoint', type: 'string' },
+      { indexed: false, name: 'feedbackURI', type: 'string' },
+      { indexed: false, name: 'feedbackHash', type: 'bytes32' },
+    ],
+    name: 'NewFeedback',
+    type: 'event',
   },
 ] as const;

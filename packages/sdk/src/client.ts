@@ -2,12 +2,15 @@ import {
   createPublicClient,
   createWalletClient,
   http,
+  numberToHex,
+  decodeAbiParameters,
+  toHex,
+  keccak256,
   type WalletClient,
   type PublicClient,
   type Address,
   type Hash,
-  keccak256,
-  toHex,
+  type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getChainConfig } from './chains.js';
@@ -16,10 +19,18 @@ import {
   IDENTITY_REGISTRY_ABI,
   REPUTATION_REGISTRY_ABI,
 } from './contracts.js';
+import {
+  AGENT_REGISTRY_CAIP10,
+  toCAIP10Address,
+  DEPLOYMENT_BLOCKS,
+  EVENT_TOPICS,
+} from './constants.js';
+import { parseFeedbackURI } from './utils.js';
 import type {
   ACKConfig,
   Agent,
   Reputation,
+  ReputationCategory,
   Feedback,
   RegisterParams,
   KudosParams,
@@ -50,8 +61,6 @@ export class ACK {
 
   /**
    * Create a read-only ACK client
-   * @param config - Configuration options
-   * @returns ACK client instance
    */
   public static readonly(config: ACKConfig): ACK {
     const chainConfig = getChainConfig(config.chain);
@@ -74,9 +83,6 @@ export class ACK {
 
   /**
    * Create an ACK client from a private key
-   * @param privateKey - Private key (0x prefixed hex string)
-   * @param config - Configuration options
-   * @returns ACK client instance
    */
   public static fromPrivateKey(privateKey: string, config: ACKConfig): ACK {
     const chainConfig = getChainConfig(config.chain);
@@ -109,9 +115,6 @@ export class ACK {
 
   /**
    * Create an ACK client from a viem wallet client
-   * @param walletClient - Viem wallet client
-   * @param config - Configuration options
-   * @returns ACK client instance
    */
   public static fromWalletClient(
     walletClient: WalletClient,
@@ -136,10 +139,12 @@ export class ACK {
     return new ACK(publicClient, walletClient, config);
   }
 
+  // ---------------------------------------------------------------------------
+  // Read methods
+  // ---------------------------------------------------------------------------
+
   /**
    * Get agent information by ID
-   * @param agentId - Agent ID
-   * @returns Agent information
    */
   public async getAgent(agentId: number): Promise<Agent | null> {
     try {
@@ -165,8 +170,6 @@ export class ACK {
 
   /**
    * Get reputation data for an agent
-   * @param agentId - Agent ID
-   * @returns Reputation data
    */
   public async reputation(agentId: number): Promise<Reputation | null> {
     try {
@@ -192,8 +195,6 @@ export class ACK {
 
   /**
    * Get all feedback for an agent
-   * @param agentId - Agent ID
-   * @returns Array of feedback entries
    */
   public async feedbacks(agentId: number): Promise<Feedback[]> {
     try {
@@ -204,21 +205,11 @@ export class ACK {
         );
         const items = data.items || data || [];
         return items.map((f: Record<string, unknown>) => {
-          // Parse message from feedback URI (base64 or raw JSON data URI)
           let message = '';
           const uri = String(f.feedback_uri || '');
-          try {
-            if (uri.startsWith('data:application/json;base64,')) {
-              const decoded = JSON.parse(
-                Buffer.from(uri.split(',')[1] as string, 'base64').toString()
-              );
-              message = decoded.reasoning || decoded.message || '';
-            } else if (uri.startsWith('data:,')) {
-              const decoded = JSON.parse(decodeURIComponent(uri.slice(6)));
-              message = decoded.reasoning || decoded.message || '';
-            }
-          } catch {
-            /* ignore parse errors */
+          const parsed = parseFeedbackURI(uri);
+          if (parsed) {
+            message = String(parsed.reasoning || parsed.message || '');
           }
 
           return {
@@ -240,7 +231,7 @@ export class ACK {
         });
       }
 
-      return await this.getFeedbacksFromContract(agentId);
+      return await this.getFeedbacksFromEvents(agentId);
     } catch (error) {
       console.warn(`Failed to get feedbacks for agent ${agentId}:`, error);
       return [];
@@ -248,10 +239,7 @@ export class ACK {
   }
 
   /**
-   * Search for agents
-   * @param query - Search query
-   * @param params - Additional search parameters
-   * @returns Array of matching agents
+   * Search for agents (requires API key)
    */
   public async search(
     query: string,
@@ -286,9 +274,7 @@ export class ACK {
   }
 
   /**
-   * Get agent leaderboard
-   * @param params - Leaderboard parameters
-   * @returns Array of top agents
+   * Get agent leaderboard (requires API key)
    */
   public async leaderboard(params: LeaderboardParams = {}): Promise<Agent[]> {
     if (!this.apiKey) {
@@ -322,9 +308,108 @@ export class ACK {
   }
 
   /**
-   * Register a new agent (requires wallet)
-   * @param params - Registration parameters
-   * @returns Transaction result
+   * Get the wallet address associated with an agent token.
+   */
+  public async getAgentWallet(agentId: number): Promise<Address | null> {
+    try {
+      const result = await this.publicClient.readContract({
+        address: CONTRACT_ADDRESSES.IDENTITY_REGISTRY,
+        abi: IDENTITY_REGISTRY_ABI,
+        functionName: 'getAgentWallet',
+        args: [BigInt(agentId)],
+      });
+      const addr = result as Address;
+      if (addr === '0x0000000000000000000000000000000000000000') return null;
+      return addr;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get the total number of registered agents.
+   */
+  public async totalSupply(): Promise<number> {
+    const result = await this.publicClient.readContract({
+      address: CONTRACT_ADDRESSES.IDENTITY_REGISTRY,
+      abi: IDENTITY_REGISTRY_ABI,
+      functionName: 'totalSupply',
+    });
+    return Number(result as bigint);
+  }
+
+  /**
+   * Check if an address has registered at least one agent.
+   */
+  public async isRegistered(address: string): Promise<boolean> {
+    const balance = (await this.publicClient.readContract({
+      address: CONTRACT_ADDRESSES.IDENTITY_REGISTRY,
+      abi: IDENTITY_REGISTRY_ABI,
+      functionName: 'balanceOf',
+      args: [address as Address],
+    })) as bigint;
+    return balance > BigInt(0);
+  }
+
+  /**
+   * Get all agents owned by an address.
+   */
+  public async getAgentsByOwner(address: string): Promise<Agent[]> {
+    const balance = (await this.publicClient.readContract({
+      address: CONTRACT_ADDRESSES.IDENTITY_REGISTRY,
+      abi: IDENTITY_REGISTRY_ABI,
+      functionName: 'balanceOf',
+      args: [address as Address],
+    })) as bigint;
+
+    const count = Number(balance);
+    const agents: Agent[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const tokenId = (await this.publicClient.readContract({
+        address: CONTRACT_ADDRESSES.IDENTITY_REGISTRY,
+        abi: IDENTITY_REGISTRY_ABI,
+        functionName: 'tokenOfOwnerByIndex',
+        args: [address as Address, BigInt(i)],
+      })) as bigint;
+
+      const agent = await this.getAgentFromContract(Number(tokenId));
+      if (agent) agents.push(agent);
+    }
+
+    return agents;
+  }
+
+  /**
+   * Get on-chain metadata for an agent by key.
+   */
+  public async getMetadata(
+    agentId: number,
+    key: string
+  ): Promise<string | null> {
+    try {
+      const result = (await this.publicClient.readContract({
+        address: CONTRACT_ADDRESSES.IDENTITY_REGISTRY,
+        abi: IDENTITY_REGISTRY_ABI,
+        functionName: 'getMetadata',
+        args: [BigInt(agentId), key],
+      })) as Hex;
+      if (result === '0x' || result.length <= 2) return null;
+      // Decode bytes to UTF-8 string
+      const bytes = Buffer.from(result.slice(2), 'hex');
+      return bytes.toString('utf-8');
+    } catch {
+      return null;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Write methods (require wallet)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Register a new agent.
+   * Calls register(agentURI) on the IdentityRegistry.
    */
   public async register(params: RegisterParams): Promise<TransactionResult> {
     if (!this.walletClient) {
@@ -345,7 +430,7 @@ export class ACK {
       address: CONTRACT_ADDRESSES.IDENTITY_REGISTRY,
       abi: IDENTITY_REGISTRY_ABI,
       functionName: 'register',
-      args: [this.walletClient.account!.address, metadataURI],
+      args: [metadataURI],
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
     });
@@ -360,10 +445,7 @@ export class ACK {
   }
 
   /**
-   * Give kudos/feedback to an agent (requires wallet)
-   * @param agentId - Target agent ID
-   * @param params - Kudos parameters
-   * @returns Transaction result
+   * Give kudos/feedback to an agent.
    */
   public async kudos(
     agentId: number,
@@ -378,11 +460,13 @@ export class ACK {
     const tag1 = params.isReview ? 'review' : 'kudos';
     const value = params.isReview ? (params.value ?? 0) : 5;
 
-    // Build ERC-8004 compliant feedback file (matches app format exactly)
     const feedbackFile = {
-      agentRegistry: `eip155:${chainConfig.id}:${CONTRACT_ADDRESSES.IDENTITY_REGISTRY}`,
+      agentRegistry: AGENT_REGISTRY_CAIP10(chainConfig.id),
       agentId,
-      clientAddress: `eip155:${chainConfig.id}:${this.walletClient.account!.address}`,
+      clientAddress: toCAIP10Address(
+        this.walletClient.account!.address,
+        chainConfig.id
+      ),
       createdAt: new Date().toISOString(),
       value: String(value),
       valueDecimals: 0,
@@ -396,7 +480,6 @@ export class ACK {
 
     const jsonStr = JSON.stringify(feedbackFile);
     const feedbackURI = `data:application/json;base64,${Buffer.from(jsonStr).toString('base64')}`;
-    // Hash the raw JSON string, NOT the data URI
     const feedbackHash = keccak256(toHex(jsonStr));
 
     const hash = await this.walletClient.writeContract({
@@ -406,10 +489,10 @@ export class ACK {
       args: [
         BigInt(agentId),
         BigInt(value),
-        0, // valueDecimals
-        tag1, // tag1
-        params.category, // tag2
-        '', // tag3 (unused)
+        0,
+        tag1,
+        params.category,
+        '', // endpoint
         feedbackURI,
         feedbackHash,
       ],
@@ -427,8 +510,100 @@ export class ACK {
   }
 
   /**
-   * Make authenticated request to 8004scan API
+   * Set the agent URI for an agent you own.
    */
+  public async setAgentURI(
+    agentId: number,
+    uri: string
+  ): Promise<TransactionResult> {
+    if (!this.walletClient) {
+      throw new Error('setAgentURI requires a wallet client');
+    }
+
+    const hash = await this.walletClient.writeContract({
+      address: CONTRACT_ADDRESSES.IDENTITY_REGISTRY,
+      abi: IDENTITY_REGISTRY_ABI,
+      functionName: 'setAgentURI',
+      args: [BigInt(agentId), uri],
+      account: this.walletClient.account!,
+      chain: this.walletClient.chain,
+    });
+
+    const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
+
+    return {
+      hash,
+      blockNumber: receipt.blockNumber,
+      gasUsed: receipt.gasUsed,
+    };
+  }
+
+  /**
+   * Revoke a feedback entry you previously gave.
+   */
+  public async revokeFeedback(
+    agentId: number,
+    clientAddress: Address,
+    feedbackIndex: number
+  ): Promise<TransactionResult> {
+    if (!this.walletClient) {
+      throw new Error('revokeFeedback requires a wallet client');
+    }
+
+    const hash = await this.walletClient.writeContract({
+      address: CONTRACT_ADDRESSES.REPUTATION_REGISTRY,
+      abi: REPUTATION_REGISTRY_ABI,
+      functionName: 'revokeFeedback',
+      args: [BigInt(agentId), clientAddress, BigInt(feedbackIndex)],
+      account: this.walletClient.account!,
+      chain: this.walletClient.chain,
+    });
+
+    const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
+
+    return {
+      hash,
+      blockNumber: receipt.blockNumber,
+      gasUsed: receipt.gasUsed,
+    };
+  }
+
+  /**
+   * Set on-chain metadata for an agent you own.
+   */
+  public async setMetadata(
+    agentId: number,
+    key: string,
+    value: string
+  ): Promise<TransactionResult> {
+    if (!this.walletClient) {
+      throw new Error('setMetadata requires a wallet client');
+    }
+
+    const valueHex = toHex(value);
+
+    const hash = await this.walletClient.writeContract({
+      address: CONTRACT_ADDRESSES.IDENTITY_REGISTRY,
+      abi: IDENTITY_REGISTRY_ABI,
+      functionName: 'setMetadata',
+      args: [BigInt(agentId), key, valueHex],
+      account: this.walletClient.account!,
+      chain: this.walletClient.chain,
+    });
+
+    const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
+
+    return {
+      hash,
+      blockNumber: receipt.blockNumber,
+      gasUsed: receipt.gasUsed,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async apiCall(endpoint: string): Promise<any> {
     if (!this.apiKey) {
@@ -449,9 +624,6 @@ export class ACK {
     return response.json();
   }
 
-  /**
-   * Get agent from contract
-   */
   private async getAgentFromContract(agentId: number): Promise<Agent | null> {
     try {
       const [tokenURI, owner] = await Promise.all([
@@ -469,17 +641,21 @@ export class ACK {
         }),
       ]);
 
-      // Parse metadata from URI
       let name = `Agent ${agentId}`;
       let description = '';
 
-      if (tokenURI.startsWith('data:,')) {
+      const uri = tokenURI as string;
+      const parsed = parseFeedbackURI(uri);
+      if (parsed) {
+        name = String(parsed.name || name);
+        description = String(parsed.description || description);
+      } else if (uri.startsWith('data:,')) {
         try {
-          const metadata = JSON.parse(tokenURI.slice(6));
+          const metadata = JSON.parse(decodeURIComponent(uri.slice(6)));
           name = metadata.name || name;
           description = metadata.description || description;
         } catch {
-          // Ignore parsing errors
+          // ignore
         }
       }
 
@@ -488,7 +664,7 @@ export class ACK {
         name,
         description,
         owner: owner as Address,
-        tokenURI,
+        tokenURI: uri,
       };
     } catch {
       return null;
@@ -496,20 +672,15 @@ export class ACK {
   }
 
   /**
-   * Get reputation from contract
+   * Get reputation by scanning NewFeedback events on-chain.
+   * Falls back to a zero-reputation result on error.
    */
   private async getReputationFromContract(
     agentId: number
   ): Promise<Reputation | null> {
     try {
-      const feedbackCount = (await this.publicClient.readContract({
-        address: CONTRACT_ADDRESSES.REPUTATION_REGISTRY,
-        abi: REPUTATION_REGISTRY_ABI,
-        functionName: 'getFeedbackCount',
-        args: [BigInt(agentId)],
-      })) as bigint;
-
-      if (feedbackCount === BigInt(0)) {
+      const feedbacks = await this.getFeedbacksFromEvents(agentId);
+      if (feedbacks.length === 0) {
         return {
           agentId,
           qualityScore: 0,
@@ -519,16 +690,40 @@ export class ACK {
         };
       }
 
-      // This is a simplified version - in reality you'd aggregate all feedback
-      const totalFeedbacks = Number(feedbackCount);
-      const averageRating = 0; // Would calculate from actual feedback
+      const totalFeedbacks = feedbacks.length;
+      const sumScores = feedbacks.reduce((sum, f) => sum + f.score, 0);
+      const averageRating = sumScores / totalFeedbacks;
+
+      // Build category breakdown
+      const catMap = new Map<
+        FeedbackCategory,
+        { total: number; count: number }
+      >();
+      for (const f of feedbacks) {
+        const existing = catMap.get(f.category);
+        if (existing) {
+          existing.total += f.score;
+          existing.count += 1;
+        } else {
+          catMap.set(f.category, { total: f.score, count: 1 });
+        }
+      }
+
+      const categories: ReputationCategory[] = [];
+      for (const [category, { total, count }] of catMap) {
+        categories.push({
+          category,
+          averageScore: total / count,
+          count,
+        });
+      }
 
       return {
         agentId,
         qualityScore: averageRating * 20, // Scale to 0-100
         totalFeedbacks,
         averageRating,
-        categories: [],
+        categories,
       };
     } catch {
       return null;
@@ -536,83 +731,80 @@ export class ACK {
   }
 
   /**
-   * Get feedbacks from contract
+   * Fetch feedbacks by scanning NewFeedback events from the ReputationRegistry.
    */
-  private async getFeedbacksFromContract(agentId: number): Promise<Feedback[]> {
+  private async getFeedbacksFromEvents(agentId: number): Promise<Feedback[]> {
     try {
-      const feedbackCount = (await this.publicClient.readContract({
-        address: CONTRACT_ADDRESSES.REPUTATION_REGISTRY,
-        abi: REPUTATION_REGISTRY_ABI,
-        functionName: 'getFeedbackCount',
-        args: [BigInt(agentId)],
-      })) as bigint;
+      const chainConfig = getChainConfig(this.config.chain);
+      const deployBlock = DEPLOYMENT_BLOCKS[chainConfig.id] ?? BigInt(0);
+
+      // Topic[1] is the indexed agentId
+      const agentIdHex = `0x${BigInt(agentId).toString(16).padStart(64, '0')}` as Hex;
+
+      const rawLogs = (await this.publicClient.request({
+        method: 'eth_getLogs',
+        params: [
+          {
+            address: CONTRACT_ADDRESSES.REPUTATION_REGISTRY,
+            topics: [EVENT_TOPICS.NEW_FEEDBACK, agentIdHex],
+            fromBlock: numberToHex(deployBlock),
+            toBlock: 'latest',
+          },
+        ],
+      })) as Array<{
+        topics: Hex[];
+        data: Hex;
+        blockNumber: Hex;
+        transactionHash: Hex;
+      }>;
 
       const feedbacks: Feedback[] = [];
-      const count = Number(feedbackCount);
 
-      // Get last 50 feedbacks (to avoid too many RPC calls)
-      const maxToFetch = Math.min(count, 50);
-      const startIndex = Math.max(0, count - maxToFetch);
-
-      for (let i = startIndex; i < count; i++) {
+      for (const log of rawLogs) {
         try {
-          const feedback = await this.publicClient.readContract({
-            address: CONTRACT_ADDRESSES.REPUTATION_REGISTRY,
-            abi: REPUTATION_REGISTRY_ABI,
-            functionName: 'getFeedback',
-            args: [BigInt(agentId), BigInt(i)],
-          });
+          const sender = ('0x' + log.topics[2]!.slice(26)) as Address;
 
-          const [from, value, , , tag2, , feedbackURI, , timestamp] =
-            feedback as [
-              Address,
-              bigint,
-              number,
-              string,
-              string,
-              string,
-              string,
-              Hash,
-              bigint,
-            ];
+          const decoded = decodeAbiParameters(
+            [
+              { name: 'feedbackIndex', type: 'uint64' },
+              { name: 'value', type: 'int128' },
+              { name: 'valueDecimals', type: 'uint8' },
+              { name: 'tag1', type: 'string' },
+              { name: 'tag2', type: 'string' },
+              { name: 'endpoint', type: 'string' },
+              { name: 'feedbackURI', type: 'string' },
+              { name: 'feedbackHash', type: 'bytes32' },
+            ],
+            log.data
+          );
 
-          // Parse message from feedbackURI (base64 or raw JSON data URI)
+          const feedbackIndex = decoded[0];
+          const value = decoded[1];
+          const tag2 = decoded[4];
+          const feedbackURIStr = decoded[6];
+
           let message = '';
-          try {
-            if (feedbackURI.startsWith('data:application/json;base64,')) {
-              const decoded = JSON.parse(
-                Buffer.from(
-                  feedbackURI.split(',')[1] as string,
-                  'base64'
-                ).toString()
-              );
-              message = decoded.reasoning || decoded.message || '';
-            } else if (feedbackURI.startsWith('data:,')) {
-              const decoded = JSON.parse(
-                decodeURIComponent(feedbackURI.slice(6))
-              );
-              message = decoded.reasoning || decoded.message || '';
-            }
-          } catch {
-            // Ignore parsing errors
+          const parsed = parseFeedbackURI(feedbackURIStr);
+          if (parsed) {
+            message = String(parsed.reasoning || parsed.message || '');
           }
 
           feedbacks.push({
-            id: `${agentId}-${i}`,
+            id: `${agentId}-${feedbackIndex}`,
             agentId,
-            from,
-            category: tag2 as FeedbackCategory,
+            from: sender,
+            category: (tag2 || 'reliability') as FeedbackCategory,
             score: Number(value),
             message,
-            timestamp: Number(timestamp),
-            transactionHash: '0x' as Hash, // Not available from contract read
+            timestamp: Number(BigInt(log.blockNumber)),
+            transactionHash: log.transactionHash as Hash,
           });
         } catch {
-          // Skip failed reads
+          // skip malformed events
         }
       }
 
-      return feedbacks.reverse(); // Most recent first
+      return feedbacks.reverse();
     } catch {
       return [];
     }

@@ -125,21 +125,88 @@ export default function UserProfilePage() {
     staleTime: 60_000,
   });
 
-  // Find agent owned by this address via 8004scan
+  // Find agent owned by this address via onchain balanceOf + tokenOfOwnerByIndex
   const { data: ownedAgent } = useQuery({
-    queryKey: ['address-agent', address],
+    queryKey: ['address-agent-onchain', address],
     queryFn: async (): Promise<ScanAgent | null> => {
       try {
-        const result = await fetchAgents({ chainId: 2741, limit: 50 });
-        const addr = address.toLowerCase();
-        return (
-          result.items.find(
-            (a) =>
-              a.owner_address?.toLowerCase() === addr ||
-              a.creator_address?.toLowerCase() === addr ||
-              a.agent_wallet?.toLowerCase() === addr
-          ) || null
-        );
+        const { createPublicClient, http } = await import('viem');
+        const { defineChain } = await import('viem');
+        const abstract = defineChain({
+          id: 2741,
+          name: 'Abstract',
+          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+          rpcUrls: { default: { http: ['https://api.mainnet.abs.xyz'] } },
+        });
+        const client = createPublicClient({
+          chain: abstract,
+          transport: http(),
+        });
+        const IDENTITY_REGISTRY =
+          '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432' as const;
+        const abi = [
+          {
+            name: 'balanceOf',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [{ name: 'owner', type: 'address' }],
+            outputs: [{ name: '', type: 'uint256' }],
+          },
+          {
+            name: 'tokenOfOwnerByIndex',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [
+              { name: 'owner', type: 'address' },
+              { name: 'index', type: 'uint256' },
+            ],
+            outputs: [{ name: '', type: 'uint256' }],
+          },
+          {
+            name: 'tokenURI',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [{ name: 'tokenId', type: 'uint256' }],
+            outputs: [{ name: '', type: 'string' }],
+          },
+        ] as const;
+        const addr = address as `0x${string}`;
+        const balance = await client.readContract({
+          address: IDENTITY_REGISTRY,
+          abi,
+          functionName: 'balanceOf',
+          args: [addr],
+        });
+        if (balance === BigInt(0)) return null;
+        const tokenId = await client.readContract({
+          address: IDENTITY_REGISTRY,
+          abi,
+          functionName: 'tokenOfOwnerByIndex',
+          args: [addr, BigInt(0)],
+        });
+        // Try to get name from tokenURI
+        let name = `Agent #${tokenId.toString()}`;
+        try {
+          const uri = await client.readContract({
+            address: IDENTITY_REGISTRY,
+            abi,
+            functionName: 'tokenURI',
+            args: [tokenId],
+          });
+          if (uri.startsWith('data:application/json;base64,')) {
+            const json = JSON.parse(atob(uri.split(',')[1]));
+            if (json.name) name = json.name;
+          }
+        } catch {
+          /* use fallback name */
+        }
+        return {
+          token_id: tokenId.toString(),
+          chain_id: 2741,
+          name,
+          owner_address: address,
+          image_url: null,
+        } as unknown as ScanAgent;
       } catch {
         return null;
       }

@@ -739,7 +739,8 @@ export class ACK {
       const deployBlock = DEPLOYMENT_BLOCKS[chainConfig.id] ?? BigInt(0);
 
       // Topic[1] is the indexed agentId
-      const agentIdHex = `0x${BigInt(agentId).toString(16).padStart(64, '0')}` as Hex;
+      const agentIdHex =
+        `0x${BigInt(agentId).toString(16).padStart(64, '0')}` as Hex;
 
       const rawLogs = (await this.publicClient.request({
         method: 'eth_getLogs',

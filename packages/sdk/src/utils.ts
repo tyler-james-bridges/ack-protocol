@@ -28,7 +28,9 @@ export interface BuildFeedbackResult {
  * Build an ERC-8004 compliant feedback data URI and keccak256 hash.
  * Works in both Node.js and browser environments.
  */
-export function buildFeedback(params: BuildFeedbackParams): BuildFeedbackResult {
+export function buildFeedback(
+  params: BuildFeedbackParams
+): BuildFeedbackResult {
   const chainId = params.chainId ?? 2741;
 
   const feedbackFile = {
@@ -86,10 +88,7 @@ export function parseFeedbackURI(uri: string): Record<string, unknown> | null {
  * @param uri - IPFS URI (e.g. "ipfs://Qm...")
  * @param gateway - HTTP gateway base URL (default: "https://ipfs.io")
  */
-export function ipfsToHttp(
-  uri: string,
-  gateway = 'https://ipfs.io'
-): string {
+export function ipfsToHttp(uri: string, gateway = 'https://ipfs.io'): string {
   if (uri.startsWith('ipfs://')) {
     const path = uri.slice('ipfs://'.length);
     return `${gateway}/ipfs/${path}`;

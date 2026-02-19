@@ -49,10 +49,9 @@ let allEventsCache: {
 } | null = null;
 const CACHE_TTL = 120_000; // 2 minutes
 
-// First ACK feedback was around block 40_900_000. We only need events from
-// the reputation registry on Abstract which launched recently, so keep the
-// scan window tight for fast cold starts.
-const DEPLOY_BLOCK = 40_800_000;
+// First feedback event on Abstract was at block ~40_060_000. Keep a small
+// margin below that for safety while staying tight for fast cold starts.
+const DEPLOY_BLOCK = 40_000_000;
 
 /**
  * Fetch all NewFeedback events from the ReputationRegistry contract.

@@ -62,11 +62,7 @@ export function InlineKudosForm({
     targetChainId !== undefined &&
     targetChainId !== ABSTRACT_CHAIN_ID;
 
-  const canSubmit =
-    message.trim().length > 0 &&
-    !isLoading &&
-    !isSelfKudos &&
-    !isCrossChainFromAGW;
+  const canSubmit = !isLoading && !isSelfKudos && !isCrossChainFromAGW;
 
   // After successful kudos, scroll to kudos feed and fire onSuccess callback
   useEffect(() => {
@@ -85,7 +81,7 @@ export function InlineKudosForm({
     if (!canSubmit || !address) return;
     giveKudos({
       agentId: Number(agentTokenId),
-      category: category || 'reliability',
+      category: category || '',
       message: message.trim(),
       clientAddress: address,
       isReview: mode === 'review',
@@ -271,7 +267,7 @@ export function InlineKudosForm({
 
       {/* Message */}
       <div className="space-y-1.5">
-        <p className="text-xs text-muted-foreground">Message</p>
+        <p className="text-xs text-muted-foreground">Message (optional)</p>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}

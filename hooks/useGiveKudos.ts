@@ -18,7 +18,7 @@ import { buildFeedback } from '@/lib/feedback';
 
 interface GiveKudosParams {
   agentId: number;
-  category: KudosCategory;
+  category: KudosCategory | '';
   message: string;
   clientAddress: string;
   fromAgentId?: number;

@@ -16,7 +16,7 @@ import type { ScanAgent } from '@/lib/api';
 interface KudosFormProps {
   onSubmit: (data: {
     agent: ScanAgent;
-    category: KudosCategory;
+    category: KudosCategory | '';
     message: string;
     isReview?: boolean;
     value?: number;
@@ -32,13 +32,13 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
   const [mode, setMode] = useState<'kudos' | 'review'>('kudos');
   const [reviewValue, setReviewValue] = useState(0);
 
-  const canSubmit = selectedAgent && category && message.trim().length > 0;
+  const canSubmit = !!selectedAgent;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
     onSubmit({
       agent: selectedAgent,
-      category,
+      category: category || '',
       message: message.trim(),
       isReview: mode === 'review',
       value: mode === 'review' ? reviewValue : undefined,
@@ -134,7 +134,9 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm md:text-base font-medium">Message</label>
+        <label className="text-sm md:text-base font-medium">
+          Message (optional)
+        </label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}

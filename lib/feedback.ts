@@ -11,7 +11,7 @@ import {
 export interface FeedbackFileParams {
   agentId: number;
   clientAddress: string;
-  category: KudosCategory;
+  category: KudosCategory | '';
   message: string;
   fromAgentId?: number;
   value?: number;
@@ -48,6 +48,18 @@ export function buildFeedback(params: FeedbackFileParams): FeedbackResult {
   };
 
   const jsonStr = JSON.stringify(feedbackFile);
+
+  // If no message and no category, send empty feedbackURI (bare kudos)
+  const isBare = !params.message.trim() && !params.category;
+
+  if (isBare) {
+    return {
+      feedbackURI: '',
+      feedbackHash:
+        '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
+      jsonStr,
+    };
+  }
 
   // Platform-agnostic base64 encoding
   const base64 =

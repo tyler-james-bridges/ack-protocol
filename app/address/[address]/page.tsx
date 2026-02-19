@@ -125,12 +125,13 @@ export default function UserProfilePage() {
     staleTime: 60_000,
   });
 
-  // Find agent owned by this address via onchain balanceOf + tokenOfOwnerByIndex
+  // Find agent owned by this address via Transfer event logs + tokenURI
+  // (tokenOfOwnerByIndex reverts — registry doesn't implement ERC-721 Enumerable)
   const { data: ownedAgent } = useQuery({
     queryKey: ['address-agent-onchain', address],
     queryFn: async (): Promise<ScanAgent | null> => {
       try {
-        const { createPublicClient, http } = await import('viem');
+        const { createPublicClient, http, parseAbiItem } = await import('viem');
         const { defineChain } = await import('viem');
         const abstract = defineChain({
           id: 2741,
@@ -144,23 +145,31 @@ export default function UserProfilePage() {
         });
         const IDENTITY_REGISTRY =
           '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432' as const;
+        const addr = address.toLowerCase() as `0x${string}`;
+
+        // Find Transfer events TO this address (mints + transfers in)
+        const transferEvent = parseAbiItem(
+          'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
+        );
+        const logs = await client.getLogs({
+          address: IDENTITY_REGISTRY,
+          event: transferEvent,
+          args: { to: addr },
+          fromBlock: BigInt(0),
+          toBlock: 'latest',
+        });
+        if (logs.length === 0) return null;
+
+        // Check current ownership (last transfer wins, but verify with balanceOf)
+        const tokenId = logs[logs.length - 1].args.tokenId!;
+
         const abi = [
           {
-            name: 'balanceOf',
+            name: 'ownerOf',
             type: 'function',
             stateMutability: 'view',
-            inputs: [{ name: 'owner', type: 'address' }],
-            outputs: [{ name: '', type: 'uint256' }],
-          },
-          {
-            name: 'tokenOfOwnerByIndex',
-            type: 'function',
-            stateMutability: 'view',
-            inputs: [
-              { name: 'owner', type: 'address' },
-              { name: 'index', type: 'uint256' },
-            ],
-            outputs: [{ name: '', type: 'uint256' }],
+            inputs: [{ name: 'tokenId', type: 'uint256' }],
+            outputs: [{ name: '', type: 'address' }],
           },
           {
             name: 'tokenURI',
@@ -170,21 +179,17 @@ export default function UserProfilePage() {
             outputs: [{ name: '', type: 'string' }],
           },
         ] as const;
-        const addr = address as `0x${string}`;
-        const balance = await client.readContract({
+
+        // Verify still owned
+        const owner = await client.readContract({
           address: IDENTITY_REGISTRY,
           abi,
-          functionName: 'balanceOf',
-          args: [addr],
+          functionName: 'ownerOf',
+          args: [tokenId],
         });
-        if (balance === BigInt(0)) return null;
-        const tokenId = await client.readContract({
-          address: IDENTITY_REGISTRY,
-          abi,
-          functionName: 'tokenOfOwnerByIndex',
-          args: [addr, BigInt(0)],
-        });
-        // Try to get name from tokenURI
+        if (owner.toLowerCase() !== addr) return null;
+
+        // Get name from tokenURI
         let name = `Agent #${tokenId.toString()}`;
         try {
           const uri = await client.readContract({

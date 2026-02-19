@@ -339,17 +339,17 @@ export default function UserProfilePage() {
   ).sort((a, b) => (categoryCounts[b] || 0) - (categoryCounts[a] || 0));
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       <Nav />
 
-      <div className="mx-auto max-w-5xl px-4 pt-6 pb-16">
+      <div className="mx-auto max-w-5xl px-4 pt-6 pb-16 overflow-hidden">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
           {/* ================================================================ */}
           {/* LEFT COLUMN - Profile Sidebar                                    */}
           {/* ================================================================ */}
-          <aside className="w-full lg:w-80 shrink-0 lg:sticky lg:top-20 space-y-4">
+          <aside className="w-full lg:w-80 shrink-0 lg:sticky lg:top-20 space-y-4 overflow-hidden">
             {/* Profile Card */}
-            <div className="gradient-border card-glow rounded-xl p-5 space-y-4">
+            <div className="gradient-border card-glow rounded-xl p-5 space-y-4 overflow-hidden">
               {/* Identity header */}
               <div className="flex items-start gap-3.5">
                 <div className="rounded-xl overflow-hidden shrink-0 ring-2 ring-primary/20">

@@ -82,11 +82,19 @@ export class ACK {
   }
 
   /**
-   * Create an ACK client from a private key
+   * Create an ACK client from a private key.
+   * WARNING: Never use private keys in browser/client-side code.
+   * This method is intended for server-side scripts and backend services only.
    */
   public static fromPrivateKey(privateKey: string, config: ACKConfig): ACK {
+    const key = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
+    if (!/^0x[0-9a-fA-F]{64}$/.test(key)) {
+      throw new Error(
+        'Invalid private key: must be a 32-byte hex string (64 hex chars, optionally prefixed with 0x)'
+      );
+    }
     const chainConfig = getChainConfig(config.chain);
-    const account = privateKeyToAccount(privateKey as Hash);
+    const account = privateKeyToAccount(key as Hash);
 
     const chain = {
       id: chainConfig.id,

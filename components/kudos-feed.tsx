@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useKudosReceived, type KudosEvent } from '@/hooks/useKudosReceived';
-import { useLeaderboard } from '@/hooks';
+import { useLeaderboard, useIsAgent } from '@/hooks';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { CategoryBadge } from '@/components/category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import { IdentityBadge } from '@/components/identity-badge';
 import {
   useBlockTimestamps,
   formatRelativeTime,
@@ -46,12 +47,14 @@ function KudosCard({
   receiverAgent,
   senderAgent,
   timestamp,
+  isSenderAgent,
 }: {
   kudos: KudosEvent;
   agentId: number;
   receiverAgent?: ScanAgent;
   senderAgent?: ScanAgent;
   timestamp?: number;
+  isSenderAgent: boolean;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -84,6 +87,7 @@ function KudosCard({
             >
               {senderName}
             </Link>
+            <IdentityBadge type={isSenderAgent ? 'agent' : 'human'} />
             <span>gave</span>
             <Link href={`/agent/2741/${agentId}`} className="shrink-0">
               <AgentAvatar
@@ -135,7 +139,9 @@ export function KudosFeed({ agentId }: { agentId: number }) {
   });
 
   const blockNumbers = kudos?.map((k) => k.blockNumber) || [];
+  const senders = kudos?.map((k) => k.sender) || [];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
+  const { data: agentSet } = useIsAgent(senders);
 
   // Build lookups
   const agentMap = new Map<number, ScanAgent>();
@@ -183,6 +189,10 @@ export function KudosFeed({ agentId }: { agentId: number }) {
             receiverAgent={agentMap.get(agentId)}
             senderAgent={senderMap.get(k.sender.toLowerCase())}
             timestamp={timestamps?.get(k.blockNumber.toString())}
+            isSenderAgent={
+              agentSet?.has(k.sender.toLowerCase()) ??
+              !!senderMap.get(k.sender.toLowerCase())
+            }
           />
         ))}
     </div>

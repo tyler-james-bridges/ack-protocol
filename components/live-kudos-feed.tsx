@@ -1,10 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useRecentKudos, useLeaderboard, type RecentKudos } from '@/hooks';
+import {
+  useRecentKudos,
+  useLeaderboard,
+  useIsAgent,
+  type RecentKudos,
+} from '@/hooks';
 import { AgentAvatar } from './agent-avatar';
 import { CategoryBadge } from './category-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import { IdentityBadge } from './identity-badge';
 import {
   useBlockTimestamps,
   formatRelativeTime,
@@ -20,11 +26,13 @@ function FeedItem({
   agent,
   senderAgent,
   timestamp,
+  isSenderAgent,
 }: {
   kudos: RecentKudos;
   agent?: ScanAgent;
   senderAgent?: ScanAgent;
   timestamp?: number;
+  isSenderAgent: boolean;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -55,6 +63,7 @@ function FeedItem({
             >
               {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
             </Link>
+            <IdentityBadge type={isSenderAgent ? 'agent' : 'human'} />
             <span className="text-xs text-muted-foreground">gave</span>
             <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
               <AgentAvatar name={name} imageUrl={agent?.image_url} size={32} />
@@ -117,6 +126,8 @@ export function LiveKudosFeed() {
   }
 
   const recent = kudos?.slice(0, 5);
+  const senders = recent?.map((k) => k.sender) || [];
+  const { data: agentSet } = useIsAgent(senders);
   const blockNumbers = recent?.map((k) => k.blockNumber) || [];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
 
@@ -172,6 +183,10 @@ export function LiveKudosFeed() {
               agent={agentMap.get(k.agentId)}
               senderAgent={senderMap.get(k.sender.toLowerCase())}
               timestamp={timestamps?.get(k.blockNumber.toString())}
+              isSenderAgent={
+                agentSet?.has(k.sender.toLowerCase()) ??
+                !!senderMap.get(k.sender.toLowerCase())
+              }
             />
           ))
         )}

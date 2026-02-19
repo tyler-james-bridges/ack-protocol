@@ -16,6 +16,7 @@ import {
 import type { RecentKudos } from '@/hooks';
 import type { ScanAgent } from '@/lib/api';
 import { AgentAvatar } from '@/components/agent-avatar';
+import { IdentityBadge } from '@/components/identity-badge';
 import {
   useBlockTimestamps,
   formatRelativeTime,
@@ -25,20 +26,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-}
-
-function SenderBadge({ isAgent }: { isAgent: boolean }) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none shrink-0 ${
-        isAgent
-          ? 'bg-[#00DE73]/10 text-[#00DE73] border border-[#00DE73]/20'
-          : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-      }`}
-    >
-      {isAgent ? 'Agent' : 'Human'}
-    </span>
-  );
 }
 
 function RecentKudosCard({
@@ -79,7 +66,7 @@ function RecentKudosCard({
         >
           {senderName}
         </Link>
-        <SenderBadge isAgent={isAgent} />
+        <IdentityBadge type={isAgent ? 'agent' : 'human'} />
         <span className="text-muted-foreground/40 text-xs shrink-0">to</span>
         <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
           <AgentAvatar

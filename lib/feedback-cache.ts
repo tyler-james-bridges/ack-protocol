@@ -49,9 +49,9 @@ let allEventsCache: {
 } | null = null;
 const CACHE_TTL = 120_000; // 2 minutes
 
-// First feedback event on Abstract was at block ~40_060_000. Keep a small
-// margin below that for safety while staying tight for fast cold starts.
-const DEPLOY_BLOCK = 40_000_000;
+// First feedback event on Abstract was at block 39_698_233 (Big Hoss).
+// Start from 39.5M to capture everything with a small safety margin.
+const DEPLOY_BLOCK = 39_500_000;
 
 /**
  * Fetch all NewFeedback events from the ReputationRegistry contract.

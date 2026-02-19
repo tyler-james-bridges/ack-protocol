@@ -1,5 +1,6 @@
 /**
- * Updates the onchain agentURI for ACK agent #606 with agentWallet field added.
+ * Updates the onchain agentURI for ACK agent #606.
+ * Removes agentWallet from off-chain metadata (should only be set via setAgentWallet onchain).
  * Run: node scripts/update-agent-uri.mjs
  */
 import { createWalletClient, createPublicClient, http } from 'viem';
@@ -75,9 +76,14 @@ async function main() {
   console.log('Current keys:', Object.keys(current));
   console.log('Current agentWallet:', current.agentWallet ?? '(missing)');
 
-  // Add agentWallet
-  current.agentWallet =
-    'eip155:2741:0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c';
+  // Remove agentWallet from off-chain metadata (WA083: use setAgentWallet() onchain instead)
+  if (current.agentWallet) {
+    console.log('Removing agentWallet from off-chain metadata...');
+    delete current.agentWallet;
+  } else {
+    console.log('No agentWallet in metadata, nothing to remove.');
+    return;
+  }
 
   // Re-encode
   const newJSON = JSON.stringify(current);
@@ -99,7 +105,7 @@ async function main() {
   // Wait for confirmation
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   console.log('Confirmed in block:', receipt.blockNumber.toString());
-  console.log('Done. agentWallet added to onchain URI.');
+  console.log('Done. agentWallet removed from onchain URI.');
 }
 
 main().catch(console.error);

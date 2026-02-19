@@ -224,14 +224,77 @@ export default function UserProfilePage() {
 
   const agentIds = [...new Set(kudosGiven?.map((k) => k.agentId) || [])];
   const { data: agentMap } = useQuery({
-    queryKey: ['agents-batch', agentIds.join(',')],
+    queryKey: ['agents-batch-onchain', agentIds.join(',')],
     queryFn: async () => {
       const map = new Map<number, ScanAgent>();
       if (agentIds.length === 0) return map;
-      const result = await fetchAgents({ limit: 50, chainId: 2741 });
-      for (const a of result.items) {
-        map.set(Number(a.token_id), a);
+
+      // First try 8004scan API for metadata
+      try {
+        const result = await fetchAgents({ limit: 100, chainId: 2741 });
+        for (const a of result.items) {
+          map.set(Number(a.token_id), a);
+        }
+      } catch {
+        /* API may be rate-limited */
       }
+
+      // Resolve any missing agents from onchain tokenURI
+      const missing = agentIds.filter((id) => !map.has(id));
+      if (missing.length > 0) {
+        const { createPublicClient, http } = await import('viem');
+        const { defineChain } = await import('viem');
+        const abstract = defineChain({
+          id: 2741,
+          name: 'Abstract',
+          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+          rpcUrls: { default: { http: ['https://api.mainnet.abs.xyz'] } },
+        });
+        const client = createPublicClient({
+          chain: abstract,
+          transport: http(),
+        });
+        const REGISTRY = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
+        const tokenURIAbi = [
+          {
+            name: 'tokenURI',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [{ name: 'tokenId', type: 'uint256' }],
+            outputs: [{ name: '', type: 'string' }],
+          },
+        ] as const;
+
+        await Promise.all(
+          missing.map(async (id) => {
+            try {
+              const uri = await client.readContract({
+                address: REGISTRY as `0x${string}`,
+                abi: tokenURIAbi,
+                functionName: 'tokenURI',
+                args: [BigInt(id)],
+              });
+              let name = `Agent #${id}`;
+              let imageUrl: string | null = null;
+              if (uri.startsWith('data:application/json;base64,')) {
+                const json = JSON.parse(atob(uri.split(',')[1]));
+                if (json.name) name = json.name;
+                if (json.image) imageUrl = json.image;
+              }
+              map.set(id, {
+                token_id: String(id),
+                chain_id: 2741,
+                name,
+                owner_address: '',
+                image_url: imageUrl,
+              } as unknown as ScanAgent);
+            } catch {
+              /* skip unresolvable */
+            }
+          })
+        );
+      }
+
       return map;
     },
     enabled: agentIds.length > 0,

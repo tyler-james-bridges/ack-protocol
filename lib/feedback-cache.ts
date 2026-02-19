@@ -47,10 +47,12 @@ let allEventsCache: {
   ts: number;
   toBlock: number;
 } | null = null;
-const CACHE_TTL = 60_000; // 1 minute
+const CACHE_TTL = 120_000; // 2 minutes
 
-// Contract deployed around block 39860000
-const DEPLOY_BLOCK = 39_000_000;
+// First ACK feedback was around block 40_900_000. We only need events from
+// the reputation registry on Abstract which launched recently, so keep the
+// scan window tight for fast cold starts.
+const DEPLOY_BLOCK = 40_800_000;
 
 /**
  * Fetch all NewFeedback events from the ReputationRegistry contract.
@@ -64,24 +66,36 @@ export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
 
   const fromBlock = allEventsCache ? allEventsCache.toBlock + 1 : DEPLOY_BLOCK;
 
-  const logs = await client.request({
-    method: 'eth_getLogs',
-    params: [
-      {
-        address: REPUTATION_REGISTRY,
-        topics: [NEW_FEEDBACK_TOPIC],
-        fromBlock: numberToHex(BigInt(fromBlock)),
-        toBlock: 'latest',
-      },
-    ],
-  });
+  // Fetch latest block number to chunk requests (max 500k blocks per call)
+  const latestHex = (await client.request({
+    method: 'eth_blockNumber',
+  })) as Hex;
+  const latestBlock = Number(BigInt(latestHex));
+  const CHUNK = 500_000;
 
-  const rawLogs = logs as Array<{
+  type RawLog = {
     topics: Hex[];
     data: Hex;
     blockNumber: Hex;
     transactionHash: Hex;
-  }>;
+  };
+  const rawLogs: RawLog[] = [];
+
+  for (let start = fromBlock; start <= latestBlock; start += CHUNK) {
+    const end = Math.min(start + CHUNK - 1, latestBlock);
+    const logs = await client.request({
+      method: 'eth_getLogs',
+      params: [
+        {
+          address: REPUTATION_REGISTRY,
+          topics: [NEW_FEEDBACK_TOPIC],
+          fromBlock: numberToHex(BigInt(start)),
+          toBlock: numberToHex(BigInt(end)),
+        },
+      ],
+    });
+    rawLogs.push(...(logs as RawLog[]));
+  }
 
   const newEvents: FeedbackEvent[] = [];
   let maxBlock = fromBlock;

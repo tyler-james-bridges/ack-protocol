@@ -5,6 +5,7 @@ import type { Address, Hex } from 'viem';
 
 export interface KudosGivenEvent {
   agentId: number;
+  sender: string;
   tag1: string;
   tag2: string;
   message: string | null;
@@ -41,6 +42,7 @@ async function fetchKudosGiven(address: Address): Promise<KudosGivenEvent[]> {
   return (data.events || []).map(
     (e: {
       agentId: number;
+      sender: string;
       tag1: string;
       tag2: string;
       feedbackURI: string;
@@ -48,6 +50,7 @@ async function fetchKudosGiven(address: Address): Promise<KudosGivenEvent[]> {
       blockNumber: string;
     }) => ({
       agentId: e.agentId,
+      sender: e.sender || address.toLowerCase(),
       tag1: e.tag1,
       tag2: e.tag2,
       message: parseMessage(e.feedbackURI),

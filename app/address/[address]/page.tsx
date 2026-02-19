@@ -65,48 +65,80 @@ function CopyableAddress({ address }: { address: string }) {
 function KudosHistoryCard({
   kudos,
   agent,
+  senderAgent,
   timestamp,
 }: {
   kudos: KudosGivenEvent;
   agent?: ScanAgent;
+  senderAgent?: ScanAgent;
   timestamp?: number;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
   );
   const agentName = agent?.name || `Agent #${kudos.agentId}`;
+  const senderName = senderAgent?.name || truncateAddress(kudos.sender);
+  const senderLink = senderAgent
+    ? `/agent/${senderAgent.chain_id}/${senderAgent.token_id}`
+    : `/address/${kudos.sender}`;
 
   return (
-    <div className="border border-border rounded-lg p-3 sm:p-4 bg-card hover:border-[#00DE73]/40 transition-colors overflow-hidden">
-      <div className="flex items-center gap-1.5 flex-wrap mb-1 min-w-0">
-        <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
-          <AgentAvatar name={agentName} imageUrl={agent?.image_url} size={24} />
-        </Link>
-        <Link
-          href={`/agent/2741/${kudos.agentId}`}
-          className="text-xs sm:text-sm font-semibold text-foreground hover:text-[#00DE73] transition-colors truncate"
-        >
-          {agentName}
-        </Link>
-        {isValidCategory && (
-          <CategoryBadge category={kudos.tag2 as KudosCategory} />
+    <div className="flex gap-3 border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors overflow-hidden">
+      <Link href={senderLink} className="shrink-0 mt-0.5">
+        <AgentAvatar
+          name={senderName}
+          imageUrl={senderAgent?.image_url}
+          size={36}
+        />
+      </Link>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-muted-foreground">
+            <Link
+              href={senderLink}
+              className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
+            >
+              {senderName}
+            </Link>
+            <span>gave</span>
+            <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
+              <AgentAvatar
+                name={agentName}
+                imageUrl={agent?.image_url}
+                size={36}
+              />
+            </Link>
+            <Link
+              href={`/agent/2741/${kudos.agentId}`}
+              className="font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+            >
+              {agentName}
+            </Link>
+            <span>kudos</span>
+            {isValidCategory && (
+              <>
+                <span>for</span>
+                <CategoryBadge category={kudos.tag2 as KudosCategory} />
+              </>
+            )}
+          </div>
+          <a
+            href={`https://abscan.org/tx/${kudos.txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
+          >
+            {timestamp
+              ? formatRelativeTime(timestamp)
+              : `Block #${kudos.blockNumber.toString()}`}
+          </a>
+        </div>
+        {kudos.message && (
+          <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-words">
+            &ldquo;{kudos.message}&rdquo;
+          </p>
         )}
       </div>
-      {kudos.message && (
-        <p className="text-xs sm:text-sm text-foreground/80 my-1 line-clamp-2 break-all overflow-hidden max-w-full">
-          &ldquo;{kudos.message}&rdquo;
-        </p>
-      )}
-      <a
-        href={`https://abscan.org/tx/${kudos.txHash}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
-      >
-        {timestamp
-          ? formatRelativeTime(timestamp)
-          : `Block #${kudos.blockNumber.toString()}`}
-      </a>
     </div>
   );
 }
@@ -300,6 +332,15 @@ export default function UserProfilePage() {
     enabled: agentIds.length > 0,
     staleTime: 120_000,
   });
+
+  // Build sender address -> agent lookup from the agent map
+  const senderAgentMap = new Map<string, ScanAgent>();
+  if (agentMap) {
+    for (const a of agentMap.values()) {
+      if (a.owner_address) senderAgentMap.set(a.owner_address.toLowerCase(), a);
+      if (a.agent_wallet) senderAgentMap.set(a.agent_wallet.toLowerCase(), a);
+    }
+  }
 
   const blockNumbers = kudosGiven?.map((k) => k.blockNumber) || [];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
@@ -545,6 +586,7 @@ export default function UserProfilePage() {
                     key={`${k.txHash}-${i}`}
                     kudos={k}
                     agent={agentMap?.get(k.agentId)}
+                    senderAgent={senderAgentMap.get(k.sender.toLowerCase())}
                     timestamp={timestamps?.get(k.blockNumber.toString())}
                   />
                 ))}

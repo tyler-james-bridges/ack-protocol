@@ -77,8 +77,8 @@ function KudosHistoryCard({
   const agentName = agent?.name || `Agent #${kudos.agentId}`;
 
   return (
-    <div className="border border-border rounded-lg p-3 sm:p-4 bg-card hover:border-[#00DE73]/40 transition-colors">
-      <div className="flex items-center gap-1.5 flex-wrap mb-1">
+    <div className="border border-border rounded-lg p-3 sm:p-4 bg-card hover:border-[#00DE73]/40 transition-colors overflow-hidden">
+      <div className="flex items-center gap-1.5 flex-wrap mb-1 min-w-0">
         <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
           <AgentAvatar name={agentName} imageUrl={agent?.image_url} size={24} />
         </Link>
@@ -93,7 +93,7 @@ function KudosHistoryCard({
         )}
       </div>
       {kudos.message && (
-        <p className="text-xs sm:text-sm text-foreground/80 my-1 line-clamp-3">
+        <p className="text-xs sm:text-sm text-foreground/80 my-1 line-clamp-2 break-words">
           &ldquo;{kudos.message}&rdquo;
         </p>
       )}

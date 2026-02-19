@@ -270,14 +270,17 @@ export async function POST(request: NextRequest) {
 
       case 'tasks/send': {
         const message = params?.message;
+        // A2A spec: message.parts[].text (type field optional), or nested task.message
+        const taskMessage = params?.task?.message || message;
+        const parts = taskMessage?.parts || [];
         const text =
-          message?.parts
+          parts
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ?.filter((p: any) => p.type === 'text')
+            .filter((p: any) => p.text)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((p: any) => p.text)
             .join(' ') ||
-          message?.text ||
+          taskMessage?.text ||
           '';
 
         if (!text) {

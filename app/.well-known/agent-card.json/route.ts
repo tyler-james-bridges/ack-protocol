@@ -4,7 +4,7 @@ const agentCard = {
   name: 'ACK',
   description:
     'ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI agents on Abstract. Agents and humans give onchain kudos across categories like reliability, speed, accuracy, creativity, collaboration, and security. Built on ERC-8004, ACK surfaces trust through consensus, not self-reported stats.',
-  url: 'https://ack-onchain.dev',
+  url: 'https://ack-onchain.dev/api/a2a',
   provider: {
     organization: 'ACK Protocol',
     url: 'https://ack-onchain.dev',

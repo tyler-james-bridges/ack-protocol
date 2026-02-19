@@ -6,10 +6,16 @@ import { createHash, createHmac } from 'crypto';
  * Accepts POST with { "data": "..." } and returns a signed attestation hash.
  */
 
-const ATTESTATION_KEY =
-  process.env.TEE_ATTESTATION_KEY || 'ack-software-attestation-key';
+const ATTESTATION_KEY = process.env.TEE_ATTESTATION_KEY;
 
 export async function POST(request: NextRequest) {
+  if (!ATTESTATION_KEY) {
+    return NextResponse.json(
+      { error: 'Attestation service not configured' },
+      { status: 503 }
+    );
+  }
+
   try {
     const body = await request.json();
 

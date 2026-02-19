@@ -42,25 +42,36 @@ export async function fetchCrossChainReputation(
 ): Promise<ChainReputation[]> {
   const paddedAddress = padHex(agentAddress as Address, { size: 32 });
 
+  const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> =>
+    Promise.race([
+      promise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('RPC timeout')), ms)
+      ),
+    ]);
+
   const results = await Promise.allSettled(
     SUPPORTED_CHAINS.map(async ({ chain }) => {
       const client = getPublicClient(chain.id);
       const deployBlock = DEPLOYMENT_BLOCKS[chain.id] ?? BigInt(0);
-      const logs = (await client.request({
-        method: 'eth_getLogs',
-        params: [
-          {
-            address: REPUTATION_REGISTRY_ADDRESS,
-            topics: [
-              FEEDBACK_GIVEN_TOPIC as `0x${string}`,
-              null,
-              paddedAddress,
-            ],
-            fromBlock: numberToHex(deployBlock),
-            toBlock: 'latest',
-          },
-        ],
-      })) as {
+      const logs = (await withTimeout(
+        client.request({
+          method: 'eth_getLogs',
+          params: [
+            {
+              address: REPUTATION_REGISTRY_ADDRESS,
+              topics: [
+                FEEDBACK_GIVEN_TOPIC as `0x${string}`,
+                null,
+                paddedAddress,
+              ],
+              fromBlock: numberToHex(deployBlock),
+              toBlock: 'latest',
+            },
+          ],
+        }),
+        5000
+      )) as {
         blockNumber: `0x${string}`;
         transactionHash: `0x${string}`;
         data: `0x${string}`;

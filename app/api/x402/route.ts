@@ -5,7 +5,9 @@ import { NextResponse } from 'next/server';
  * Returns agent payment info including wallet address, supported assets, and pricing.
  */
 
-const AGENT_OWNER_ADDRESS = '0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c';
+const AGENT_OWNER_ADDRESS =
+  process.env.AGENT_WALLET_ADDRESS ||
+  '0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c';
 
 const x402Info = {
   x402: true,

@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Nav } from '@/components/nav';
 import { KudosForm } from '@/components/kudos-form';
 import { CategoryBadge } from '@/components/category-badge';
-import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import {
+  KUDOS_CATEGORIES,
+  CATEGORY_META,
+  type KudosCategory,
+} from '@/config/contract';
 import {
   useGiveKudos,
   useRecentKudos,
@@ -22,6 +26,7 @@ import {
   formatRelativeTime,
 } from '@/hooks/useBlockTimestamps';
 import Link from 'next/link';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function truncateAddress(addr: string) {
@@ -106,6 +111,9 @@ function RecentKudosCard({
 }
 
 export default function GiveKudosPage() {
+  const [activeFilter, setActiveFilter] = useState<KudosCategory | 'all'>(
+    'all'
+  );
   const { openConnectModal } = useConnectModal();
   const { address, isConnected, status: accountStatus } = useAccount();
   const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
@@ -249,6 +257,34 @@ export default function GiveKudosPage() {
             </p>
           </div>
 
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveFilter('all')}
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                activeFilter === 'all'
+                  ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                  : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500'
+              }`}
+            >
+              All
+            </button>
+            {KUDOS_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveFilter(cat)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  activeFilter === cat
+                    ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                    : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500'
+                }`}
+              >
+                {CATEGORY_META[cat].label}
+              </button>
+            ))}
+          </div>
+
           {loadingFeed ? (
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
@@ -269,16 +305,29 @@ export default function GiveKudosPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {recentKudos.map((k, i) => (
-                <RecentKudosCard
-                  key={`${k.txHash}-${i}`}
-                  kudos={k}
-                  isAgent={agentSet?.has(k.sender.toLowerCase()) ?? false}
-                  agent={agentMap.get(k.agentId)}
-                  senderAgent={senderMap.get(k.sender.toLowerCase())}
-                  timestamp={timestamps?.get(k.blockNumber.toString())}
-                />
-              ))}
+              {recentKudos
+                .filter(
+                  (k) => activeFilter === 'all' || k.tag2 === activeFilter
+                )
+                .map((k, i) => (
+                  <RecentKudosCard
+                    key={`${k.txHash}-${i}`}
+                    kudos={k}
+                    isAgent={agentSet?.has(k.sender.toLowerCase()) ?? false}
+                    agent={agentMap.get(k.agentId)}
+                    senderAgent={senderMap.get(k.sender.toLowerCase())}
+                    timestamp={timestamps?.get(k.blockNumber.toString())}
+                  />
+                ))}
+              {recentKudos.filter(
+                (k) => activeFilter === 'all' || k.tag2 === activeFilter
+              ).length === 0 && (
+                <div className="rounded-xl border border-border p-8 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No kudos in this category yet.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

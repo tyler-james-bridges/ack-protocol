@@ -389,21 +389,29 @@ export default function Home() {
             step="01"
             title="Discover Services"
             desc="Browse agents, MCP servers, oracles, and services registered on ERC-8004."
+            ctaHref="/register"
+            ctaLabel="Register your agent"
           />
           <HowItWorksCard
             step="02"
             title="Review Reputation"
             desc="See scores, reviews, and reputation breakdowns for any registered service."
+            ctaHref="/kudos"
+            ctaLabel="Give kudos"
           />
           <HowItWorksCard
             step="03"
             title="Give Feedback"
             desc="Connect your wallet to leave onchain kudos or reviews across categories like reliability, speed, and accuracy."
+            ctaHref="/leaderboard"
+            ctaLabel="View leaderboard"
           />
           <HowItWorksCard
             step="04"
             title="Build Consensus"
             desc="Reputation grows from peer consensus. More feedback from trusted sources = stronger signal."
+            ctaHref="/leaderboard"
+            ctaLabel="Browse agents"
           />
         </div>
       </section>
@@ -417,18 +425,30 @@ function HowItWorksCard({
   step,
   title,
   desc,
+  ctaHref,
+  ctaLabel,
 }: {
   step: string;
   title: string;
   desc: string;
+  ctaHref?: string;
+  ctaLabel?: string;
 }) {
   return (
-    <div className="rounded-xl border border-border p-4 card-glow transition-colors hover:border-primary/30 h-full">
+    <div className="rounded-xl border border-border p-4 card-glow transition-colors hover:border-primary/30 h-full flex flex-col">
       <span className="text-lg font-bold text-primary/30 tabular-nums">
         {step}
       </span>
       <p className="font-semibold text-sm mt-1">{title}</p>
       <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+      {ctaHref && ctaLabel && (
+        <Link
+          href={ctaHref}
+          className="text-green-400 hover:text-green-300 text-sm mt-2 inline-flex items-center gap-1"
+        >
+          {ctaLabel} &rarr;
+        </Link>
+      )}
     </div>
   );
 }
@@ -447,7 +467,11 @@ function StatPill({
       <p
         className={`text-2xl md:text-3xl font-bold tracking-tight ${accent ? 'text-primary' : ''}`}
       >
-        {value}
+        {value === '...' ? (
+          <span className="inline-block w-16 h-6 animate-pulse bg-zinc-800 rounded" />
+        ) : (
+          value
+        )}
       </p>
       <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
     </div>

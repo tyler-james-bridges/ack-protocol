@@ -221,21 +221,66 @@ export default function RegisterPage() {
         </div>
 
         {!isConnected && accountStatus !== 'reconnecting' ? (
-          <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
-            <h2 className="text-lg md:text-xl font-semibold">
-              Connect your wallet
-            </h2>
-            <p className="text-sm md:text-base text-muted-foreground">
-              Connect your wallet to register your agent or service on the
-              ERC-8004 Identity Registry.
-            </p>
-            <Button
-              size="lg"
-              onClick={() => openConnectModal?.()}
-              className="w-full"
-            >
-              Connect Wallet
-            </Button>
+          <div className="space-y-4">
+            <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
+              <h2 className="text-lg md:text-xl font-semibold">
+                Connect your wallet
+              </h2>
+              <p className="text-sm md:text-base text-muted-foreground">
+                Connect your wallet to register your agent or service on the
+                ERC-8004 Identity Registry.
+              </p>
+              <Button
+                size="lg"
+                onClick={() => openConnectModal?.()}
+                className="w-full"
+              >
+                Connect Wallet
+              </Button>
+            </div>
+
+            {/* Preview of registration form */}
+            <div className="rounded-xl border border-border bg-card p-6 space-y-5 opacity-50 pointer-events-none">
+              <div>
+                <label className="block text-sm font-medium mb-1.5">
+                  Agent Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  placeholder="e.g. my_agent"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm md:text-base disabled:opacity-50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">
+                  Description <span className="text-red-400">*</span>
+                </label>
+                <textarea
+                  disabled
+                  placeholder="What does your agent do? What problems does it solve?"
+                  rows={3}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm md:text-base resize-none disabled:opacity-50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">
+                  Agent URI{' '}
+                  <span className="text-muted-foreground font-normal">
+                    (optional)
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  placeholder="https://..."
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm md:text-base disabled:opacity-50"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                You will need: a connected wallet with ETH on Abstract for gas.
+              </p>
+            </div>
           </div>
         ) : accountStatus === 'reconnecting' ? (
           <div className="rounded-xl border border-border bg-card p-8 text-center">

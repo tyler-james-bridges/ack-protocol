@@ -98,24 +98,3 @@ export interface LeaderboardEntry {
   kudosCount: number;
   topCategory: KudosCategory | null;
 }
-
-/**
- * Graph node for social graph visualization
- */
-export interface GraphNode {
-  id: string;
-  agentId: number;
-  name: string;
-  image: string | null;
-  kudosReceived: number;
-}
-
-/**
- * Graph edge for social graph visualization
- */
-export interface GraphEdge {
-  source: string;
-  target: string;
-  category: KudosCategory;
-  count: number;
-}

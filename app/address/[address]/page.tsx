@@ -93,7 +93,7 @@ function KudosHistoryCard({
         )}
       </div>
       {kudos.message && (
-        <p className="text-xs sm:text-sm text-foreground/80 my-1 line-clamp-2 break-words">
+        <p className="text-xs sm:text-sm text-foreground/80 my-1 line-clamp-2 break-all overflow-hidden max-w-full">
           &ldquo;{kudos.message}&rdquo;
         </p>
       )}
@@ -510,7 +510,7 @@ export default function UserProfilePage() {
           {/* ================================================================ */}
           {/* RIGHT COLUMN - Kudos Feed                                        */}
           {/* ================================================================ */}
-          <section className="flex-1 min-w-0">
+          <section className="flex-1 min-w-0 overflow-hidden">
             <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
               Kudos Given
               {totalKudos > 0 && (

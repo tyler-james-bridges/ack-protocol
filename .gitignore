@@ -49,3 +49,4 @@ test-results/
 .claude/
 CLAUDE.md
 deployed-contract.json
+scripts/quick-kudos.mjs

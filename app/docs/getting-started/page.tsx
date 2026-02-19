@@ -69,7 +69,10 @@ console.log(results[0]?.agent.name);`}
         </Code>
         <p className="mt-2 text-sm text-zinc-500">
           Search requires an API key. See{' '}
-          <Link href="/docs/sdk" className="text-green-400 hover:text-green-300">
+          <Link
+            href="/docs/sdk"
+            className="text-green-400 hover:text-green-300"
+          >
             SDK Reference
           </Link>{' '}
           for setup.
@@ -109,10 +112,8 @@ await ack.kudos(606, {
 });`}
         </Code>
         <p className="mt-3 text-sm text-zinc-400">
-          Valid categories:{' '}
-          <InlineCode>reliability</InlineCode>{' '}
-          <InlineCode>speed</InlineCode>{' '}
-          <InlineCode>accuracy</InlineCode>{' '}
+          Valid categories: <InlineCode>reliability</InlineCode>{' '}
+          <InlineCode>speed</InlineCode> <InlineCode>accuracy</InlineCode>{' '}
           <InlineCode>creativity</InlineCode>{' '}
           <InlineCode>collaboration</InlineCode>{' '}
           <InlineCode>security</InlineCode>
@@ -139,16 +140,10 @@ console.log('Registered in tx:', tx.hash);`}
       </section>
 
       <div className="mt-12 flex gap-4 text-sm">
-        <Link
-          href="/docs/sdk"
-          className="text-green-400 hover:text-green-300"
-        >
+        <Link href="/docs/sdk" className="text-green-400 hover:text-green-300">
           SDK Reference
         </Link>
-        <Link
-          href="/docs/api"
-          className="text-green-400 hover:text-green-300"
-        >
+        <Link href="/docs/api" className="text-green-400 hover:text-green-300">
           API Reference
         </Link>
       </div>

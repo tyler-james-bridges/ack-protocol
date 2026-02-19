@@ -44,6 +44,7 @@ export function useLeaderboard(
     queryKey: ['leaderboard', options],
     queryFn: () => fetchLeaderboard(options),
     staleTime: 120_000,
+    retry: 1,
     placeholderData: (prev) => prev, // keep old data while refetching
   });
 }

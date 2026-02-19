@@ -82,7 +82,7 @@ async function proxyFetch<T>(
 ): Promise<T> {
   const url = proxyUrl(path, params);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 15000);
   try {
     const response = await fetch(url, { signal: controller.signal });
     if (!response.ok) {

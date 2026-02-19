@@ -59,12 +59,19 @@ function LeaderboardPage() {
     updateParams({ sort: sort === 'kudos' ? null : sort });
 
   // Fetch global agents + Abstract agents separately (Abstract may not rank in global top 500)
-  const { data: allAgentsList } = useLeaderboard({
+  const {
+    data: allAgentsList,
+    isLoading: isLoadingAll,
+    isError: isErrorAll,
+  } = useLeaderboard({
     limit: 100,
     sortBy,
   });
-  const { data: abstractAgentsList, isLoading: isLoadingAbstract } =
-    useLeaderboard({ chainId: 2741, limit: 100, sortBy });
+  const {
+    data: abstractAgentsList,
+    isLoading: isLoadingAbstract,
+    isError: isErrorAbstract,
+  } = useLeaderboard({ chainId: 2741, limit: 100, sortBy });
   const { data: networkStats } = useNetworkStats();
   const { data: abstractCounts } = useAbstractFeedbackCounts();
 
@@ -245,6 +252,8 @@ function LeaderboardPage() {
             <div className="rounded-xl border border-[#00FF94]/20 overflow-hidden bg-[#00FF94]/[0.02]">
               {isLoadingAbstract ? (
                 <LoadingSkeleton count={5} />
+              ) : isErrorAbstract ? (
+                <ErrorState />
               ) : abstractAgents.length === 0 ? (
                 <EmptyState />
               ) : (
@@ -263,6 +272,24 @@ function LeaderboardPage() {
         </div>
 
         {/* Other Chains */}
+        {isLoadingAll && !allAgentsList && (
+          <div className="mb-8">
+            <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-4">
+              Other Chains
+            </p>
+            <LoadingSkeleton count={3} />
+          </div>
+        )}
+        {isErrorAll && !allAgentsList && (
+          <div className="mb-8">
+            <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-4">
+              Other Chains
+            </p>
+            <div className="rounded-xl border border-border overflow-hidden">
+              <ErrorState />
+            </div>
+          </div>
+        )}
         {otherChainEntries.length > 0 && (
           <div>
             <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-4">
@@ -445,6 +472,22 @@ function EmptyState() {
   return (
     <div className="px-4 py-12 text-center text-muted-foreground">
       No agents found.
+    </div>
+  );
+}
+
+function ErrorState() {
+  return (
+    <div className="px-4 py-12 text-center space-y-2">
+      <p className="text-muted-foreground">
+        Failed to load agents. Try refreshing.
+      </p>
+      <button
+        onClick={() => window.location.reload()}
+        className="text-sm text-primary hover:underline"
+      >
+        Refresh
+      </button>
     </div>
   );
 }

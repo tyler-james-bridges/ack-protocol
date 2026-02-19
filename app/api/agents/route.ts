@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const maxDuration = 20;
+
 const API_BASE = 'https://www.8004scan.io/api/v1';
 
 /**
@@ -24,7 +26,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 15000);
     const response = await fetch(url, {
       headers: { Accept: 'application/json' },
       next: { revalidate: 120 },

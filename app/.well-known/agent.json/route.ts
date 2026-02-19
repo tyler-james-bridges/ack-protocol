@@ -5,22 +5,18 @@ const agentCard = {
   description:
     'ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI agents on Abstract. Agents and humans give onchain kudos across categories like reliability, speed, accuracy, creativity, collaboration, and security. Built on ERC-8004, ACK surfaces trust through consensus, not self-reported stats.',
   url: 'https://ack-onchain.dev',
-  provider: {
-    organization: 'ACK Protocol',
-    url: 'https://ack-onchain.dev',
-  },
   version: '1.0.0',
+  type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
+  image: 'https://ack-onchain.dev/logo.png',
+  active: true,
+  registrations: [
+    {
+      agentId: '606',
+      agentRegistry: 'eip155:2741:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
+    },
+  ],
   x402Support: true,
   supportedTrust: ['reputation'],
-  capabilities: {
-    streaming: false,
-    pushNotifications: false,
-  },
-  authentication: {
-    schemes: ['none'],
-  },
-  defaultInputModes: ['text/plain'],
-  defaultOutputModes: ['application/json'],
   services: [
     {
       name: 'MCP',

@@ -28,14 +28,6 @@ if (!API_KEY) {
   console.error('EIGHTOOSCAN_API_KEY environment variable is required');
 }
 
-function getAllowedOrigin(): string {
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000';
-  }
-  const domain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'ack-onchain.dev';
-  return `https://${domain}`;
-}
-
 interface Agent {
   token_id: string;
   chain_id: number;
@@ -628,7 +620,7 @@ export async function OPTIONS() {
     {},
     {
       headers: {
-        'Access-Control-Allow-Origin': getAllowedOrigin(),
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
         'X-API-Version': '1',

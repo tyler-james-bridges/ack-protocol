@@ -27,6 +27,16 @@ interface A2ATask {
 }
 
 const taskStore = new Map<string, A2ATask>();
+const TASK_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+function evictStaleTasks() {
+  const now = Date.now();
+  for (const [id, task] of taskStore) {
+    if (now - new Date(task.createdAt).getTime() > TASK_TTL_MS) {
+      taskStore.delete(id);
+    }
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function apiRequest(path: string): Promise<any> {
@@ -216,6 +226,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  evictStaleTasks();
+
   if (!API_KEY) {
     return NextResponse.json(
       {

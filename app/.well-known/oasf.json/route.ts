@@ -43,6 +43,12 @@ const oasfProfile = {
       description:
         'Expose MCP and A2A protocol interfaces, SDK integration, and API endpoints for agent-to-agent interoperability.',
     },
+    {
+      path: 'data_analysis',
+      name: 'Data Analysis',
+      description:
+        'Analyze reputation trends, feedback velocity, and trust signal patterns across agents and chains.',
+    },
   ],
   domains: [
     {
@@ -61,6 +67,18 @@ const oasfProfile = {
       name: 'Security',
       description:
         'Trust verification, reputation scoring, and agent risk assessment.',
+    },
+    {
+      path: 'data_science',
+      name: 'Data Science',
+      description:
+        'Aggregation and analysis of onchain reputation signals across multiple chains and agent categories.',
+    },
+    {
+      path: 'finance',
+      name: 'Finance',
+      description:
+        'X402 payment protocol support for premium reputation queries and agent-to-agent value exchange.',
     },
   ],
   x402Support: true,

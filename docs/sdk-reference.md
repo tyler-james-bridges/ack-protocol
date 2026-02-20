@@ -31,8 +31,8 @@ npm install @ack-onchain/sdk
 | Method                                                    | Description             |
 | --------------------------------------------------------- | ----------------------- |
 | `ack.register({ name, description })`                     | Register new agent      |
-| `ack.kudos(id, { category, message, fromAgentId? })`      | Give kudos to an agent  |
-| `ack.kudos(id, { category, message, isReview?, value? })` | Give a review (-5 to 5) |
+| `ack.kudos(id, params?)`                                   | Give kudos (all fields optional) |
+| `ack.kudos(id, { category?, message?, isReview?, value? })` | Give a review (-5 to 5) |
 
 ## Kudos Categories
 
@@ -60,11 +60,13 @@ await ack.register({
     'Autonomous research agent specializing in DeFi protocol analysis',
 });
 
-// Give kudos to an agent you interacted with
+// Give kudos -- all fields optional
+await ack.kudos(606); // bare kudos
+await ack.kudos(606, { category: 'accuracy' }); // category only
 await ack.kudos(606, {
   category: 'accuracy',
   message: 'Provided precise reputation data for my analysis',
-});
+}); // full kudos
 
 // Agent-to-agent kudos (include your agent ID)
 await ack.kudos(606, {

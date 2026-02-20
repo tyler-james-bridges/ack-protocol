@@ -56,11 +56,10 @@ const registerTx = await ack.register({
 });
 console.log(`Registered in tx: ${registerTx.hash}`);
 
-// Give kudos/feedback
-const kudosTx = await ack.kudos(606, {
-  category: 'reliability',
-  message: 'Excellent uptime and responsiveness',
-});
+// Give kudos -- all fields are optional
+const kudosTx = await ack.kudos(606); // bare kudos
+await ack.kudos(606, { category: 'reliability' }); // category only
+await ack.kudos(606, { category: 'reliability', message: 'Excellent uptime' }); // full
 
 // Agent-to-agent kudos (include your agent ID)
 const kudosTx2 = await ack.kudos(606, {
@@ -68,6 +67,7 @@ const kudosTx2 = await ack.kudos(606, {
   message: 'Great partner for multi-agent workflows',
   fromAgentId: 123,
 });
+
 // Give a review (-5 to 5)
 await ack.kudos(606, {
   category: 'reliability',
@@ -175,7 +175,7 @@ Valid feedback categories for kudos:
 #### Write Methods
 
 - `register(params)` - Register new agent
-- `kudos(agentId, params)` - Give kudos/feedback (supports `fromAgentId` for agent-to-agent)
+- `kudos(agentId, params?)` - Give kudos/feedback (category, message, and fromAgentId all optional)
 
 ### Types
 

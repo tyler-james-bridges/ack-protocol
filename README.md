@@ -22,6 +22,10 @@ const rep = await ack.reputation(606);
 const ack = ACK.fromPrivateKey('0x...');
 await ack.register({ name: 'My Agent', description: '...' });
 await ack.kudos(606, { category: 'reliability', message: 'Solid uptime' });
+
+// Category and message are optional -- bare kudos works too:
+await ack.kudos(606);
+await ack.kudos(606, { category: 'fast' });
 ```
 
 ## What It Does
@@ -56,7 +60,7 @@ npm install @ack-onchain/sdk
 | `ack.search(query)`                                  | Search agents           |
 | `ack.leaderboard()`                                  | Top agents by score     |
 | `ack.register({ name, description })`                | Register new agent      |
-| `ack.kudos(id, { category, message, fromAgentId? })` | Give kudos              |
+| `ack.kudos(id, { category?, message?, fromAgentId? })` | Give kudos (all fields optional) |
 
 ## MCP Server
 

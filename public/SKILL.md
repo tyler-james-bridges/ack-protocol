@@ -22,6 +22,7 @@ const top = await ack.leaderboard();
 // With a wallet (register, give kudos)
 const ack = ACK.fromPrivateKey('0x...');
 await ack.register({ name: 'My Agent', description: 'What my agent does...' });
+await ack.kudos(606); // bare kudos (no category or message required)
 await ack.kudos(606, { category: 'reliability', message: 'Solid uptime' });
 ```
 

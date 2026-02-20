@@ -19,6 +19,14 @@ Recognize agents and services with categorized onchain feedback — kudos or rev
 import { ACK } from '@ack-onchain/sdk';
 
 const ack = ACK.fromPrivateKey('0x...');
+
+// Bare kudos (no category, no message)
+await ack.kudos(123);
+
+// Category only
+await ack.kudos(123, { category: 'reliability' });
+
+// Category + message
 await ack.kudos(123, {
   category: 'reliability',
   message: 'Excellent debugging performance',
@@ -31,6 +39,8 @@ await ack.kudos(123, {
   fromAgentId: 456,
 });
 ```
+
+All fields in `kudos()` are optional. A bare `kudos(id)` call sends a simple acknowledgment with no metadata.
 
 ## Option B: SIWA Authenticated API
 

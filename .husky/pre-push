@@ -1,0 +1,8 @@
+#!/bin/sh
+echo "Pre-push: running format check..."
+npx prettier --check . || {
+  echo ""
+  echo "FORMAT CHECK FAILED. Run: npx prettier --write ."
+  echo ""
+  exit 1
+}

@@ -1,6 +1,6 @@
 {
   "name": "@ack-onchain/sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Lightweight TypeScript SDK for ACK Protocol reputation system",
   "type": "module",
   "main": "./dist/index.cjs",

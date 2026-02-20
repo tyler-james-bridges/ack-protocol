@@ -2,16 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHash, createHmac } from 'crypto';
 
 /**
- * TEE Attestation Verification endpoint for ACK Protocol.
- * Accepts POST with { "data": "..." } and returns a signed attestation hash.
+ * Software Signature endpoint for ACK Protocol.
+ *
+ * This is NOT a hardware TEE attestation. It produces an HMAC-signed hash
+ * of the submitted data, useful for tamper-detection but NOT for proving
+ * execution inside a trusted enclave.
  */
 
-const ATTESTATION_KEY = process.env.TEE_ATTESTATION_KEY;
+const SIGNING_KEY = process.env.TEE_ATTESTATION_KEY;
 
 export async function POST(request: NextRequest) {
-  if (!ATTESTATION_KEY) {
+  if (!SIGNING_KEY) {
     return NextResponse.json(
-      { error: 'Attestation service not configured' },
+      { error: 'Signing service not configured' },
       { status: 503 }
     );
   }
@@ -31,14 +34,16 @@ export async function POST(request: NextRequest) {
     const dataHash = createHash('sha256').update(body.data).digest('hex');
     const timestamp = Date.now();
     const payload = `${dataHash}:${timestamp}`;
-    const signature = createHmac('sha256', ATTESTATION_KEY)
+    const signature = createHmac('sha256', SIGNING_KEY)
       .update(payload)
       .digest('hex');
 
     return NextResponse.json(
       {
-        verified: true,
-        attestationType: 'software-attestation',
+        signed: true,
+        type: 'software-hmac',
+        notice:
+          'This is a software HMAC signature, not a hardware TEE attestation.',
         dataHash,
         timestamp,
         signature,

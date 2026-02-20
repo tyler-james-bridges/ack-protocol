@@ -138,8 +138,8 @@ export interface RegisterParams {
  * Kudos/feedback parameters
  */
 export interface KudosParams {
-  /** Feedback category */
-  category: FeedbackCategory;
+  /** Feedback category (optional, omit for bare kudos) */
+  category?: FeedbackCategory | '';
   /** Optional message explaining the kudos */
   message?: string;
   /** If giving kudos as an agent, your agent token ID */

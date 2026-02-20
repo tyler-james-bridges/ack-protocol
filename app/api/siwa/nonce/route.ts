@@ -3,11 +3,10 @@ import { isAddress, createPublicClient, http } from 'viem';
 import { abstract } from 'viem/chains';
 import { createSIWANonce } from '@buildersgarden/siwa';
 
-const SIWA_NONCE_SECRET =
-  process.env.SIWA_NONCE_SECRET || process.env.SIWA_SECRET;
+const SIWA_NONCE_SECRET = process.env.SIWA_NONCE_SECRET;
 
 if (!SIWA_NONCE_SECRET) {
-  console.error('SIWA_NONCE_SECRET or SIWA_SECRET must be set');
+  console.error('SIWA_NONCE_SECRET must be set');
 }
 
 const client = createPublicClient({

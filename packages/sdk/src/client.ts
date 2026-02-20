@@ -479,7 +479,7 @@ export class ACK {
       value: String(value),
       valueDecimals: 0,
       tag1,
-      tag2: params.category,
+      tag2: params.category || '',
       reasoning: (params.message || '').trim(),
       ...(params.fromAgentId !== undefined && {
         fromAgentId: params.fromAgentId,
@@ -487,8 +487,16 @@ export class ACK {
     };
 
     const jsonStr = JSON.stringify(feedbackFile);
-    const feedbackURI = `data:application/json;base64,${Buffer.from(jsonStr).toString('base64')}`;
-    const feedbackHash = keccak256(toHex(jsonStr));
+    const category = params.category || '';
+    const message = (params.message || '').trim();
+    const isBare = !category && !message;
+
+    const feedbackURI = isBare
+      ? ''
+      : `data:application/json;base64,${Buffer.from(jsonStr).toString('base64')}`;
+    const feedbackHash = isBare
+      ? ('0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`)
+      : keccak256(toHex(jsonStr));
 
     const hash = await this.walletClient.writeContract({
       address: CONTRACT_ADDRESSES.REPUTATION_REGISTRY,
@@ -499,7 +507,7 @@ export class ACK {
         BigInt(value),
         0,
         tag1,
-        params.category,
+        category,
         '', // endpoint
         feedbackURI,
         feedbackHash,

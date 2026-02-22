@@ -27,8 +27,13 @@ export async function GET(request: NextRequest) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    const apiKey = process.env.EIGHTOOSCAN_API_KEY;
+    if (apiKey) {
+      headers['x-api-key'] = apiKey;
+    }
     const response = await fetch(url, {
-      headers: { Accept: 'application/json' },
+      headers,
       next: { revalidate: 120 },
       signal: controller.signal,
     });

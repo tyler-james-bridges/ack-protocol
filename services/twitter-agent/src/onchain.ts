@@ -227,8 +227,10 @@ export async function submitKudos(
         BigInt(submission.agentId),
         submission.sentiment === 'negative' ? -5n : 5n,
         0, // valueDecimals
-        submission.proxyHandle ? 'proxy' : (submission.category || 'kudos'),
-        submission.proxyHandle ? `x:${submission.proxyHandle.toLowerCase()}` : '',
+        submission.proxyHandle ? 'proxy' : submission.category || 'kudos',
+        submission.proxyHandle
+          ? `x:${submission.proxyHandle.toLowerCase()}`
+          : '',
         '',
         feedbackURI,
         feedbackHash,

@@ -68,7 +68,9 @@ async function processMention(tweet: Tweet): Promise<void> {
 
       const handleResult = await ensureHandleRegistered(kudos.targetHandle);
       if (handleResult.registered) {
-        console.log(`[handle] Registered @${kudos.targetHandle} (tx: ${handleResult.txHash})`);
+        console.log(
+          `[handle] Registered @${kudos.targetHandle} (tx: ${handleResult.txHash})`
+        );
       }
 
       // Submit kudos against ACK (606) as proxy, with handle in tag2
@@ -82,15 +84,24 @@ async function processMention(tweet: Tweet): Promise<void> {
       });
 
       if (proxyResult.success) {
-        const txUrl = `https://abscan.org/tx/${proxyResult.txHash}`;
-        const label = kudos.sentiment === 'negative' ? 'Negative feedback' : 'Kudos';
-        console.log(`[success] ${label} for @${kudos.targetHandle} (proxy via ACK): ${txUrl}`);
-        results.push(
-          `${label} recorded for @${kudos.targetHandle}!${kudos.category ? ` (${kudos.category})` : ''} Tx: ${txUrl}`
+        const permalink = `https://ack-onchain.dev/kudos/${proxyResult.txHash}`;
+        console.log(
+          `[success] Proxy kudos for @${kudos.targetHandle}: ${proxyResult.txHash}`
         );
+        results.push({
+          success: true,
+          agentName: `@${kudos.targetHandle}`,
+          sentiment: kudos.sentiment,
+          from: tweet.authorUsername,
+          permalink,
+        });
       } else {
         console.error(`[error] Proxy kudos failed: ${proxyResult.error}`);
-        results.push(`Failed to record feedback for @${kudos.targetHandle}`);
+        results.push({
+          success: false,
+          agentName: `@${kudos.targetHandle}`,
+          sentiment: kudos.sentiment,
+        });
       }
       continue;
     }
@@ -98,11 +109,16 @@ async function processMention(tweet: Tweet): Promise<void> {
     const agentName = (await getAgentName(agentId)) || kudos.targetHandle;
 
     if (DRY_RUN) {
-      const sentiment = kudos.sentiment === 'negative' ? '👎' : '👍';
       console.log(
         `[dry-run] Would submit ${kudos.sentiment} feedback: agent=${agentName} (#${agentId}), category=${kudos.category || 'kudos'}, message=${kudos.message || ''}`
       );
-      results.push(`[DRY RUN] ${sentiment} ${agentName}`);
+      results.push({
+        success: true,
+        agentName,
+        sentiment: kudos.sentiment,
+        from: tweet.authorUsername,
+        permalink: `https://ack-onchain.dev/kudos/dry-run`,
+      });
       continue;
     }
 
@@ -117,30 +133,54 @@ async function processMention(tweet: Tweet): Promise<void> {
     });
 
     if (result.success) {
-      const txUrl = `https://abscan.org/tx/${result.txHash}`;
-      console.log(`[success] Tx: ${txUrl}`);
-      const label = kudos.sentiment === 'negative' ? 'Negative feedback' : 'Kudos';
-      results.push(
-        `${label} sent to ${agentName}!${kudos.category ? ` (${kudos.category})` : ''} Tx: ${txUrl}`
-      );
+      const permalink = `https://ack-onchain.dev/kudos/${result.txHash}`;
+      console.log(`[success] Tx: ${result.txHash}`);
+      results.push({
+        success: true,
+        agentName,
+        sentiment: kudos.sentiment,
+        from: tweet.authorUsername,
+        permalink,
+      });
     } else {
       console.error(`[error] Onchain submission failed: ${result.error}`);
-      results.push(`Failed to send kudos to ${agentName}`);
+      results.push({
+        success: false,
+        agentName,
+        sentiment: kudos.sentiment,
+      });
     }
   }
 
   // Send a single consolidated reply
   if (results.length > 0) {
-    const replyText =
-      results.length === 1
-        ? `${results[0]}\n\nGive kudos: ack-onchain.dev/kudos`
-        : `${results.join('\n')}\n\nGive kudos: ack-onchain.dev/kudos`;
+    const successes = results.filter((r: any) => r.success);
+    const failures = results.filter((r: any) => !r.success);
+
+    let replyText = '';
+
+    if (successes.length > 0) {
+      const lines = successes.map((r: any) => {
+        const action =
+          r.sentiment === 'negative' ? 'gave feedback to' : 'gave kudos to';
+        return `@${r.from} just ${action} ${r.agentName} onchain`;
+      });
+      replyText = lines.join('\n') + ' \u{1F91D}\n\n' + successes[0].permalink;
+    }
+
+    if (failures.length > 0 && successes.length === 0) {
+      replyText =
+        "couldn't land this one onchain. if the agent isn't registered yet, sign up at ack-onchain.dev/register\n\nor give kudos directly at ack-onchain.dev/kudos";
+    } else if (failures.length > 0) {
+      replyText +=
+        "\n\nsome kudos couldn't be recorded. try again at ack-onchain.dev/kudos";
+    }
+
     await postReply(tweet.id, replyText, DRY_RUN);
   } else if (allKudos.length > 0) {
-    // All were self-kudos
     await postReply(
       tweet.id,
-      `Can't give kudos to yourself! Try recognizing another agent instead.`,
+      "can't give kudos to yourself! try recognizing another agent instead",
       DRY_RUN
     );
   }

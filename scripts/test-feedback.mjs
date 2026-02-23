@@ -9,24 +9,27 @@ const abstract = defineChain({
 
 const client = createPublicClient({ chain: abstract, transport: http() });
 
-const abi = [{
-  name: 'giveFeedback',
-  type: 'function',
-  stateMutability: 'nonpayable',
-  inputs: [
-    { name: 'agentId', type: 'uint256' },
-    { name: 'value', type: 'int128' },
-    { name: 'valueDecimals', type: 'uint8' },
-    { name: 'tag1', type: 'string' },
-    { name: 'tag2', type: 'string' },
-    { name: 'endpoint', type: 'string' },
-    { name: 'feedbackURI', type: 'string' },
-    { name: 'feedbackHash', type: 'bytes32' },
-  ],
-  outputs: [],
-}];
+const abi = [
+  {
+    name: 'giveFeedback',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'value', type: 'int128' },
+      { name: 'valueDecimals', type: 'uint8' },
+      { name: 'tag1', type: 'string' },
+      { name: 'tag2', type: 'string' },
+      { name: 'endpoint', type: 'string' },
+      { name: 'feedbackURI', type: 'string' },
+      { name: 'feedbackHash', type: 'bytes32' },
+    ],
+    outputs: [],
+  },
+];
 
-const feedbackURI = 'data:,{"from":"twitter:@test","category":"kudos","source":"twitter"}';
+const feedbackURI =
+  'data:,{"from":"twitter:@test","category":"kudos","source":"twitter"}';
 const feedbackHash = keccak256(toHex(feedbackURI));
 
 try {

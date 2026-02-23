@@ -53,7 +53,7 @@ export function parseAllKudos(text: string): KudosCommand[] {
     // Try to extract a quoted message
     const quotedMsg = rest.match(/"([^"]*)"/);
     // Everything else is treated as a freeform message
-    const message = quotedMsg ? quotedMsg[1] : (rest || undefined);
+    const message = quotedMsg ? quotedMsg[1] : rest || undefined;
     results.push({
       targetHandle: 'ack_onchain',
       sentiment: bareMatch[1] === '++' ? 'positive' : 'negative',

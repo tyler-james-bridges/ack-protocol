@@ -2,7 +2,12 @@
  * Deploy HandleRegistry contract to Abstract.
  * Run: node scripts/deploy-handle-registry.mjs
  */
-import { createWalletClient, createPublicClient, http, defineChain } from 'viem';
+import {
+  createWalletClient,
+  createPublicClient,
+  http,
+  defineChain,
+} from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { config } from 'dotenv';
 import { readFileSync, existsSync } from 'fs';
@@ -30,7 +35,7 @@ async function main() {
 
   // Compile the contract with solc
   console.log('Compiling HandleRegistry...');
-  
+
   // Check if solc is available
   try {
     execSync('solc --version', { stdio: 'pipe' });
@@ -45,9 +50,14 @@ async function main() {
     { stdio: 'inherit' }
   );
 
-  const combined = JSON.parse(readFileSync('contracts/build/combined.json', 'utf-8'));
-  const contractKey = Object.keys(combined.contracts).find(k => k.endsWith(':HandleRegistry'));
-  if (!contractKey) throw new Error('HandleRegistry not found in compiled output');
+  const combined = JSON.parse(
+    readFileSync('contracts/build/combined.json', 'utf-8')
+  );
+  const contractKey = Object.keys(combined.contracts).find((k) =>
+    k.endsWith(':HandleRegistry')
+  );
+  if (!contractKey)
+    throw new Error('HandleRegistry not found in compiled output');
 
   const { abi, bin } = combined.contracts[contractKey];
   const bytecode = `0x${bin}`;

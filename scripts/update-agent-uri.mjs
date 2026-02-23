@@ -80,8 +80,15 @@ async function main() {
   let changed = false;
   if (current.services) {
     for (const svc of current.services) {
-      if (svc.name === 'A2A' && svc.endpoint !== 'https://ack-onchain.dev/.well-known/agent-card.json') {
-        console.log('Fixing A2A endpoint:', svc.endpoint, '→ https://ack-onchain.dev/.well-known/agent-card.json');
+      if (
+        svc.name === 'A2A' &&
+        svc.endpoint !== 'https://ack-onchain.dev/.well-known/agent-card.json'
+      ) {
+        console.log(
+          'Fixing A2A endpoint:',
+          svc.endpoint,
+          '→ https://ack-onchain.dev/.well-known/agent-card.json'
+        );
         svc.endpoint = 'https://ack-onchain.dev/.well-known/agent-card.json';
         changed = true;
       }

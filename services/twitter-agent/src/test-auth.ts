@@ -15,11 +15,24 @@ const oauthParams: Record<string, string> = {
   oauth_token: ACCESS_TOKEN,
   oauth_version: '1.0',
 };
-const paramString = Object.keys(oauthParams).sort().map(k => `${k}=${encodeURIComponent(oauthParams[k])}`).join('&');
+const paramString = Object.keys(oauthParams)
+  .sort()
+  .map((k) => `${k}=${encodeURIComponent(oauthParams[k])}`)
+  .join('&');
 const baseString = `GET&${encodeURIComponent(url)}&${encodeURIComponent(paramString)}`;
 const signingKey = `${encodeURIComponent(API_SECRET)}&${encodeURIComponent(ACCESS_TOKEN_SECRET)}`;
-oauthParams.oauth_signature = crypto.createHmac('sha1', signingKey).update(baseString).digest('base64');
-const header = 'OAuth ' + Object.keys(oauthParams).sort().map(k => `${encodeURIComponent(k)}="${encodeURIComponent(oauthParams[k])}"`).join(', ');
+oauthParams.oauth_signature = crypto
+  .createHmac('sha1', signingKey)
+  .update(baseString)
+  .digest('base64');
+const header =
+  'OAuth ' +
+  Object.keys(oauthParams)
+    .sort()
+    .map(
+      (k) => `${encodeURIComponent(k)}="${encodeURIComponent(oauthParams[k])}"`
+    )
+    .join(', ');
 
 async function main() {
   const res = await fetch(url, { headers: { Authorization: header } });

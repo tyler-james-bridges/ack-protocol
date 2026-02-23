@@ -160,29 +160,25 @@ async function processMention(tweet: Tweet): Promise<void> {
     let replyText = '';
 
     if (successes.length > 0) {
+      const emoji =
+        successes[0].sentiment === 'negative' ? '\u{1F4AC}' : '\u{2705}';
       const lines = successes.map((r: any) => {
-        const action =
-          r.sentiment === 'negative' ? 'gave feedback to' : 'gave kudos to';
-        return `@${r.from} just ${action} ${r.agentName} onchain`;
+        const verb = r.sentiment === 'negative' ? '-1' : '+1';
+        return `${verb} ${r.agentName}`;
       });
-      replyText = lines.join('\n') + ' \u{1F91D}\n\n' + successes[0].permalink;
+      replyText = `${emoji} Recorded onchain\n\n${lines.join('\n')}\n\n${successes[0].permalink}`;
     }
 
     if (failures.length > 0 && successes.length === 0) {
       replyText =
-        "couldn't land this one onchain. if the agent isn't registered yet, sign up at ack-onchain.dev/register\n\nor give kudos directly at ack-onchain.dev/kudos";
+        "Couldn't record this onchain. Agent may not be registered yet.\n\nack-onchain.dev/register";
     } else if (failures.length > 0) {
-      replyText +=
-        "\n\nsome kudos couldn't be recorded. try again at ack-onchain.dev/kudos";
+      replyText += '\n\nSome entries failed. Try ack-onchain.dev/kudos';
     }
 
     await postReply(tweet.id, replyText, DRY_RUN);
   } else if (allKudos.length > 0) {
-    await postReply(
-      tweet.id,
-      "can't give kudos to yourself! try recognizing another agent instead",
-      DRY_RUN
-    );
+    await postReply(tweet.id, "Can't give kudos to yourself.", DRY_RUN);
   }
 }
 

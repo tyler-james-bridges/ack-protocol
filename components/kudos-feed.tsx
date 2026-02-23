@@ -111,9 +111,7 @@ function KudosCard({
             )}
           </div>
           <a
-            href={`https://abscan.org/tx/${kudos.txHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={`/kudos/${kudos.txHash}`}
             className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
           >
             {timestamp ? formatRelativeTime(timestamp) : 'tx'}

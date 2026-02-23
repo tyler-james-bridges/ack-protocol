@@ -662,12 +662,10 @@ function KudosCard({
       <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
         <span>Block #{blockNumber.toString()}</span>
         <a
-          href={`https://abscan.org/tx/${txHash}`}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={`/kudos/${txHash}`}
           className="hover:text-[#00DE73] transition-colors"
         >
-          View tx
+          View kudos
         </a>
       </div>
     </div>

@@ -26,6 +26,9 @@ const abstract = defineChain({
 
 const REPUTATION_REGISTRY = '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
 const IDENTITY_REGISTRY = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
+const HANDLE_REGISTRY =
+  process.env.HANDLE_REGISTRY_ADDRESS ||
+  '0xf32ed012f0978a9b963df11743e797a108c94871';
 
 // giveFeedback ABI (value is int128)
 const GIVE_FEEDBACK_ABI = [
@@ -36,6 +39,7 @@ const GIVE_FEEDBACK_ABI = [
     inputs: [
       { name: 'agentId', type: 'uint256' },
       { name: 'value', type: 'int128' },
+      { name: 'valueDecimals', type: 'uint8' },
       { name: 'tag1', type: 'string' },
       { name: 'tag2', type: 'string' },
       { name: 'endpoint', type: 'string' },
@@ -57,11 +61,105 @@ const TOKEN_URI_ABI = [
   },
 ] as const;
 
+// HandleRegistry ABI
+const HANDLE_REGISTRY_ABI = [
+  {
+    name: 'exists',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'platform', type: 'string' },
+      { name: 'handle', type: 'string' },
+    ],
+    outputs: [{ name: '', type: 'bool' }],
+  },
+  {
+    name: 'registerHandle',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'platform', type: 'string' },
+      { name: 'handle', type: 'string' },
+    ],
+    outputs: [{ name: '', type: 'bytes32' }],
+  },
+  {
+    name: 'handleHash',
+    type: 'function',
+    stateMutability: 'pure',
+    inputs: [
+      { name: 'platform', type: 'string' },
+      { name: 'handle', type: 'string' },
+    ],
+    outputs: [{ name: '', type: 'bytes32' }],
+  },
+] as const;
+
+/**
+ * Ensure an X handle is registered in the HandleRegistry.
+ * Returns true if it was newly registered, false if it already existed.
+ */
+export async function ensureHandleRegistered(
+  handle: string
+): Promise<{ registered: boolean; txHash?: string }> {
+  const privateKey = process.env.AGENT_PRIVATE_KEY;
+  if (!privateKey) return { registered: false };
+
+  try {
+    const account = privateKeyToAccount(
+      privateKey.startsWith('0x')
+        ? (privateKey as `0x${string}`)
+        : (`0x${privateKey}` as `0x${string}`)
+    );
+
+    const publicClient = createPublicClient({
+      chain: abstract,
+      transport: http(),
+    });
+
+    const lowerHandle = handle.toLowerCase();
+
+    // Check if already registered
+    const alreadyExists = await publicClient.readContract({
+      address: HANDLE_REGISTRY as `0x${string}`,
+      abi: HANDLE_REGISTRY_ABI,
+      functionName: 'exists',
+      args: ['x', lowerHandle],
+    });
+
+    if (alreadyExists) {
+      return { registered: false };
+    }
+
+    // Register the handle
+    const walletClient = createWalletClient({
+      account,
+      chain: abstract,
+      transport: http(),
+    });
+
+    const hash = await walletClient.writeContract({
+      address: HANDLE_REGISTRY as `0x${string}`,
+      abi: HANDLE_REGISTRY_ABI,
+      functionName: 'registerHandle',
+      args: ['x', lowerHandle],
+    });
+
+    await publicClient.waitForTransactionReceipt({ hash });
+    return { registered: true, txHash: hash };
+  } catch (error) {
+    console.error('[handle-registry] Error:', error);
+    return { registered: false };
+  }
+}
+
 export interface KudosSubmission {
   agentId: number;
   category: string;
   message: string;
   from: string; // twitter handle of sender
+  sentiment: 'positive' | 'negative';
+  proxyHandle?: string; // if set, this is a proxy kudos for an X handle (not a direct agent)
 }
 
 export interface KudosResult {
@@ -100,13 +198,17 @@ export async function submitKudos(
     });
 
     // Build feedbackURI
-    const feedbackData = {
+    const feedbackData: Record<string, unknown> = {
       from: `twitter:@${submission.from}`,
       category: submission.category,
       message: submission.message,
       source: 'twitter',
       timestamp: Date.now(),
     };
+
+    if (submission.proxyHandle) {
+      feedbackData.proxyFor = `x:@${submission.proxyHandle}`;
+    }
 
     const feedbackURI =
       submission.category || submission.message
@@ -123,9 +225,10 @@ export async function submitKudos(
       functionName: 'giveFeedback',
       args: [
         BigInt(submission.agentId),
-        5n, // value: positive kudos
-        submission.category || 'kudos',
-        '',
+        submission.sentiment === 'negative' ? -5n : 5n,
+        0, // valueDecimals
+        submission.proxyHandle ? 'proxy' : (submission.category || 'kudos'),
+        submission.proxyHandle ? `x:${submission.proxyHandle.toLowerCase()}` : '',
         '',
         feedbackURI,
         feedbackHash,

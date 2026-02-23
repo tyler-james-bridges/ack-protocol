@@ -51,3 +51,4 @@ CLAUDE.md
 deployed-contract.json
 scripts/quick-kudos.mjs
 services/twitter-agent/node_modules/
+services/twitter-agent/.env

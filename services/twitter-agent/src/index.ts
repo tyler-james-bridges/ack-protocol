@@ -15,6 +15,7 @@ import {
   submitKudos,
   resolveHandleToAgentId,
   getAgentName,
+  ensureHandleRegistered,
 } from './onchain.js';
 import { postReply, fetchMentions, type Tweet } from './twitter.js';
 
@@ -53,27 +54,55 @@ async function processMention(tweet: Tweet): Promise<void> {
     }
 
     console.log(
-      `[kudos] Target: @${kudos.targetHandle}, Category: ${kudos.category || 'none'}, Message: ${kudos.message || 'none'}, Explicit: ${kudos.isExplicit}`
+      `[kudos] Target: @${kudos.targetHandle}, Sentiment: ${kudos.sentiment}, Category: ${kudos.category || 'none'}, Message: ${kudos.message || 'none'}, Explicit: ${kudos.isExplicit}`
     );
 
     // Resolve twitter handle to agent ID
     const agentId = await resolveHandleToAgentId(kudos.targetHandle);
 
     if (!agentId) {
+      // Not an 8004 agent - register in HandleRegistry and record feedback there
       console.log(
-        `[error] Could not resolve @${kudos.targetHandle} to an agent`
+        `[handle] @${kudos.targetHandle} not an 8004 agent, registering in HandleRegistry`
       );
-      results.push(`Could not find agent for @${kudos.targetHandle}`);
+
+      const handleResult = await ensureHandleRegistered(kudos.targetHandle);
+      if (handleResult.registered) {
+        console.log(`[handle] Registered @${kudos.targetHandle} (tx: ${handleResult.txHash})`);
+      }
+
+      // Submit kudos against ACK (606) as proxy, with handle in tag2
+      const proxyResult = await submitKudos({
+        agentId: 606,
+        category: kudos.category || 'kudos',
+        message: kudos.message || '',
+        from: tweet.authorUsername,
+        sentiment: kudos.sentiment,
+        proxyHandle: kudos.targetHandle,
+      });
+
+      if (proxyResult.success) {
+        const txUrl = `https://abscan.org/tx/${proxyResult.txHash}`;
+        const label = kudos.sentiment === 'negative' ? 'Negative feedback' : 'Kudos';
+        console.log(`[success] ${label} for @${kudos.targetHandle} (proxy via ACK): ${txUrl}`);
+        results.push(
+          `${label} recorded for @${kudos.targetHandle}!${kudos.category ? ` (${kudos.category})` : ''} Tx: ${txUrl}`
+        );
+      } else {
+        console.error(`[error] Proxy kudos failed: ${proxyResult.error}`);
+        results.push(`Failed to record feedback for @${kudos.targetHandle}`);
+      }
       continue;
     }
 
     const agentName = (await getAgentName(agentId)) || kudos.targetHandle;
 
     if (DRY_RUN) {
+      const sentiment = kudos.sentiment === 'negative' ? '👎' : '👍';
       console.log(
-        `[dry-run] Would submit kudos: agent=${agentName} (#${agentId}), category=${kudos.category || 'kudos'}, message=${kudos.message || ''}`
+        `[dry-run] Would submit ${kudos.sentiment} feedback: agent=${agentName} (#${agentId}), category=${kudos.category || 'kudos'}, message=${kudos.message || ''}`
       );
-      results.push(`[DRY RUN] Kudos for ${agentName}!`);
+      results.push(`[DRY RUN] ${sentiment} ${agentName}`);
       continue;
     }
 
@@ -84,13 +113,15 @@ async function processMention(tweet: Tweet): Promise<void> {
       category: kudos.category || 'kudos',
       message: kudos.message || '',
       from: tweet.authorUsername,
+      sentiment: kudos.sentiment,
     });
 
     if (result.success) {
       const txUrl = `https://abscan.org/tx/${result.txHash}`;
       console.log(`[success] Tx: ${txUrl}`);
+      const label = kudos.sentiment === 'negative' ? 'Negative feedback' : 'Kudos';
       results.push(
-        `Kudos sent to ${agentName}!${kudos.category ? ` (${kudos.category})` : ''} Tx: ${txUrl}`
+        `${label} sent to ${agentName}!${kudos.category ? ` (${kudos.category})` : ''} Tx: ${txUrl}`
       );
     } else {
       console.error(`[error] Onchain submission failed: ${result.error}`);

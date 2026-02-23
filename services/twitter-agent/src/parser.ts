@@ -25,7 +25,7 @@ export interface KudosCommand {
  * Returns empty array if no kudos intent detected.
  */
 export function parseAllKudos(text: string): KudosCommand[] {
-  const cleaned = text.replace(/@ack_onchain/gi, '').trim();
+  const cleaned = text.replace(/@ack_onchain/i, '').trim();
   const results: KudosCommand[] = [];
 
   // Pattern 1: All explicit @handle ++/-- [category] ["message"] matches
@@ -43,6 +43,26 @@ export function parseAllKudos(text: string): KudosCommand[] {
   }
 
   if (results.length > 0) return results;
+
+  // Pattern 1b: ++ or -- with no @handle means kudos to ACK itself
+  // e.g. "@ack_onchain ++ for setting up kudos onchain!!!"
+  const hasOtherMentions = /@\w+/.test(cleaned);
+  const bareMatch = cleaned.match(/^(\+\+|--)\s*(.*)?$/s);
+  if (bareMatch && !hasOtherMentions) {
+    const rest = (bareMatch[2] || '').trim();
+    // Try to extract a quoted message
+    const quotedMsg = rest.match(/"([^"]*)"/);
+    // Everything else is treated as a freeform message
+    const message = quotedMsg ? quotedMsg[1] : (rest || undefined);
+    results.push({
+      targetHandle: 'ack_onchain',
+      sentiment: bareMatch[1] === '++' ? 'positive' : 'negative',
+      category: undefined,
+      message,
+      isExplicit: true,
+    });
+    return results;
+  }
 
   // Pattern 2: ++/-- @handle (reverse order)
   const reverseRegex = /(\+\+|--)\s*@(\w+)\s*(\w+)?\s*(?:"([^"]*)")?/g;

@@ -76,12 +76,27 @@ async function main() {
   console.log('Current keys:', Object.keys(current));
   console.log('Current agentWallet:', current.agentWallet ?? '(missing)');
 
-  // Remove agentWallet from off-chain metadata (WA083: use setAgentWallet() onchain instead)
+  // Fix A2A endpoint: was pointing to agent-card.json, should be /api/a2a
+  let changed = false;
+  if (current.services) {
+    for (const svc of current.services) {
+      if (svc.name === 'A2A' && svc.endpoint !== 'https://ack-onchain.dev/.well-known/agent-card.json') {
+        console.log('Fixing A2A endpoint:', svc.endpoint, '→ https://ack-onchain.dev/.well-known/agent-card.json');
+        svc.endpoint = 'https://ack-onchain.dev/.well-known/agent-card.json';
+        changed = true;
+      }
+    }
+  }
+
+  // Remove agentWallet from off-chain metadata if present
   if (current.agentWallet) {
     console.log('Removing agentWallet from off-chain metadata...');
     delete current.agentWallet;
-  } else {
-    console.log('No agentWallet in metadata, nothing to remove.');
+    changed = true;
+  }
+
+  if (!changed) {
+    console.log('Nothing to update.');
     return;
   }
 
@@ -105,7 +120,7 @@ async function main() {
   // Wait for confirmation
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   console.log('Confirmed in block:', receipt.blockNumber.toString());
-  console.log('Done. agentWallet removed from onchain URI.');
+  console.log('Done. Onchain agentURI updated.');
 }
 
 main().catch(console.error);

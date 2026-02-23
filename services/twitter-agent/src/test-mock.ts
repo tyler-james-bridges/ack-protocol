@@ -50,6 +50,8 @@ const testTweets = [
 
   // Kudos to ACK itself
   `@ack_onchain @ack_onchain ++`,
+  `@ack_onchain ++ for setting up kudos onchain!!!`,
+  `@ack_onchain -- terrible UX`,
 
   // Emoji
   `@ack_onchain @pudgypenguins ++ fire "🔥🔥🔥"`,

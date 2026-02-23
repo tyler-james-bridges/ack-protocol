@@ -7,179 +7,215 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
 
   const agent = searchParams.get('agent') || 'Unknown Agent';
-  const from = searchParams.get('from') || 'anonymous';
+  let from = searchParams.get('from') || 'anonymous';
   const category = searchParams.get('category') || '';
   const message = searchParams.get('message') || '';
   const sentiment = searchParams.get('sentiment') || 'positive';
 
+  // Fix double-@ bug
+  if (from.startsWith('@')) {
+    from = from.slice(1);
+  }
+
   const isNegative = sentiment === 'negative';
 
-  // V4: Clean split card — left side colored, right side content
-  // Inspired by Zora/Sound.xyz social cards
+  // Scale agent name font based on length
+  const nameLen = agent.length;
+  const fontSize =
+    nameLen > 30 ? 48 : nameLen > 20 ? 60 : nameLen > 12 ? 76 : 92;
+
   return new ImageResponse(
     <div
       style={{
         width: '1200',
         height: '630',
         display: 'flex',
-        backgroundColor: '#000000',
+        backgroundColor: isNegative ? '#1a0505' : '#030f0a',
         fontFamily: 'system-ui, sans-serif',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
-      {/* Left panel — solid color block */}
+      {/* Background glow — big subtle circle */}
       <div
         style={{
-          width: '380',
-          height: '630',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          position: 'absolute',
+          width: '800',
+          height: '800',
+          borderRadius: '400px',
+          top: '-200',
+          right: '-200',
           background: isNegative
-            ? 'linear-gradient(180deg, #7f1d1d 0%, #991b1b 50%, #7f1d1d 100%)'
-            : 'linear-gradient(180deg, #064e3b 0%, #065f46 50%, #064e3b 100%)',
-          gap: '20px',
+            ? 'radial-gradient(circle, rgba(239,68,68,0.12) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)',
+          display: 'flex',
         }}
-      >
-        {/* Big score indicator */}
-        <div
-          style={{
-            fontSize: '96px',
-            fontWeight: 900,
-            color: isNegative ? '#fca5a5' : '#6ee7b7',
-            lineHeight: 1,
-            display: 'flex',
-          }}
-        >
-          {isNegative ? '-5' : '+5'}
-        </div>
-        <div
-          style={{
-            fontSize: '16px',
-            fontWeight: 600,
-            color: isNegative ? '#fca5a580' : '#6ee7b780',
-            letterSpacing: '4px',
-            textTransform: 'uppercase',
-            display: 'flex',
-          }}
-        >
-          {isNegative ? 'FEEDBACK' : 'KUDOS'}
-        </div>
-      </div>
+      />
 
-      {/* Right panel — content */}
+      {/* Main content */}
       <div
         style={{
-          flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '60px',
-          gap: '28px',
+          justifyContent: 'space-between',
+          padding: '56px 72px',
+          width: '100%',
+          height: '100%',
         }}
       >
-        {/* Agent name — hero text */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <span
+        {/* Top row: score badge + from */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          {/* Score badge */}
+          <div
             style={{
-              fontSize: '18px',
-              color: '#6b7280',
-              textTransform: 'uppercase',
-              letterSpacing: '3px',
-              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
             }}
           >
-            {isNegative ? 'Feedback for' : 'Kudos for'}
-          </span>
-          <span
-            style={{
-              fontSize: '52px',
-              fontWeight: 800,
-              color: '#f9fafb',
-              letterSpacing: '-1px',
-              lineHeight: 1.1,
-            }}
-          >
-            {agent}
-          </span>
-        </div>
-
-        {/* Category pill */}
-        {category && (
-          <div style={{ display: 'flex' }}>
             <div
               style={{
                 display: 'flex',
-                backgroundColor: '#1f2937',
-                borderRadius: '100px',
-                padding: '8px 24px',
-                border: '1px solid #374151',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '56',
+                height: '56',
+                borderRadius: '16px',
+                backgroundColor: isNegative
+                  ? 'rgba(239,68,68,0.15)'
+                  : 'rgba(16,185,129,0.15)',
+                border: isNegative
+                  ? '1px solid rgba(239,68,68,0.3)'
+                  : '1px solid rgba(16,185,129,0.3)',
               }}
             >
               <span
                 style={{
-                  fontSize: '18px',
-                  color: isNegative ? '#fca5a5' : '#6ee7b7',
-                  fontWeight: 600,
+                  fontSize: '28px',
+                  fontWeight: 800,
+                  color: isNegative ? '#ef4444' : '#10b981',
+                  display: 'flex',
                 }}
               >
-                {category}
+                {isNegative ? '\u2212' : '+'}1
               </span>
             </div>
-          </div>
-        )}
-
-        {/* Message */}
-        {message && (
-          <div style={{ display: 'flex' }}>
             <span
               style={{
-                fontSize: '22px',
-                color: '#9ca3af',
-                lineHeight: 1.4,
+                fontSize: '18px',
+                fontWeight: 600,
+                color: isNegative ? '#ef4444' : '#10b981',
+                textTransform: 'uppercase',
+                letterSpacing: '3px',
+                display: 'flex',
               }}
             >
-              &ldquo;{message.slice(0, 120)}
-              {message.length > 120 ? '...' : ''}&rdquo;
+              {isNegative ? 'Feedback' : 'Kudos'}
             </span>
           </div>
-        )}
 
-        {/* From line */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '18px', color: '#4b5563' }}>from</span>
-          <span style={{ fontSize: '18px', color: '#d1d5db', fontWeight: 600 }}>
-            @{from}
+          {/* From */}
+          <span
+            style={{
+              fontSize: '18px',
+              color: '#555555',
+              display: 'flex',
+            }}
+          >
+            from @{from}
           </span>
         </div>
 
-        {/* Bottom */}
+        {/* Center: Agent name — the hero */}
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginTop: 'auto',
-            paddingTop: '24px',
-            borderTop: '1px solid #1f2937',
+            flexDirection: 'column',
+            gap: '16px',
           }}
         >
           <span
             style={{
-              fontSize: '20px',
-              fontWeight: 800,
-              color: '#374151',
-              letterSpacing: '3px',
+              fontSize: `${fontSize}px`,
+              fontWeight: 900,
+              color: '#ffffff',
+              letterSpacing: '-2px',
+              lineHeight: 1,
+              display: 'flex',
             }}
           >
-            ACK
+            {agent}
           </span>
-          <span style={{ fontSize: '14px', color: '#374151' }}>·</span>
-          <span style={{ fontSize: '14px', color: '#4b5563' }}>
-            onchain reputation on Abstract
-          </span>
-          <span style={{ fontSize: '14px', color: '#374151' }}>·</span>
-          <span style={{ fontSize: '14px', color: '#4b5563' }}>ERC-8004</span>
+          {category && (
+            <span
+              style={{
+                fontSize: '20px',
+                color: '#444444',
+                display: 'flex',
+              }}
+            >
+              {category}
+            </span>
+          )}
+        </div>
+
+        {/* Bottom: message quote + brand */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+          }}
+        >
+          {message ? (
+            <span
+              style={{
+                fontSize: '18px',
+                color: '#3a3a3a',
+                maxWidth: '700px',
+                lineHeight: 1.4,
+                display: 'flex',
+              }}
+            >
+              {'\u201C'}
+              {message.slice(0, 90)}
+              {message.length > 90 ? '\u2026' : ''}
+              {'\u201D'}
+            </span>
+          ) : (
+            <span style={{ display: 'flex' }} />
+          )}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '15px',
+                fontWeight: 800,
+                color: '#2a2a2a',
+                letterSpacing: '4px',
+                display: 'flex',
+              }}
+            >
+              ACK
+            </span>
+            <span style={{ fontSize: '15px', color: '#222', display: 'flex' }}>
+              {'\u00B7'}
+            </span>
+            <span style={{ fontSize: '13px', color: '#333', display: 'flex' }}>
+              ack-onchain.dev
+            </span>
+          </div>
         </div>
       </div>
     </div>,

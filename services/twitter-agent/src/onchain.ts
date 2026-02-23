@@ -159,6 +159,7 @@ export interface KudosSubmission {
   message: string;
   from: string; // twitter handle of sender
   sentiment: 'positive' | 'negative';
+  amount: number; // kudos amount (default 1, max 100)
   proxyHandle?: string; // if set, this is a proxy kudos for an X handle (not a direct agent)
 }
 
@@ -225,7 +226,11 @@ export async function submitKudos(
       functionName: 'giveFeedback',
       args: [
         BigInt(submission.agentId),
-        submission.sentiment === 'negative' ? -5n : 5n,
+        BigInt(
+          submission.sentiment === 'negative'
+            ? -submission.amount
+            : submission.amount
+        ),
         0, // valueDecimals
         submission.proxyHandle ? 'proxy' : submission.category || 'kudos',
         submission.proxyHandle

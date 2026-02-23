@@ -16,6 +16,7 @@ export interface KudosCommand {
   targetHandle: string;
   category?: string;
   message?: string;
+  amount: number; // default 1, or explicit (e.g. ++ 5)
   isExplicit: boolean; // true if ++ or -- was used
   sentiment: 'positive' | 'negative';
 }
@@ -28,16 +29,20 @@ export function parseAllKudos(text: string): KudosCommand[] {
   const cleaned = text.replace(/@ack_onchain/i, '').trim();
   const results: KudosCommand[] = [];
 
-  // Pattern 1: All explicit @handle ++/-- [category] ["message"] matches
-  const explicitRegex = /@(\w+)\s*(\+\+|--)\s*(\w+)?\s*(?:"([^"]*)")?/g;
+  // Pattern 1: All explicit @handle ++/-- [number] [category] ["message"] matches
+  const explicitRegex =
+    /@(\w+)\s*(\+\+|--)\s*(\d+)?\s*(\w+)?\s*(?:"([^"]*)")?/g;
   let match: RegExpExecArray | null;
 
   while ((match = explicitRegex.exec(cleaned)) !== null) {
+    const rawAmount = match[3] ? parseInt(match[3], 10) : 1;
+    const amount = Math.min(Math.max(rawAmount, 1), 100); // clamp 1-100
     results.push({
       targetHandle: match[1],
       sentiment: match[2] === '++' ? 'positive' : 'negative',
-      category: match[3] || undefined,
-      message: match[4] || undefined,
+      amount,
+      category: match[4] || undefined,
+      message: match[5] || undefined,
       isExplicit: true,
     });
   }
@@ -47,9 +52,11 @@ export function parseAllKudos(text: string): KudosCommand[] {
   // Pattern 1b: ++ or -- with no @handle means kudos to ACK itself
   // e.g. "@ack_onchain ++ for setting up kudos onchain!!!"
   const hasOtherMentions = /@\w+/.test(cleaned);
-  const bareMatch = cleaned.match(/^(\+\+|--)\s*(.*)?$/s);
+  const bareMatch = cleaned.match(/^(\+\+|--)\s*(\d+)?\s*(.*)?$/s);
   if (bareMatch && !hasOtherMentions) {
-    const rest = (bareMatch[2] || '').trim();
+    const rawAmount = bareMatch[2] ? parseInt(bareMatch[2], 10) : 1;
+    const amount = Math.min(Math.max(rawAmount, 1), 100);
+    const rest = (bareMatch[3] || '').trim();
     // Try to extract a quoted message
     const quotedMsg = rest.match(/"([^"]*)"/);
     // Everything else is treated as a freeform message
@@ -57,6 +64,7 @@ export function parseAllKudos(text: string): KudosCommand[] {
     results.push({
       targetHandle: 'ack_onchain',
       sentiment: bareMatch[1] === '++' ? 'positive' : 'negative',
+      amount,
       category: undefined,
       message,
       isExplicit: true,
@@ -64,15 +72,18 @@ export function parseAllKudos(text: string): KudosCommand[] {
     return results;
   }
 
-  // Pattern 2: ++/-- @handle (reverse order)
-  const reverseRegex = /(\+\+|--)\s*@(\w+)\s*(\w+)?\s*(?:"([^"]*)")?/g;
+  // Pattern 2: ++/-- [number] @handle (reverse order)
+  const reverseRegex = /(\+\+|--)\s*(\d+)?\s*@(\w+)\s*(\w+)?\s*(?:"([^"]*)")?/g;
 
   while ((match = reverseRegex.exec(cleaned)) !== null) {
+    const rawAmount = match[2] ? parseInt(match[2], 10) : 1;
+    const amount = Math.min(Math.max(rawAmount, 1), 100);
     results.push({
-      targetHandle: match[2],
+      targetHandle: match[3],
       sentiment: match[1] === '++' ? 'positive' : 'negative',
-      category: match[3] || undefined,
-      message: match[4] || undefined,
+      amount,
+      category: match[4] || undefined,
+      message: match[5] || undefined,
       isExplicit: true,
     });
   }
@@ -97,6 +108,7 @@ export function parseAllKudos(text: string): KudosCommand[] {
         targetHandle: targetMention,
         category: undefined,
         message: afterMention || undefined,
+        amount: 1,
         isExplicit: false,
         sentiment: 'positive',
       });

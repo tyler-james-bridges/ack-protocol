@@ -111,6 +111,7 @@ async function processMention(tweet: Tweet): Promise<void> {
         message: kudos.message || '',
         from: tweet.authorUsername,
         sentiment: kudos.sentiment,
+        amount: kudos.amount,
         proxyHandle: kudos.targetHandle,
       });
 
@@ -123,8 +124,10 @@ async function processMention(tweet: Tweet): Promise<void> {
           success: true,
           agentName: `@${kudos.targetHandle}`,
           sentiment: kudos.sentiment,
+          amount: kudos.amount,
           from: tweet.authorUsername,
           permalink,
+          txHash: proxyResult.txHash,
         });
       } else {
         console.error(`[error] Proxy kudos failed: ${proxyResult.error}`);
@@ -132,6 +135,7 @@ async function processMention(tweet: Tweet): Promise<void> {
           success: false,
           agentName: `@${kudos.targetHandle}`,
           sentiment: kudos.sentiment,
+          amount: kudos.amount,
         });
       }
       continue;
@@ -147,8 +151,10 @@ async function processMention(tweet: Tweet): Promise<void> {
         success: true,
         agentName,
         sentiment: kudos.sentiment,
+        amount: kudos.amount,
         from: tweet.authorUsername,
         permalink: `https://ack-onchain.dev/kudos/dry-run`,
+        txHash: 'dry-run',
       });
       continue;
     }
@@ -161,6 +167,7 @@ async function processMention(tweet: Tweet): Promise<void> {
       message: kudos.message || '',
       from: tweet.authorUsername,
       sentiment: kudos.sentiment,
+      amount: kudos.amount,
     });
 
     if (result.success) {
@@ -170,13 +177,16 @@ async function processMention(tweet: Tweet): Promise<void> {
         success: true,
         agentName,
         sentiment: kudos.sentiment,
+        amount: kudos.amount,
         from: tweet.authorUsername,
         permalink,
+        txHash: result.txHash,
       });
     } else {
       console.error(`[error] Onchain submission failed: ${result.error}`);
       results.push({
         success: false,
+        amount: kudos.amount,
         agentName,
         sentiment: kudos.sentiment,
       });
@@ -191,25 +201,32 @@ async function processMention(tweet: Tweet): Promise<void> {
     let replyText = '';
 
     if (successes.length > 0) {
-      const emoji =
-        successes[0].sentiment === 'negative' ? '\u{1F4AC}' : '\u{2705}';
       const lines = successes.map((r: any) => {
-        const verb = r.sentiment === 'negative' ? '-1' : '+1';
-        return `${verb} ${r.agentName}`;
+        const sign = r.sentiment === 'negative' ? '-' : '+';
+        return `${sign}${r.amount} ${r.agentName}`;
       });
-      replyText = `${emoji} Recorded onchain\n\n${lines.join('\n')}\n\n${successes[0].permalink}`;
+      // Find the original kudos message if any
+      const originalKudos = allKudos.find((k: any) => k.message);
+      const msgLine =
+        originalKudos && originalKudos.message
+          ? `\n\n"${originalKudos.message.slice(0, 120)}"`
+          : '';
+      const txLine = successes
+        .map((r: any) => `abscan.org/tx/${r.txHash}`)
+        .join('\n');
+      replyText = `${lines.join('\n')}${msgLine}\n\n${txLine}`;
     }
 
     if (failures.length > 0 && successes.length === 0) {
       replyText =
-        "Couldn't record this onchain. Agent may not be registered yet.\n\nack-onchain.dev/register";
+        "couldn't record this onchain. agent may not be registered yet.\n\nack-onchain.dev/register";
     } else if (failures.length > 0) {
-      replyText += '\n\nSome entries failed. Try ack-onchain.dev/kudos';
+      replyText += '\n\nsome entries failed. try ack-onchain.dev/kudos';
     }
 
     await postReply(tweet.id, replyText, DRY_RUN);
   } else if (allKudos.length > 0) {
-    await postReply(tweet.id, "Can't give kudos to yourself.", DRY_RUN);
+    await postReply(tweet.id, "can't give kudos to yourself", DRY_RUN);
   }
 }
 

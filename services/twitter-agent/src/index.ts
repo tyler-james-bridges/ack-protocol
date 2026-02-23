@@ -19,11 +19,42 @@ import {
 } from './onchain.js';
 import { postReply, fetchMentions, type Tweet } from './twitter.js';
 
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
+
 const POLL_INTERVAL = parseInt(process.env.TWITTER_POLL_INTERVAL || '120', 10);
 const DRY_RUN = process.env.TWITTER_DRY_RUN === 'true';
 
-let lastSeenId: string | null = null;
+const STATE_FILE = join(
+  process.env.HOME || '/tmp',
+  '.ack-twitter-agent',
+  'state.json'
+);
+
+function loadState(): { lastSeenId: string | null } {
+  try {
+    const data = JSON.parse(readFileSync(STATE_FILE, 'utf-8'));
+    return { lastSeenId: data.lastSeenId || null };
+  } catch {
+    return { lastSeenId: null };
+  }
+}
+
+function saveState(id: string): void {
+  try {
+    mkdirSync(dirname(STATE_FILE), { recursive: true });
+    writeFileSync(STATE_FILE, JSON.stringify({ lastSeenId: id }));
+  } catch (err) {
+    console.error('[state] Failed to save:', err);
+  }
+}
+
+let lastSeenId: string | null = loadState().lastSeenId;
 const processedIds = new Set<string>();
+
+if (lastSeenId) {
+  console.log(`[init] Resuming from lastSeenId: ${lastSeenId}`);
+}
 
 async function processMention(tweet: Tweet): Promise<void> {
   if (processedIds.has(tweet.id)) return;
@@ -190,6 +221,7 @@ async function pollLoop(): Promise<void> {
 
     if (newestId) {
       lastSeenId = newestId;
+      saveState(newestId);
     }
 
     if (tweets.length === 0) {

@@ -22,6 +22,8 @@ const eslintConfig = [
       'scripts/**',
       'artifacts/**',
       'cache/**',
+      'packages/sdk/dist/**',
+      'services/**',
     ],
   },
 ];

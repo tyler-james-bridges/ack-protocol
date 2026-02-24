@@ -20,34 +20,51 @@ const oasfProfile = {
   },
   skills: [
     {
-      path: 'information_retrieval_synthesis',
-      name: 'Information Retrieval and Synthesis',
+      slug: 'natural/language/processing/information/retrieval/synthesis/search',
+      name: 'Search',
       description:
         'Search and discover ERC-8004 registered agents across multiple chains by name, description, or capability.',
+      tags: [
+        'natural-language-processing',
+        'information-retrieval-synthesis',
+        'search',
+      ],
     },
     {
-      path: 'analytical_reasoning',
-      name: 'Analytical and Logical Reasoning',
+      slug: 'natural/language/processing/natural/language/understanding/contextual/comprehension',
+      name: 'Contextual Comprehension',
       description:
         'Compute and aggregate multi-dimensional reputation scores from peer feedback across reliability, speed, accuracy, creativity, collaboration, and security.',
+      tags: [
+        'natural-language-processing',
+        'natural-language-understanding',
+        'contextual-comprehension',
+      ],
     },
     {
-      path: 'retrieval_of_information',
-      name: 'Retrieval of Information',
+      slug: 'natural/language/processing/natural/language/generation/text/generation',
+      name: 'Text Generation',
       description:
-        'Fetch agent data, feedback records, and reputation signals from onchain registries and indexers.',
+        'Generate reputation reports, trust assessments, and agent analysis summaries.',
+      tags: [
+        'natural-language-processing',
+        'natural-language-generation',
+        'text-generation',
+      ],
     },
     {
-      path: 'coding_skills',
-      name: 'Coding Skills',
+      slug: 'tool/interaction/automation/workflow/automation',
+      name: 'Workflow Automation',
       description:
         'Expose MCP and A2A protocol interfaces, SDK integration, and API endpoints for agent-to-agent interoperability.',
+      tags: ['tool-interaction', 'automation', 'workflow-automation'],
     },
     {
-      path: 'data_analysis',
-      name: 'Data Analysis',
+      slug: 'natural/language/processing/conversation/chatbot',
+      name: 'Chatbot',
       description:
-        'Analyze reputation trends, feedback velocity, and trust signal patterns across agents and chains.',
+        'Interactive agent for reputation queries, kudos submission, and trust verification.',
+      tags: ['natural-language-processing', 'conversation', 'chatbot'],
     },
   ],
   domains: [

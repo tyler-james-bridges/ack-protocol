@@ -20,7 +20,7 @@ const oasfProfile = {
   },
   skills: [
     {
-      slug: 'natural/language/processing/information/retrieval/synthesis/search',
+      slug: 'natural_language_processing/information_retrieval_synthesis/search',
       name: 'Search',
       description:
         'Search and discover ERC-8004 registered agents across multiple chains by name, description, or capability.',
@@ -31,7 +31,7 @@ const oasfProfile = {
       ],
     },
     {
-      slug: 'natural/language/processing/natural/language/understanding/contextual/comprehension',
+      slug: 'natural_language_processing/natural_language_understanding/contextual_comprehension',
       name: 'Contextual Comprehension',
       description:
         'Compute and aggregate multi-dimensional reputation scores from peer feedback across reliability, speed, accuracy, creativity, collaboration, and security.',
@@ -42,97 +42,54 @@ const oasfProfile = {
       ],
     },
     {
-      slug: 'natural/language/processing/natural/language/generation/text/generation',
-      name: 'Text Generation',
+      slug: 'natural_language_processing/information_retrieval_synthesis/question_answering',
+      name: 'Question Answering',
       description:
-        'Generate reputation reports, trust assessments, and agent analysis summaries.',
+        'Answer questions about agent reputation, trust scores, and feedback history.',
       tags: [
         'natural-language-processing',
-        'natural-language-generation',
-        'text-generation',
+        'information-retrieval-synthesis',
+        'question-answering',
       ],
     },
     {
-      slug: 'tool/interaction/automation/workflow/automation',
+      slug: 'analytical_skills/data_engineering',
+      name: 'Data Engineering',
+      description:
+        'Aggregate and analyze onchain reputation signals across multiple chains and agent categories.',
+      tags: ['analytical-skills', 'data-engineering'],
+    },
+    {
+      slug: 'tool_interaction/workflow_automation',
       name: 'Workflow Automation',
       description:
         'Expose MCP and A2A protocol interfaces, SDK integration, and API endpoints for agent-to-agent interoperability.',
-      tags: ['tool-interaction', 'automation', 'workflow-automation'],
-    },
-    {
-      slug: 'natural/language/processing/conversation/chatbot',
-      name: 'Chatbot',
-      description:
-        'Interactive agent for reputation queries, kudos submission, and trust verification.',
-      tags: ['natural-language-processing', 'conversation', 'chatbot'],
+      tags: ['tool-interaction', 'workflow-automation'],
     },
   ],
   domains: [
     {
-      path: 'blockchain',
+      path: 'technology/blockchain',
       name: 'Blockchain',
       description: 'ERC-8004 agent identity and reputation on EVM chains.',
     },
     {
-      path: 'software_engineering',
+      path: 'technology/blockchain/smart_contracts',
+      name: 'Smart Contracts',
+      description:
+        'Onchain kudos, registration, and feedback via ERC-8004 smart contracts.',
+    },
+    {
+      path: 'technology/software_engineering',
       name: 'Software Engineering',
       description:
         'MCP, A2A, and OASF protocol endpoints for agent interoperability.',
     },
     {
-      path: 'security',
+      path: 'technology/security',
       name: 'Security',
       description:
         'Trust verification, reputation scoring, and agent risk assessment.',
-    },
-    {
-      path: 'data_science',
-      name: 'Data Science',
-      description:
-        'Aggregation and analysis of onchain reputation signals across multiple chains and agent categories.',
-    },
-    {
-      path: 'finance',
-      name: 'Finance',
-      description:
-        'X402 payment protocol support for premium reputation queries and agent-to-agent value exchange.',
-    },
-  ],
-  x402Support: true,
-  supportedTrust: ['reputation'],
-  services: [
-    {
-      name: 'MCP',
-      type: 'mcp',
-      version: '2025-06-18',
-      endpoint: 'https://ack-onchain.dev/api/mcp',
-      description: 'Model Context Protocol server for agent data access.',
-    },
-    {
-      name: 'A2A',
-      type: 'a2a',
-      version: '0.3.0',
-      endpoint: 'https://ack-onchain.dev/.well-known/agent-card.json',
-      description: 'Agent-to-Agent protocol agent card.',
-    },
-    {
-      name: 'OASF',
-      type: 'oasf',
-      version: '0.8',
-      endpoint: 'https://ack-onchain.dev/.well-known/oasf.json',
-      description: 'Open Agentic Schema Framework profile.',
-    },
-    {
-      name: 'x402',
-      type: 'x402',
-      endpoint: 'https://ack-onchain.dev/api/x402',
-      description: 'X402 payment protocol for premium reputation queries.',
-    },
-    {
-      name: 'Web',
-      type: 'web',
-      endpoint: 'https://ack-onchain.dev',
-      description: 'ACK Protocol web application.',
     },
   ],
 };

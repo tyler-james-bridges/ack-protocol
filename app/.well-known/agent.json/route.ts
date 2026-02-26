@@ -5,7 +5,7 @@ const agentCard = {
   description:
     'ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI agents on Abstract. Agents and humans give onchain kudos across categories like reliability, speed, accuracy, creativity, collaboration, and security. Built on ERC-8004, ACK surfaces trust through consensus, not self-reported stats.',
   url: 'https://ack-onchain.dev',
-  version: '1.0.0',
+  version: '1.1.0',
   type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
   image: 'https://ack-onchain.dev/logo.png',
   active: true,
@@ -15,43 +15,14 @@ const agentCard = {
       agentRegistry: 'eip155:2741:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
     },
   ],
-  x402Support: true,
-  supportedTrust: ['reputation'],
-  services: [
-    {
-      name: 'MCP',
-      type: 'mcp',
-      version: '2025-06-18',
-      endpoint: 'https://ack-onchain.dev/api/mcp',
-      description: 'Model Context Protocol server for ERC-8004 agent data.',
-    },
-    {
-      name: 'A2A',
-      type: 'a2a',
-      version: '0.3.0',
-      endpoint: 'https://ack-onchain.dev/api/a2a',
-      description: 'Agent-to-Agent protocol agent card.',
-    },
-    {
-      name: 'OASF',
-      type: 'oasf',
-      version: '0.8',
-      endpoint: 'https://ack-onchain.dev/.well-known/oasf.json',
-      description: 'Open Agentic Schema Framework profile.',
-    },
-    {
-      name: 'x402',
-      type: 'x402',
-      endpoint: 'https://ack-onchain.dev/api/x402',
-      description: 'X402 payment protocol for premium reputation queries.',
-    },
-    {
-      name: 'Web',
-      type: 'web',
-      endpoint: 'https://ack-onchain.dev',
-      description: 'ACK Protocol web application.',
-    },
-  ],
+  supportedTrust: ['reputation', 'crypto-economic'],
+  endpoints: {
+    a2a: 'https://ack-onchain.dev/api/a2a',
+    mcp: 'https://ack-onchain.dev/api/mcp',
+    agentCard: 'https://ack-onchain.dev/.well-known/agent-card.json',
+    oasf: 'https://ack-onchain.dev/.well-known/oasf.json',
+    web: 'https://ack-onchain.dev',
+  },
   skills: [
     {
       id: 'search-agents',
@@ -64,8 +35,6 @@ const agentCard = {
         'Search for reputation agents',
         'List top agents by quality score',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'get-reputation',
@@ -77,8 +46,6 @@ const agentCard = {
         "What is agent 606's reputation?",
         'Show reputation for ACK on Abstract',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'give-kudos',
@@ -90,8 +57,6 @@ const agentCard = {
         'Give reliability kudos to agent 606',
         'Rate agent accuracy 5 stars',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'check-trust',
@@ -103,8 +68,6 @@ const agentCard = {
         'Is agent 603 trustworthy?',
         'Should I interact with this agent?',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'agent-discovery',
@@ -116,8 +79,6 @@ const agentCard = {
         'Show me verified agents on Abstract',
         'Which agents support MCP?',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'reputation-analysis',
@@ -129,8 +90,6 @@ const agentCard = {
         'How has agent 606 reputation changed?',
         'Show reputation distribution for top agents',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'feedback-aggregation',
@@ -142,8 +101,6 @@ const agentCard = {
         'Summarize all feedback for agent 606',
         'Which category gets the most kudos?',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'leaderboard-ranking',
@@ -155,8 +112,6 @@ const agentCard = {
         'Show the top 10 agents on Abstract',
         'Who has the highest quality score?',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'cross-chain-lookup',
@@ -168,8 +123,6 @@ const agentCard = {
         'Is this agent registered on Ethereum mainnet?',
         'Compare agent scores across chains',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'category-scoring',
@@ -181,8 +134,6 @@ const agentCard = {
         'What are agent 606 scores per category?',
         'Which agents score highest in security?',
       ],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
     {
       id: 'trust-verification',
@@ -191,8 +142,6 @@ const agentCard = {
         'Verify agent identity and trust level using onchain registration data, domain verification, and peer endorsement history',
       tags: ['trust', 'verification', 'identity', 'endorsement'],
       examples: ['Verify agent 606 identity', 'Is this agent domain-verified?'],
-      inputModes: ['text/plain'],
-      outputModes: ['application/json'],
     },
   ],
 };

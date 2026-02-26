@@ -176,34 +176,113 @@ const agentInfo = {
     organization: 'ACK Protocol',
     url: 'https://ack-onchain.dev',
   },
-  version: '1.0.0',
+  version: '1.1.0',
   capabilities: {
     streaming: false,
     pushNotifications: false,
+    stateTransitionHistory: false,
   },
   authentication: {
     schemes: ['none'],
   },
-  defaultInputModes: ['text/plain'],
-  defaultOutputModes: ['application/json'],
+  defaultInputModes: ['text'],
+  defaultOutputModes: ['text'],
+  endpoints: {
+    a2a: 'https://ack-onchain.dev/api/a2a',
+    mcp: 'https://ack-onchain.dev/api/mcp',
+    agentCard: 'https://ack-onchain.dev/.well-known/agent-card.json',
+  },
   skills: [
     {
       id: 'search-agents',
       name: 'Search Agents',
-      description: 'Search ERC-8004 registered agents by name or description',
-      tags: ['erc-8004', 'agents', 'search'],
+      description:
+        'Search ERC-8004 registered agents across chains by name, description, or capability',
+      tags: ['erc-8004', 'agents', 'discovery', 'search'],
+      examples: ['Find all agents on Abstract', 'Search for reputation agents'],
     },
     {
       id: 'get-reputation',
       name: 'Get Agent Reputation',
-      description: 'Get reputation breakdown for an ERC-8004 agent',
-      tags: ['erc-8004', 'reputation', 'trust'],
+      description:
+        'Retrieve detailed reputation breakdown for any ERC-8004 agent including quality score, feedback count, and category ratings',
+      tags: ['erc-8004', 'reputation', 'trust', 'scoring'],
+      examples: [
+        "What is agent 606's reputation?",
+        'Show reputation for ACK on Abstract',
+      ],
     },
     {
-      id: 'leaderboard',
-      name: 'Agent Leaderboard',
-      description: 'Get top agents ranked by score or feedback count',
-      tags: ['leaderboard', 'ranking'],
+      id: 'give-kudos',
+      name: 'Give Kudos',
+      description:
+        'Submit onchain kudos to an agent across 6 categories: reliability, speed, accuracy, creativity, collaboration, security',
+      tags: ['erc-8004', 'kudos', 'feedback', 'recognition'],
+      examples: ['Give reliability kudos to agent 606'],
+    },
+    {
+      id: 'check-trust',
+      name: 'Check Agent Trust',
+      description:
+        'Evaluate whether an agent is trustworthy based on their onchain reputation history and peer endorsements',
+      tags: ['trust', 'verification', 'risk', 'assessment'],
+      examples: ['Is agent 603 trustworthy?'],
+    },
+    {
+      id: 'agent-discovery',
+      name: 'Agent Discovery',
+      description:
+        'Discover and browse ERC-8004 registered agents with filtering by chain, category, and protocol support',
+      tags: ['discovery', 'registry', 'browse', 'agents'],
+      examples: ['Show me verified agents on Abstract'],
+    },
+    {
+      id: 'reputation-analysis',
+      name: 'Reputation Analysis',
+      description:
+        'Analyze reputation trends and patterns for agents over time',
+      tags: ['reputation', 'analytics', 'trends', 'scoring'],
+      examples: ['How has agent 606 reputation changed?'],
+    },
+    {
+      id: 'feedback-aggregation',
+      name: 'Feedback Aggregation',
+      description:
+        'Aggregate and summarize kudos and review feedback across multiple agents and categories',
+      tags: ['feedback', 'aggregation', 'kudos', 'summary'],
+      examples: ['Summarize all feedback for agent 606'],
+    },
+    {
+      id: 'leaderboard-ranking',
+      name: 'Leaderboard Ranking',
+      description:
+        'Retrieve and display agent leaderboards ranked by quality score, feedback count, or star count',
+      tags: ['leaderboard', 'ranking', 'top-agents', 'competition'],
+      examples: ['Show the top 10 agents on Abstract'],
+    },
+    {
+      id: 'cross-chain-lookup',
+      name: 'Cross-Chain Lookup',
+      description:
+        'Look up agent registrations and reputation data across multiple EVM chains',
+      tags: ['cross-chain', 'multi-chain', 'evm', 'lookup'],
+      examples: ['Is this agent registered on Ethereum mainnet?'],
+    },
+    {
+      id: 'category-scoring',
+      name: 'Category Scoring',
+      description:
+        'Break down and compare agent scores across the six trust categories',
+      tags: ['categories', 'scoring', 'breakdown', 'comparison'],
+      examples: ['What are agent 606 scores per category?'],
+    },
+    {
+      id: 'trust-verification',
+      name: 'Trust Verification',
+      description:
+        'Verify agent identity and trust level using onchain registration data and peer endorsements',
+      tags: ['trust', 'verification', 'identity', 'endorsement'],
+      examples: ['Verify agent 606 identity'],
     },
   ],
 };

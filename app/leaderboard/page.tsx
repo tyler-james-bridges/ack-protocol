@@ -10,6 +10,7 @@ import {
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { Nav } from '@/components/nav';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ScanAgent } from '@/lib/api';
 
@@ -163,6 +164,12 @@ function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <Nav />
+      <div className="mx-auto max-w-5xl px-4 pt-4">
+        <Breadcrumbs
+          items={[{ label: 'Home', href: '/' }]}
+          current="Discover"
+        />
+      </div>
 
       <div className="mx-auto max-w-5xl px-4 pt-8 pb-16">
         {/* Header */}

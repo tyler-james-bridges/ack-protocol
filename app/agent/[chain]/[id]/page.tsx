@@ -11,6 +11,7 @@ import { InlineKudosForm } from '@/components/inline-kudos-form';
 import { ChainIcon } from '@/components/chain-icon';
 import { CategoryBadge } from '@/components/category-badge';
 import { Nav } from '@/components/nav';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { KudosFeed } from '@/components/kudos-feed';
 import { getChainName } from '@/hooks';
 import { useKudosReceived } from '@/hooks/useKudosReceived';
@@ -82,6 +83,15 @@ export default function AgentProfilePage({
     return (
       <div className="min-h-screen">
         <Nav />
+        <div className="mx-auto max-w-5xl px-4 pt-4">
+          <Breadcrumbs
+            items={[
+              { label: 'Home', href: '/' },
+              { label: 'Discover', href: '/leaderboard' },
+            ]}
+            current="..."
+          />
+        </div>
         <div className="mx-auto max-w-5xl px-4 pt-8">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar skeleton */}
@@ -117,6 +127,15 @@ export default function AgentProfilePage({
     return (
       <div className="min-h-screen">
         <Nav />
+        <div className="mx-auto max-w-5xl px-4 pt-4">
+          <Breadcrumbs
+            items={[
+              { label: 'Home', href: '/' },
+              { label: 'Discover', href: '/leaderboard' },
+            ]}
+            current="Not Found"
+          />
+        </div>
         <div className="mx-auto max-w-3xl px-4 pt-12 text-center space-y-4">
           <p className="text-lg text-muted-foreground">
             {error || 'Agent not found'}
@@ -145,6 +164,15 @@ export default function AgentProfilePage({
   return (
     <div className="min-h-screen">
       <Nav />
+      <div className="mx-auto max-w-5xl px-4 pt-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Discover', href: '/leaderboard' },
+          ]}
+          current={agent.name}
+        />
+      </div>
 
       <div className="mx-auto max-w-5xl px-4 pt-6 pb-16">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">

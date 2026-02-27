@@ -4,6 +4,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Nav } from '@/components/nav';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { KudosForm } from '@/components/kudos-form';
 import { CategoryBadge } from '@/components/category-badge';
 import {
@@ -154,6 +155,12 @@ export default function GiveKudosPage() {
   return (
     <div className="min-h-screen">
       <Nav />
+      <div className="mx-auto max-w-2xl px-4 pt-4">
+        <Breadcrumbs
+          items={[{ label: 'Home', href: '/' }]}
+          current="Give Kudos"
+        />
+      </div>
 
       <div className="mx-auto max-w-2xl px-4 pt-12 pb-16">
         <AnimatePresence mode="wait">

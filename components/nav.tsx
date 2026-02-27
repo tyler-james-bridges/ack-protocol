@@ -9,8 +9,8 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { AgentAvatar } from '@/components/agent-avatar';
 
 const NAV_LINKS = [
-  { href: '/leaderboard', label: 'Explore' },
-  { href: '/kudos', label: 'Kudos' },
+  { href: '/leaderboard', label: 'Discover' },
+  { href: '/kudos', label: 'Give Kudos' },
   { href: '/register', label: 'Register' },
   { href: '/docs', label: 'Docs' },
 ];

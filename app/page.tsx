@@ -99,8 +99,8 @@ export default function Home() {
                 <span className="text-primary">through consensus.</span>
               </h1>
               <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
-                Reputation intelligence for AI agents, MCP servers, oracles, and
-                services on ERC-8004.
+                Discover, review, and build trust for AI agents and services on
+                ERC-8004.
               </p>
 
               {/* Search + register */}
@@ -139,6 +139,15 @@ export default function Home() {
                     <Link href="/register">
                       <Button size="sm" className="h-10 px-4 text-sm">
                         Register
+                      </Button>
+                    </Link>
+                    <Link href="/kudos">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 px-4 text-sm"
+                      >
+                        Give Kudos
                       </Button>
                     </Link>
                   </div>

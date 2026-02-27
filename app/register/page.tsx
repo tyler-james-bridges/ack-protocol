@@ -10,6 +10,7 @@ import {
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Nav } from '@/components/nav';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
@@ -207,6 +208,12 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
+      <div className="mx-auto max-w-lg px-4 pt-4">
+        <Breadcrumbs
+          items={[{ label: 'Home', href: '/' }]}
+          current="Register"
+        />
+      </div>
       <main className="mx-auto max-w-lg px-4 pt-16 pb-24">
         <div className="text-center mb-8">
           <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-2">

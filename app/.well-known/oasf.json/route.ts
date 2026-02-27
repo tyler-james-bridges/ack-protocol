@@ -3,11 +3,12 @@ import { NextResponse } from 'next/server';
 /**
  * OASF (Open Agentic Schema Framework) endpoint
  * Returns standardized skills and domains for the ACK Protocol agent.
- * Spec: https://schema.oasf.io
+ * Spec: https://schema.oasf.outshift.com/0.8.0
+ * Taxonomy: https://github.com/agntcy/oasf/releases
  */
 
 const oasfProfile = {
-  schema_version: '1.0.0',
+  version: '0.8.0',
   agent: {
     name: 'ACK',
     description:

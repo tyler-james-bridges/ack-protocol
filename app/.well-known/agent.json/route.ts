@@ -9,20 +9,65 @@ const agentCard = {
   type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
   image: 'https://ack-onchain.dev/logo.png',
   active: true,
+  x402Support: false,
   registrations: [
     {
-      agentId: '606',
+      agentId: 606,
       agentRegistry: 'eip155:2741:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
     },
   ],
   supportedTrust: ['reputation', 'crypto-economic'],
-  endpoints: {
-    a2a: 'https://ack-onchain.dev/api/a2a',
-    mcp: 'https://ack-onchain.dev/api/mcp',
-    agentCard: 'https://ack-onchain.dev/.well-known/agent-card.json',
-    oasf: 'https://ack-onchain.dev/.well-known/oasf.json',
-    web: 'https://ack-onchain.dev',
-  },
+  services: [
+    {
+      name: 'web',
+      endpoint: 'https://ack-onchain.dev',
+    },
+    {
+      name: 'A2A',
+      endpoint: 'https://ack-onchain.dev/.well-known/agent-card.json',
+      version: '0.3.0',
+      a2aSkills: [
+        'natural_language_processing/information_retrieval_synthesis/search',
+        'analytical_skills/data_engineering',
+        'tool_interaction/workflow_automation',
+      ],
+    },
+    {
+      name: 'MCP',
+      endpoint: 'https://ack-onchain.dev/api/mcp',
+      version: '2025-06-18',
+      mcpTools: [
+        'search_agents',
+        'get_reputation',
+        'give_kudos',
+        'check_trust',
+        'agent_discovery',
+      ],
+      capabilities: [],
+    },
+    {
+      name: 'OASF',
+      endpoint: 'https://ack-onchain.dev/.well-known/oasf.json',
+      version: '0.8.0',
+      skills: [
+        'natural_language_processing/information_retrieval_synthesis/search',
+        'natural_language_processing/natural_language_understanding/contextual_comprehension',
+        'natural_language_processing/information_retrieval_synthesis/question_answering',
+        'analytical_skills/data_engineering',
+        'tool_interaction/workflow_automation',
+      ],
+      domains: [
+        'technology/blockchain',
+        'technology/blockchain/smart_contracts',
+        'technology/software_engineering',
+        'technology/security',
+      ],
+    },
+    {
+      name: 'agentWallet',
+      endpoint: 'eip155:2741:0x668add9213985e7fd613aec87767c892f4b9df1c',
+    },
+  ],
   skills: [
     {
       id: 'search-agents',

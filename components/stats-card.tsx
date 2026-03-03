@@ -30,32 +30,23 @@ export function StatsCard({
 export interface NetworkStats {
   total_agents: number;
   total_feedbacks: number;
-  total_chains: number;
+  total_kudos: number;
 }
 
 export async function fetchNetworkStats(): Promise<NetworkStats> {
-  // Fetch all three in parallel to avoid waterfall
-  const [agentsRes, chainsRes, feedbackRes] = await Promise.all([
-    fetch('/api/agents?path=agents&limit=1'),
-    fetch('/api/agents?path=chains'),
+  // Fetch Abstract-only stats
+  const [agentsRes, feedbackRes, kudosRes] = await Promise.all([
+    fetch('/api/agents?path=agents&chain_id=2741&limit=1'),
     fetch(
-      '/api/agents?path=agents&limit=10&sort_by=total_feedbacks&sort_order=desc'
+      '/api/agents?path=agents&chain_id=2741&limit=50&sort_by=total_feedbacks&sort_order=desc'
     ),
+    fetch('/api/streaks?top=0'),
   ]);
 
   let totalAgents = 0;
   if (agentsRes.ok) {
     const agentsData = await agentsRes.json();
     totalAgents = agentsData?.total || 0;
-  }
-
-  let mainnetChainCount = 0;
-  if (chainsRes.ok) {
-    const chainsData = await chainsRes.json();
-    const chains = chainsData?.data?.chains || [];
-    mainnetChainCount = chains.filter(
-      (c: { is_testnet: boolean }) => !c.is_testnet
-    ).length;
   }
 
   let totalFeedbacks = 0;
@@ -69,9 +60,15 @@ export async function fetchNetworkStats(): Promise<NetworkStats> {
     );
   }
 
+  let totalKudos = 0;
+  if (kudosRes.ok) {
+    const kudosData = await kudosRes.json();
+    totalKudos = kudosData?.totalKudos || 0;
+  }
+
   return {
     total_agents: totalAgents,
     total_feedbacks: totalFeedbacks,
-    total_chains: mainnetChainCount,
+    total_kudos: totalKudos,
   };
 }

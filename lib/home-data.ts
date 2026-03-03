@@ -35,7 +35,7 @@ export interface HomePageData {
   recentKudos: RecentKudosItem[];
   stats: {
     total_agents: number;
-    total_chains: number;
+    total_kudos: number;
     top_score: number;
   };
   timestamps: Record<string, number>;
@@ -94,31 +94,12 @@ async function fetchScanAgents(params: Record<string, string | number>): Promise
   }
 }
 
-async function fetchChainCount(): Promise<number> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(`${SCAN_API}/chains`, {
-      headers: { Accept: 'application/json' },
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!res.ok) return 0;
-    const data = await res.json();
-    const chains = data?.data?.chains || [];
-    return chains.filter((c: { is_testnet: boolean }) => !c.is_testnet).length;
-  } catch {
-    return 0;
-  }
-}
 
 export async function getHomePageData(): Promise<HomePageData> {
-  // Wave 1: Fetch everything in parallel
-  const [abstractAgentsRes, agentCountRes, chainCount, feedbackEvents, allStreaks] =
+  // Wave 1: Fetch everything in parallel (Abstract-only)
+  const [abstractAgentsRes, feedbackEvents, allStreaks] =
     await Promise.all([
       fetchScanAgents({ chain_id: 2741, limit: 50 }),
-      fetchScanAgents({ limit: 1 }),
-      fetchChainCount(),
       getAllFeedbackEvents(),
       getAllStreaks(),
     ]);
@@ -158,12 +139,12 @@ export async function getHomePageData(): Promise<HomePageData> {
     blockNumber: e.blockNumber,
   }));
 
-  // Stats
+  // Stats (Abstract-only)
   const topScore =
     leaderboard.length > 0 ? leaderboard[0].total_score : 0;
   const stats = {
-    total_agents: agentCountRes.total || 0,
-    total_chains: chainCount,
+    total_agents: abstractAgentsRes.total || 0,
+    total_kudos: feedbackEvents.length,
     top_score: topScore,
   };
 

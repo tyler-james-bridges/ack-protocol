@@ -4,6 +4,7 @@ import {
   getTopStreakers,
   getAllStreaks,
 } from '@/lib/streaks';
+import { getAllFeedbackEvents } from '@/lib/feedback-cache';
 
 const ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
 
@@ -37,11 +38,14 @@ export async function GET(req: NextRequest) {
     }
 
     // Top streakers: ?top=20
-    if (topParam) {
+    if (topParam !== null) {
       const limit = Math.min(parseInt(topParam, 10) || 20, 100);
-      const top = await getTopStreakers(limit);
+      const [top, events] = await Promise.all([
+        limit > 0 ? getTopStreakers(limit) : Promise.resolve([]),
+        getAllFeedbackEvents(),
+      ]);
       return NextResponse.json(
-        { streakers: top },
+        { streakers: top, totalKudos: events.length },
         {
           headers: {
             'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',

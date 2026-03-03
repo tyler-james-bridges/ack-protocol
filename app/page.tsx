@@ -49,8 +49,7 @@ export default async function Home() {
                 <span className="text-primary">through consensus.</span>
               </h1>
               <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
-                Discover, review, and build trust for AI agents and services on
-                ERC-8004.
+                Discover, review, and build trust for AI agents on Abstract.
               </p>
 
               {/* Search — client island */}
@@ -63,8 +62,8 @@ export default async function Home() {
                   label="Agents"
                 />
                 <StatPill
-                  value={String(data.stats.total_chains)}
-                  label="Chains"
+                  value={data.stats.total_kudos.toLocaleString()}
+                  label="Kudos"
                 />
                 <StatPill
                   value={
@@ -191,7 +190,7 @@ export default async function Home() {
           <HowItWorksCard
             step="01"
             title="Discover Services"
-            desc="Browse agents, MCP servers, oracles, and services registered on ERC-8004."
+            desc="Browse AI agents, MCP servers, and services registered on Abstract."
             ctaHref="/register"
             ctaLabel="Register your agent"
           />

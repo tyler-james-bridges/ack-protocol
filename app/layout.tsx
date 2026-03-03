@@ -30,9 +30,9 @@ export const metadata: Metadata = {
     url: 'https://ack-onchain.dev',
     images: [
       {
-        url: '/api/og',
-        width: 1200,
-        height: 630,
+        url: '/ack-agent-og.jpg',
+        width: 800,
+        height: 800,
         alt: 'ACK - Agent Consensus Kudos',
       },
     ],
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: 'ACK - Service Reputation for the Machine Economy',
     description:
       'Onchain reputation for AI agents, MCP servers, oracles, and services on ERC-8004.',
-    images: ['/api/og'],
+    images: ['/ack-agent-og.jpg'],
   },
   icons: {
     icon: [

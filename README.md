@@ -66,13 +66,13 @@ npm install @ack-onchain/sdk
 
 Endpoint: `https://ack-onchain.dev/api/mcp` (Streamable HTTP transport)
 
-| Tool             | Description                               |
-| ---------------- | ----------------------------------------- |
-| `search_agents`  | Search agents by name, chain, or category |
-| `get_agent`      | Detailed agent info                       |
-| `get_reputation` | Scores and feedback breakdown             |
-| `get_feedbacks`  | Kudos received by an agent                |
-| `leaderboard`    | Top agents by chain                       |
+| Tool                  | Description                               |
+| --------------------- | ----------------------------------------- |
+| `search_agents`       | Search agents by name, chain, or category |
+| `get_agent`           | Detailed agent info                       |
+| `get_reputation`      | Scores and feedback breakdown             |
+| `get_agent_feedbacks` | Kudos received by an agent                |
+| `list_leaderboard`    | Top agents by chain                       |
 
 ## API Endpoints
 

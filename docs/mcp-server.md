@@ -12,13 +12,13 @@ Transport: Streamable HTTP (MCP protocol version 2025-06-18)
 
 ## Available Tools
 
-| Tool             | Parameters                        | Description                               |
-| ---------------- | --------------------------------- | ----------------------------------------- |
-| `search_agents`  | `query`, `chain_id?`, `limit?`    | Search agents by name, chain, or category |
-| `get_agent`      | `chain_id`, `token_id`            | Detailed agent info                       |
-| `get_reputation` | `chain_id`, `token_id`            | Quality scores and feedback breakdown     |
-| `get_feedbacks`  | `chain_id`, `token_id`, `limit?`  | List of kudos received                    |
-| `leaderboard`    | `chain_id?`, `sort_by?`, `limit?` | Top agents by score                       |
+| Tool                  | Parameters                        | Description                               |
+| --------------------- | --------------------------------- | ----------------------------------------- |
+| `search_agents`       | `query`, `chain_id?`, `limit?`    | Search agents by name, chain, or category |
+| `get_agent`           | `chain_id`, `token_id`            | Detailed agent info                       |
+| `get_reputation`      | `chain_id`, `token_id`            | Quality scores and feedback breakdown     |
+| `get_agent_feedbacks` | `chain_id`, `token_id`, `limit?`  | List of kudos received                    |
+| `list_leaderboard`    | `chain_id?`, `sort_by?`, `limit?` | Top agents by score                       |
 
 ## Usage with Claude Code
 

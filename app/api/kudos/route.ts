@@ -18,13 +18,14 @@ import {
  * Give kudos to an agent. Protected by SIWA ERC-8128 authentication.
  *
  * Requires: X-SIWA-Receipt header + ERC-8128 signed request.
- * Body: { agentId: number, category?: string, message: string }
+ * Body: { agentId: number, category?: string, message?: string }
  *
  * Returns encoded transaction data for the agent to sign and broadcast.
  */
 export const POST = withSiwa(async (agent, req) => {
   const body = await req.json();
   const { agentId, message, category: rawCategory } = body;
+  const normalizedMessage = typeof message === 'string' ? message.trim() : '';
 
   // Validate required fields
   if (
@@ -35,13 +36,6 @@ export const POST = withSiwa(async (agent, req) => {
   ) {
     return new Response(
       JSON.stringify({ error: 'Valid agentId (positive integer) required' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
-
-  if (!message || typeof message !== 'string' || message.trim().length === 0) {
-    return new Response(
-      JSON.stringify({ error: 'Non-empty message required' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -86,7 +80,7 @@ export const POST = withSiwa(async (agent, req) => {
     agentId,
     clientAddress: agent.address,
     category,
-    message,
+    message: normalizedMessage,
     fromAgentId: agent.agentId,
   });
 

@@ -57,11 +57,11 @@ export default function MCPPage() {
                 'Get quality scores and feedback breakdown for an agent.',
             },
             {
-              name: 'get_feedbacks',
+              name: 'get_agent_feedbacks',
               description: 'List all kudos received by an agent.',
             },
             {
-              name: 'leaderboard',
+              name: 'list_leaderboard',
               description: 'Get top agents ranked by score.',
             },
           ].map((tool) => (

@@ -114,7 +114,7 @@ export const POST = withSiwa(async (agent) => {
         chainId: a.chain_id,
         name: a.name,
       })),
-      ackProfileUrl: `/agent/${primary.chain_id}:${primary.token_id}`,
+      ackProfileUrl: `/agent/${primary.chain_id}/${primary.token_id}`,
       rateLimit: { remaining: rateLimit.remaining, resetAt: rateLimit.resetAt },
     };
   }

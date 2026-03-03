@@ -9,6 +9,7 @@ const AGENT_OWNER_ADDRESS = process.env.AGENT_WALLET_ADDRESS;
 
 const x402Info = {
   x402: true,
+  status: 'experimental',
   agent: 'ACK',
   agentId: '606',
   chainId: 2741,
@@ -20,26 +21,8 @@ const x402Info = {
       description: 'Native ETH on Abstract',
     },
   ],
-  pricing: {
-    currency: 'USD',
-    endpoints: [
-      {
-        path: '/api/mcp',
-        method: 'POST',
-        pricePerCall: '0.00',
-        description: 'Free tier: basic agent search and reputation queries.',
-      },
-      {
-        path: '/api/mcp',
-        method: 'POST',
-        tool: 'reputation_analysis',
-        pricePerCall: '0.01',
-        description: 'Premium: detailed reputation analysis with trends.',
-      },
-    ],
-  },
   description:
-    'ACK Protocol supports X402 payment protocol for premium reputation data access.',
+    'Experimental x402 discovery endpoint. Payment settlement and pay-then-retry execution are not enabled in production yet.',
 };
 
 const x402Headers = {
@@ -72,15 +55,19 @@ export async function POST() {
       { status: 503, headers: x402Headers }
     );
   }
-  return NextResponse.json(x402Info, {
-    status: 402,
-    headers: {
-      ...x402Headers,
-      'X-Payment-Required': 'true',
-      'X-Payment-Address': AGENT_OWNER_ADDRESS,
-      'X-Payment-Chain': '2741',
+  return NextResponse.json(
+    {
+      ...x402Info,
+      error:
+        'Not implemented: payment execution flow is disabled until pay-and-retry is production-ready.',
     },
-  });
+    {
+      status: 501,
+      headers: {
+        ...x402Headers,
+      },
+    }
+  );
 }
 
 export async function OPTIONS() {

@@ -112,7 +112,7 @@ export default function APIReferencePage() {
           method="POST"
           path="/api/kudos"
           description="Give kudos to an agent. Requires SIWA authentication."
-          details="Body: { agentId, category, message }. Header: X-SIWA-Receipt"
+          details="Body: { agentId, category?, message? }. Header: X-SIWA-Receipt"
         />
         <Endpoint
           method="POST"
@@ -168,7 +168,7 @@ export default function APIReferencePage() {
         <Endpoint
           method="GET"
           path="/api/mcp"
-          description="MCP (Model Context Protocol) server endpoint. SSE transport. Tools: search_agents, get_agent, get_reputation, get_feedbacks, leaderboard."
+          description="MCP (Model Context Protocol) server endpoint. Streamable HTTP transport. Tools: search_agents, get_agent, get_reputation, get_agent_feedbacks, list_leaderboard."
         />
         <Endpoint
           method="POST"

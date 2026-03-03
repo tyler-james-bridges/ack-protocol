@@ -1,26 +1,23 @@
-'use client';
-
 import Link from 'next/link';
-import {
-  useRecentKudos,
-  useLeaderboard,
-  useIsAgent,
-  useStreaksBulk,
-  type RecentKudos,
-} from '@/hooks';
 import { AgentAvatar } from './agent-avatar';
 import { CategoryBadge } from './category-badge';
 import { StreakBadge } from './streak-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
-import { IdentityBadge } from './identity-badge';
-import {
-  useBlockTimestamps,
-  formatRelativeTime,
-} from '@/hooks/useBlockTimestamps';
+import { formatRelativeTime } from '@/lib/utils';
+import type { RecentKudosItem } from '@/lib/home-data';
 import type { ScanAgent } from '@/lib/api';
+import type { StreakData } from '@/lib/streaks';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}\u2009..\u2009${addr.slice(-4)}`;
+}
+
+interface ServerKudosFeedProps {
+  kudos: RecentKudosItem[];
+  agentMap: Map<number, ScanAgent>;
+  senderMap: Map<string, ScanAgent>;
+  timestamps: Record<string, number>;
+  streaks?: Record<string, StreakData>;
 }
 
 function FeedItem({
@@ -28,15 +25,13 @@ function FeedItem({
   agent,
   senderAgent,
   timestamp,
-  isSenderAgent,
   senderStreak,
 }: {
-  kudos: RecentKudos;
+  kudos: RecentKudosItem;
   agent?: ScanAgent;
   senderAgent?: ScanAgent;
   timestamp?: number;
-  isSenderAgent: boolean;
-  senderStreak?: { currentStreak: number; isActiveToday: boolean };
+  senderStreak?: StreakData;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -67,7 +62,6 @@ function FeedItem({
             >
               {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
             </Link>
-            <IdentityBadge type={isSenderAgent ? 'agent' : 'human'} />
             {senderStreak && senderStreak.currentStreak > 0 && (
               <StreakBadge
                 streak={senderStreak.currentStreak}
@@ -94,7 +88,9 @@ function FeedItem({
             )}
           </div>
           <a
-            href={`/kudos/${kudos.txHash}`}
+            href={`https://abscan.org/tx/${kudos.txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
           >
             {timestamp ? formatRelativeTime(timestamp) : 'tx'}
@@ -111,44 +107,15 @@ function FeedItem({
   );
 }
 
-export function LiveKudosFeed() {
-  const { data: kudos, isLoading } = useRecentKudos();
-  // Reuses the same query key as the home page hero — shared React Query cache
-  const { data: agents } = useLeaderboard({
-    limit: 50,
-    chainId: 2741,
-    sortBy: 'total_score',
-  });
-
-  // Build agent lookup: tokenId → ScanAgent
-  const agentMap = new Map<number, ScanAgent>();
-  // Build sender lookup: lowercase address → ScanAgent
-  const senderMap = new Map<string, ScanAgent>();
-  if (agents) {
-    for (const agent of agents) {
-      agentMap.set(Number(agent.token_id), agent);
-      if (agent.owner_address)
-        senderMap.set(agent.owner_address.toLowerCase(), agent);
-      if (agent.agent_wallet)
-        senderMap.set(agent.agent_wallet.toLowerCase(), agent);
-    }
-  }
-
-  const recent = kudos?.slice(0, 5);
-  const senders = recent?.map((k) => k.sender) || [];
-  const { data: agentSet } = useIsAgent(senders);
-  const blockNumbers = recent?.map((k) => k.blockNumber) || [];
-  const { data: timestamps } = useBlockTimestamps(blockNumbers);
-
-  // Fetch streaks for all recent senders
-  const senderAddresses = [
-    ...new Set(recent?.map((k) => k.sender.toLowerCase()) || []),
-  ];
-  const { data: streaksData } = useStreaksBulk(senderAddresses);
-
+export function ServerKudosFeed({
+  kudos,
+  agentMap,
+  senderMap,
+  timestamps,
+  streaks,
+}: ServerKudosFeedProps) {
   return (
     <div className="rounded-xl border border-border overflow-hidden bg-card/50 flex flex-col">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
@@ -167,42 +134,22 @@ export function LiveKudosFeed() {
         </Link>
       </div>
 
-      {/* Feed list */}
       <div>
-        {isLoading ? (
-          <div className="space-y-0">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex gap-3 px-4 py-3 border-b border-border/50"
-              >
-                <div className="w-8 h-8 rounded-lg bg-muted/40 animate-pulse shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3.5 bg-muted/40 rounded w-2/3 animate-pulse" />
-                  <div className="h-3 bg-muted/40 rounded w-1/3 animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : !recent?.length ? (
+        {kudos.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <p className="text-sm text-muted-foreground">
               No kudos yet — be the first!
             </p>
           </div>
         ) : (
-          recent.map((k, i) => (
+          kudos.map((k, i) => (
             <FeedItem
               key={`${k.txHash}-${i}`}
               kudos={k}
               agent={agentMap.get(k.agentId)}
               senderAgent={senderMap.get(k.sender.toLowerCase())}
-              timestamp={timestamps?.get(k.blockNumber.toString())}
-              isSenderAgent={
-                agentSet?.has(k.sender.toLowerCase()) ??
-                !!senderMap.get(k.sender.toLowerCase())
-              }
-              senderStreak={streaksData?.[k.sender.toLowerCase()]}
+              timestamp={timestamps[k.blockNumber]}
+              senderStreak={streaks?.[k.sender.toLowerCase()]}
             />
           ))
         )}

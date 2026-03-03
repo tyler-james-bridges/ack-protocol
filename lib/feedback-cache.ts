@@ -147,6 +147,14 @@ export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
 }
 
 /**
+ * Fire-and-forget cache warmup — call at module scope to pre-populate
+ * the feedback cache on cold start without blocking the request.
+ */
+export function warmupFeedbackCache(): void {
+  getAllFeedbackEvents().catch(() => {});
+}
+
+/**
  * Get feedback events filtered by agent token ID.
  */
 export async function getFeedbackByAgentId(

@@ -70,7 +70,9 @@ function parseMessage(feedbackURI: string): string | null {
   return null;
 }
 
-async function fetchScanAgents(params: Record<string, string | number>): Promise<{
+async function fetchScanAgents(
+  params: Record<string, string | number>
+): Promise<{
   items: ScanAgent[];
   total: number;
 }> {
@@ -94,15 +96,13 @@ async function fetchScanAgents(params: Record<string, string | number>): Promise
   }
 }
 
-
 export async function getHomePageData(): Promise<HomePageData> {
   // Wave 1: Fetch everything in parallel (Abstract-only)
-  const [abstractAgentsRes, feedbackEvents, allStreaks] =
-    await Promise.all([
-      fetchScanAgents({ chain_id: 2741, limit: 50 }),
-      getAllFeedbackEvents(),
-      getAllStreaks(),
-    ]);
+  const [abstractAgentsRes, feedbackEvents, allStreaks] = await Promise.all([
+    fetchScanAgents({ chain_id: 2741, limit: 50 }),
+    getAllFeedbackEvents(),
+    getAllStreaks(),
+  ]);
 
   // Build feedback counts map
   const feedbackCounts: Record<number, number> = {};
@@ -140,8 +140,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   }));
 
   // Stats (Abstract-only)
-  const topScore =
-    leaderboard.length > 0 ? leaderboard[0].total_score : 0;
+  const topScore = leaderboard.length > 0 ? leaderboard[0].total_score : 0;
   const stats = {
     total_agents: abstractAgentsRes.total || 0,
     total_kudos: feedbackEvents.length,
@@ -149,9 +148,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   };
 
   // Wave 2: Resolve block timestamps for the 5 recent kudos
-  const blockNumbers = [
-    ...new Set(recentKudos.map((k) => k.blockNumber)),
-  ];
+  const blockNumbers = [...new Set(recentKudos.map((k) => k.blockNumber))];
   const timestamps: Record<string, number> = {};
   if (blockNumbers.length > 0) {
     await Promise.all(

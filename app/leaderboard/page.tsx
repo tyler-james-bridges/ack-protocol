@@ -164,9 +164,7 @@ function LeaderboardPage() {
   const allAddresses = [
     ...new Set(
       [...(abstractAgentsList || []), ...(allAgentsList || [])]
-        .flatMap((a) =>
-          [a.owner_address, a.agent_wallet].filter(Boolean)
-        )
+        .flatMap((a) => [a.owner_address, a.agent_wallet].filter(Boolean))
         .map((a) => a.toLowerCase())
     ),
   ];

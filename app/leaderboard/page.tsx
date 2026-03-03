@@ -13,6 +13,8 @@ import { Nav } from '@/components/nav';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ScanAgent } from '@/lib/api';
+import { StreakBadge } from '@/components/streak-badge';
+import { useStreaksBulk } from '@/hooks';
 
 type SortKey =
   | 'created_at'
@@ -158,6 +160,29 @@ function LeaderboardPage() {
     (a, b) => b[1].length - a[1].length
   );
 
+  // Collect all owner/wallet addresses for bulk streak lookup
+  const allAddresses = [
+    ...new Set(
+      [...(abstractAgentsList || []), ...(allAgentsList || [])]
+        .flatMap((a) =>
+          [a.owner_address, a.agent_wallet].filter(Boolean)
+        )
+        .map((a) => a.toLowerCase())
+    ),
+  ];
+  const { data: streaksData } = useStreaksBulk(allAddresses);
+
+  const getAgentStreak = (agent: ScanAgent) => {
+    if (!streaksData) return undefined;
+    const ownerStreak = agent.owner_address
+      ? streaksData[agent.owner_address.toLowerCase()]
+      : undefined;
+    const walletStreak = agent.agent_wallet
+      ? streaksData[agent.agent_wallet.toLowerCase()]
+      : undefined;
+    return ownerStreak || walletStreak;
+  };
+
   const goToAgent = (agent: ScanAgent) =>
     router.push(`/agent/${agent.chain_id}/${agent.token_id}`);
 
@@ -270,6 +295,7 @@ function LeaderboardPage() {
                     agent={agent}
                     rank={i + 1}
                     sortBy={sortBy}
+                    streak={getAgentStreak(agent)}
                     onClick={() => goToAgent(agent)}
                   />
                 ))
@@ -370,6 +396,7 @@ function LeaderboardPage() {
                             agent={agent}
                             rank={i + 1}
                             sortBy={sortBy}
+                            streak={getAgentStreak(agent)}
                             onClick={() => goToAgent(agent)}
                           />
                         ))}
@@ -392,11 +419,13 @@ function AgentRow({
   agent,
   rank,
   sortBy,
+  streak,
   onClick,
 }: {
   agent: EnrichedAgent;
   rank: number;
   sortBy: SortKey;
+  streak?: { currentStreak: number; isActiveToday: boolean };
   onClick: () => void;
 }) {
   return (
@@ -415,7 +444,16 @@ function AgentRow({
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <AgentAvatar name={agent.name} imageUrl={agent.image_url} size={36} />
         <div className="min-w-0">
-          <p className="text-sm font-semibold truncate">{agent.name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-semibold truncate">{agent.name}</p>
+            {streak && streak.currentStreak > 0 && (
+              <StreakBadge
+                streak={streak.currentStreak}
+                isActive={streak.isActiveToday}
+                size="sm"
+              />
+            )}
+          </div>
           <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <ChainIcon chainId={agent.chain_id} size={12} />
             <span>{getChainName(agent.chain_id)}</span>

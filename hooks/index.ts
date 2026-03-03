@@ -38,3 +38,4 @@ export type { RecentKudos } from './useRecentKudos';
 export { useKudosGiven } from './useKudosGiven';
 export type { KudosGivenEvent } from './useKudosGiven';
 export { useIsAgent } from './useIsAgent';
+export { useStreak, useStreaksBulk, useTopStreakers } from './useStreak';

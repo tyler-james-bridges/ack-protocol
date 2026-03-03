@@ -17,11 +17,13 @@ import {
   useRecentKudos,
   useIsAgent,
   useLeaderboard,
+  useStreaksBulk,
 } from '@/hooks';
 import type { RecentKudos } from '@/hooks';
 import type { ScanAgent } from '@/lib/api';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { IdentityBadge } from '@/components/identity-badge';
+import { StreakBadge } from '@/components/streak-badge';
 import {
   useBlockTimestamps,
   formatRelativeTime,
@@ -40,12 +42,14 @@ function RecentKudosCard({
   agent,
   senderAgent,
   timestamp,
+  senderStreak,
 }: {
   kudos: RecentKudos;
   isAgent: boolean;
   agent?: ScanAgent;
   senderAgent?: ScanAgent;
   timestamp?: number;
+  senderStreak?: { currentStreak: number; isActiveToday: boolean };
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -73,6 +77,13 @@ function RecentKudosCard({
           {senderName}
         </Link>
         <IdentityBadge type={isAgent ? 'agent' : 'human'} />
+        {senderStreak && senderStreak.currentStreak > 0 && (
+          <StreakBadge
+            streak={senderStreak.currentStreak}
+            isActive={senderStreak.isActiveToday}
+            size="sm"
+          />
+        )}
         <span className="text-muted-foreground/40 text-xs shrink-0">to</span>
         <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
           <AgentAvatar
@@ -136,6 +147,12 @@ export default function GiveKudosPage() {
       if (a.agent_wallet) senderMap.set(a.agent_wallet.toLowerCase(), a);
     }
   }
+
+  // Fetch streaks for all senders
+  const streakAddresses = [
+    ...new Set(recentKudos?.map((k) => k.sender.toLowerCase()) || []),
+  ];
+  const { data: streaksData } = useStreaksBulk(streakAddresses);
 
   const handleSubmit = (data: {
     agent: { token_id: string; chain_id?: number };
@@ -320,6 +337,7 @@ export default function GiveKudosPage() {
                     agent={agentMap.get(k.agentId)}
                     senderAgent={senderMap.get(k.sender.toLowerCase())}
                     timestamp={timestamps?.get(k.blockNumber.toString())}
+                    senderStreak={streaksData?.[k.sender.toLowerCase()]}
                   />
                 ))}
               {recentKudos.filter(

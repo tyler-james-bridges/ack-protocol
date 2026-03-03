@@ -21,6 +21,8 @@ import {
 } from '@/hooks/useBlockTimestamps';
 import { createPublicClient, http, formatEther } from 'viem';
 import { abstract } from 'viem/chains';
+import { StreakCard } from '@/components/streak-card';
+import { useStreak } from '@/hooks';
 
 const abstractClient = createPublicClient({
   chain: abstract,
@@ -251,6 +253,7 @@ export default function UserProfilePage() {
   });
 
   const { data: kudosGiven, isLoading: loadingGiven } = useKudosGiven(address);
+  const { data: streakData } = useStreak(address);
 
   const agentIds = [...new Set(kudosGiven?.map((k) => k.agentId) || [])];
   const { data: agentMap } = useQuery({
@@ -489,6 +492,11 @@ export default function UserProfilePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Kudos Streak */}
+              {streakData && streakData.totalDaysActive > 0 && (
+                <StreakCard streak={streakData} />
+              )}
 
               {/* Reputation / Category Breakdown */}
               {sortedCategories.length > 0 && (

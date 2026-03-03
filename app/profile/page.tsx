@@ -18,9 +18,10 @@ import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { chain } from '@/config/chain';
 import { fetchAgents, type ScanAgent } from '@/lib/api';
-import { getChainName, useKudosGiven } from '@/hooks';
+import { getChainName, useKudosGiven, useStreak } from '@/hooks';
 import { useKudosReceived } from '@/hooks/useKudosReceived';
 import { CategoryBadge } from '@/components/category-badge';
+import { StreakCard } from '@/components/streak-card';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
 
 const BALANCE_OF_ABI = [
@@ -92,6 +93,8 @@ export default function ProfilePage() {
   const { data: kudosGiven, isLoading: loadingGiven } = useKudosGiven(
     address as `0x${string}` | undefined
   );
+
+  const { data: streakData } = useStreak(address);
 
   // Kudos received by this wallet's agent
   const { data: kudosReceived, isLoading: loadingReceived } = useKudosReceived(
@@ -255,6 +258,10 @@ export default function ProfilePage() {
                       value={myAgent.average_score.toFixed(1)}
                     />
                   </div>
+
+                  {streakData && streakData.totalDaysActive > 0 && (
+                    <StreakCard streak={streakData} />
+                  )}
 
                   <Link
                     href={`/agent/${myAgent.chain_id}/${myAgent.token_id}`}

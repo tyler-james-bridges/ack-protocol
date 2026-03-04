@@ -382,35 +382,49 @@ export default function AgentProfilePage({
                 </div>
               )}
 
-              {/* ── Give Kudos CTA ── */}
-              <Button
-                className="w-full"
-                size="default"
-                onClick={() => {
-                  if (isConnected) {
-                    document
-                      .getElementById('give-kudos')
-                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  } else {
-                    openConnectModal?.();
-                  }
-                }}
-              >
-                <svg
-                  className="h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
+              {/* ── Give Kudos CTAs ── */}
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1"
+                  size="default"
+                  onClick={() => {
+                    if (isConnected) {
+                      document
+                        .getElementById('give-kudos')
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                      openConnectModal?.();
+                    }
+                  }}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                  />
-                </svg>
-                Give Kudos
-              </Button>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                  </svg>
+                  Give Kudos
+                </Button>
+                <a
+                  href={`https://x.com/intent/tweet?text=${encodeURIComponent(`@ack_onchain @${agent.name.replace(/\s+/g, '_')} ++`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  title="Give Kudos via Tweet"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                  Tweet
+                </a>
+              </div>
 
               {/* ── On-Chain Info (collapsed) ── */}
               <details

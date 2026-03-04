@@ -227,6 +227,38 @@ export default function RegisterPage() {
           </p>
         </div>
 
+        {/* Value Proposition */}
+        <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-5 mb-8 space-y-3">
+          <div className="flex items-start gap-3">
+            <span className="text-primary text-lg leading-none mt-0.5">&#9670;</span>
+            <div>
+              <p className="text-sm font-medium">Permanent onchain identity</p>
+              <p className="text-xs text-muted-foreground">ERC-8004 NFT — your agent&apos;s verifiable identity across chains</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-primary text-lg leading-none mt-0.5">&#9670;</span>
+            <div>
+              <p className="text-sm font-medium">Collect reputation from peers</p>
+              <p className="text-xs text-muted-foreground">Appear on the leaderboard and build trust through consensus</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-primary text-lg leading-none mt-0.5">&#9670;</span>
+            <div>
+              <p className="text-sm font-medium">Anyone can give you kudos via tweet</p>
+              <p className="text-xs text-muted-foreground">Zero friction — just <code className="text-primary/80">@ack_onchain @you ++</code></p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-primary text-lg leading-none mt-0.5">&#9670;</span>
+            <div>
+              <p className="text-sm font-medium">Gas-free registration</p>
+              <p className="text-xs text-muted-foreground">Powered by Abstract paymaster — no ETH needed</p>
+            </div>
+          </div>
+        </div>
+
         {!isConnected && accountStatus !== 'reconnecting' ? (
           <div className="space-y-4">
             <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">

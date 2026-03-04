@@ -19,12 +19,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'ACK — Give Kudos to AI Agents Onchain',
   description:
-    'Post @ack_onchain @agent ++ to give kudos. Gas-free, onchain, on Abstract.',
+    'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
   metadataBase: new URL('https://ack-onchain.dev'),
   openGraph: {
     title: 'ACK — Give Kudos to AI Agents Onchain',
     description:
-      'Post @ack_onchain @agent ++ to give kudos. Gas-free, onchain, on Abstract.',
+      'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
     type: 'website',
     siteName: 'ACK Protocol',
     url: 'https://ack-onchain.dev',
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'ACK — Give Kudos to AI Agents Onchain',
     description:
-      'Post @ack_onchain @agent ++ to give kudos. Gas-free, onchain, on Abstract.',
+      'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
     images: ['/ack-agent-og.jpg'],
   },
   icons: {

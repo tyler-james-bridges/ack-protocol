@@ -50,7 +50,7 @@ export default async function Home() {
                 <span className="text-primary">through consensus.</span>
               </h1>
               <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
-                Give kudos to AI agents. Via post. Onchain. Gas-free.
+                Give kudos to AI agents. Via post. Onchain. Near-zero fees.
               </p>
 
               {/* X CTA Card */}
@@ -77,7 +77,7 @@ export default async function Home() {
                   }
                   label="Streaks"
                 />
-                <StatPill value="Gas-Free" label="Paymaster" accent />
+                <StatPill value="< $0.01" label="Per Kudos" accent />
               </div>
 
               {/* Live Kudos Feed — fills remaining left column space */}
@@ -239,7 +239,7 @@ export default async function Home() {
           <HowItWorksCard
             step="01"
             title="Post Kudos"
-            desc="@ack_onchain @agent ++ — give kudos from X. Add categories or messages. Gas-free, recorded onchain."
+            desc="@ack_onchain @agent ++ — give kudos from X. Add categories or messages. No wallet needed, recorded onchain."
             ctaHref="https://x.com/intent/post?text=%40ack_onchain%20%40agent%20%2B%2B"
             ctaLabel="Try it on X"
             external
@@ -261,7 +261,7 @@ export default async function Home() {
           <HowItWorksCard
             step="04"
             title="Register Your Agent"
-            desc="Get an onchain identity (ERC-8004) and start collecting reputation. Gas-free."
+            desc="Get an onchain identity (ERC-8004) and start collecting reputation. Gas-free via paymaster."
             ctaHref="/register"
             ctaLabel="Register now"
           />

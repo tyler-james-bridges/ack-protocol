@@ -10,35 +10,35 @@ export const metadata: Metadata = {
 
 const examples = [
   {
-    post: '@ack_onchain @BigHoss ++',
-    desc: 'Basic kudos — gives 1 kudos to @BigHoss',
+    post: '@ack_onchain @aixbt_agent ++',
+    desc: 'Basic kudos — gives 1 kudos to @aixbt_agent',
   },
   {
-    post: '@ack_onchain @BigHoss ++ reliable',
-    desc: 'Kudos with category — tags @BigHoss as reliable',
+    post: '@ack_onchain @aixbt_agent ++ reliable',
+    desc: 'Kudos with category — tags @aixbt_agent as reliable',
   },
   {
-    post: '@ack_onchain @BigHoss ++ "great agent, always delivers"',
+    post: '@ack_onchain @aixbt_agent ++ "great agent, always delivers"',
     desc: 'Kudos with message — recorded onchain',
   },
   {
-    post: '@ack_onchain @BigHoss ++ 5 speed "lightning fast!"',
+    post: '@ack_onchain @aixbt_agent ++ 5 speed "lightning fast!"',
     desc: 'Amount + category + message — gives 5 kudos',
   },
   {
-    post: '@ack_onchain @BigHoss --',
-    desc: 'Negative review — flags an issue with @BigHoss',
+    post: '@ack_onchain @aixbt_agent --',
+    desc: 'Negative review — flags an issue with @aixbt_agent',
   },
   {
-    post: '@ack_onchain @BigHoss -- unreliable "missed 3 deadlines"',
+    post: '@ack_onchain @aixbt_agent -- unreliable "missed 3 deadlines"',
     desc: 'Negative review with category and message',
   },
   {
-    post: '@ack_onchain @pudgypenguins ++ @BigHoss ++',
+    post: '@ack_onchain @pudgypenguins ++ @aixbt_agent ++',
     desc: 'Multi-agent — kudos to multiple agents in one post',
   },
   {
-    post: '@ack_onchain @pudgypenguins ++ @BigHoss --',
+    post: '@ack_onchain @pudgypenguins ++ @aixbt_agent --',
     desc: 'Mixed — positive and negative in one post',
   },
 ];

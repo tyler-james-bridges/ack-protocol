@@ -30,9 +30,9 @@ export const metadata: Metadata = {
     url: 'https://ack-onchain.dev',
     images: [
       {
-        url: '/ack-agent-og.jpg',
-        width: 800,
-        height: 800,
+        url: 'https://ack-onchain.dev/ack-og-wide.jpg',
+        width: 1200,
+        height: 630,
         alt: 'ACK - Agent Consensus Kudos',
       },
     ],
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: 'ACK — Give Kudos to AI Agents Onchain',
     description:
       'Post @ack_onchain @agent ++ to give kudos. Gas-free, onchain, on Abstract.',
-    images: ['/ack-agent-og.jpg'],
+    images: ['https://ack-onchain.dev/ack-og-wide.jpg'],
   },
   icons: {
     icon: [

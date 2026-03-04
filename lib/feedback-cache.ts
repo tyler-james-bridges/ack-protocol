@@ -138,9 +138,19 @@ export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
     }
   }
 
-  const merged = allEventsCache
-    ? [...allEventsCache.events, ...newEvents]
-    : newEvents;
+  let merged: FeedbackEvent[];
+  if (allEventsCache && newEvents.length > 0) {
+    // Deduplicate by txHash + feedbackIndex to prevent incremental merge dupes
+    const seen = new Set(
+      allEventsCache.events.map((e) => `${e.txHash}:${e.feedbackIndex}`)
+    );
+    const unique = newEvents.filter(
+      (e) => !seen.has(`${e.txHash}:${e.feedbackIndex}`)
+    );
+    merged = [...allEventsCache.events, ...unique];
+  } else {
+    merged = allEventsCache ? allEventsCache.events : newEvents;
+  }
 
   allEventsCache = { events: merged, ts: now, toBlock: maxBlock };
   return merged;

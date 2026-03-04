@@ -319,6 +319,10 @@ async function pollLoop(): Promise<void> {
   }
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function main(): Promise<void> {
   console.log('='.repeat(50));
   console.log('ACK Twitter Agent');
@@ -327,11 +331,12 @@ async function main(): Promise<void> {
   console.log(`Dry run: ${DRY_RUN}`);
   console.log('='.repeat(50));
 
-  // Initial poll
-  await pollLoop();
-
-  // Start polling loop
-  setInterval(pollLoop, POLL_INTERVAL * 1000);
+  // Sequential polling loop — waits for each poll to finish before sleeping.
+  // Prevents overlapping polls when onchain submissions are slow.
+  while (true) {
+    await pollLoop();
+    await sleep(POLL_INTERVAL * 1000);
+  }
 }
 
 main().catch((err) => {

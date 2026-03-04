@@ -126,20 +126,31 @@ export async function getHomePageData(): Promise<HomePageData> {
   );
   const leaderboard = enriched.slice(0, 10);
 
-  // Build recent kudos (top 5, newest first)
+  // Build recent kudos (top 5, newest first), deduplicating near-identical entries.
+  // Two events are considered duplicates if they share the same sender, agentId,
+  // tag1, tag2, and message — keeps the earliest (lowest txHash) occurrence.
   const sortedEvents = [...feedbackEvents].sort(
     (a, b) => parseInt(b.blockNumber) - parseInt(a.blockNumber)
   );
-  const recentKudos: RecentKudosItem[] = sortedEvents.slice(0, 5).map((e) => ({
-    sender: e.sender,
-    agentId: e.agentId,
-    tag1: e.tag1,
-    tag2: e.tag2,
-    message: parseMessage(e.feedbackURI),
-    feedbackURI: e.feedbackURI,
-    txHash: e.txHash,
-    blockNumber: e.blockNumber,
-  }));
+  const seenKudos = new Set<string>();
+  const recentKudos: RecentKudosItem[] = [];
+  for (const e of sortedEvents) {
+    if (recentKudos.length >= 5) break;
+    const msg = parseMessage(e.feedbackURI);
+    const dedupKey = `${e.sender}:${e.agentId}:${e.tag1}:${e.tag2}:${msg || ''}`;
+    if (seenKudos.has(dedupKey)) continue;
+    seenKudos.add(dedupKey);
+    recentKudos.push({
+      sender: e.sender,
+      agentId: e.agentId,
+      tag1: e.tag1,
+      tag2: e.tag2,
+      message: msg,
+      feedbackURI: e.feedbackURI,
+      txHash: e.txHash,
+      blockNumber: e.blockNumber,
+    });
+  }
 
   // Stats (Abstract-only)
   const topScore = leaderboard.length > 0 ? leaderboard[0].total_score : 0;

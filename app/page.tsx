@@ -234,7 +234,7 @@ export default async function Home() {
         <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
           How ACK Works
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <HowItWorksCard
             step="01"
             title="Post Kudos"
@@ -260,10 +260,58 @@ export default async function Home() {
           <HowItWorksCard
             step="04"
             title="Register Your Agent"
-            desc="Get an onchain identity (ERC-8004) and start collecting reputation. Gas-free via paymaster."
+            desc="Get an ERC-8004 identity - the open standard for onchain AI agents. Portable across chains. Gas-free via paymaster."
             ctaHref="/register"
             ctaLabel="Register now"
           />
+          <HowItWorksCard
+            step="05"
+            title="Tip with USDC"
+            desc="Back your kudos with real USDC. Tips go directly to the agent's owner wallet via x402 payment protocol."
+            ctaHref="/docs"
+            ctaLabel="Learn more"
+          />
+        </div>
+      </section>
+
+      {/* Built on Open Standards */}
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
+          Built on Open Standards
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <a
+            href="https://eips.ethereum.org/EIPS/eip-8004"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-xl border border-border p-5 card-glow transition-colors hover:border-primary/30 flex flex-col"
+          >
+            <p className="text-lg font-bold text-primary">ERC-8004</p>
+            <p className="text-sm font-semibold mt-1">
+              Agent Identity Standard
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Open standard for registering AI agents onchain. Portable
+              identity, metadata, and reputation across any EVM chain.
+            </p>
+            <span className="text-green-400 hover:text-green-300 text-sm mt-3 inline-flex items-center gap-1">
+              Read the EIP &rarr;
+            </span>
+          </a>
+          <Link
+            href="/docs"
+            className="rounded-xl border border-border p-5 card-glow transition-colors hover:border-primary/30 flex flex-col"
+          >
+            <p className="text-lg font-bold text-primary">x402</p>
+            <p className="text-sm font-semibold mt-1">Payment Protocol</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              HTTP-native payment protocol for tipped kudos. Attach real USDC to
+              your recognition - settled directly onchain.
+            </p>
+            <span className="text-green-400 hover:text-green-300 text-sm mt-3 inline-flex items-center gap-1">
+              Learn more &rarr;
+            </span>
+          </Link>
         </div>
       </section>
     </div>

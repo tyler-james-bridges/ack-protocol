@@ -5,6 +5,8 @@ import { ChainIcon } from '@/components/chain-icon';
 import { HeroSearch } from '@/components/hero-search';
 import { ServerKudosFeed } from '@/components/server-kudos-feed';
 import { StreakBadge } from '@/components/streak-badge';
+import { TwitterSyntax } from '@/components/twitter-syntax';
+import { TwitterCTA } from '@/components/twitter-cta';
 import { getHomePageData } from '@/lib/home-data';
 import type { ScanAgent } from '@/lib/api';
 
@@ -49,8 +51,11 @@ export default async function Home() {
                 <span className="text-primary">through consensus.</span>
               </h1>
               <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
-                Discover, review, and build trust for AI agents on Abstract.
+                Give kudos to AI agents. Via tweet. Onchain. Gas-free.
               </p>
+
+              {/* Twitter CTA Card */}
+              <TwitterCTA />
 
               {/* Search — client island */}
               <HeroSearch />
@@ -67,13 +72,13 @@ export default async function Home() {
                 />
                 <StatPill
                   value={
-                    data.stats.top_score > 0
-                      ? data.stats.top_score.toFixed(1)
+                    data.activeStreakCount > 0
+                      ? data.activeStreakCount.toLocaleString()
                       : '...'
                   }
-                  label="Top Score"
+                  label="Streaks"
                 />
-                <StatPill value="Live" label="Abstract" accent />
+                <StatPill value="Gas-Free" label="Paymaster" accent />
               </div>
 
               {/* Live Kudos Feed — fills remaining left column space */}
@@ -181,40 +186,93 @@ export default async function Home() {
         />
       </section>
 
-      {/* How It Works */}
+      {/* Top Streakers */}
+      {data.topStreakers.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pb-10">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider">
+              Top Streakers
+            </h2>
+            <Link
+              href="/leaderboard"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              View all →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {data.topStreakers.map(({ address, streak }) => (
+              <Link
+                key={address}
+                href={`/address/${address}`}
+                className="rounded-xl border border-border p-3 card-glow hover:border-primary/30 transition-colors text-center"
+              >
+                <AgentAvatar
+                  name={address}
+                  size={36}
+                  className="mx-auto mb-2 rounded-full"
+                />
+                <p className="text-xs font-mono text-muted-foreground truncate">
+                  {address.slice(0, 6)}...{address.slice(-4)}
+                </p>
+                <div className="mt-1 flex items-center justify-center gap-1">
+                  <StreakBadge
+                    streak={streak.currentStreak}
+                    isActive={streak.isActiveToday}
+                    size="sm"
+                  />
+                </div>
+              </Link>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3 text-center lg:text-left">
+            Start your streak — give kudos today
+          </p>
+        </section>
+      )}
+
+      {/* Twitter Syntax Reference + How It Works */}
       <section className="mx-auto max-w-6xl px-4 pb-16">
-        <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
-          How ACK Works
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-stretch">
-          <HowItWorksCard
-            step="01"
-            title="Discover Services"
-            desc="Browse AI agents, MCP servers, and services registered on Abstract."
-            ctaHref="/register"
-            ctaLabel="Register your agent"
-          />
-          <HowItWorksCard
-            step="02"
-            title="Review Reputation"
-            desc="See scores, reviews, and reputation breakdowns for any registered service."
-            ctaHref="/kudos"
-            ctaLabel="Give kudos"
-          />
-          <HowItWorksCard
-            step="03"
-            title="Give Feedback"
-            desc="Connect your wallet to leave onchain kudos or reviews across categories like reliability, speed, and accuracy."
-            ctaHref="/leaderboard"
-            ctaLabel="View leaderboard"
-          />
-          <HowItWorksCard
-            step="04"
-            title="Build Consensus"
-            desc="Reputation grows from peer consensus. More feedback from trusted sources = stronger signal."
-            ctaHref="/leaderboard"
-            ctaLabel="Browse agents"
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-1">
+            <TwitterSyntax />
+          </div>
+          <div className="lg:col-span-2">
+            <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
+              How ACK Works
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
+              <HowItWorksCard
+                step="01"
+                title="Tweet Kudos"
+                desc="@ack_onchain @agent ++ — give kudos from X. Add categories or messages. Gas-free, recorded onchain."
+                ctaHref="https://x.com/intent/tweet?text=%40ack_onchain%20%40agent%20%2B%2B"
+                ctaLabel="Try it on X"
+                external
+              />
+              <HowItWorksCard
+                step="02"
+                title="Build Streaks"
+                desc="Give kudos daily to build your streak. Streakers earn badges on the leaderboard."
+                ctaHref="/leaderboard"
+                ctaLabel="View streakers"
+              />
+              <HowItWorksCard
+                step="03"
+                title="Explore Reputation"
+                desc="See scores, peer reviews, and category breakdowns for any registered agent."
+                ctaHref="/leaderboard"
+                ctaLabel="Browse agents"
+              />
+              <HowItWorksCard
+                step="04"
+                title="Register Your Agent"
+                desc="Get an onchain identity (ERC-8004) and start collecting reputation. Gas-free."
+                ctaHref="/register"
+                ctaLabel="Register now"
+              />
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -227,12 +285,14 @@ function HowItWorksCard({
   desc,
   ctaHref,
   ctaLabel,
+  external,
 }: {
   step: string;
   title: string;
   desc: string;
   ctaHref?: string;
   ctaLabel?: string;
+  external?: boolean;
 }) {
   return (
     <div className="rounded-xl border border-border p-4 card-glow transition-colors hover:border-primary/30 h-full flex flex-col">
@@ -241,14 +301,25 @@ function HowItWorksCard({
       </span>
       <p className="font-semibold text-sm mt-1">{title}</p>
       <p className="text-xs text-muted-foreground mt-1">{desc}</p>
-      {ctaHref && ctaLabel && (
-        <Link
-          href={ctaHref}
-          className="text-green-400 hover:text-green-300 text-sm mt-2 inline-flex items-center gap-1"
-        >
-          {ctaLabel} &rarr;
-        </Link>
-      )}
+      {ctaHref &&
+        ctaLabel &&
+        (external ? (
+          <a
+            href={ctaHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-green-400 hover:text-green-300 text-sm mt-2 inline-flex items-center gap-1"
+          >
+            {ctaLabel} &rarr;
+          </a>
+        ) : (
+          <Link
+            href={ctaHref}
+            className="text-green-400 hover:text-green-300 text-sm mt-2 inline-flex items-center gap-1"
+          >
+            {ctaLabel} &rarr;
+          </Link>
+        ))}
     </div>
   );
 }

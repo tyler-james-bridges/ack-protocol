@@ -8,7 +8,7 @@
 import { createPublicClient, http } from 'viem';
 import { abstract } from 'viem/chains';
 import { getAllFeedbackEvents, type FeedbackEvent } from './feedback-cache';
-import { getAllStreaks, type StreakData } from './streaks';
+import { getAllStreaks, getTopStreakers, type StreakData } from './streaks';
 import type { ScanAgent } from './api';
 
 const SCAN_API = 'https://www.8004scan.io/api/v1';
@@ -40,6 +40,8 @@ export interface HomePageData {
   };
   timestamps: Record<string, number>;
   streaks: Record<string, StreakData>;
+  topStreakers: { address: string; streak: StreakData }[];
+  activeStreakCount: number;
 }
 
 function parseMessage(feedbackURI: string): string | null {
@@ -165,6 +167,13 @@ export async function getHomePageData(): Promise<HomePageData> {
     );
   }
 
+  // Top streakers for homepage section
+  const topStreakers = await getTopStreakers(5);
+  let activeStreakCount = 0;
+  for (const [, s] of allStreaks) {
+    if (s.currentStreak > 0) activeStreakCount++;
+  }
+
   // Collect relevant streaks for leaderboard agents and recent kudos senders
   const relevantAddresses = new Set<string>();
   for (const agent of leaderboard) {
@@ -190,5 +199,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     stats,
     timestamps,
     streaks,
+    topStreakers,
+    activeStreakCount,
   };
 }

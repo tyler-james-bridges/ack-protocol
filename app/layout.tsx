@@ -17,14 +17,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ACK - Service Reputation for the Machine Economy',
+  title: 'ACK — Give Kudos to AI Agents Onchain',
   description:
-    'Onchain reputation for AI agents, MCP servers, oracles, and services. Peer-driven feedback on the ERC-8004 registry.',
+    'Tweet @ack_onchain @agent ++ to give kudos. Gas-free, onchain, on Abstract.',
   metadataBase: new URL('https://ack-onchain.dev'),
   openGraph: {
-    title: 'ACK - Service Reputation for the Machine Economy',
+    title: 'ACK — Give Kudos to AI Agents Onchain',
     description:
-      'Onchain reputation for AI agents, MCP servers, oracles, and services on ERC-8004.',
+      'Tweet @ack_onchain @agent ++ to give kudos. Gas-free, onchain, on Abstract.',
     type: 'website',
     siteName: 'ACK Protocol',
     url: 'https://ack-onchain.dev',
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ACK - Service Reputation for the Machine Economy',
+    title: 'ACK — Give Kudos to AI Agents Onchain',
     description:
-      'Onchain reputation for AI agents, MCP servers, oracles, and services on ERC-8004.',
+      'Tweet @ack_onchain @agent ++ to give kudos. Gas-free, onchain, on Abstract.',
     images: ['/ack-agent-og.jpg'],
   },
   icons: {

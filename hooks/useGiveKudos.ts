@@ -90,6 +90,7 @@ export function useGiveKudos() {
           fromAgentId: params.fromAgentId,
           value,
           tag1,
+          valueDecimals: decimals,
         });
 
         writeContract(

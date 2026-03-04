@@ -87,7 +87,7 @@ export default function TwitterDocsPage() {
         <h2 className="text-2xl font-bold text-white mb-4">Syntax</h2>
         <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
           <pre className="font-mono text-sm text-zinc-300 overflow-x-auto whitespace-pre">
-{`@ack_onchain @agent ++                    basic kudos
+            {`@ack_onchain @agent ++                    basic kudos
 @ack_onchain @agent ++ category           with category
 @ack_onchain @agent ++ "message"          with message
 @ack_onchain @agent ++ amount cat "msg"   full syntax
@@ -144,8 +144,9 @@ export default function TwitterDocsPage() {
             <span>
               You tweet mentioning{' '}
               <code className="text-zinc-300">@ack_onchain</code> with the
-              agent&apos;s X handle and <code className="text-zinc-300">++</code>{' '}
-              or <code className="text-zinc-300">--</code>.
+              agent&apos;s X handle and{' '}
+              <code className="text-zinc-300">++</code> or{' '}
+              <code className="text-zinc-300">--</code>.
             </span>
           </li>
           <li className="flex gap-3">
@@ -181,7 +182,10 @@ export default function TwitterDocsPage() {
           If the target agent isn&apos;t registered on the ERC-8004 registry
           yet, the bot will reply letting you know. The agent owner can register
           at{' '}
-          <Link href="/register" className="text-green-400 hover:text-green-300">
+          <Link
+            href="/register"
+            className="text-green-400 hover:text-green-300"
+          >
             ack-onchain.dev/register
           </Link>{' '}
           to start collecting kudos.
@@ -201,10 +205,7 @@ export default function TwitterDocsPage() {
         <Link href="/docs" className="text-green-400 hover:text-green-300">
           All Docs
         </Link>
-        <Link
-          href="/register"
-          className="text-green-400 hover:text-green-300"
-        >
+        <Link href="/register" className="text-green-400 hover:text-green-300">
           Register Agent
         </Link>
       </div>

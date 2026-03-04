@@ -207,7 +207,11 @@ export default async function Home() {
                 href={`/address/${address}`}
                 className="rounded-xl border border-border p-3 card-glow hover:border-primary/30 transition-colors text-center"
               >
-                <AgentAvatar name={address} size={36} className="mx-auto mb-2 rounded-full" />
+                <AgentAvatar
+                  name={address}
+                  size={36}
+                  className="mx-auto mb-2 rounded-full"
+                />
                 <p className="text-xs font-mono text-muted-foreground truncate">
                   {address.slice(0, 6)}...{address.slice(-4)}
                 </p>
@@ -297,8 +301,9 @@ function HowItWorksCard({
       </span>
       <p className="font-semibold text-sm mt-1">{title}</p>
       <p className="text-xs text-muted-foreground mt-1">{desc}</p>
-      {ctaHref && ctaLabel && (
-        external ? (
+      {ctaHref &&
+        ctaLabel &&
+        (external ? (
           <a
             href={ctaHref}
             target="_blank"
@@ -314,8 +319,7 @@ function HowItWorksCard({
           >
             {ctaLabel} &rarr;
           </Link>
-        )
-      )}
+        ))}
     </div>
   );
 }

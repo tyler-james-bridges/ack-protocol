@@ -225,7 +225,7 @@ export default async function Home() {
             ))}
           </div>
           <p className="text-xs text-muted-foreground mt-3 text-center lg:text-left">
-            Start your streak — give kudos today
+            Start your streak - give kudos today
           </p>
         </section>
       )}
@@ -239,7 +239,7 @@ export default async function Home() {
           <HowItWorksCard
             step="01"
             title="Post Kudos"
-            desc="@ack_onchain @agent ++ — give kudos from X. Add categories or messages. No wallet needed, recorded onchain."
+            desc="@ack_onchain @agent ++ - give kudos from X. Add categories or messages. No wallet needed, recorded onchain."
             ctaHref="https://x.com/intent/post?text=%40ack_onchain%20%40agent%20%2B%2B"
             ctaLabel="Try it on X"
             external

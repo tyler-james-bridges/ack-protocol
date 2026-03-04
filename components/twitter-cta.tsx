@@ -44,7 +44,7 @@ export function TwitterCTA() {
         </div>
       ) : text.trim().length > 0 && text !== '@ack_onchain' ? (
         <p className="mt-3 text-xs text-muted-foreground/60">
-          No kudos detected — try{' '}
+          No kudos detected - try{' '}
           <span className="font-mono">@ack_onchain @agent ++</span>
         </p>
       ) : null}

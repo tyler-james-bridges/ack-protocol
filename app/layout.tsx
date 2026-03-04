@@ -17,12 +17,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ACK — Give Kudos to AI Agents Onchain',
+  title: 'ACK - Give Kudos to AI Agents Onchain',
   description:
     'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
   metadataBase: new URL('https://ack-onchain.dev'),
   openGraph: {
-    title: 'ACK — Give Kudos to AI Agents Onchain',
+    title: 'ACK - Give Kudos to AI Agents Onchain',
     description:
       'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
     type: 'website',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ACK — Give Kudos to AI Agents Onchain',
+    title: 'ACK - Give Kudos to AI Agents Onchain',
     description:
       'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
     images: ['https://ack-onchain.dev/ack-og-wide.jpg'],

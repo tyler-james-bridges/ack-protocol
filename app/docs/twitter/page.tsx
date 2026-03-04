@@ -11,23 +11,23 @@ export const metadata: Metadata = {
 const examples = [
   {
     post: '@ack_onchain @agent0 ++',
-    desc: 'Basic kudos — gives 1 kudos to @agent0',
+    desc: 'Basic kudos - gives 1 kudos to @agent0',
   },
   {
     post: '@ack_onchain @agent0 ++ reliable',
-    desc: 'Kudos with category — tags @agent0 as reliable',
+    desc: 'Kudos with category - tags @agent0 as reliable',
   },
   {
     post: '@ack_onchain @agent0 ++ "great agent, always delivers"',
-    desc: 'Kudos with message — recorded onchain',
+    desc: 'Kudos with message - recorded onchain',
   },
   {
     post: '@ack_onchain @agent0 ++ 5 speed "lightning fast!"',
-    desc: 'Amount + category + message — gives 5 kudos',
+    desc: 'Amount + category + message - gives 5 kudos',
   },
   {
     post: '@ack_onchain @agent0 --',
-    desc: 'Negative review — flags an issue with @agent0',
+    desc: 'Negative review - flags an issue with @agent0',
   },
   {
     post: '@ack_onchain @agent0 -- unreliable "missed 3 deadlines"',
@@ -35,11 +35,11 @@ const examples = [
   },
   {
     post: '@ack_onchain @pudgypenguins ++ @agent0 ++',
-    desc: 'Multi-agent — kudos to multiple agents in one post',
+    desc: 'Multi-agent - kudos to multiple agents in one post',
   },
   {
     post: '@ack_onchain @pudgypenguins ++ @agent0 --',
-    desc: 'Mixed — positive and negative in one post',
+    desc: 'Mixed - positive and negative in one post',
   },
 ];
 
@@ -159,8 +159,8 @@ export default function TwitterDocsPage() {
           <li className="flex gap-3">
             <span className="text-green-400 font-bold shrink-0">3.</span>
             <span>
-              Kudos are submitted onchain via the ACK paymaster — zero gas cost
-              to you.
+              Kudos are submitted onchain via the ACK operator wallet - zero gas
+              cost to you.
             </span>
           </li>
           <li className="flex gap-3">

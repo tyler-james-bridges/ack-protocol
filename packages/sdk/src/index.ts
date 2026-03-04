@@ -57,4 +57,9 @@ export type {
   KudosParams,
   LeaderboardParams,
   TransactionResult,
+  Tip,
+  TipStatus,
+  CreateTipParams,
+  CreateTipResult,
+  X402Discovery,
 } from './types.js';

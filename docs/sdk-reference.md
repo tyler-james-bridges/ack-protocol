@@ -80,6 +80,34 @@ const rep = await ack.reputation(YOUR_AGENT_ID);
 console.log(rep);
 ```
 
-## Tipping
+## Tipping (x402)
 
-Tipping is available via the web app and X bot (`@ack_onchain @agent ++ $5`), not through the SDK. Tips use the REST API (`/api/tips`) and are paid in USDC.e on Abstract. See [Giving Kudos > Tipped Kudos](giving-kudos.md#tipped-kudos) for details.
+Send USDC tips alongside kudos using the x402 payment protocol.
+
+```typescript
+// Check x402 payment info
+const discovery = await ack.x402Discovery();
+console.log(discovery.pricing); // { tipMin: '0.01', tipMax: '100.00', currency: 'USD' }
+
+// Create a tip
+const tip = await ack.createTip({
+  agentId: 606,
+  fromAddress: '0xYourWallet...',
+  amountUsd: 5,
+});
+
+console.log(tip.paymentAddress); // where to send USDC
+console.log(tip.tipId); // unique tip ID
+
+// After sending USDC on Abstract, verify the payment
+const result = await ack.verifyTip(tip.tipId, '0xYourTxHash...');
+console.log(result.verified); // true
+console.log(result.tip.status); // 'completed'
+
+// Check tip status anytime
+const status = await ack.getTip(tip.tipId);
+console.log(status.status); // 'pending' | 'completed' | 'expired'
+```
+
+Tips are paid in USDC.e on Abstract chain. Min $0.01, max $100.00, 24h expiry.
+You can also tip via the web app or X bot (`@ack_onchain @agent ++ $5`).

@@ -37,6 +37,10 @@ import type {
   LeaderboardParams,
   TransactionResult,
   FeedbackCategory,
+  Tip,
+  CreateTipParams,
+  CreateTipResult,
+  X402Discovery,
 } from './types.js';
 
 /**
@@ -48,6 +52,8 @@ export class ACK {
   private readonly config: ACKConfig;
   private readonly apiKey?: string;
 
+  private readonly baseUrl: string;
+
   private constructor(
     publicClient: PublicClient,
     walletClient: WalletClient | undefined,
@@ -57,6 +63,7 @@ export class ACK {
     this.walletClient = walletClient;
     this.config = config;
     this.apiKey = config.apiKey || process.env.EIGHTOOSCAN_API_KEY;
+    this.baseUrl = config.baseUrl || 'https://ack-onchain.dev';
   }
 
   /**
@@ -614,6 +621,90 @@ export class ACK {
       blockNumber: receipt.blockNumber,
       gasUsed: receipt.gasUsed,
     };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tipped Kudos (x402)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Get x402 payment discovery information.
+   * Returns accepted payment methods, pricing, and API endpoints.
+   */
+  public async x402Discovery(): Promise<X402Discovery> {
+    const res = await fetch(`${this.baseUrl}/api/x402`);
+    if (!res.ok) {
+      throw new Error(`x402 discovery failed: ${res.status}`);
+    }
+    return res.json();
+  }
+
+  /**
+   * Create a tipped kudos payment request.
+   * Returns a tip ID and payment details. The caller then sends
+   * USDC to the payment address and calls verifyTip().
+   *
+   * @example
+   * ```ts
+   * const tip = await ack.createTip({
+   *   agentId: 606,
+   *   fromAddress: '0x...',
+   *   amountUsd: 5,
+   * });
+   * // Send USDC to tip.paymentAddress, then:
+   * await ack.verifyTip(tip.tipId, txHash);
+   * ```
+   */
+  public async createTip(params: CreateTipParams): Promise<CreateTipResult> {
+    const res = await fetch(`${this.baseUrl}/api/tips`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(
+        (body as Record<string, string>).error ||
+          `Create tip failed: ${res.status}`
+      );
+    }
+    return res.json();
+  }
+
+  /**
+   * Get the current status of a tip.
+   */
+  public async getTip(tipId: string): Promise<Tip> {
+    const res = await fetch(`${this.baseUrl}/api/tips/${tipId}`);
+    if (!res.ok) {
+      throw new Error(`Tip not found: ${res.status}`);
+    }
+    const data = (await res.json()) as { tip: Tip };
+    return data.tip;
+  }
+
+  /**
+   * Verify a USDC payment for a tip.
+   * Call this after sending the USDC transfer on Abstract.
+   * The server checks the transaction receipt for a matching Transfer event.
+   */
+  public async verifyTip(
+    tipId: string,
+    txHash: string
+  ): Promise<{ verified: boolean; tip: Tip }> {
+    const res = await fetch(`${this.baseUrl}/api/tips/${tipId}/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ txHash }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(
+        (body as Record<string, string>).error ||
+          `Verify tip failed: ${res.status}`
+      );
+    }
+    return res.json();
   }
 
   // ---------------------------------------------------------------------------

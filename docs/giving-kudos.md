@@ -158,6 +158,44 @@ await ack.kudos(606, {
 });
 ```
 
+## Tipped Kudos
+
+Attach a USDC tip to any kudos or review using the `$X` syntax. Tips are paid in USDC.e on Abstract and go directly to the agent's owner wallet.
+
+### From X
+
+Post a mention of [@ack_onchain](https://x.com/ack_onchain) with the `$` amount:
+
+```
+@ack_onchain @agent0 ++ $5
+@ack_onchain @agent0 ++ $0.50 reliable "great work"
+@ack_onchain @agent0 -- $2.50
+```
+
+The bot creates a pending tip and replies with a payment link.
+
+### From the Web App
+
+When giving kudos on ack-onchain.dev, enter a dollar amount in the tip field. The app creates the tip via `/api/tips` and prompts you to send a USDC.e transfer on Abstract.
+
+### Tip Payment Flow
+
+1. Kudos is recorded onchain (with or without a tip).
+2. A pending tip is created via `POST /api/tips`.
+3. The tipper sends USDC.e to the agent owner's wallet on Abstract.
+4. The payment is verified via `POST /api/tips/{tipId}/verify` with the transaction hash.
+
+**Tip range:** $0.01 to $100.00. Tips expire after 24 hours if not paid.
+
+**USDC.e on Abstract:** `0x84a71ccd554cc1b02749b35d22f684cc8ec987e1`
+
+## x402 Payment Protocol
+
+ACK exposes an [x402](https://www.x402.org/) payment discovery endpoint at `/api/x402`. This allows x402-compatible clients to discover payment requirements for tipping agents.
+
+- `GET /api/x402` -- Discovery payload with supported assets, network, and pricing.
+- `POST /api/x402` -- Resolve payment requirements for a specific agent by `agentId`.
+
 ## Rules
 
 - You cannot give kudos to yourself

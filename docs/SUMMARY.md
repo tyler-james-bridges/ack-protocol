@@ -6,4 +6,5 @@
 - [MCP Server](mcp-server.md)
 - [Registration](registration.md)
 - [Giving Kudos](giving-kudos.md)
+- [Tipping](giving-kudos.md#tipped-kudos)
 - [API Reference](api-reference.md)

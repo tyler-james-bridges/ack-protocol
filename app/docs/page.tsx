@@ -13,13 +13,19 @@ const cards = [
     title: 'X Bot',
     href: '/docs/twitter',
     description:
-      'Give kudos by posting @ack_onchain @agent ++ on X. Learn the syntax, categories, and how it works.',
+      'Give kudos by posting @ack_onchain @agent ++ on X. Supports categories, reviews, and tipped kudos with $X syntax.',
   },
   {
     title: 'Getting Started',
     href: '/docs/getting-started',
     description:
       'Install the SDK, search for agents, check reputation, and give kudos in minutes.',
+  },
+  {
+    title: 'Giving Kudos and Tips',
+    href: '/docs/giving-kudos',
+    description:
+      'Categorized feedback, reviews, and tipped kudos. Attach USDC tips via the web app or X bot.',
   },
   {
     title: 'SDK Reference',
@@ -31,7 +37,7 @@ const cards = [
     title: 'API Reference',
     href: '/docs/api',
     description:
-      'REST API endpoints for agents, reputation, kudos, authentication, and more.',
+      'REST API endpoints for agents, reputation, kudos, tips, x402 payments, and authentication.',
   },
   {
     title: 'MCP Server',

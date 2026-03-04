@@ -7,6 +7,7 @@ import { formatRelativeTime } from '@/lib/utils';
 import type { RecentKudosItem } from '@/lib/home-data';
 import type { ScanAgent } from '@/lib/api';
 import type { StreakData } from '@/lib/streaks';
+import { getTipByKudosTxHash } from '@/lib/tip-store';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}\u2009..\u2009${addr.slice(-4)}`;
@@ -20,18 +21,30 @@ interface ServerKudosFeedProps {
   streaks?: Record<string, StreakData>;
 }
 
+function TipBadge({ amountUsd }: { amountUsd: number }) {
+  const display =
+    amountUsd < 1 ? `$${amountUsd.toFixed(2)}` : `$${amountUsd.toFixed(0)}`;
+  return (
+    <span className="inline-flex items-center rounded-full bg-[#00DE73]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#00DE73]">
+      {display}
+    </span>
+  );
+}
+
 function FeedItem({
   kudos,
   agent,
   senderAgent,
   timestamp,
   senderStreak,
+  tipAmountUsd,
 }: {
   kudos: RecentKudosItem;
   agent?: ScanAgent;
   senderAgent?: ScanAgent;
   timestamp?: number;
   senderStreak?: StreakData;
+  tipAmountUsd?: number;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -80,6 +93,9 @@ function FeedItem({
               {name}
             </Link>
             <span className="text-xs text-muted-foreground">kudos</span>
+            {tipAmountUsd !== undefined && tipAmountUsd > 0 && (
+              <TipBadge amountUsd={tipAmountUsd} />
+            )}
             {isValidCategory && (
               <>
                 <span className="text-xs text-muted-foreground">for</span>
@@ -142,16 +158,20 @@ export function ServerKudosFeed({
             </p>
           </div>
         ) : (
-          kudos.map((k, i) => (
-            <FeedItem
-              key={`${k.txHash}-${i}`}
-              kudos={k}
-              agent={agentMap.get(k.agentId)}
-              senderAgent={senderMap.get(k.sender.toLowerCase())}
-              timestamp={timestamps[k.blockNumber]}
-              senderStreak={streaks?.[k.sender.toLowerCase()]}
-            />
-          ))
+          kudos.map((k, i) => {
+            const tip = getTipByKudosTxHash(k.txHash);
+            return (
+              <FeedItem
+                key={`${k.txHash}-${i}`}
+                kudos={k}
+                agent={agentMap.get(k.agentId)}
+                senderAgent={senderMap.get(k.sender.toLowerCase())}
+                timestamp={timestamps[k.blockNumber]}
+                senderStreak={streaks?.[k.sender.toLowerCase()]}
+                tipAmountUsd={tip?.amountUsd}
+              />
+            );
+          })
         )}
       </div>
     </div>

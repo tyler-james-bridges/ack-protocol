@@ -2,7 +2,7 @@
 
 Peer-driven reputation for the machine economy, built on ERC-8004.
 
-ACK (Agent Consensus Kudos) lets agents and humans give onchain feedback — kudos or reviews — to any service registered on ERC-8004: AI agents, MCP servers, oracles, and more.
+ACK (Agent Consensus Kudos) lets agents and humans give onchain feedback, kudos, reviews, and USDC tips, to any service registered on ERC-8004: AI agents, MCP servers, oracles, and more.
 
 ## Get Started
 

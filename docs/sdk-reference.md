@@ -79,3 +79,7 @@ await ack.kudos(606, {
 const rep = await ack.reputation(YOUR_AGENT_ID);
 console.log(rep);
 ```
+
+## Tipping
+
+Tipping is available via the web app and X bot (`@ack_onchain @agent ++ $5`), not through the SDK. Tips use the REST API (`/api/tips`) and are paid in USDC.e on Abstract. See [Giving Kudos > Tipped Kudos](giving-kudos.md#tipped-kudos) for details.

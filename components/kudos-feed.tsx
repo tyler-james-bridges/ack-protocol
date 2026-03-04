@@ -41,6 +41,14 @@ function parseMessage(feedbackURI: string): string | null {
   return null;
 }
 
+function TipBadge({ amountUsd }: { amountUsd: number }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-[#00FF94]/10 text-[#00FF94] text-[10px] font-semibold px-1.5 py-0.5 tabular-nums">
+      ${amountUsd.toFixed(amountUsd < 1 ? 2 : 0)}
+    </span>
+  );
+}
+
 function KudosCard({
   kudos,
   agentId,
@@ -48,6 +56,7 @@ function KudosCard({
   senderAgent,
   timestamp,
   isSenderAgent,
+  tipAmountUsd,
 }: {
   kudos: KudosEvent;
   agentId: number;
@@ -55,6 +64,7 @@ function KudosCard({
   senderAgent?: ScanAgent;
   timestamp?: number;
   isSenderAgent: boolean;
+  tipAmountUsd?: number;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -110,12 +120,17 @@ function KudosCard({
               </>
             )}
           </div>
-          <a
-            href={`/kudos/${kudos.txHash}`}
-            className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
-          >
-            {timestamp ? formatRelativeTime(timestamp) : 'tx'}
-          </a>
+          <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+            {tipAmountUsd !== undefined && tipAmountUsd > 0 && (
+              <TipBadge amountUsd={tipAmountUsd} />
+            )}
+            <a
+              href={`/kudos/${kudos.txHash}`}
+              className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+            >
+              {timestamp ? formatRelativeTime(timestamp) : 'tx'}
+            </a>
+          </div>
         </div>
 
         {message && (

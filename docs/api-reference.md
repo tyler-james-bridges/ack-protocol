@@ -18,6 +18,11 @@ All endpoints are on `ack-onchain.dev`.
 | `/api/vouch`                | POST     | SIWA | Vouch for unregistered agent      |
 | `/api/vouch/{address}`      | GET      | None | Get pending vouches               |
 | `/api/onboard`              | POST     | SIWA | Agent onboarding flow             |
+| `/api/tips`                 | POST     | None | Create a pending tip              |
+| `/api/tips/{tipId}`         | GET      | None | Get tip status                    |
+| `/api/tips/{tipId}/verify`  | POST     | None | Verify USDC payment onchain       |
+| `/api/x402`                 | GET      | None | x402 payment discovery            |
+| `/api/x402`                 | POST     | None | x402 payment details per agent    |
 
 ## Well-Known Endpoints
 
@@ -36,6 +41,8 @@ Abstract Mainnet (Chain ID 2741). Same deterministic addresses on all ERC-8004 c
 | ------------------- | -------------------------------------------- |
 | Identity Registry   | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
 | Reputation Registry | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` |
+| USDC.e              | `0x84a71ccd554cc1b02749b35d22f684cc8ec987e1` |
+| ACK Treasury        | `0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c` |
 
 ## API Versioning
 
@@ -111,3 +118,92 @@ Request:
 ```
 
 Requires `X-SIWA-Receipt` header from authentication flow.
+
+### POST /api/tips
+
+Create a pending tip. Returns payment info so the caller can send a USDC.e transfer.
+
+Request:
+
+```json
+{
+  "agentId": 606,
+  "fromAddress": "0x...",
+  "amountUsd": 5.0,
+  "kudosTxHash": "0x..."
+}
+```
+
+`kudosTxHash` is optional. Links the tip to an existing onchain kudos transaction.
+
+Response:
+
+```json
+{
+  "tipId": "tip_abc123",
+  "paymentAddress": "0x...",
+  "amount": 5.0,
+  "token": "USDC",
+  "chainId": 2741,
+  "tip": { "id": "tip_abc123", "status": "pending", "...": "..." }
+}
+```
+
+**Tip range:** $0.01 to $100.00. Tips expire after 24 hours if not paid.
+
+### GET /api/tips/{tipId}
+
+Returns the current status of a tip (`pending`, `paid`, or `expired`).
+
+### POST /api/tips/{tipId}/verify
+
+Verify that a USDC.e payment was made onchain.
+
+Request:
+
+```json
+{
+  "txHash": "0x..."
+}
+```
+
+### GET /api/x402
+
+x402 payment discovery endpoint. Returns payment requirements including supported assets, network, and pay-to address.
+
+Response:
+
+```json
+{
+  "x402Version": 2,
+  "resource": {
+    "url": "/api/x402",
+    "description": "ACK Protocol tip payments via x402"
+  },
+  "accepts": [
+    {
+      "scheme": "exact",
+      "network": "abstract:2741",
+      "asset": "0x84a7...87e1",
+      "...": "..."
+    }
+  ],
+  "pricing": { "tipMin": "0.01", "tipMax": "100.00", "currency": "USD" },
+  "endpoints": {
+    "createTip": "/api/tips",
+    "verifyTip": "/api/tips/{tipId}/verify"
+  }
+}
+```
+
+### POST /api/x402
+
+Resolve payment requirements for a specific agent. Falls back to the ACK treasury if the agent owner cannot be resolved.
+
+Request:
+
+```json
+{
+  "agentId": 606
+}
+```

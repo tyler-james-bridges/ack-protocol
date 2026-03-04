@@ -26,8 +26,17 @@ export interface KudosCommand {
   category?: string;
   message?: string;
   amount: number; // default 1, or explicit (e.g. ++ 5)
+  tipAmountUsd?: number; // parsed from $X.XX syntax
   isExplicit: boolean; // true if ++ or -- was used
   sentiment: 'positive' | 'negative';
+}
+
+/** Clamp a parsed tip to $0.01-$100.00, returning undefined if out of range. */
+function parseTipAmount(raw: string | undefined): number | undefined {
+  if (!raw) return undefined;
+  const val = parseFloat(raw);
+  if (!Number.isFinite(val) || val < 0.01) return undefined;
+  return Math.min(val, 100);
 }
 
 /**
@@ -38,20 +47,22 @@ export function parseAllKudos(text: string): KudosCommand[] {
   const cleaned = text.replace(/@ack_onchain/i, '').trim();
   const results: KudosCommand[] = [];
 
-  // Pattern 1: All explicit @handle ++/-- [number] [category] ["message"] matches
+  // Pattern 1: All explicit @handle ++/-- [$tip] [number] [category] ["message"] matches
+  // The $ prefix distinguishes tips from kudos amounts: ++ 5 = 5 kudos, ++ $5 = $5 tip
   const explicitRegex =
-    /@(\w+)\s*(\+\+|--)\s*(\d+)?\s*(\w+)?\s*(?:"([^"]*)")?/g;
+    /@(\w+)\s*(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(\w+)?\s*(?:"([^"]*)")?/g;
   let match: RegExpExecArray | null;
 
   while ((match = explicitRegex.exec(cleaned)) !== null) {
-    const rawAmount = match[3] ? parseInt(match[3], 10) : 1;
+    const rawAmount = match[4] ? parseInt(match[4], 10) : 1;
     const amount = Math.min(Math.max(rawAmount, 1), 100); // clamp 1-100
     results.push({
       targetHandle: match[1],
       sentiment: match[2] === '++' ? 'positive' : 'negative',
       amount,
-      category: match[4] || undefined,
-      message: match[5] || undefined,
+      tipAmountUsd: parseTipAmount(match[3]),
+      category: match[5] || undefined,
+      message: match[6] || undefined,
       isExplicit: true,
     });
   }
@@ -61,11 +72,13 @@ export function parseAllKudos(text: string): KudosCommand[] {
   // Pattern 1b: ++ or -- with no @handle means kudos to ACK itself
   // e.g. "@ack_onchain ++ for setting up kudos onchain!!!"
   const hasOtherMentions = /@\w+/.test(cleaned);
-  const bareMatch = cleaned.match(/^(\+\+|--)\s*(\d+)?\s*(.*)?$/s);
+  const bareMatch = cleaned.match(
+    /^(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(.*)?$/s
+  );
   if (bareMatch && !hasOtherMentions) {
-    const rawAmount = bareMatch[2] ? parseInt(bareMatch[2], 10) : 1;
+    const rawAmount = bareMatch[3] ? parseInt(bareMatch[3], 10) : 1;
     const amount = Math.min(Math.max(rawAmount, 1), 100);
-    const rest = (bareMatch[3] || '').trim();
+    const rest = (bareMatch[4] || '').trim();
     // Try to extract a quoted message
     const quotedMsg = rest.match(/"([^"]*)"/);
     // Everything else is treated as a freeform message
@@ -74,6 +87,7 @@ export function parseAllKudos(text: string): KudosCommand[] {
       targetHandle: 'ack_onchain',
       sentiment: bareMatch[1] === '++' ? 'positive' : 'negative',
       amount,
+      tipAmountUsd: parseTipAmount(bareMatch[2]),
       category: undefined,
       message,
       isExplicit: true,
@@ -81,18 +95,20 @@ export function parseAllKudos(text: string): KudosCommand[] {
     return results;
   }
 
-  // Pattern 2: ++/-- [number] @handle (reverse order)
-  const reverseRegex = /(\+\+|--)\s*(\d+)?\s*@(\w+)\s*(\w+)?\s*(?:"([^"]*)")?/g;
+  // Pattern 2: ++/-- [$tip] [number] @handle (reverse order)
+  const reverseRegex =
+    /(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*@(\w+)\s*(\w+)?\s*(?:"([^"]*)")?/g;
 
   while ((match = reverseRegex.exec(cleaned)) !== null) {
-    const rawAmount = match[2] ? parseInt(match[2], 10) : 1;
+    const rawAmount = match[3] ? parseInt(match[3], 10) : 1;
     const amount = Math.min(Math.max(rawAmount, 1), 100);
     results.push({
-      targetHandle: match[3],
+      targetHandle: match[4],
       sentiment: match[1] === '++' ? 'positive' : 'negative',
       amount,
-      category: match[4] || undefined,
-      message: match[5] || undefined,
+      tipAmountUsd: parseTipAmount(match[2]),
+      category: match[5] || undefined,
+      message: match[6] || undefined,
       isExplicit: true,
     });
   }

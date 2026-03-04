@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { parseTweetPreview, type ParsedKudos } from '@/lib/parse-kudos';
+import { parsePostPreview, type ParsedKudos } from '@/lib/parse-kudos';
 
 export function TwitterCTA() {
   const [text, setText] = useState('@ack_onchain @agent ++');
-  const parsed = useMemo(() => parseTweetPreview(text), [text]);
-  const postIntentUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  const parsed = useMemo(() => parsePostPreview(text), [text]);
+  const postIntentUrl = `https://x.com/intent/post?text=${encodeURIComponent(text)}`;
 
   return (
     <div className="mt-5 rounded-xl border border-primary/20 bg-primary/[0.03] p-4 max-w-lg mx-auto lg:mx-0">

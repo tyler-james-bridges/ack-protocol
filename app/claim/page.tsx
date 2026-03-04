@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { AgentSearch } from '@/components/agent-search';
 import type { ScanAgent } from '@/lib/api';
 
-type ClaimStep = 'handle' | 'agent' | 'tweet';
+type ClaimStep = 'handle' | 'agent' | 'post';
 type ClaimStatus = 'idle' | 'loading' | 'pending' | 'claimed' | 'error';
 
 export default function ClaimPage() {
@@ -25,8 +25,8 @@ export default function ClaimPage() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const tweetText = challenge ? `@ack_onchain ${challenge}` : '';
-  const postIntentUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+  const postText = challenge ? `@ack_onchain ${challenge}` : '';
+  const postIntentUrl = `https://x.com/intent/post?text=${encodeURIComponent(postText)}`;
 
   const handleSelectAgent = useCallback((agent: ScanAgent) => {
     setSelectedAgent(agent);
@@ -59,7 +59,7 @@ export default function ClaimPage() {
 
       setChallenge(data.challenge);
       setStatus('pending');
-      setStep('tweet');
+      setStep('post');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
       setStatus('error');
@@ -91,7 +91,7 @@ export default function ClaimPage() {
   }, [status, handle]);
 
   function handleCopy() {
-    navigator.clipboard.writeText(tweetText);
+    navigator.clipboard.writeText(postText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -121,13 +121,13 @@ export default function ClaimPage() {
 
         {/* Step indicators */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          {(['handle', 'agent', 'tweet'] as const).map((s, i) => (
+          {(['handle', 'agent', 'post'] as const).map((s, i) => (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   step === s
                     ? 'bg-primary text-primary-foreground'
-                    : i < ['handle', 'agent', 'tweet'].indexOf(step)
+                    : i < ['handle', 'agent', 'post'].indexOf(step)
                       ? 'bg-primary/20 text-primary'
                       : 'bg-muted text-muted-foreground'
                 }`}
@@ -190,7 +190,7 @@ export default function ClaimPage() {
                   }}
                   placeholder="your_handle"
                   maxLength={15}
-                  disabled={step === 'tweet'}
+                  disabled={step === 'post'}
                   className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
                 />
               </div>
@@ -217,7 +217,7 @@ export default function ClaimPage() {
                 </div>
 
                 {/* Step 2: Select Agent */}
-                {step !== 'tweet' && (
+                {step !== 'post' && (
                   <div>
                     <label className="block text-sm font-medium mb-1.5">
                       Link to Agent <span className="text-red-400">*</span>
@@ -235,8 +235,8 @@ export default function ClaimPage() {
                   </div>
                 )}
 
-                {/* Step 3: Tweet Challenge */}
-                {step === 'tweet' && challenge && (
+                {/* Step 3: Post Challenge */}
+                {step === 'post' && challenge && (
                   <div className="space-y-3">
                     <p className="text-sm text-muted-foreground">
                       Post this from{' '}
@@ -246,7 +246,7 @@ export default function ClaimPage() {
                       :
                     </p>
                     <div className="rounded-lg border border-primary/20 bg-primary/[0.03] p-4 font-mono text-sm break-all">
-                      {tweetText}
+                      {postText}
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -290,7 +290,7 @@ export default function ClaimPage() {
                 )}
 
                 {/* Submit button (steps 1+2) */}
-                {step !== 'tweet' && (
+                {step !== 'post' && (
                   <Button
                     onClick={() => {
                       if (!handle.trim()) {

@@ -1,5 +1,5 @@
 /**
- * Client-side tweet parser — mirrors services/twitter-agent/src/parser.ts
+ * Client-side post parser — mirrors services/twitter-agent/src/parser.ts
  * Used for the dry-run preview on the home page.
  */
 
@@ -11,7 +11,7 @@ export interface ParsedKudos {
   message?: string;
 }
 
-export function parseTweetPreview(text: string): ParsedKudos[] {
+export function parsePostPreview(text: string): ParsedKudos[] {
   const cleaned = text.replace(/@ack_onchain/gi, '').trim();
   const results: ParsedKudos[] = [];
 

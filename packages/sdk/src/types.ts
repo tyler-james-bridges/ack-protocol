@@ -41,6 +41,8 @@ export interface ACKConfig {
   apiKey?: string;
   /** Custom RPC URL (overrides default) */
   rpcUrl?: string;
+  /** ACK Protocol base URL (default: https://ack-onchain.dev) */
+  baseUrl?: string;
 }
 
 /**
@@ -174,6 +176,100 @@ export interface TransactionResult {
   blockNumber?: bigint;
   /** Gas used */
   gasUsed?: bigint;
+}
+
+/**
+ * Tip status
+ */
+export type TipStatus = 'pending' | 'completed' | 'expired';
+
+/**
+ * Tip record returned by the API
+ */
+export interface Tip {
+  /** Unique tip ID */
+  id: string;
+  /** Kudos transaction hash this tip is linked to */
+  kudosTxHash: string;
+  /** Target agent ID */
+  agentId: number;
+  /** Sender address */
+  fromAddress: Address;
+  /** Recipient address (agent owner or treasury) */
+  toAddress: Address;
+  /** Tip amount in USD */
+  amountUsd: number;
+  /** Tip amount in raw token units */
+  amountRaw: string;
+  /** Current tip status */
+  status: TipStatus;
+  /** Payment transaction hash (set after verification) */
+  paymentTxHash?: string;
+  /** Creation timestamp (ms) */
+  createdAt: number;
+  /** Expiry timestamp (ms) */
+  expiresAt: number;
+  /** Completion timestamp (ms) */
+  completedAt?: number;
+}
+
+/**
+ * Parameters for creating a tip
+ */
+export interface CreateTipParams {
+  /** Target agent ID */
+  agentId: number;
+  /** Sender wallet address */
+  fromAddress: string;
+  /** Tip amount in USD ($0.01 - $100.00) */
+  amountUsd: number;
+  /** Kudos transaction hash to link this tip to (optional) */
+  kudosTxHash?: string;
+}
+
+/**
+ * Response from creating a tip
+ */
+export interface CreateTipResult {
+  /** Unique tip ID */
+  tipId: string;
+  /** Address to send USDC to */
+  paymentAddress: string;
+  /** Amount in USD */
+  amount: number;
+  /** Token symbol */
+  token: string;
+  /** Chain ID for payment */
+  chainId: number;
+  /** Full tip record */
+  tip: Tip;
+}
+
+/**
+ * x402 payment discovery info
+ */
+export interface X402Discovery {
+  /** x402 protocol version */
+  x402Version: number;
+  /** Accepted payment methods */
+  accepts: Array<{
+    scheme: string;
+    network: string;
+    asset: string;
+    payTo: string;
+  }>;
+  /** Pricing info */
+  pricing: {
+    tipMin: string;
+    tipMax: string;
+    currency: string;
+  };
+  /** API endpoints */
+  endpoints: {
+    createTip: string;
+    verifyTip: string;
+    tipPage: string;
+  };
 }
 
 // end of types

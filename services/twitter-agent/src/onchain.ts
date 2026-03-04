@@ -113,6 +113,26 @@ const HANDLE_REGISTRY_ABI = [
       },
     ],
   },
+  {
+    name: 'claimHandle',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'hash', type: 'bytes32' },
+      { name: 'owner', type: 'address' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'linkAgent',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'hash', type: 'bytes32' },
+      { name: 'agentId', type: 'uint256' },
+    ],
+    outputs: [],
+  },
 ] as const;
 
 /**
@@ -170,6 +190,73 @@ export async function ensureHandleRegistered(
   } catch (error) {
     console.error('[handle-registry] Error:', error);
     return { registered: false };
+  }
+}
+
+/**
+ * Submit a handle claim onchain: claimHandle + linkAgent.
+ * Called by the twitter-agent after verifying a claim tweet.
+ */
+export async function submitClaim(
+  handle: string,
+  owner: string,
+  agentId: number
+): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  const privateKey = process.env.AGENT_PRIVATE_KEY;
+  if (!privateKey) {
+    return { success: false, error: 'AGENT_PRIVATE_KEY not set' };
+  }
+
+  try {
+    const account = privateKeyToAccount(
+      privateKey.startsWith('0x')
+        ? (privateKey as `0x${string}`)
+        : (`0x${privateKey}` as `0x${string}`)
+    );
+
+    const publicClient = createPublicClient({
+      chain: abstract,
+      transport: http(),
+    });
+
+    const walletClient = createWalletClient({
+      account,
+      chain: abstract,
+      transport: http(),
+    });
+
+    const lowerHandle = handle.toLowerCase();
+
+    // Get the handle hash
+    const hash = await publicClient.readContract({
+      address: HANDLE_REGISTRY as `0x${string}`,
+      abi: HANDLE_REGISTRY_ABI,
+      functionName: 'handleHash',
+      args: ['x', lowerHandle],
+    });
+
+    // claimHandle(hash, owner)
+    const claimTx = await walletClient.writeContract({
+      address: HANDLE_REGISTRY as `0x${string}`,
+      abi: HANDLE_REGISTRY_ABI,
+      functionName: 'claimHandle',
+      args: [hash, owner as `0x${string}`],
+    });
+    await publicClient.waitForTransactionReceipt({ hash: claimTx });
+
+    // linkAgent(hash, agentId)
+    const linkTx = await walletClient.writeContract({
+      address: HANDLE_REGISTRY as `0x${string}`,
+      abi: HANDLE_REGISTRY_ABI,
+      functionName: 'linkAgent',
+      args: [hash, BigInt(agentId)],
+    });
+    await publicClient.waitForTransactionReceipt({ hash: linkTx });
+
+    return { success: true, txHash: linkTx };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 }
 

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RateLimiter } from '@/lib/rate-limit';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
 import type { ScanAgent, ScanAgentsResponse } from '@/lib/api';
-import { getFeedbackByAgentId, type FeedbackEvent } from '@/lib/feedback-cache';
+import {
+  getFeedbackByAgentId,
+  getAllFeedbackEvents,
+  type FeedbackEvent,
+} from '@/lib/feedback-cache';
 
 const API_BASE = 'https://www.8004scan.io/api/v1';
 
@@ -139,6 +143,108 @@ export async function GET(
         name: agent.name || `Agent #${agent.token_id}`,
         totalScore: agent.total_score ?? 0,
       });
+    }
+
+    // Include proxy kudos for handles linked to these agents.
+    // Proxy kudos are stored as tag1==='proxy', tag2==='x:<handle>' on agent #606.
+    // We scan all feedback events for proxy entries where the handle is linked
+    // to one of the user's agents (linkedAgentId matches).
+    try {
+      const allEvents = await getAllFeedbackEvents();
+      const agentIdSet = new Set(agents.map((a) => a.agentId));
+      const proxyEvents = allEvents.filter(
+        (e) => e.tag1 === 'proxy' && e.tag2.startsWith('x:')
+      );
+
+      // For each proxy event, check if the handle maps to one of this user's agents.
+      // We do a lightweight check: look for any proxy feedback where the linked agent
+      // is in our set. Since we can't query HandleRegistry here efficiently, we use
+      // the feedback-cache approach: count proxy events on agent #606 where the handle
+      // is linked to the user's agents. We check by scanning for any feedback on the
+      // user's agents that would indicate a link. For MVP, we use a simpler approach:
+      // fetch linked handles via the HandleRegistry for each agent.
+      // Since this is a cached endpoint, the cost is acceptable.
+      if (proxyEvents.length > 0) {
+        const { createPublicClient: createClient, http: httpTransport } =
+          await import('viem');
+        const { abstract: abstractChain } = await import('viem/chains');
+
+        const rpcClient = createClient({
+          chain: abstractChain,
+          transport: httpTransport(),
+        });
+
+        const HANDLE_REGISTRY =
+          process.env.HANDLE_REGISTRY_ADDRESS ||
+          '0xf32ed012f0978a9b963df11743e797a108c94871';
+
+        const handleHashAbi = [
+          {
+            name: 'handleHash',
+            type: 'function',
+            stateMutability: 'pure' as const,
+            inputs: [
+              { name: 'platform', type: 'string' as const },
+              { name: 'handle', type: 'string' as const },
+            ],
+            outputs: [{ name: '', type: 'bytes32' as const }],
+          },
+          {
+            name: 'getHandle',
+            type: 'function',
+            stateMutability: 'view' as const,
+            inputs: [{ name: 'hash', type: 'bytes32' as const }],
+            outputs: [
+              {
+                name: '',
+                type: 'tuple' as const,
+                components: [
+                  { name: 'platform', type: 'string' as const },
+                  { name: 'handle', type: 'string' as const },
+                  { name: 'claimedBy', type: 'address' as const },
+                  { name: 'linkedAgentId', type: 'uint256' as const },
+                  { name: 'createdAt', type: 'uint256' as const },
+                  { name: 'claimedAt', type: 'uint256' as const },
+                ],
+              },
+            ],
+          },
+        ] as const;
+
+        // Collect unique handles from proxy events
+        const uniqueHandles = [
+          ...new Set(proxyEvents.map((e) => e.tag2.replace('x:', ''))),
+        ];
+
+        // Check which handles are linked to user's agents
+        for (const handle of uniqueHandles) {
+          try {
+            const hash = await rpcClient.readContract({
+              address: HANDLE_REGISTRY as `0x${string}`,
+              abi: handleHashAbi,
+              functionName: 'handleHash',
+              args: ['x', handle],
+            });
+            const data = await rpcClient.readContract({
+              address: HANDLE_REGISTRY as `0x${string}`,
+              abi: handleHashAbi,
+              functionName: 'getHandle',
+              args: [hash],
+            });
+            const linkedId = Number(data.linkedAgentId);
+            if (linkedId > 0 && agentIdSet.has(linkedId)) {
+              const matchingProxy = proxyEvents.filter(
+                (e) => e.tag2 === `x:${handle}`
+              );
+              totalKudos += matchingProxy.length;
+            }
+          } catch {
+            // Skip handles that fail lookup
+          }
+        }
+      }
+    } catch {
+      // Proxy kudos lookup is best-effort — don't fail the whole request
     }
 
     // Aggregated score: average of all agent scores (weighted equally)

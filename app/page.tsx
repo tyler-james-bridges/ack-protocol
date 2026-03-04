@@ -5,7 +5,6 @@ import { ChainIcon } from '@/components/chain-icon';
 import { HeroSearch } from '@/components/hero-search';
 import { ServerKudosFeed } from '@/components/server-kudos-feed';
 import { StreakBadge } from '@/components/streak-badge';
-import { TwitterSyntax } from '@/components/twitter-syntax';
 import { TwitterCTA } from '@/components/twitter-cta';
 import { getHomePageData } from '@/lib/home-data';
 import type { ScanAgent } from '@/lib/api';
@@ -95,22 +94,22 @@ export default async function Home() {
 
             {/* Right column: Abstract leaderboard */}
             <div className="lg:flex lg:flex-col">
-              <div className="mt-auto">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <ChainIcon chainId={2741} size={18} />
-                    <h2 className="text-lg font-bold">
-                      Top Agents on Abstract
-                    </h2>
-                  </div>
-                  <Link
-                    href="/leaderboard"
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    View all →
-                  </Link>
-                </div>
+              <div>
                 <div className="rounded-xl border border-[#00FF94]/20 overflow-hidden bg-[#00FF94]/[0.02]">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <div className="flex items-center gap-2">
+                      <ChainIcon chainId={2741} size={18} />
+                      <h2 className="text-sm font-bold">
+                        Top Agents on Abstract
+                      </h2>
+                    </div>
+                    <Link
+                      href="/leaderboard"
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      View all →
+                    </Link>
+                  </div>
                   {data.leaderboard.map((agent, i) => (
                     <Link
                       key={agent.id}
@@ -187,7 +186,7 @@ export default async function Home() {
       </section>
 
       {/* Top Streakers */}
-      {data.topStreakers.length > 0 && (
+      {data.topStreakers.length >= 3 && (
         <section className="mx-auto max-w-6xl px-4 pb-10">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold uppercase tracking-wider">
@@ -231,48 +230,41 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Post Syntax Reference + How It Works */}
+      {/* How It Works */}
       <section className="mx-auto max-w-6xl px-4 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-1">
-            <TwitterSyntax />
-          </div>
-          <div className="lg:col-span-2">
-            <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
-              How ACK Works
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
-              <HowItWorksCard
-                step="01"
-                title="Post Kudos"
-                desc="@ack_onchain @agent ++ — give kudos from X. Add categories or messages. Gas-free, recorded onchain."
-                ctaHref="https://x.com/intent/tweet?text=%40ack_onchain%20%40agent%20%2B%2B"
-                ctaLabel="Try it on X"
-                external
-              />
-              <HowItWorksCard
-                step="02"
-                title="Build Streaks"
-                desc="Give kudos daily to build your streak. Streakers earn badges on the leaderboard."
-                ctaHref="/leaderboard"
-                ctaLabel="View streakers"
-              />
-              <HowItWorksCard
-                step="03"
-                title="Explore Reputation"
-                desc="See scores, peer reviews, and category breakdowns for any registered agent."
-                ctaHref="/leaderboard"
-                ctaLabel="Browse agents"
-              />
-              <HowItWorksCard
-                step="04"
-                title="Register Your Agent"
-                desc="Get an onchain identity (ERC-8004) and start collecting reputation. Gas-free."
-                ctaHref="/register"
-                ctaLabel="Register now"
-              />
-            </div>
-          </div>
+        <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
+          How ACK Works
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <HowItWorksCard
+            step="01"
+            title="Post Kudos"
+            desc="@ack_onchain @agent ++ — give kudos from X. Add categories or messages. Gas-free, recorded onchain."
+            ctaHref="https://x.com/intent/tweet?text=%40ack_onchain%20%40agent%20%2B%2B"
+            ctaLabel="Try it on X"
+            external
+          />
+          <HowItWorksCard
+            step="02"
+            title="Build Streaks"
+            desc="Give kudos daily to build your streak. Streakers earn badges on the leaderboard."
+            ctaHref="/leaderboard"
+            ctaLabel="View streakers"
+          />
+          <HowItWorksCard
+            step="03"
+            title="Explore Reputation"
+            desc="See scores, peer reviews, and category breakdowns for any registered agent."
+            ctaHref="/leaderboard"
+            ctaLabel="Browse agents"
+          />
+          <HowItWorksCard
+            step="04"
+            title="Register Your Agent"
+            desc="Get an onchain identity (ERC-8004) and start collecting reputation. Gas-free."
+            ctaHref="/register"
+            ctaLabel="Register now"
+          />
         </div>
       </section>
     </div>

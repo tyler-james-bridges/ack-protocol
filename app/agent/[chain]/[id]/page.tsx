@@ -15,6 +15,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { KudosFeed } from '@/components/kudos-feed';
 import { getChainName } from '@/hooks';
 import { useKudosReceived } from '@/hooks/useKudosReceived';
+import { useLinkedHandles } from '@/hooks/useLinkedHandles';
 import { fetchAgent, type ScanAgent } from '@/lib/api';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
 
@@ -30,9 +31,9 @@ export default function AgentProfilePage({
   const [agent, setAgent] = useState<ScanAgent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { data: kudos } = useKudosReceived(
-    agent ? Number(agent.token_id) : undefined
-  );
+  const agentTokenId = agent ? Number(agent.token_id) : undefined;
+  const { data: linkedHandles } = useLinkedHandles(agentTokenId);
+  const { data: kudos } = useKudosReceived(agentTokenId, linkedHandles);
 
   const refetchAgent = useCallback((scanId: string) => {
     fetchAgent(scanId)

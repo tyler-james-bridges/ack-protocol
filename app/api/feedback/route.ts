@@ -27,6 +27,7 @@ import { getAllFeedbackEvents } from '@/lib/feedback-cache';
  * Query params:
  *   - agentId: filter by agent token ID
  *   - sender: filter by sender address (lowercase)
+ *   - handle: filter proxy kudos by X handle (tag1==='proxy' && tag2==='x:<handle>')
  *   - limit: max results (default 200)
  *   - counts: if "true", return { counts: { agentId: count }, total: N }
  *
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const agentIdParam = searchParams.get('agentId');
   const senderParam = searchParams.get('sender');
+  const handleParam = searchParams.get('handle');
   const countsOnly = searchParams.get('counts') === 'true';
   const limitParam = parseInt(searchParams.get('limit') || '200', 10);
 
@@ -69,6 +71,13 @@ export async function GET(request: NextRequest) {
     if (senderParam) {
       const addr = senderParam.toLowerCase();
       filtered = filtered.filter((e) => e.sender === addr);
+    }
+
+    if (handleParam) {
+      const tag2Match = `x:${handleParam.toLowerCase()}`;
+      filtered = filtered.filter(
+        (e) => e.tag1 === 'proxy' && e.tag2 === tag2Match
+      );
     }
 
     // Sort newest first

@@ -10,9 +10,10 @@
  */
 
 import 'dotenv/config';
-import { parseAllKudos, isValidKudos } from './parser.js';
+import { parseAllKudos, isValidKudos, parseClaimCode } from './parser.js';
 import {
   submitKudos,
+  submitClaim,
   resolveHandleToAgentId,
   getAgentName,
   ensureHandleRegistered,
@@ -61,6 +62,68 @@ async function processMention(tweet: Tweet): Promise<void> {
   processedIds.add(tweet.id);
 
   console.log(`[mention] @${tweet.authorUsername}: ${tweet.text}`);
+
+  // Check for claim verification tweet before kudos parsing
+  const claimCode = parseClaimCode(tweet.text);
+  if (claimCode) {
+    console.log(
+      `[claim] Detected claim code: ${claimCode} from @${tweet.authorUsername}`
+    );
+    try {
+      const appUrl = process.env.APP_URL || 'http://localhost:3000';
+      const res = await fetch(
+        `${appUrl}/api/claim?handle=${encodeURIComponent(tweet.authorUsername)}&full=true`
+      );
+      const data = await res.json();
+
+      if (
+        data.status === 'pending' &&
+        data.challenge === claimCode &&
+        data.walletAddress &&
+        data.agentId
+      ) {
+        const result = await submitClaim(
+          tweet.authorUsername,
+          data.walletAddress,
+          data.agentId
+        );
+
+        if (result.success) {
+          await fetch(`${appUrl}/api/claim`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              handle: tweet.authorUsername,
+              txHash: result.txHash,
+            }),
+          });
+
+          console.log(
+            `[claim] Success! @${tweet.authorUsername} linked to agent #${data.agentId}`
+          );
+          await postReply(
+            tweet.id,
+            `Claimed! @${tweet.authorUsername} is now linked to agent #${data.agentId}\n\nabscan.org/tx/${result.txHash}`,
+            DRY_RUN
+          );
+        } else {
+          console.error(`[claim] Onchain submission failed: ${result.error}`);
+          await postReply(
+            tweet.id,
+            `Claim failed — please try again. Error: ${result.error?.slice(0, 100)}`,
+            DRY_RUN
+          );
+        }
+      } else {
+        console.log(
+          `[claim] No matching pending challenge for @${tweet.authorUsername}`
+        );
+      }
+    } catch (error) {
+      console.error('[claim] Error processing claim:', error);
+    }
+    return;
+  }
 
   // Parse kudos from tweet
   const allKudos = parseAllKudos(tweet.text);

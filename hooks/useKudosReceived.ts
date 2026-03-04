@@ -15,40 +15,78 @@ export interface KudosEvent {
   txHash: Hex;
 }
 
-async function fetchKudos(agentId: number): Promise<KudosEvent[]> {
+function mapEvent(e: {
+  sender: string;
+  feedbackIndex: string;
+  value: string;
+  tag1: string;
+  tag2: string;
+  feedbackURI: string;
+  feedbackHash: string;
+  blockNumber: string;
+  txHash: string;
+}): KudosEvent {
+  return {
+    sender: e.sender as Address,
+    feedbackIndex: BigInt(e.feedbackIndex),
+    value: BigInt(e.value),
+    tag1: e.tag1,
+    tag2: e.tag2,
+    feedbackURI: e.feedbackURI,
+    feedbackHash: e.feedbackHash as Hex,
+    blockNumber: BigInt(e.blockNumber),
+    txHash: e.txHash as Hex,
+  };
+}
+
+async function fetchKudos(
+  agentId: number,
+  linkedHandles?: string[]
+): Promise<KudosEvent[]> {
   const res = await fetch(`/api/feedback?agentId=${agentId}&limit=500`);
   if (!res.ok) throw new Error(`Failed to fetch kudos: ${res.status}`);
   const data = await res.json();
 
-  return (data.events || []).map(
-    (e: {
-      sender: string;
-      feedbackIndex: string;
-      value: string;
-      tag1: string;
-      tag2: string;
-      feedbackURI: string;
-      feedbackHash: string;
-      blockNumber: string;
-      txHash: string;
-    }) => ({
-      sender: e.sender as Address,
-      feedbackIndex: BigInt(e.feedbackIndex),
-      value: BigInt(e.value),
-      tag1: e.tag1,
-      tag2: e.tag2,
-      feedbackURI: e.feedbackURI,
-      feedbackHash: e.feedbackHash as Hex,
-      blockNumber: BigInt(e.blockNumber),
-      txHash: e.txHash as Hex,
-    })
-  );
+  const events: KudosEvent[] = (data.events || []).map(mapEvent);
+
+  // Also fetch proxy kudos for linked handles
+  if (linkedHandles && linkedHandles.length > 0) {
+    const proxyResults = await Promise.all(
+      linkedHandles.map(async (handle) => {
+        const r = await fetch(
+          `/api/feedback?handle=${encodeURIComponent(handle)}&limit=500`
+        );
+        if (!r.ok) return [];
+        const d = await r.json();
+        return (d.events || []).map(mapEvent);
+      })
+    );
+
+    // Merge and deduplicate by txHash
+    const seen = new Set(events.map((e) => e.txHash));
+    for (const proxyEvents of proxyResults) {
+      for (const e of proxyEvents) {
+        if (!seen.has(e.txHash)) {
+          seen.add(e.txHash);
+          events.push(e);
+        }
+      }
+    }
+
+    // Re-sort by blockNumber descending
+    events.sort((a, b) => (b.blockNumber > a.blockNumber ? 1 : -1));
+  }
+
+  return events;
 }
 
-export function useKudosReceived(agentId: number | undefined) {
+export function useKudosReceived(
+  agentId: number | undefined,
+  linkedHandles?: string[]
+) {
   return useQuery({
-    queryKey: ['kudos-received', agentId],
-    queryFn: () => fetchKudos(agentId!),
+    queryKey: ['kudos-received', agentId, linkedHandles],
+    queryFn: () => fetchKudos(agentId!, linkedHandles),
     enabled: agentId !== undefined,
     staleTime: 60_000,
     gcTime: 300_000,

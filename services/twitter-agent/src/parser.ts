@@ -12,6 +12,15 @@
  *   @ack_onchain shoutout to @BigHoss for being reliable (natural language fallback)
  */
 
+/**
+ * Parse a claim verification code from tweet text.
+ * Returns the code (e.g. "ack-claim-a1b2c3") or null.
+ */
+export function parseClaimCode(text: string): string | null {
+  const match = text.match(/ack-claim-([a-f0-9]{6})/);
+  return match ? `ack-claim-${match[1]}` : null;
+}
+
 export interface KudosCommand {
   targetHandle: string;
   category?: string;

@@ -164,9 +164,7 @@ function LeaderboardPage() {
   const allAddresses = [
     ...new Set(
       [...(abstractAgentsList || []), ...(allAgentsList || [])]
-        .flatMap((a) =>
-          [a.owner_address, a.agent_wallet].filter(Boolean)
-        )
+        .flatMap((a) => [a.owner_address, a.agent_wallet].filter(Boolean))
         .map((a) => a.toLowerCase())
     ),
   ];
@@ -206,29 +204,28 @@ function LeaderboardPage() {
             Explore Agents
           </h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">
-            Discover and explore agents across ERC-8004 chains.
+            Discover and explore AI agents on Abstract.
           </p>
         </div>
 
-        {/* Network-wide Stats */}
+        {/* Abstract Stats */}
         {networkStats && (
           <div className="mb-6">
             <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-2">
-              ERC-8004 Network
+              Abstract Network
             </p>
             <div className="grid grid-cols-3 gap-3">
               <StatCard
-                label="Agents (all chains)"
+                label="Agents on Abstract"
                 value={networkStats.total_agents.toLocaleString()}
               />
               <StatCard
                 label="Total Feedback"
                 value={networkStats.total_feedbacks.toLocaleString()}
-                sub="network-wide"
               />
               <StatCard
-                label="Chains"
-                value={networkStats.total_chains.toLocaleString()}
+                label="Kudos Given"
+                value={networkStats.total_kudos?.toLocaleString() || '0'}
               />
             </div>
           </div>

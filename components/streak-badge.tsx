@@ -30,9 +30,7 @@ export function StreakBadge({
       )}
       title={`${streak}-day kudos streak${isActive ? ' (active today)' : ''}`}
     >
-      <span className={size === 'sm' ? 'text-[10px]' : 'text-xs'}>
-        🔥
-      </span>
+      <span className={size === 'sm' ? 'text-[10px]' : 'text-xs'}>🔥</span>
       {streak}
     </span>
   );

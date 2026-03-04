@@ -79,11 +79,7 @@ export function HeroSearch() {
             </Button>
           </Link>
           <Link href="/kudos">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10 px-4 text-sm"
-            >
+            <Button variant="outline" size="sm" className="h-10 px-4 text-sm">
               Give Kudos
             </Button>
           </Link>

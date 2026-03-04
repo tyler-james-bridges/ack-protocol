@@ -7,8 +7,7 @@ interface StreakCardProps {
 }
 
 export function StreakCard({ streak }: StreakCardProps) {
-  const atRisk =
-    streak.currentStreak > 0 && !streak.isActiveToday;
+  const atRisk = streak.currentStreak > 0 && !streak.isActiveToday;
 
   return (
     <div className="rounded-lg bg-muted/30 border border-border/50 p-4 space-y-3">

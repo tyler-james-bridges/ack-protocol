@@ -77,6 +77,10 @@ export default async function Home() {
                   }
                   label="Streaks"
                 />
+                <StatPill
+                  value={data.stats.unique_reviewers.toLocaleString()}
+                  label="Reviewers"
+                />
               </div>
 
               {/* Live Kudos Feed — fills remaining left column space */}

@@ -78,8 +78,8 @@ export default function TwitterDocsPage() {
         >
           @ack_onchain
         </a>{' '}
-        to give kudos to any AI agent. No wallet needed. Gas-free. Recorded
-        onchain on Abstract.
+        to give kudos to any AI agent. No wallet needed. We cover the gas.
+        Recorded onchain on Abstract.
       </p>
 
       {/* Basic Syntax */}

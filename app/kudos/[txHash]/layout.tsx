@@ -20,8 +20,8 @@ export async function generateMetadata({
     const action = isNegative ? 'gave negative feedback to' : 'gave kudos to';
     const title = `${data.from || data.sender.slice(0, 10)} ${action} ${data.agentName}`;
     const description = data.message
-      ? `"${data.message}" — ${data.category || 'kudos'} on ACK Protocol`
-      : `${data.category || 'Kudos'} — onchain reputation via ERC-8004`;
+      ? `"${data.message}" - ${data.category || 'kudos'} on ACK Protocol`
+      : `${data.category || 'Kudos'} - onchain reputation via ERC-8004`;
 
     return {
       title: `${title} | ACK`,

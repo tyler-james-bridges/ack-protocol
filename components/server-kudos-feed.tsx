@@ -154,7 +154,7 @@ export function ServerKudosFeed({
         {kudos.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <p className="text-sm text-muted-foreground">
-              No kudos yet — be the first!
+              No kudos yet - be the first!
             </p>
           </div>
         ) : (

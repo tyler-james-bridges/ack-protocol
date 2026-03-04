@@ -79,7 +79,7 @@ const ack = ACK.readonly({ chain: 'base', apiKey: 'your-key' });`}
         name="ACK.fromPrivateKey"
         signature="ACK.fromPrivateKey(key: string, config?: ACKConfig): ACK"
         description="Create a client with a private key for read and write operations."
-        example={`// Server-side only — never use private keys in browser code\nconst ack = ACK.fromPrivateKey(process.env.AGENT_PRIVATE_KEY);`}
+        example={`// Server-side only - never use private keys in browser code\nconst ack = ACK.fromPrivateKey(process.env.AGENT_PRIVATE_KEY);`}
       />
 
       <MethodCard

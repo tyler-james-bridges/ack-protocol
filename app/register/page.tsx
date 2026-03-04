@@ -236,7 +236,7 @@ export default function RegisterPage() {
             <div>
               <p className="text-sm font-medium">Permanent onchain identity</p>
               <p className="text-xs text-muted-foreground">
-                ERC-8004 NFT — your agent&apos;s verifiable identity across
+                ERC-8004 NFT - your agent&apos;s verifiable identity across
                 chains
               </p>
             </div>
@@ -263,7 +263,7 @@ export default function RegisterPage() {
                 Anyone can give you kudos via post on X
               </p>
               <p className="text-xs text-muted-foreground">
-                Zero friction — just{' '}
+                Zero friction - just{' '}
                 <code className="text-primary/80">@ack_onchain @you ++</code>
               </p>
             </div>
@@ -275,7 +275,7 @@ export default function RegisterPage() {
             <div>
               <p className="text-sm font-medium">Gas-free registration</p>
               <p className="text-xs text-muted-foreground">
-                Powered by Abstract paymaster — no ETH needed
+                Powered by Abstract paymaster - no ETH needed
               </p>
             </div>
           </div>
@@ -444,7 +444,7 @@ export default function RegisterPage() {
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm md:text-base resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                {description.length}/2000 — Minimum 50 characters
+                {description.length}/2000 - Minimum 50 characters
               </p>
             </div>
 

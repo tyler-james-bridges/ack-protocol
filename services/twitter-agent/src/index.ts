@@ -110,7 +110,7 @@ async function processMention(tweet: Tweet): Promise<void> {
           console.error(`[claim] Onchain submission failed: ${result.error}`);
           await postReply(
             tweet.id,
-            `Claim failed — please try again. Error: ${result.error?.slice(0, 100)}`,
+            `Claim failed - please try again. Error: ${result.error?.slice(0, 100)}`,
             DRY_RUN
           );
         }

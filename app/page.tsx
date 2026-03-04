@@ -77,7 +77,6 @@ export default async function Home() {
                   }
                   label="Streaks"
                 />
-                <StatPill value="< $0.01" label="Per Kudos" accent />
               </div>
 
               {/* Live Kudos Feed — fills remaining left column space */}

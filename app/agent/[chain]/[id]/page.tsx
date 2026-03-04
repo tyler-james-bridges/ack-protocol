@@ -389,12 +389,10 @@ export default function AgentProfilePage({
                   size="default"
                   onClick={() => {
                     if (isConnected) {
-                      document
-                        .getElementById('give-kudos')
-                        ?.scrollIntoView({
-                          behavior: 'smooth',
-                          block: 'start',
-                        });
+                      document.getElementById('give-kudos')?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                      });
                     } else {
                       openConnectModal?.();
                     }

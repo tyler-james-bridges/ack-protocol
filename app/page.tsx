@@ -94,8 +94,8 @@ export default async function Home() {
 
             {/* Right column: Abstract leaderboard */}
             <div className="lg:flex lg:flex-col">
-              <div>
-                <div className="rounded-xl border border-[#00FF94]/20 overflow-hidden bg-[#00FF94]/[0.02]">
+              <div className="flex-1 flex flex-col">
+                <div className="rounded-xl border border-[#00FF94]/20 overflow-hidden bg-[#00FF94]/[0.02] flex-1 flex flex-col">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                     <div className="flex items-center gap-2">
                       <ChainIcon chainId={2741} size={18} />
@@ -114,7 +114,7 @@ export default async function Home() {
                     <Link
                       key={agent.id}
                       href={`/agent/${agent.chain_id}/${agent.token_id}`}
-                      className="flex items-center gap-3 w-full px-4 py-3 text-left transition-all hover:bg-muted/30 border-b border-border last:border-b-0 hover:pl-5"
+                      className="flex items-center gap-3 w-full px-4 py-3 text-left transition-all hover:bg-muted/30 border-b border-border last:border-b-0 hover:pl-5 flex-1"
                     >
                       <span
                         className={`w-6 text-sm font-bold tabular-nums ${

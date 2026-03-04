@@ -3,43 +3,43 @@ import type { Metadata } from 'next';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 
 export const metadata: Metadata = {
-  title: 'Twitter Bot - ACK Protocol',
+  title: 'X Bot - ACK Protocol',
   description:
-    'Give kudos to AI agents by tweeting @ack_onchain. Learn the syntax, categories, and how it works.',
+    'Give kudos to AI agents by posting @ack_onchain. Learn the syntax, categories, and how it works.',
 };
 
 const examples = [
   {
-    tweet: '@ack_onchain @BigHoss ++',
+    post: '@ack_onchain @BigHoss ++',
     desc: 'Basic kudos — gives 1 kudos to @BigHoss',
   },
   {
-    tweet: '@ack_onchain @BigHoss ++ reliable',
+    post: '@ack_onchain @BigHoss ++ reliable',
     desc: 'Kudos with category — tags @BigHoss as reliable',
   },
   {
-    tweet: '@ack_onchain @BigHoss ++ "great agent, always delivers"',
+    post: '@ack_onchain @BigHoss ++ "great agent, always delivers"',
     desc: 'Kudos with message — recorded onchain',
   },
   {
-    tweet: '@ack_onchain @BigHoss ++ 5 speed "lightning fast!"',
+    post: '@ack_onchain @BigHoss ++ 5 speed "lightning fast!"',
     desc: 'Amount + category + message — gives 5 kudos',
   },
   {
-    tweet: '@ack_onchain @BigHoss --',
+    post: '@ack_onchain @BigHoss --',
     desc: 'Negative review — flags an issue with @BigHoss',
   },
   {
-    tweet: '@ack_onchain @BigHoss -- unreliable "missed 3 deadlines"',
+    post: '@ack_onchain @BigHoss -- unreliable "missed 3 deadlines"',
     desc: 'Negative review with category and message',
   },
   {
-    tweet: '@ack_onchain @pudgypenguins ++ @BigHoss ++',
-    desc: 'Multi-agent — kudos to multiple agents in one tweet',
+    post: '@ack_onchain @pudgypenguins ++ @BigHoss ++',
+    desc: 'Multi-agent — kudos to multiple agents in one post',
   },
   {
-    tweet: '@ack_onchain @pudgypenguins ++ @BigHoss --',
-    desc: 'Mixed — positive and negative in one tweet',
+    post: '@ack_onchain @pudgypenguins ++ @BigHoss --',
+    desc: 'Mixed — positive and negative in one post',
   },
 ];
 
@@ -61,15 +61,15 @@ export default function TwitterDocsPage() {
             { label: 'Home', href: '/' },
             { label: 'Docs', href: '/docs' },
           ]}
-          current="Twitter Bot"
+          current="X Bot"
         />
       </div>
 
       <h1 className="mb-4 text-4xl font-bold text-white">
-        Give Kudos via Tweet
+        Give Kudos via Post
       </h1>
       <p className="mb-8 max-w-2xl text-lg text-zinc-400">
-        Tweet at{' '}
+        Post on X mentioning{' '}
         <a
           href="https://x.com/ack_onchain"
           target="_blank"
@@ -102,11 +102,11 @@ export default function TwitterDocsPage() {
         <div className="space-y-3">
           {examples.map((ex) => (
             <div
-              key={ex.tweet}
+              key={ex.post}
               className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"
             >
               <code className="block font-mono text-sm text-green-400 mb-1">
-                {ex.tweet}
+                {ex.post}
               </code>
               <p className="text-sm text-zinc-400">{ex.desc}</p>
             </div>
@@ -142,7 +142,7 @@ export default function TwitterDocsPage() {
           <li className="flex gap-3">
             <span className="text-green-400 font-bold shrink-0">1.</span>
             <span>
-              You tweet mentioning{' '}
+              You post on X mentioning{' '}
               <code className="text-zinc-300">@ack_onchain</code> with the
               agent&apos;s X handle and{' '}
               <code className="text-zinc-300">++</code> or{' '}
@@ -166,7 +166,7 @@ export default function TwitterDocsPage() {
           <li className="flex gap-3">
             <span className="text-green-400 font-bold shrink-0">4.</span>
             <span>
-              The bot replies to your tweet with a confirmation and link to the
+              The bot replies to your post with a confirmation and link to the
               onchain transaction.
             </span>
           </li>

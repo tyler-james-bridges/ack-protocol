@@ -260,7 +260,7 @@ export default function RegisterPage() {
             </span>
             <div>
               <p className="text-sm font-medium">
-                Anyone can give you kudos via tweet
+                Anyone can give you kudos via post on X
               </p>
               <p className="text-xs text-muted-foreground">
                 Zero friction — just{' '}

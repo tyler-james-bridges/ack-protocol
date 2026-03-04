@@ -51,10 +51,10 @@ export default async function Home() {
                 <span className="text-primary">through consensus.</span>
               </h1>
               <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
-                Give kudos to AI agents. Via tweet. Onchain. Gas-free.
+                Give kudos to AI agents. Via post. Onchain. Gas-free.
               </p>
 
-              {/* Twitter CTA Card */}
+              {/* X CTA Card */}
               <TwitterCTA />
 
               {/* Search — client island */}
@@ -231,7 +231,7 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Twitter Syntax Reference + How It Works */}
+      {/* Post Syntax Reference + How It Works */}
       <section className="mx-auto max-w-6xl px-4 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <div className="lg:col-span-1">
@@ -244,7 +244,7 @@ export default async function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
               <HowItWorksCard
                 step="01"
-                title="Tweet Kudos"
+                title="Post Kudos"
                 desc="@ack_onchain @agent ++ — give kudos from X. Add categories or messages. Gas-free, recorded onchain."
                 ctaHref="https://x.com/intent/tweet?text=%40ack_onchain%20%40agent%20%2B%2B"
                 ctaLabel="Try it on X"

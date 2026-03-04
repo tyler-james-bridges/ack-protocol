@@ -9,9 +9,9 @@ export function TwitterSyntax() {
         >
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
         </svg>
-        <h3 className="text-sm font-semibold">Tweet Syntax</h3>
+        <h3 className="text-sm font-semibold">Post Syntax</h3>
       </div>
-      <div className="rounded-lg bg-muted/30 border border-border/50 p-3 font-mono text-xs space-y-1.5 overflow-x-auto">
+      <div className="rounded-lg bg-muted/30 border border-border/50 p-3 font-mono text-xs space-y-2 overflow-x-auto">
         <Row cmd="@ack_onchain @agent ++" desc="basic kudos" />
         <Row cmd="@ack_onchain @agent ++ reliable" desc="with category" />
         <Row cmd='@ack_onchain @agent ++ "great work!"' desc="with message" />
@@ -31,9 +31,11 @@ export function TwitterSyntax() {
 
 function Row({ cmd, desc }: { cmd: string; desc: string }) {
   return (
-    <div className="flex items-start justify-between gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-0.5 sm:gap-4">
       <span className="text-foreground whitespace-nowrap">{cmd}</span>
-      <span className="text-muted-foreground shrink-0">{desc}</span>
+      <span className="text-muted-foreground text-[11px] sm:text-xs shrink-0 sm:text-right">
+        {desc}
+      </span>
     </div>
   );
 }

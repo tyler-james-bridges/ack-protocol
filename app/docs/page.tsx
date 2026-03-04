@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 
 const cards = [
   {
-    title: 'Twitter Bot',
+    title: 'X Bot',
     href: '/docs/twitter',
     description:
-      'Give kudos by tweeting @ack_onchain @agent ++. Learn the syntax, categories, and how it works.',
+      'Give kudos by posting @ack_onchain @agent ++ on X. Learn the syntax, categories, and how it works.',
   },
   {
     title: 'Getting Started',

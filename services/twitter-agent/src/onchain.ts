@@ -93,6 +93,26 @@ const HANDLE_REGISTRY_ABI = [
     ],
     outputs: [{ name: '', type: 'bytes32' }],
   },
+  {
+    name: 'getHandle',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'hash', type: 'bytes32' }],
+    outputs: [
+      {
+        name: '',
+        type: 'tuple',
+        components: [
+          { name: 'platform', type: 'string' },
+          { name: 'handle', type: 'string' },
+          { name: 'claimedBy', type: 'address' },
+          { name: 'linkedAgentId', type: 'uint256' },
+          { name: 'createdAt', type: 'uint256' },
+          { name: 'claimedAt', type: 'uint256' },
+        ],
+      },
+    ],
+  },
 ] as const;
 
 /**
@@ -291,18 +311,49 @@ export async function getAgentName(tokenId: number): Promise<string | null> {
 
 /**
  * Resolve a Twitter handle to an agent token ID.
- * Checks the 8004scan API for agents with matching Twitter/X service.
+ * Queries the HandleRegistry for a linked agent, falls back to hardcoded map.
  */
 export async function resolveHandleToAgentId(
-  _handle: string
+  handle: string
 ): Promise<number | null> {
-  // TODO: Build a mapping of twitter handles -> agent IDs
-  // For now, use a hardcoded map of known agents
+  const lowerHandle = handle.toLowerCase();
+
+  // Hardcoded fallback for known agents that may not have linked yet
   const knownAgents: Record<string, number> = {
     bighoss: 592,
     ack: 606,
     ack_onchain: 606,
   };
 
-  return knownAgents[_handle.toLowerCase()] || null;
+  try {
+    const client = createPublicClient({
+      chain: abstract,
+      transport: http(),
+    });
+
+    // Get the handle hash, then look up the full handle record
+    const hash = await client.readContract({
+      address: HANDLE_REGISTRY as `0x${string}`,
+      abi: HANDLE_REGISTRY_ABI,
+      functionName: 'handleHash',
+      args: ['x', lowerHandle],
+    });
+
+    const handleData = await client.readContract({
+      address: HANDLE_REGISTRY as `0x${string}`,
+      abi: HANDLE_REGISTRY_ABI,
+      functionName: 'getHandle',
+      args: [hash],
+    });
+
+    const linkedAgentId = Number(handleData.linkedAgentId);
+    if (linkedAgentId > 0) {
+      return linkedAgentId;
+    }
+  } catch (error) {
+    console.error('[resolve-handle] Registry lookup failed:', error);
+  }
+
+  // Fall back to hardcoded map
+  return knownAgents[lowerHandle] || null;
 }

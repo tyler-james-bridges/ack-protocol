@@ -67,9 +67,9 @@ test.describe('Smoke Tests', () => {
     ).toBeVisible();
   });
 
-  test('docs redirects to GitBook', async ({ page }) => {
+  test('docs page loads', async ({ page }) => {
     await page.goto('/docs');
-    await page.waitForURL(/docs\.ack-onchain\.dev/, { timeout: 10000 });
+    await expect(page.locator('h1')).toBeVisible();
   });
 
   test('404 page is branded', async ({ page }) => {

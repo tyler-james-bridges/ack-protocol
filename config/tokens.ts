@@ -25,6 +25,14 @@ export const ERC20_TRANSFER_ABI = [
 ] as const;
 
 /**
+ * PENGU token on Abstract (chain ID 2741)
+ */
+export const PENGU_ADDRESS: Address =
+  '0x9eBe3A824Ca958e4b3Da772D2065518F009CBa62';
+
+export const PENGU_DECIMALS = 18;
+
+/**
  * Fallback treasury address for tips when agent owner cannot be resolved.
  */
 export const ACK_TREASURY_ADDRESS: Address =

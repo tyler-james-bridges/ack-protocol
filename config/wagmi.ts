@@ -4,6 +4,7 @@ import {
   rainbowWallet,
   walletConnectWallet,
   coinbaseWallet,
+  injectedWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { abstractWallet } from '@abstract-foundation/agw-react/connectors';
 import { createConfig, http } from 'wagmi';
@@ -26,7 +27,13 @@ const connectors = connectorsForWallets(
   [
     {
       groupName: 'Recommended',
-      wallets: [abstractWallet, metaMaskWallet, coinbaseWallet, rainbowWallet],
+      wallets: [
+        abstractWallet,
+        metaMaskWallet,
+        injectedWallet,
+        coinbaseWallet,
+        rainbowWallet,
+      ],
     },
     {
       groupName: 'Other',

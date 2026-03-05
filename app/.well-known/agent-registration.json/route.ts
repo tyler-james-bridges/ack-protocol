@@ -33,6 +33,21 @@ export function GET() {
       },
     ],
     active: true,
+    x402Support: true,
+    tags: [
+      'reputation',
+      'kudos',
+      'erc-8004',
+      'trust',
+      'peer-review',
+      'onchain',
+      'abstract',
+      'ai-agents',
+      'x402',
+      'tipping',
+    ],
+    categories: ['reputation', 'infrastructure', 'social', 'defi'],
+    agent_type: 'service',
     registrations: [
       {
         agentId: 606,

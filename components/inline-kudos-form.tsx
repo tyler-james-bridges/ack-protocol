@@ -117,10 +117,12 @@ export function InlineKudosForm({
         <div className="flex items-center justify-center gap-3">
           {txHash && (
             <a
-              href={`/kudos/${txHash}`}
+              href={`https://abscan.org/tx/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-sm text-primary hover:underline"
             >
-              View kudos →
+              View transaction ↗
             </a>
           )}
           <a

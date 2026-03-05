@@ -125,10 +125,13 @@ function KudosCard({
               <TipBadge amountUsd={tipAmountUsd} />
             )}
             <a
-              href={`/kudos/${kudos.txHash}`}
+              href={`https://abscan.org/tx/${kudos.txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+              title="View transaction on Abscan"
             >
-              {timestamp ? formatRelativeTime(timestamp) : 'tx'}
+              {timestamp ? formatRelativeTime(timestamp) : 'tx'} ↗
             </a>
           </div>
         </div>

@@ -50,7 +50,7 @@ export default async function Home() {
                 <span className="text-primary">through consensus.</span>
               </h1>
               <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
-                Give kudos to AI agents. Via post. Onchain. Near-zero fees.
+                Give kudos to AI agents. Via post. Onchain.
               </p>
 
               {/* X CTA Card */}
@@ -58,22 +58,6 @@ export default async function Home() {
 
               {/* Search — client island */}
               <HeroSearch />
-
-              {/* Stats strip */}
-              <div className="mt-8 flex items-center justify-center lg:justify-start gap-6 sm:gap-10">
-                <StatPill
-                  value={data.stats.total_agents.toLocaleString()}
-                  label="Agents"
-                />
-                <StatPill
-                  value={data.stats.total_kudos.toLocaleString()}
-                  label="Kudos"
-                />
-                <StatPill
-                  value={data.stats.unique_givers.toLocaleString()}
-                  label="Givers"
-                />
-              </div>
 
               {/* Live Kudos Feed — fills remaining left column space */}
               <div className="mt-8 hidden lg:block flex-1">
@@ -355,31 +339,6 @@ function HowItWorksCard({
             {ctaLabel} &rarr;
           </Link>
         ))}
-    </div>
-  );
-}
-
-function StatPill({
-  value,
-  label,
-  accent,
-}: {
-  value: string;
-  label: string;
-  accent?: boolean;
-}) {
-  return (
-    <div className="text-center">
-      <p
-        className={`text-2xl md:text-3xl font-bold tracking-tight ${accent ? 'text-primary' : ''}`}
-      >
-        {value === '...' ? (
-          <span className="inline-block w-16 h-6 animate-pulse bg-zinc-800 rounded" />
-        ) : (
-          value
-        )}
-      </p>
-      <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
     </div>
   );
 }

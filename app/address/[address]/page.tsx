@@ -94,11 +94,11 @@ function KudosHistoryCard({
         />
       </Link>
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between gap-2 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-muted-foreground">
             <Link
               href={senderLink}
-              className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
+              className={`truncate max-w-[120px] hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
             >
               {senderName}
             </Link>
@@ -112,7 +112,7 @@ function KudosHistoryCard({
             </Link>
             <Link
               href={`/agent/2741/${kudos.agentId}`}
-              className="font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+              className="truncate max-w-[120px] font-semibold text-foreground hover:text-[#00DE73] transition-colors"
             >
               {agentName}
             </Link>
@@ -125,12 +125,16 @@ function KudosHistoryCard({
             )}
           </div>
           <a
-            href={`/kudos/${kudos.txHash}`}
+            href={`https://abscan.org/tx/${kudos.txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
+            title="View transaction on Abscan"
           >
             {timestamp
               ? formatRelativeTime(timestamp)
-              : `Block #${kudos.blockNumber.toString()}`}
+              : `Block #${kudos.blockNumber.toString()}`}{' '}
+            ↗
           </a>
         </div>
         {kudos.message && (

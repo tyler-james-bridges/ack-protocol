@@ -85,20 +85,20 @@ function KudosHistoryCard({
     : `/address/${kudos.sender}`;
 
   return (
-    <div className="flex gap-3 border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors overflow-hidden">
-      <Link href={senderLink} className="shrink-0 mt-0.5">
-        <AgentAvatar
-          name={senderName}
-          imageUrl={senderAgent?.image_url}
-          size={36}
-        />
-      </Link>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-muted-foreground">
+    <div className="border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors overflow-hidden max-w-full">
+      <div className="flex gap-3">
+        <Link href={senderLink} className="shrink-0 mt-0.5">
+          <AgentAvatar
+            name={senderName}
+            imageUrl={senderAgent?.image_url}
+            size={36}
+          />
+        </Link>
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
             <Link
               href={senderLink}
-              className={`truncate max-w-[120px] hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
+              className={`truncate max-w-[100px] hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
             >
               {senderName}
             </Link>
@@ -112,7 +112,7 @@ function KudosHistoryCard({
             </Link>
             <Link
               href={`/agent/2741/${kudos.agentId}`}
-              className="truncate max-w-[120px] font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+              className="truncate max-w-[100px] font-semibold text-foreground hover:text-[#00DE73] transition-colors"
             >
               {agentName}
             </Link>
@@ -124,24 +124,26 @@ function KudosHistoryCard({
               </>
             )}
           </div>
-          <a
-            href={`https://abscan.org/tx/${kudos.txHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
-            title="View transaction on Abscan"
-          >
-            {timestamp
-              ? formatRelativeTime(timestamp)
-              : `Block #${kudos.blockNumber.toString()}`}{' '}
-            ↗
-          </a>
+          <div className="flex items-center justify-end mt-1">
+            <a
+              href={`https://abscan.org/tx/${kudos.txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+              title="View transaction on Abscan"
+            >
+              {timestamp
+                ? formatRelativeTime(timestamp)
+                : `Block #${kudos.blockNumber.toString()}`}{' '}
+              ↗
+            </a>
+          </div>
+          {kudos.message && (
+            <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-words">
+              &ldquo;{kudos.message}&rdquo;
+            </p>
+          )}
         </div>
-        {kudos.message && (
-          <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-words">
-            &ldquo;{kudos.message}&rdquo;
-          </p>
-        )}
       </div>
     </div>
   );

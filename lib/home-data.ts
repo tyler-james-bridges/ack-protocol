@@ -37,6 +37,7 @@ export interface HomePageData {
     total_agents: number;
     total_kudos: number;
     top_score: number;
+    unique_givers: number;
   };
   timestamps: Record<string, number>;
   streaks: Record<string, StreakData>;
@@ -154,10 +155,14 @@ export async function getHomePageData(): Promise<HomePageData> {
 
   // Stats (Abstract-only)
   const topScore = leaderboard.length > 0 ? leaderboard[0].total_score : 0;
+  const uniqueGivers = new Set(
+    feedbackEvents.map((e) => e.sender.toLowerCase())
+  ).size;
   const stats = {
     total_agents: abstractAgentsRes.total || 0,
     total_kudos: feedbackEvents.length,
     top_score: topScore,
+    unique_givers: uniqueGivers,
   };
 
   // Wave 2: Resolve block timestamps for the 5 recent kudos

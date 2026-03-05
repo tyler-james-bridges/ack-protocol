@@ -70,12 +70,8 @@ export default async function Home() {
                   label="Kudos"
                 />
                 <StatPill
-                  value={
-                    data.activeStreakCount > 0
-                      ? data.activeStreakCount.toLocaleString()
-                      : '...'
-                  }
-                  label="Streaks"
+                  value={data.stats.unique_givers.toLocaleString()}
+                  label="Givers"
                 />
               </div>
 

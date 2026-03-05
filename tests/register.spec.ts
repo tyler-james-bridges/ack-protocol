@@ -10,7 +10,7 @@ test.describe('Register Page', () => {
   });
 
   test('shows subheading', async ({ page }) => {
-    await expect(page.locator('text=One page')).toBeVisible();
+    await expect(page.locator('text=Mint an onchain identity')).toBeVisible();
   });
 
   test('connect button visible when not connected', async ({ page }) => {

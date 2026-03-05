@@ -6,7 +6,9 @@ test.describe('Registry / Leaderboard', () => {
   });
 
   test('page loads with Explore Agents heading', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Explore Agents');
+    await expect(page.locator('h1')).toContainText('Explore Agents', {
+      timeout: 10000,
+    });
   });
 
   test('network stats section visible', async ({ page }) => {

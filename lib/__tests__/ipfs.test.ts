@@ -2,15 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { ipfsToHttp } from '../ipfs';
 
 describe('ipfsToHttp', () => {
-  it('converts ipfs:// URI to Pinata gateway URL', () => {
+  it('converts ipfs:// URI to gateway URL', () => {
     expect(ipfsToHttp('ipfs://QmHash123')).toBe(
-      'https://gateway.pinata.cloud/ipfs/QmHash123'
+      'https://dweb.link/ipfs/QmHash123'
     );
   });
 
   it('handles ipfs:// with subdirectory paths', () => {
     expect(ipfsToHttp('ipfs://QmHash123/metadata.json')).toBe(
-      'https://gateway.pinata.cloud/ipfs/QmHash123/metadata.json'
+      'https://dweb.link/ipfs/QmHash123/metadata.json'
     );
   });
 

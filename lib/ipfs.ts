@@ -4,7 +4,7 @@
 export function ipfsToHttp(uri: string): string {
   if (uri.startsWith('ipfs://')) {
     const cid = uri.replace('ipfs://', '');
-    return `https://gateway.pinata.cloud/ipfs/${cid}`;
+    return `https://dweb.link/ipfs/${cid}`;
   }
   return uri;
 }

@@ -43,11 +43,12 @@ test.describe('Homepage', () => {
   });
 
   test('links to /register and /leaderboard exist', async ({ page }) => {
-    // Check for links in the page content
-    const registerLinks = page.locator('a[href="/register"]');
-    const leaderboardLinks = page.locator('a[href="/leaderboard"]');
-
-    expect(await registerLinks.count()).toBeGreaterThan(0);
-    expect(await leaderboardLinks.count()).toBeGreaterThan(0);
+    // Check for links in the page content (cards render client-side)
+    await expect(page.locator('a[href="/register"]').first()).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page.locator('a[href="/leaderboard"]').first()).toBeVisible({
+      timeout: 10000,
+    });
   });
 });

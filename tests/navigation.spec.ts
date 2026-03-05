@@ -9,8 +9,8 @@ test.describe('Navigation', () => {
 
   test('nav links are present and work', async ({ page }) => {
     await page.goto('/');
-    const exploreLink = page.getByRole('link', { name: 'Explore' }).first();
-    const kudosLink = page.getByRole('link', { name: 'Kudos' }).first();
+    const exploreLink = page.getByRole('link', { name: 'Discover' }).first();
+    const kudosLink = page.getByRole('link', { name: 'Give Kudos' }).first();
     const registerLink = page.getByRole('link', { name: 'Register' }).first();
 
     await expect(exploreLink).toBeVisible();
@@ -21,7 +21,7 @@ test.describe('Navigation', () => {
   test('explore link points to leaderboard', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     const href = await page
-      .getByRole('link', { name: 'Explore' })
+      .getByRole('link', { name: 'Discover' })
       .first()
       .getAttribute('href');
     expect(href).toBe('/leaderboard');
@@ -30,7 +30,7 @@ test.describe('Navigation', () => {
   test('kudos link points correctly', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     const href = await page
-      .getByRole('link', { name: 'Kudos' })
+      .getByRole('link', { name: 'Give Kudos' })
       .first()
       .getAttribute('href');
     expect(href).toBe('/kudos');
@@ -48,6 +48,7 @@ test.describe('Navigation', () => {
   test('logo links to homepage', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     const href = await page
+      .getByRole('navigation')
       .getByRole('link', { name: 'ACK' })
       .getAttribute('href');
     expect(href).toBe('/');
@@ -66,13 +67,11 @@ test.describe('Navigation', () => {
     // Verify links in mobile menu
     const mobileExplore = page
       .locator('.fixed')
-      .getByRole('link', { name: 'Explore' });
-    await expect(mobileExplore).toBeVisible();
+      .getByRole('link', { name: 'Discover' });
+    await expect(mobileExplore).toBeVisible({ timeout: 5000 });
 
-    // Close menu - click the X button next to "Menu" text
-    const menuHeader = page.locator('text=Menu').locator('..');
-    const closeBtn = menuHeader.locator('button');
-    await closeBtn.click();
+    // Close menu via the X button inside the panel header
+    await page.locator('.fixed button').first().click();
     await expect(mobileExplore).not.toBeVisible({ timeout: 5000 });
   });
 

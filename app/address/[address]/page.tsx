@@ -139,7 +139,7 @@ function KudosHistoryCard({
             </a>
           </div>
           {kudos.message && (
-            <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-words">
+            <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-all">
               &ldquo;{kudos.message}&rdquo;
             </p>
           )}

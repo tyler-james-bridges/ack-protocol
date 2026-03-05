@@ -24,7 +24,13 @@ function parseMessage(feedbackURI: string): string | null {
       return payload.reasoning || payload.message || null;
     }
     if (feedbackURI.startsWith('data:,')) {
-      return decodeURIComponent(feedbackURI.slice(6)) || null;
+      const decoded = decodeURIComponent(feedbackURI.slice(6));
+      try {
+        const payload = JSON.parse(decoded);
+        return payload.reasoning || payload.message || null;
+      } catch {
+        return decoded || null;
+      }
     }
   } catch {
     // ignore malformed URIs

@@ -11,6 +11,7 @@
  *   - PENGU for PENGU tip tests
  */
 
+/* eslint-disable react-hooks/rules-of-hooks */
 import 'dotenv/config';
 import { resolve } from 'path';
 import { config } from 'dotenv';
@@ -152,6 +153,7 @@ export const test = base.extend({
           method: string;
           params?: unknown[];
         }) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return (window as any).__testWalletRequest(method, params || []);
         },
 
@@ -175,6 +177,7 @@ export const test = base.extend({
         },
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).ethereum = provider;
 
       // EIP-6963: Announce wallet so wagmi/RainbowKit discovers it

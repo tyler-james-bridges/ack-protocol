@@ -173,3 +173,32 @@ export async function postReply(
   const result = await response.json();
   console.log(`[reply] Posted tweet ${result.data?.id}`);
 }
+
+/**
+ * Delete a tweet by ID.
+ */
+export async function deleteTweet(
+  tweetId: string,
+  dryRun: boolean
+): Promise<void> {
+  if (dryRun) {
+    console.log(`[dry-run] Delete tweet ${tweetId}`);
+    return;
+  }
+
+  const url = `https://api.x.com/2/tweets/${tweetId}`;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      Authorization: oauthHeader('DELETE', url),
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Tweet delete failed ${response.status}: ${errorText}`);
+  }
+
+  console.log(`[delete] Deleted tweet ${tweetId}`);
+}

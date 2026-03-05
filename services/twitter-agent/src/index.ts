@@ -125,9 +125,9 @@ async function processMention(tweet: Tweet): Promise<void> {
     return;
   }
 
-  // Parse kudos from tweet
+  // Parse kudos from tweet — only accept explicit ++/-- syntax
   const allKudos = parseAllKudos(tweet.text);
-  const validKudos = allKudos.filter(isValidKudos);
+  const validKudos = allKudos.filter((k) => isValidKudos(k) && k.isExplicit);
 
   if (validKudos.length === 0) {
     console.log(`[skip] No valid kudos command found`);

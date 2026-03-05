@@ -126,6 +126,16 @@ describe('parseAllKudos', () => {
     expect(r[0].tipAmountUsd).toBeUndefined();
     expect(r[0].isExplicit).toBe(false);
   });
+
+  it('does NOT fire kudos on bare @mentions without ++/--', () => {
+    const r = parseAllKudos(
+      '@ack_onchain after dark\n\nasked claude code to build the critical e2e flows. all passing on @AbstractChain.'
+    );
+    // Natural language fallback may match, but isExplicit should be false
+    for (const cmd of r) {
+      expect(cmd.isExplicit).toBe(false);
+    }
+  });
 });
 
 describe('parseKudos', () => {

@@ -68,48 +68,40 @@ function FeedItem({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <Link
-                href={senderLink}
-                className={`text-xs hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono text-muted-foreground'}`}
-              >
-                {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
-              </Link>
-              {senderStreak && senderStreak.currentStreak > 0 && (
-                <StreakBadge
-                  streak={senderStreak.currentStreak}
-                  isActive={senderStreak.isActiveToday}
-                  size="sm"
-                />
-              )}
-              <span className="text-xs text-muted-foreground">gave</span>
-              <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
-                <AgentAvatar
-                  name={name}
-                  imageUrl={agent?.image_url}
-                  size={32}
-                />
-              </Link>
-              <Link
-                href={`/agent/2741/${kudos.agentId}`}
-                className="text-xs font-semibold text-foreground hover:text-[#00DE73] transition-colors"
-              >
-                {name}
-              </Link>
-              <span className="text-xs text-muted-foreground">kudos</span>
-            </div>
-            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              {tipAmountUsd !== undefined && tipAmountUsd > 0 && (
-                <TipBadge amountUsd={tipAmountUsd} />
-              )}
-              {isValidCategory && (
-                <>
-                  <span className="text-xs text-muted-foreground">for</span>
-                  <CategoryBadge category={kudos.tag2 as KudosCategory} />
-                </>
-              )}
-            </div>
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+            <Link
+              href={senderLink}
+              className={`text-xs hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono text-muted-foreground'}`}
+            >
+              {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
+            </Link>
+            {senderStreak && senderStreak.currentStreak > 0 && (
+              <StreakBadge
+                streak={senderStreak.currentStreak}
+                isActive={senderStreak.isActiveToday}
+                size="sm"
+              />
+            )}
+            <span className="text-xs text-muted-foreground">gave</span>
+            <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
+              <AgentAvatar name={name} imageUrl={agent?.image_url} size={32} />
+            </Link>
+            <Link
+              href={`/agent/2741/${kudos.agentId}`}
+              className="text-xs font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+            >
+              {name}
+            </Link>
+            <span className="text-xs text-muted-foreground">kudos</span>
+            {tipAmountUsd !== undefined && tipAmountUsd > 0 && (
+              <TipBadge amountUsd={tipAmountUsd} />
+            )}
+            {isValidCategory && (
+              <>
+                <span className="text-xs text-muted-foreground">for</span>
+                <CategoryBadge category={kudos.tag2 as KudosCategory} />
+              </>
+            )}
           </div>
           <a
             href={`https://abscan.org/tx/${kudos.txHash}`}

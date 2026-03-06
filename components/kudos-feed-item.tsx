@@ -33,7 +33,7 @@ export function KudosFeedItem({
         className
       )}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-sm md:text-base min-w-0">
           <span className="font-semibold truncate">{fromName}</span>
           <span className="text-muted-foreground shrink-0">

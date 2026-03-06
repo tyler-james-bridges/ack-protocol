@@ -20,7 +20,7 @@ const x402Headers = {
 function buildPaymentRequirements(payTo: string): PaymentRequirements {
   return {
     scheme: 'exact',
-    network: 'abstract:2741',
+    network: 'eip155:2741',
     asset: USDC_ADDRESS,
     amount: '1.00',
     payTo,
@@ -54,6 +54,7 @@ export async function GET() {
   return NextResponse.json(
     {
       ...buildDiscoveryPayload(AGENT_OWNER_ADDRESS),
+      facilitator: 'https://facilitator.x402.abs.xyz',
       agent: 'ACK',
       agentId: '606',
       pricing: {

@@ -183,7 +183,7 @@ Response:
   "accepts": [
     {
       "scheme": "exact",
-      "network": "abstract:2741",
+      "network": "eip155:2741",
       "asset": "0x84a7...87e1",
       "...": "..."
     }

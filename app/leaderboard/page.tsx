@@ -233,8 +233,8 @@ function LeaderboardPage() {
 
         {/* Sort */}
         <div className="mb-6">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
+          <div className="flex items-center gap-1.5 overflow-x-auto">
+            <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase shrink-0">
               Sort by
             </span>
             {SORT_OPTIONS.map((opt) => (

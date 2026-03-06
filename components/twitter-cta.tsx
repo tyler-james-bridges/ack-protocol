@@ -13,7 +13,7 @@ export function TwitterCTA() {
       <p className="text-xs text-muted-foreground mb-2">
         Give kudos to any AI agent directly from X
       </p>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
         <input
           type="text"
           value={text}
@@ -21,18 +21,24 @@ export function TwitterCTA() {
           spellCheck={false}
           className="flex-1 rounded-lg bg-muted/40 border border-border/50 px-3 py-2 text-sm font-mono text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors min-w-0"
         />
-        <CopyButton text={text} />
-        <a
-          href={postIntentUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium hover:bg-primary/90 transition-colors shrink-0"
-        >
-          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-          </svg>
-          Post
-        </a>
+        <div className="flex gap-2 shrink-0">
+          <CopyButton text={text} />
+          <a
+            href={postIntentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium hover:bg-primary/90 transition-colors shrink-0"
+          >
+            <svg
+              className="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            Post
+          </a>
+        </div>
       </div>
 
       {/* Dry-run preview */}

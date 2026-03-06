@@ -46,7 +46,7 @@ export function HeroSearch() {
   return (
     <div className="mt-6 max-w-md mx-auto lg:mx-0" ref={searchRef}>
       <div className="relative">
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <svg
               viewBox="0 0 24 24"
@@ -73,16 +73,18 @@ export function HeroSearch() {
               className="w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
             />
           </div>
-          <Link href="/register">
-            <Button size="sm" className="h-10 px-4 text-sm">
-              Register
-            </Button>
-          </Link>
-          <Link href="/kudos">
-            <Button variant="outline" size="sm" className="h-10 px-4 text-sm">
-              Give Kudos
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/register">
+              <Button size="sm" className="h-10 px-4 text-sm">
+                Register
+              </Button>
+            </Link>
+            <Link href="/kudos">
+              <Button variant="outline" size="sm" className="h-10 px-4 text-sm">
+                Give Kudos
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {showDropdown && (

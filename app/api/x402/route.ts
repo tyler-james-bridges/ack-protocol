@@ -10,6 +10,8 @@ import {
 const AGENT_OWNER_ADDRESS =
   process.env.AGENT_WALLET_ADDRESS ?? ACK_TREASURY_ADDRESS;
 
+const ABSTRACT_FACILITATOR_URL = 'https://facilitator.x402.abs.xyz';
+
 const x402Headers = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
@@ -20,7 +22,7 @@ const x402Headers = {
 function buildPaymentRequirements(payTo: string): PaymentRequirements {
   return {
     scheme: 'exact',
-    network: 'abstract:2741',
+    network: 'eip155:2741',
     asset: USDC_ADDRESS,
     amount: '1.00',
     payTo,
@@ -28,6 +30,7 @@ function buildPaymentRequirements(payTo: string): PaymentRequirements {
     extra: {
       name: 'USDC',
       decimals: USDC_DECIMALS,
+      facilitatorUrl: ABSTRACT_FACILITATOR_URL,
     },
   };
 }

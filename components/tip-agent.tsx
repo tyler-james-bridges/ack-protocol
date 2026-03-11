@@ -6,8 +6,9 @@ import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useWalletClient,
 } from 'wagmi';
-import { parseUnits, type Hex } from 'viem';
+import { parseUnits, type Hex, publicActions } from 'viem';
 import { abstract } from 'viem/chains';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,6 +48,7 @@ export function TipAgent({
 }: TipAgentProps) {
   const { openConnectModal } = useConnectModal();
   const { address, isConnected, status: accountStatus } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const [amount, setAmount] = useState<number | null>(null);
   const [custom, setCustom] = useState('');
   const [token, setToken] = useState<TipToken>('USDC');
@@ -54,6 +56,7 @@ export function TipAgent({
     'idle' | 'sending' | 'success' | 'error'
   >('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
 
   const isSelf =
     address &&
@@ -70,11 +73,73 @@ export function TipAgent({
     if (txConfirmed && status === 'sending') setStatus('success');
   }, [txConfirmed, status]);
 
-  function handleSend() {
+  async function handleSend() {
     if (!amount || !address || !ownerAddress) return;
     setStatus('sending');
     setErrorMsg(null);
 
+    // USDC tips go through x402 facilitator
+    if (token === 'USDC') {
+      try {
+        // 1. Create tip record
+        const tipRes = await fetch('/api/tips', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentId: Number(agentTokenId),
+            fromAddress: address,
+            amountUsd: amount,
+          }),
+        });
+        if (!tipRes.ok) {
+          const err = await tipRes.json().catch(() => ({}));
+          throw new Error(
+            (err as Record<string, string>).error || 'Failed to create tip'
+          );
+        }
+        const { tipId } = await tipRes.json();
+
+        // 2. Pay via x402 facilitator
+        if (!walletClient) throw new Error('Wallet not connected');
+        const { wrapFetchWithPaymentFromConfig } = await import('@x402/fetch');
+        const { ExactEvmScheme } = await import('@x402/evm/exact/client');
+
+        const extended = walletClient.extend(publicActions);
+        const signer = {
+          address: address as `0x${string}`,
+          signTypedData: (msg: Record<string, unknown>) =>
+            extended.signTypedData(
+              msg as Parameters<typeof extended.signTypedData>[0]
+            ),
+          readContract: (args: Record<string, unknown>) =>
+            extended.readContract(
+              args as Parameters<typeof extended.readContract>[0]
+            ),
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const scheme = new ExactEvmScheme(signer as any);
+        const paidFetch = wrapFetchWithPaymentFromConfig(fetch, {
+          schemes: [{ network: 'eip155:2741', client: scheme }],
+        });
+
+        const res = await paidFetch(`/api/tips/${tipId}/pay`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(
+            (data as Record<string, string>).error ||
+              `Payment failed (${res.status})`
+          );
+        }
+
+        setStatus('success');
+      } catch (err) {
+        setErrorMsg(err instanceof Error ? err.message : 'x402 payment failed');
+        setStatus('error');
+      }
+      return;
+    }
+
+    // PENGU tips use direct transfer (no x402 support)
     const cfg = TOKEN_CONFIG[token];
     const rawAmount = parseUnits(amount.toFixed(cfg.decimals), cfg.decimals);
     writeContract(
@@ -103,6 +168,7 @@ export function TipAgent({
     setToken('USDC');
     setStatus('idle');
     setErrorMsg(null);
+    setCompletedTxHash(null);
   }
 
   if (status === 'success') {
@@ -295,9 +361,13 @@ export function TipAgent({
           onClick={handleSend}
         >
           {status === 'sending'
-            ? 'Confirm in wallet...'
+            ? token === 'USDC'
+              ? 'Processing x402 payment...'
+              : 'Confirm in wallet...'
             : amount
-              ? `Send ${token === 'USDC' ? `$${amount}` : amount} ${token}`
+              ? token === 'USDC'
+                ? `Send $${amount} via x402`
+                : `Send ${amount} ${token}`
               : 'Select an amount'}
         </Button>
       )}

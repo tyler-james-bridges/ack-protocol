@@ -142,6 +142,8 @@ export default function TipPage({
   async function handleX402Pay() {
     if (!tip || !isConnected || !address || !walletClient) return;
     setPageStatus('x402-paying');
+    const signerAddress =
+      walletClient.account?.address ?? (address as `0x${string}`);
     setErrorMsg(null);
 
     try {
@@ -152,7 +154,7 @@ export default function TipPage({
       // Build a ClientEvmSigner that works with AGW smart contract wallets.
       // AGW walletClients from Privy don't always expose .address at root.
       const signer = {
-        address: address as `0x${string}`,
+        address: signerAddress,
         signTypedData: (msg: Record<string, unknown>) =>
           extended.signTypedData(
             msg as Parameters<typeof extended.signTypedData>[0]

@@ -81,13 +81,17 @@ export function TipAgent({
     // USDC tips go through x402 facilitator
     if (token === 'USDC') {
       try {
+        if (!walletClient) throw new Error('Wallet not connected');
+        const signerAddress =
+          walletClient.account?.address ?? (address as `0x${string}`);
+
         // 1. Create tip record
         const tipRes = await fetch('/api/tips', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             agentId: Number(agentTokenId),
-            fromAddress: address,
+            fromAddress: signerAddress,
             amountUsd: amount,
           }),
         });
@@ -100,13 +104,12 @@ export function TipAgent({
         const { tipId } = await tipRes.json();
 
         // 2. Pay via x402 facilitator
-        if (!walletClient) throw new Error('Wallet not connected');
         const { wrapFetchWithPaymentFromConfig } = await import('@x402/fetch');
         const { ExactEvmScheme } = await import('@x402/evm/exact/client');
 
         const extended = walletClient.extend(publicActions);
         const signer = {
-          address: address as `0x${string}`,
+          address: signerAddress,
           signTypedData: (msg: Record<string, unknown>) =>
             extended.signTypedData(
               msg as Parameters<typeof extended.signTypedData>[0]

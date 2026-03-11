@@ -149,6 +149,12 @@ export function getTip(tipId: string): TipRecord | undefined {
   return store.get(tipId);
 }
 
+/** Return all completed tips. */
+export function getCompletedTips(): TipRecord[] {
+  pruneExpired();
+  return Array.from(store.values()).filter((t) => t.status === 'completed');
+}
+
 /** Mark a pending tip as completed with a payment tx hash. */
 export function completeTip(
   tipId: string,

@@ -148,7 +148,9 @@ export default function TipPage({
       const { wrapFetchWithPaymentFromConfig } = await import('@x402/fetch');
       const { ExactEvmScheme } = await import('@x402/evm/exact/client');
 
-      const signer = walletClient.extend(publicActions);
+      const extended = walletClient.extend(publicActions);
+      // AGW smart wallets may not expose .address at top level; patch it in
+      const signer = Object.assign(extended, { address: address! });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const scheme = new ExactEvmScheme(signer as any);
       const paidFetch = wrapFetchWithPaymentFromConfig(fetch, {

@@ -236,6 +236,34 @@ async function processMention(tweet: Tweet): Promise<void> {
     if (result.success) {
       const permalink = `https://ack-onchain.dev/kudos/${result.txHash}`;
       console.log(`[success] Tx: ${result.txHash}`);
+
+      // Create tip if $X amount was included
+      let tipUrl: string | undefined;
+      if (kudos.tipAmountUsd && kudos.tipAmountUsd > 0) {
+        try {
+          const appUrl = process.env.APP_URL || 'https://ack-onchain.dev';
+          const tipRes = await fetch(`${appUrl}/api/tips`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agentId,
+              fromAddress: '0x0000000000000000000000000000000000000000',
+              amountUsd: kudos.tipAmountUsd,
+              kudosTxHash: result.txHash,
+            }),
+          });
+          if (tipRes.ok) {
+            const tipData = await tipRes.json();
+            tipUrl = `https://ack-onchain.dev/tip/${tipData.tipId}`;
+            console.log(`[tip] Created $${kudos.tipAmountUsd} tip: ${tipUrl}`);
+          } else {
+            console.error(`[tip] Failed to create tip: ${tipRes.status}`);
+          }
+        } catch (tipErr) {
+          console.error(`[tip] Error creating tip:`, tipErr);
+        }
+      }
+
       results.push({
         success: true,
         agentName,
@@ -244,6 +272,7 @@ async function processMention(tweet: Tweet): Promise<void> {
         from: tweet.authorUsername,
         permalink,
         txHash: result.txHash,
+        tipUrl,
       });
     } else {
       console.error(`[error] Onchain submission failed: ${result.error}`);
@@ -277,7 +306,11 @@ async function processMention(tweet: Tweet): Promise<void> {
       const txLine = successes
         .map((r: any) => `abscan.org/tx/${r.txHash}`)
         .join('\n');
-      replyText = `${lines.join('\n')}${msgLine}\n\n${txLine}`;
+      const tipLine = successes
+        .filter((r: any) => r.tipUrl)
+        .map((r: any) => `tip: ${r.tipUrl}`)
+        .join('\n');
+      replyText = `${lines.join('\n')}${msgLine}\n\n${txLine}${tipLine ? '\n' + tipLine : ''}`;
     }
 
     if (failures.length > 0 && successes.length === 0) {

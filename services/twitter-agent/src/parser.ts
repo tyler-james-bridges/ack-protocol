@@ -67,7 +67,10 @@ export function parseAllKudos(text: string): KudosCommand[] {
     });
   }
 
-  if (results.length > 0) return results;
+  if (results.length > 0) {
+    scanForTip(text, results);
+    return results;
+  }
 
   // Pattern 1b: ++ or -- with no @handle means kudos to ACK itself
   // e.g. "@ack_onchain ++ for setting up kudos onchain!!!"
@@ -92,6 +95,7 @@ export function parseAllKudos(text: string): KudosCommand[] {
       message,
       isExplicit: true,
     });
+    scanForTip(text, results);
     return results;
   }
 
@@ -113,7 +117,10 @@ export function parseAllKudos(text: string): KudosCommand[] {
     });
   }
 
-  if (results.length > 0) return results;
+  if (results.length > 0) {
+    scanForTip(text, results);
+    return results;
+  }
 
   // Pattern 3: Natural language fallback (single target only, positive only)
   const mentions = cleaned.match(/@(\w+)/g);
@@ -140,7 +147,24 @@ export function parseAllKudos(text: string): KudosCommand[] {
     }
   }
 
+  scanForTip(text, results);
   return results;
+}
+
+/**
+ * Scan full text for a $X.XX tip amount anywhere in the string.
+ * Applies to all parsed results if none already have a tip.
+ */
+function scanForTip(text: string, results: KudosCommand[]): void {
+  if (results.length === 0) return;
+  if (results.some((r) => r.tipAmountUsd !== undefined)) return;
+  const tipMatch = text.match(/\$(\d+(?:\.\d{1,2})?)\b/);
+  if (tipMatch) {
+    const amount = parseTipAmount(tipMatch[1]);
+    if (amount !== undefined) {
+      results[0].tipAmountUsd = amount;
+    }
+  }
 }
 
 /**

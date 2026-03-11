@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const tip = createTip({
+  const tip = await createTip({
     kudosTxHash: kudosTxHash ?? '',
     agentId,
     fromAddress,

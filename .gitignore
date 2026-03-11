@@ -57,3 +57,4 @@ services/twitter-agent/.env
 # promo video (separate Remotion project)
 video/
 tests/extensions/
+.env*.local

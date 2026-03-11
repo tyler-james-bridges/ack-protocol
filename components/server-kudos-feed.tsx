@@ -123,7 +123,7 @@ function FeedItem({
   );
 }
 
-export function ServerKudosFeed({
+export async function ServerKudosFeed({
   kudos,
   agentMap,
   senderMap,
@@ -158,20 +158,22 @@ export function ServerKudosFeed({
             </p>
           </div>
         ) : (
-          kudos.map((k, i) => {
-            const tip = getTipByKudosTxHash(k.txHash);
-            return (
-              <FeedItem
-                key={`${k.txHash}-${i}`}
-                kudos={k}
-                agent={agentMap.get(k.agentId)}
-                senderAgent={senderMap.get(k.sender.toLowerCase())}
-                timestamp={timestamps[k.blockNumber]}
-                senderStreak={streaks?.[k.sender.toLowerCase()]}
-                tipAmountUsd={tip?.amountUsd}
-              />
-            );
-          })
+          await Promise.all(
+            kudos.map(async (k, i) => {
+              const tip = await getTipByKudosTxHash(k.txHash);
+              return (
+                <FeedItem
+                  key={`${k.txHash}-${i}`}
+                  kudos={k}
+                  agent={agentMap.get(k.agentId)}
+                  senderAgent={senderMap.get(k.sender.toLowerCase())}
+                  timestamp={timestamps[k.blockNumber]}
+                  senderStreak={streaks?.[k.sender.toLowerCase()]}
+                  tipAmountUsd={tip?.amountUsd}
+                />
+              );
+            })
+          )
         )}
       </div>
     </div>

@@ -1,8 +1,8 @@
 /**
- * In-memory tip store for tipped kudos.
+ * Persistent tip store backed by Neon Postgres.
  *
- * Stores pending USDC tip records linked to kudos transactions.
- * MVP: in-memory Map. Will swap to SQLite/Turso for production.
+ * Drop-in replacement for the old in-memory Map store.
+ * All function signatures are preserved.
  */
 
 import { nanoid } from 'nanoid';
@@ -11,6 +11,7 @@ import { abstract } from 'viem/chains';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { ACK_TREASURY_ADDRESS } from '@/config/tokens';
+import { getDb, ensureMigrations } from './db';
 
 export interface TipRecord {
   id: string;
@@ -43,7 +44,7 @@ export interface TipRecordJSON {
   expiresAt: number;
 }
 
-const client = createPublicClient({ chain: abstract, transport: http() });
+const viemClient = createPublicClient({ chain: abstract, transport: http() });
 
 /**
  * Resolve the payment address for an agent. Tries ownerOf from
@@ -51,7 +52,7 @@ const client = createPublicClient({ chain: abstract, transport: http() });
  */
 export async function resolvePaymentAddress(agentId: number): Promise<Address> {
   try {
-    const owner = await client.readContract({
+    const owner = await viemClient.readContract({
       address: IDENTITY_REGISTRY_ADDRESS,
       abi: IDENTITY_REGISTRY_ABI,
       functionName: 'ownerOf',
@@ -66,7 +67,23 @@ export async function resolvePaymentAddress(agentId: number): Promise<Address> {
 /** 24 hours in milliseconds */
 const TIP_TTL_MS = 24 * 60 * 60 * 1000;
 
-const store = new Map<string, TipRecord>();
+/** Convert a DB row to a TipRecord */
+function rowToTip(row: Record<string, unknown>): TipRecord {
+  return {
+    id: row.id as string,
+    kudosTxHash: row.kudos_tx_hash as string,
+    agentId: row.agent_id as number,
+    fromAddress: row.from_address as string,
+    toAddress: row.to_address as string,
+    amountUsd: row.amount_usd as number,
+    amountRaw: BigInt(Math.round((row.amount_usd as number) * 1e6)),
+    status: row.status as TipRecord['status'],
+    paymentTxHash: (row.payment_tx_hash as string) || undefined,
+    createdAt: row.created_at as number,
+    completedAt: (row.completed_at as number) || undefined,
+    expiresAt: row.expires_at as number,
+  };
+}
 
 /** Convert a TipRecord to a JSON-safe object (bigint -> string) */
 export function tipToJSON(tip: TipRecord): TipRecordJSON {
@@ -81,29 +98,38 @@ export function usdToRaw(amountUsd: number): bigint {
   return BigInt(Math.round(amountUsd * 1e6));
 }
 
-/** Expire stale pending tips. Called on reads/writes. */
-function pruneExpired(): void {
+/** Expire stale pending tips in the database. */
+async function pruneExpired(): Promise<void> {
+  await ensureMigrations();
+  const sql = getDb();
   const now = Date.now();
-  for (const [id, tip] of store) {
-    if (tip.status === 'pending' && tip.expiresAt <= now) {
-      store.set(id, { ...tip, status: 'expired' });
-    }
-  }
+  await sql`
+    UPDATE tips SET status = 'expired'
+    WHERE status = 'pending' AND expires_at <= ${now}
+  `;
 }
 
 /** Create a new pending tip record. */
-export function createTip(params: {
+export async function createTip(params: {
   kudosTxHash: string;
   agentId: number;
   fromAddress: string;
   toAddress: string;
   amountUsd: number;
-}): TipRecord {
-  pruneExpired();
+}): Promise<TipRecord> {
+  const sql = getDb();
+  await pruneExpired();
 
   const now = Date.now();
-  const tip: TipRecord = {
-    id: nanoid(),
+  const id = nanoid();
+
+  await sql`
+    INSERT INTO tips (id, kudos_tx_hash, agent_id, from_address, to_address, amount_usd, status, created_at, expires_at)
+    VALUES (${id}, ${params.kudosTxHash}, ${params.agentId}, ${params.fromAddress.toLowerCase()}, ${params.toAddress.toLowerCase()}, ${params.amountUsd}, 'pending', ${now}, ${now + TIP_TTL_MS})
+  `;
+
+  return {
+    id,
     kudosTxHash: params.kudosTxHash,
     agentId: params.agentId,
     fromAddress: params.fromAddress.toLowerCase(),
@@ -114,64 +140,63 @@ export function createTip(params: {
     createdAt: now,
     expiresAt: now + TIP_TTL_MS,
   };
-
-  store.set(tip.id, tip);
-  return tip;
 }
 
-/** Look up a tip by ID. Returns undefined if not found. */
 /**
  * Look up a completed tip by the kudos transaction hash it was linked to.
- * Returns the tip amount in USD or undefined if no tip exists.
  */
-export function getTipByKudosTxHash(
+export async function getTipByKudosTxHash(
   kudosTxHash: string
-): TipRecord | undefined {
+): Promise<TipRecord | undefined> {
   if (!kudosTxHash) return undefined;
-  pruneExpired();
+  const sql = getDb();
+  await pruneExpired();
+
   const hash = kudosTxHash.toLowerCase();
-  for (const tip of store.values()) {
-    if (tip.status === 'completed' && tip.kudosTxHash.toLowerCase() === hash) {
-      return tip;
-    }
-    if (
-      tip.status === 'completed' &&
-      tip.paymentTxHash?.toLowerCase() === hash
-    ) {
-      return tip;
-    }
-  }
-  return undefined;
+  const rows = await sql`
+    SELECT * FROM tips
+    WHERE status = 'completed'
+      AND (LOWER(kudos_tx_hash) = ${hash} OR LOWER(payment_tx_hash) = ${hash})
+    LIMIT 1
+  `;
+
+  return rows.length > 0 ? rowToTip(rows[0]) : undefined;
 }
 
-export function getTip(tipId: string): TipRecord | undefined {
-  pruneExpired();
-  return store.get(tipId);
+/** Look up a tip by ID. */
+export async function getTip(tipId: string): Promise<TipRecord | undefined> {
+  const sql = getDb();
+  await pruneExpired();
+
+  const rows = await sql`SELECT * FROM tips WHERE id = ${tipId} LIMIT 1`;
+  return rows.length > 0 ? rowToTip(rows[0]) : undefined;
 }
 
 /** Return all completed tips. */
-export function getCompletedTips(): TipRecord[] {
-  pruneExpired();
-  return Array.from(store.values()).filter((t) => t.status === 'completed');
+export async function getCompletedTips(): Promise<TipRecord[]> {
+  const sql = getDb();
+  await pruneExpired();
+
+  const rows =
+    await sql`SELECT * FROM tips WHERE status = 'completed' ORDER BY completed_at DESC`;
+  return rows.map(rowToTip);
 }
 
 /** Mark a pending tip as completed with a payment tx hash. */
-export function completeTip(
+export async function completeTip(
   tipId: string,
   paymentTxHash: string
-): TipRecord | undefined {
-  pruneExpired();
+): Promise<TipRecord | undefined> {
+  const sql = getDb();
+  await pruneExpired();
 
-  const tip = store.get(tipId);
-  if (!tip || tip.status !== 'pending') return undefined;
+  const now = Date.now();
+  const rows = await sql`
+    UPDATE tips
+    SET status = 'completed', payment_tx_hash = ${paymentTxHash}, completed_at = ${now}
+    WHERE id = ${tipId} AND status = 'pending'
+    RETURNING *
+  `;
 
-  const updated: TipRecord = {
-    ...tip,
-    status: 'completed',
-    paymentTxHash,
-    completedAt: Date.now(),
-  };
-
-  store.set(tipId, updated);
-  return updated;
+  return rows.length > 0 ? rowToTip(rows[0]) : undefined;
 }

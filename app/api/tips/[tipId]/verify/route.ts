@@ -37,7 +37,7 @@ export async function POST(
     );
   }
 
-  const tip = getTip(tipId);
+  const tip = await getTip(tipId);
   if (!tip) {
     return NextResponse.json(
       { error: 'Tip not found or not in pending status' },
@@ -114,7 +114,7 @@ export async function POST(
     );
   }
 
-  const updated = completeTip(tipId, txHash);
+  const updated = await completeTip(tipId, txHash);
   if (!updated) {
     return NextResponse.json(
       { error: 'Failed to update tip record' },

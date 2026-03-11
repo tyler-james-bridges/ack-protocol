@@ -25,7 +25,7 @@ import {
 async function handler(request: NextRequest): Promise<NextResponse<any>> {
   const tipId = request.nextUrl.pathname.split('/').slice(-2)[0];
 
-  const tip = getTip(tipId);
+  const tip = await getTip(tipId);
   if (!tip) {
     return NextResponse.json({ error: 'Tip not found' }, { status: 404 });
   }
@@ -42,7 +42,7 @@ async function handler(request: NextRequest): Promise<NextResponse<any>> {
   }
 
   // Mark the tip as completed (x402 facilitator already settled the payment)
-  const completed = completeTip(tipId, 'x402-facilitator-settlement');
+  const completed = await completeTip(tipId, 'x402-facilitator-settlement');
   if (!completed) {
     return NextResponse.json(
       { error: 'Failed to complete tip' },
@@ -67,7 +67,7 @@ export async function GET(
 ) {
   const { tipId } = await params;
 
-  const tip = getTip(tipId);
+  const tip = await getTip(tipId);
   if (!tip) {
     return NextResponse.json({ error: 'Tip not found' }, { status: 404 });
   }

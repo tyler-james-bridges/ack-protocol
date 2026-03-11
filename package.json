@@ -23,6 +23,8 @@
     "@abstract-foundation/agw-react": "^1.10.0",
     "@buildersgarden/siwa": "^0.0.11",
     "@coinbase/x402": "^2.1.0",
+    "@libsql/client": "^0.17.0",
+    "@neondatabase/serverless": "^1.0.2",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dropdown-menu": "^2.1.6",

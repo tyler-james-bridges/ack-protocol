@@ -17,7 +17,7 @@ export async function GET(
 ) {
   const { tipId } = await params;
 
-  const tip = getTip(tipId);
+  const tip = await getTip(tipId);
   if (!tip) {
     return NextResponse.json({ error: 'Tip not found' }, { status: 404 });
   }

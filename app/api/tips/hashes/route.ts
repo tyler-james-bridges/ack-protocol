@@ -7,7 +7,7 @@ import { getCompletedTips } from '@/lib/tip-store';
  * Used by external explorers (x402-abstract) for cross-referencing.
  */
 export async function GET() {
-  const tips = getCompletedTips();
+  const tips = await getCompletedTips();
 
   const hashes = tips.map((t) => t.paymentTxHash ?? t.kudosTxHash);
 

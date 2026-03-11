@@ -43,7 +43,9 @@ export default function KudosTxPage({
         const json = await res.json();
 
         if (!res.ok) {
-          throw new Error(json?.error || `Failed to load kudos (${res.status})`);
+          throw new Error(
+            json?.error || `Failed to load kudos (${res.status})`
+          );
         }
 
         if (!cancelled) {
@@ -71,7 +73,10 @@ export default function KudosTxPage({
       <Nav />
       <div className="mx-auto max-w-2xl px-4 pt-4">
         <Breadcrumbs
-          items={[{ label: 'Home', href: '/' }, { label: 'Kudos', href: '/kudos' }]}
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Kudos', href: '/kudos' },
+          ]}
           current="Transaction"
         />
       </div>
@@ -79,13 +84,17 @@ export default function KudosTxPage({
       <main className="mx-auto max-w-2xl px-4 pt-10 pb-24">
         {loading && (
           <div className="rounded-xl border border-border bg-card p-6">
-            <p className="text-sm text-muted-foreground">Loading kudos transaction...</p>
+            <p className="text-sm text-muted-foreground">
+              Loading kudos transaction...
+            </p>
           </div>
         )}
 
         {!loading && error && (
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 space-y-3">
-            <p className="font-semibold text-destructive">Could not load this kudos transaction</p>
+            <p className="font-semibold text-destructive">
+              Could not load this kudos transaction
+            </p>
             <p className="text-sm text-muted-foreground">{error}</p>
           </div>
         )}
@@ -93,7 +102,9 @@ export default function KudosTxPage({
         {!loading && data && (
           <div className="rounded-xl border border-border bg-card p-6 space-y-4">
             <div>
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">Kudos Transaction</p>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                Kudos Transaction
+              </p>
               <h1 className="text-2xl font-bold">{data.agentName}</h1>
             </div>
 
@@ -103,15 +114,18 @@ export default function KudosTxPage({
                 {data.senderName || truncateAddress(data.sender)}
               </p>
               <p>
-                <span className="text-muted-foreground">Category:</span> {data.category}
+                <span className="text-muted-foreground">Category:</span>{' '}
+                {data.category}
               </p>
               {!!data.message && (
                 <p>
-                  <span className="text-muted-foreground">Message:</span> “{data.message}”
+                  <span className="text-muted-foreground">Message:</span> “
+                  {data.message}”
                 </p>
               )}
               <p>
-                <span className="text-muted-foreground">Block:</span> {data.blockNumber}
+                <span className="text-muted-foreground">Block:</span>{' '}
+                {data.blockNumber}
               </p>
               <p>
                 <span className="text-muted-foreground">Time:</span>{' '}
@@ -128,7 +142,10 @@ export default function KudosTxPage({
               >
                 View on Abscan ↗
               </a>
-              <Link href="/kudos" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link
+                href="/kudos"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
                 Back to Kudos
               </Link>
             </div>

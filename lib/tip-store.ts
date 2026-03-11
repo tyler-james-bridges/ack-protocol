@@ -11,7 +11,7 @@ import { abstract } from 'viem/chains';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { ACK_TREASURY_ADDRESS } from '@/config/tokens';
-import { getDb, ensureMigrations } from './db';
+import { getDb, ensureMigrations, hasDb } from './db';
 
 export interface TipRecord {
   id: string;
@@ -148,7 +148,7 @@ export async function createTip(params: {
 export async function getTipByKudosTxHash(
   kudosTxHash: string
 ): Promise<TipRecord | undefined> {
-  if (!kudosTxHash) return undefined;
+  if (!kudosTxHash || !hasDb()) return undefined;
   const sql = getDb();
   await pruneExpired();
 

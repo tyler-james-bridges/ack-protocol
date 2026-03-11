@@ -7,11 +7,19 @@ export function getDb(): NeonQueryFunction<false, false> {
   if (!_sql) {
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) {
-      throw new Error('DATABASE_URL environment variable is not set');
+      throw new Error(
+        'DATABASE_URL environment variable is not set. ' +
+          'Set it in .env.local for local dev or in Vercel project settings.'
+      );
     }
     _sql = neon(databaseUrl);
   }
   return _sql;
+}
+
+/** Returns true if DATABASE_URL is configured. */
+export function hasDb(): boolean {
+  return !!process.env.DATABASE_URL;
 }
 
 /** Run migrations once per cold start. */

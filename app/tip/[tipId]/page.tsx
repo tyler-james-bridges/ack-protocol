@@ -149,8 +149,19 @@ export default function TipPage({
       const { ExactEvmScheme } = await import('@x402/evm/exact/client');
 
       const extended = walletClient.extend(publicActions);
-      // AGW smart wallets may not expose .address at top level; patch it in
-      const signer = Object.assign(extended, { address: address! });
+      // Build a ClientEvmSigner that works with AGW smart contract wallets.
+      // AGW walletClients from Privy don't always expose .address at root.
+      const signer = {
+        address: address as `0x${string}`,
+        signTypedData: (msg: Record<string, unknown>) =>
+          extended.signTypedData(
+            msg as Parameters<typeof extended.signTypedData>[0]
+          ),
+        readContract: (args: Record<string, unknown>) =>
+          extended.readContract(
+            args as Parameters<typeof extended.readContract>[0]
+          ),
+      };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const scheme = new ExactEvmScheme(signer as any);
       const paidFetch = wrapFetchWithPaymentFromConfig(fetch, {

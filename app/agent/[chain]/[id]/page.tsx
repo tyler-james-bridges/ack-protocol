@@ -193,7 +193,7 @@ export default function AgentProfilePage({
           {/* ================================================================ */}
           {/* LEFT COLUMN — Profile Sidebar                                    */}
           {/* ================================================================ */}
-          <aside className="w-full lg:w-80 shrink-0 lg:sticky lg:top-20 space-y-4">
+          <aside className="w-full lg:w-80 shrink-0 space-y-4">
             {/* ── Profile Card ── */}
             <div className="gradient-border card-glow rounded-xl p-5 space-y-4">
               {/* Identity header */}

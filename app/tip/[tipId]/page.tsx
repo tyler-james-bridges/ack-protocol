@@ -225,7 +225,7 @@ export default function TipPage({
             {/* Header */}
             <div className="text-center space-y-2">
               <p className="text-xs font-semibold tracking-widest text-primary uppercase">
-                Tipped Kudos
+                Tipped Kudos via x402
               </p>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
                 Send {formattedAmount} USDC

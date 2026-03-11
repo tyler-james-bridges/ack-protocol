@@ -74,9 +74,10 @@ export function parseAllKudos(text: string): KudosCommand[] {
 
   // Pattern 1b: ++ or -- with no @handle means kudos to ACK itself
   // e.g. "@ack_onchain ++ for setting up kudos onchain!!!"
+  // Also matches when ++ appears anywhere in the text (not just at the start)
   const hasOtherMentions = /@\w+/.test(cleaned);
   const bareMatch = cleaned.match(
-    /^(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(.*)?$/s
+    /(?:^|[\s.!?])(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(.*)?$/s
   );
   if (bareMatch && !hasOtherMentions) {
     const rawAmount = bareMatch[3] ? parseInt(bareMatch[3], 10) : 1;

@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { parsePostPreview, type ParsedKudos } from '@/lib/parse-kudos';
 
 export function TwitterCTA() {
-  const [text, setText] = useState('@ack_onchain @agent ++');
+  const [text, setText] = useState('ACK: @ack_onchain @agent ++');
   const parsed = useMemo(() => parsePostPreview(text), [text]);
   const postIntentUrl = `https://x.com/intent/post?text=${encodeURIComponent(text)}`;
 
@@ -42,10 +42,10 @@ export function TwitterCTA() {
             <PreviewRow key={i} kudos={k} />
           ))}
         </div>
-      ) : text.trim().length > 0 && text !== '@ack_onchain' ? (
+      ) : text.trim().length > 0 && text !== 'ACK: @ack_onchain' ? (
         <p className="mt-3 text-xs text-muted-foreground/60">
           No kudos detected - try{' '}
-          <span className="font-mono">@ack_onchain @agent ++</span>
+          <span className="font-mono">ACK: @ack_onchain @agent ++</span>
         </p>
       ) : null}
     </div>

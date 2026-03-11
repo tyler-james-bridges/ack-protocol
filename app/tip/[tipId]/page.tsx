@@ -5,10 +5,11 @@ import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useWalletClient,
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import Link from 'next/link';
-import { parseUnits, type Hex } from 'viem';
+import { parseUnits, type Hex, publicActions } from 'viem';
 import { abstract } from 'viem/chains';
 import { Nav } from '@/components/nav';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -39,7 +40,8 @@ type PageStatus =
   | 'sending'
   | 'verifying'
   | 'success'
-  | 'error';
+  | 'error'
+  | 'x402-paying';
 
 export default function TipPage({
   params,
@@ -48,6 +50,7 @@ export default function TipPage({
 }) {
   const { tipId } = use(params);
   const { address, isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const { openConnectModal } = useConnectModal();
 
   const [tip, setTip] = useState<TipData | null>(null);
@@ -134,6 +137,38 @@ export default function TipPage({
         },
       }
     );
+  }
+
+  async function handleX402Pay() {
+    if (!tip || !isConnected || !address || !walletClient) return;
+    setPageStatus('x402-paying');
+    setErrorMsg(null);
+
+    try {
+      const { wrapFetchWithPaymentFromConfig } = await import('@x402/fetch');
+      const { ExactEvmScheme } = await import('@x402/evm/exact/client');
+
+      const signer = walletClient.extend(publicActions);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const scheme = new ExactEvmScheme(signer as any);
+      const paidFetch = wrapFetchWithPaymentFromConfig(fetch, {
+        schemes: [{ network: 'eip155:2741', client: scheme }],
+      });
+      const res = await paidFetch(`/api/tips/${tipId}/pay`);
+
+      if (res.ok) {
+        setPageStatus('success');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          (data as Record<string, string>).error ||
+            `Payment failed (${res.status})`
+        );
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'x402 payment failed');
+      setPageStatus('error');
+    }
   }
 
   const formattedAmount = tip ? `$${tip.amountUsd.toFixed(2)}` : '';
@@ -268,20 +303,44 @@ export default function TipPage({
                       Connect Wallet
                     </Button>
                   ) : (
-                    <Button
-                      size="lg"
-                      className="w-full"
-                      onClick={handleSendTip}
-                      disabled={
-                        pageStatus === 'sending' || pageStatus === 'verifying'
-                      }
-                    >
-                      {pageStatus === 'sending'
-                        ? 'Confirming...'
-                        : pageStatus === 'verifying'
-                          ? 'Verifying...'
-                          : `Send ${formattedAmount} USDC`}
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        size="lg"
+                        className="w-full"
+                        onClick={handleX402Pay}
+                        disabled={
+                          pageStatus === 'sending' ||
+                          pageStatus === 'verifying' ||
+                          pageStatus === 'x402-paying'
+                        }
+                      >
+                        {pageStatus === 'x402-paying'
+                          ? 'Processing x402 payment...'
+                          : `Pay ${formattedAmount} via x402`}
+                      </Button>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex-1 h-px bg-border" />
+                        <span>or send directly</span>
+                        <div className="flex-1 h-px bg-border" />
+                      </div>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleSendTip}
+                        disabled={
+                          pageStatus === 'sending' ||
+                          pageStatus === 'verifying' ||
+                          pageStatus === 'x402-paying'
+                        }
+                      >
+                        {pageStatus === 'sending'
+                          ? 'Confirming...'
+                          : pageStatus === 'verifying'
+                            ? 'Verifying...'
+                            : `Send ${formattedAmount} USDC`}
+                      </Button>
+                    </div>
                   )}
 
                   {isConnected && address && (

@@ -1,0 +1,165 @@
+/**
+ * ACK After Dark — Aborean Swap via AGW
+ * Swap USDC.e → ETH from the Portal AGW smart wallet
+ */
+
+import { privateKeyToAccount } from 'viem/accounts';
+import {
+  createPublicClient,
+  http,
+  parseAbi,
+  formatEther,
+  formatUnits,
+} from 'viem';
+import { abstract } from 'viem/chains';
+import {
+  createAbstractClient,
+  getSmartAccountAddressFromInitialSigner,
+} from '@abstract-foundation/agw-client';
+
+const rawKey = process.env.AGENT_PRIVATE_KEY;
+if (!rawKey) {
+  console.error('AGENT_PRIVATE_KEY not set');
+  process.exit(1);
+}
+const PRIVATE_KEY = rawKey.startsWith('0x') ? rawKey : `0x${rawKey}`;
+const signer = privateKeyToAccount(PRIVATE_KEY);
+
+const PORTAL_AGW = '0x90293f9AeE925833FB09d7145Fc83A981dF383eF';
+const USDC_E = '0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1';
+const WETH = '0x3439153EB7AF838Ad19d56E1571FBD09333C2809';
+const ROUTER = '0xE8142D2f82036B6FC1e79E4aE85cF53FBFfDC998';
+const FACTORY = '0xF6cDfFf7Ad51caaD860e7A35d6D4075d74039a6B';
+const AMOUNT_IN = 100000n; // 0.10 USDC.e (6 decimals)
+
+const erc20Abi = parseAbi([
+  'function balanceOf(address) view returns (uint256)',
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function approve(address spender, uint256 amount) returns (bool)',
+]);
+
+const routerAbi = parseAbi([
+  'function swapExactTokensForETH(uint256 amountIn, uint256 amountOutMin, (address from, address to, bool stable, address factory)[] routes, address toAddr, uint256 deadline) returns (uint256[])',
+  'function getAmountsOut(uint256 amountIn, (address from, address to, bool stable, address factory)[] routes) view returns (uint256[])',
+]);
+
+console.log(`[swap] Signer (EOA): ${signer.address}`);
+console.log(`[swap] Portal AGW: ${PORTAL_AGW}`);
+
+const publicClient = createPublicClient({ chain: abstract, transport: http() });
+
+// Check which AGW the SDK derives for this signer
+const derivedAgw = await getSmartAccountAddressFromInitialSigner(
+  signer.address,
+  publicClient
+);
+console.log(`[swap] SDK-derived AGW: ${derivedAgw}`);
+console.log(
+  `[swap] Matches Portal AGW: ${derivedAgw.toLowerCase() === PORTAL_AGW.toLowerCase()}`
+);
+
+// Check Portal AGW balances
+const [usdcBal, ethBal] = await Promise.all([
+  publicClient.readContract({
+    address: USDC_E,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: [PORTAL_AGW],
+  }),
+  publicClient.getBalance({ address: PORTAL_AGW }),
+]);
+console.log(
+  `[swap] Portal AGW — USDC.e: ${formatUnits(usdcBal, 6)} | ETH: ${formatEther(ethBal)}`
+);
+
+if (usdcBal < AMOUNT_IN) {
+  console.error(`[swap] Insufficient USDC.e`);
+  process.exit(1);
+}
+
+// Create AbstractClient pointed at the Portal AGW (not the SDK-derived one)
+const agwClient = await createAbstractClient({
+  signer,
+  chain: abstract,
+  transport: http(),
+  address: PORTAL_AGW,
+});
+console.log(`[swap] AGW client account: ${agwClient.account.address}`);
+
+const routes = [{ from: USDC_E, to: WETH, stable: false, factory: FACTORY }];
+
+// Get quote
+try {
+  const amounts = await publicClient.readContract({
+    address: ROUTER,
+    abi: routerAbi,
+    functionName: 'getAmountsOut',
+    args: [AMOUNT_IN, routes],
+  });
+  console.log(
+    `[swap] Quote: ${formatUnits(AMOUNT_IN, 6)} USDC.e → ${formatEther(amounts[amounts.length - 1])} ETH`
+  );
+} catch {
+  routes[0].stable = true;
+  const amounts = await publicClient.readContract({
+    address: ROUTER,
+    abi: routerAbi,
+    functionName: 'getAmountsOut',
+    args: [AMOUNT_IN, routes],
+  });
+  console.log(
+    `[swap] Quote (stable): ${formatUnits(AMOUNT_IN, 6)} USDC.e → ${formatEther(amounts[amounts.length - 1])} ETH`
+  );
+}
+
+// Approve router from AGW
+const allowance = await publicClient.readContract({
+  address: USDC_E,
+  abi: erc20Abi,
+  functionName: 'allowance',
+  args: [agwClient.account.address, ROUTER],
+});
+if (allowance < AMOUNT_IN) {
+  console.log('[swap] Approving router from AGW...');
+  const approveTx = await agwClient.writeContract({
+    address: USDC_E,
+    abi: erc20Abi,
+    functionName: 'approve',
+    args: [ROUTER, AMOUNT_IN * 10n],
+    chain: abstract,
+  });
+  console.log(`[swap] Approve tx: ${approveTx}`);
+  await publicClient.waitForTransactionReceipt({ hash: approveTx });
+  console.log('[swap] Approved');
+}
+
+// Swap from AGW
+const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
+console.log('[swap] Executing swap from AGW...');
+
+const swapTx = await agwClient.writeContract({
+  address: ROUTER,
+  abi: routerAbi,
+  functionName: 'swapExactTokensForETH',
+  args: [AMOUNT_IN, 0n, routes, agwClient.account.address, deadline],
+  chain: abstract,
+});
+console.log(`[swap] Swap tx: ${swapTx}`);
+
+const receipt = await publicClient.waitForTransactionReceipt({ hash: swapTx });
+console.log(`[swap] Status: ${receipt.status}`);
+
+const [newUsdcBal, newEthBal] = await Promise.all([
+  publicClient.readContract({
+    address: USDC_E,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: [agwClient.account.address],
+  }),
+  publicClient.getBalance({ address: agwClient.account.address }),
+]);
+console.log(
+  `[swap] USDC.e: ${formatUnits(usdcBal, 6)} → ${formatUnits(newUsdcBal, 6)}`
+);
+console.log(`[swap] ETH: ${formatEther(ethBal)} → ${formatEther(newEthBal)}`);
+console.log('[swap] Done!');

@@ -33,6 +33,7 @@
     "@vercel/analytics": "^1.6.1",
     "@vercel/og": "^0.8.6",
     "@x402/evm": "^2.5.0",
+    "@x402/fetch": "^2.6.0",
     "@x402/next": "^2.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -17,28 +17,37 @@ function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
-function parseMessage(feedbackURI: string): string | null {
+function parseFeedbackContext(feedbackURI: string): {
+  message: string | null;
+  sourceFrom: string | null;
+} {
   try {
     if (feedbackURI.startsWith('data:application/json;base64,')) {
       const json = decodeURIComponent(
         escape(atob(feedbackURI.replace('data:application/json;base64,', '')))
       );
       const payload = JSON.parse(json);
-      return payload.reasoning || payload.message || null;
+      return {
+        message: payload.reasoning || payload.message || null,
+        sourceFrom: payload.from || null,
+      };
     }
     if (feedbackURI.startsWith('data:,')) {
       const decoded = decodeURIComponent(feedbackURI.slice(6));
       try {
         const payload = JSON.parse(decoded);
-        return payload.reasoning || payload.message || null;
+        return {
+          message: payload.reasoning || payload.message || null,
+          sourceFrom: payload.from || null,
+        };
       } catch {
-        return decoded || null;
+        return { message: decoded || null, sourceFrom: null };
       }
     }
   } catch {
     // ignore malformed URIs
   }
-  return null;
+  return { message: null, sourceFrom: null };
 }
 
 function TipBadge({ amountUsd }: { amountUsd: number }) {
@@ -69,35 +78,68 @@ function KudosCard({
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
   );
-  const message = parseMessage(kudos.feedbackURI);
+  const { message, sourceFrom } = parseFeedbackContext(kudos.feedbackURI);
 
-  const senderName = senderAgent?.name || truncateAddress(kudos.sender);
+  const twitterHandle = sourceFrom?.startsWith('twitter:@')
+    ? sourceFrom.replace('twitter:@', '')
+    : null;
+  const senderName = senderAgent?.name
+    ? senderAgent.name
+    : twitterHandle
+      ? `@${twitterHandle}`
+      : truncateAddress(kudos.sender);
   const receiverName = receiverAgent?.name || `Agent #${agentId}`;
   const senderLink = senderAgent
     ? `/agent/${senderAgent.chain_id}/${senderAgent.token_id}`
-    : `/address/${kudos.sender}`;
+    : twitterHandle
+      ? `https://x.com/${twitterHandle}`
+      : `/address/${kudos.sender}`;
 
   return (
     <div className="flex gap-3 border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors">
       {/* Sender avatar */}
-      <Link href={senderLink} className="shrink-0 mt-0.5">
-        <AgentAvatar
-          name={senderName}
-          imageUrl={senderAgent?.image_url}
-          size={36}
-        />
-      </Link>
+      {twitterHandle && !senderAgent ? (
+        <a
+          href={senderLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 mt-0.5"
+        >
+          <AgentAvatar name={senderName} imageUrl={undefined} size={36} />
+        </a>
+      ) : (
+        <Link href={senderLink} className="shrink-0 mt-0.5">
+          <AgentAvatar
+            name={senderName}
+            imageUrl={senderAgent?.image_url}
+            size={36}
+          />
+        </Link>
+      )}
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-muted-foreground">
-            <Link
-              href={senderLink}
-              className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
-            >
-              {senderName}
-            </Link>
-            <IdentityBadge type={isSenderAgent ? 'agent' : 'human'} />
+            {twitterHandle && !senderAgent ? (
+              <a
+                href={senderLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#00DE73] transition-colors font-semibold text-foreground"
+              >
+                {senderName}
+              </a>
+            ) : (
+              <Link
+                href={senderLink}
+                className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
+              >
+                {senderName}
+              </Link>
+            )}
+            <IdentityBadge
+              type={twitterHandle && !senderAgent ? 'human' : isSenderAgent ? 'agent' : 'human'}
+            />
             <span>gave</span>
             <Link href={`/agent/2741/${agentId}`} className="shrink-0">
               <AgentAvatar
@@ -135,6 +177,12 @@ function KudosCard({
             </a>
           </div>
         </div>
+
+        {twitterHandle && !senderAgent && (
+          <p className="text-[11px] text-muted-foreground/60 mt-1">
+            Submitted via ACK relay, attributed to {senderName}
+          </p>
+        )}
 
         {message && (
           <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed">

@@ -23,6 +23,7 @@ import { createPublicClient, http, formatEther } from 'viem';
 import { abstract } from 'viem/chains';
 import { StreakCard } from '@/components/streak-card';
 import { useStreak } from '@/hooks';
+import { useKudosReceived } from '@/hooks/useKudosReceived';
 
 const abstractClient = createPublicClient({
   chain: abstract,
@@ -149,6 +150,85 @@ function KudosHistoryCard({
   );
 }
 
+function parseFeedbackMessage(uri: string): string | null {
+  if (!uri.startsWith('data:,')) return null;
+  try {
+    const parsed = JSON.parse(uri.slice(6));
+    return typeof parsed.message === 'string' && parsed.message.length > 0
+      ? parsed.message
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function KudosReceivedCard({
+  sender,
+  category,
+  feedbackURI,
+  txHash,
+  blockNumber,
+  timestamp,
+}: {
+  sender: `0x${string}`;
+  category: string;
+  feedbackURI: string;
+  txHash: `0x${string}`;
+  blockNumber: bigint;
+  timestamp?: number;
+}) {
+  const parsedCategory = KUDOS_CATEGORIES.includes(category as KudosCategory)
+    ? (category as KudosCategory)
+    : null;
+  const message = parseFeedbackMessage(feedbackURI);
+
+  return (
+    <div className="border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors overflow-hidden max-w-full">
+      <div className="flex gap-3">
+        <Link href={`/address/${sender}`} className="shrink-0 mt-0.5">
+          <AgentAvatar name={sender} size={36} />
+        </Link>
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
+            <Link
+              href={`/address/${sender}`}
+              className="truncate max-w-[120px] hover:text-[#00DE73] transition-colors font-mono"
+            >
+              {truncateAddress(sender)}
+            </Link>
+            <span>gave kudos</span>
+            {parsedCategory && (
+              <>
+                <span>for</span>
+                <CategoryBadge category={parsedCategory} />
+              </>
+            )}
+          </div>
+          <div className="flex items-center justify-end mt-1">
+            <a
+              href={`https://abscan.org/tx/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+              title="View transaction on Abscan"
+            >
+              {timestamp
+                ? formatRelativeTime(timestamp)
+                : `Block #${blockNumber.toString()}`}{' '}
+              ↗
+            </a>
+          </div>
+          {message && (
+            <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-all">
+              &ldquo;{message}&rdquo;
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function UserProfilePage() {
   const { address: rawAddress } = useParams<{ address: string }>();
   const address = rawAddress as `0x${string}`;
@@ -259,6 +339,9 @@ export default function UserProfilePage() {
   });
 
   const { data: kudosGiven, isLoading: loadingGiven } = useKudosGiven(address);
+  const ownedAgentId = ownedAgent ? Number(ownedAgent.token_id) : undefined;
+  const { data: kudosReceived, isLoading: loadingReceived } =
+    useKudosReceived(ownedAgentId);
   const { data: streakData } = useStreak(address);
 
   const agentIds = [...new Set(kudosGiven?.map((k) => k.agentId) || [])];
@@ -349,7 +432,10 @@ export default function UserProfilePage() {
     }
   }
 
-  const blockNumbers = kudosGiven?.map((k) => k.blockNumber) || [];
+  const blockNumbers = [
+    ...(kudosGiven?.map((k) => k.blockNumber) || []),
+    ...(kudosReceived?.map((k) => k.blockNumber) || []),
+  ];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
 
   // Compute stats
@@ -395,7 +481,7 @@ export default function UserProfilePage() {
           {/* ================================================================ */}
           {/* LEFT COLUMN - Profile Sidebar                                    */}
           {/* ================================================================ */}
-          <aside className="w-full max-w-full lg:w-80 shrink-0 lg:sticky lg:top-20 space-y-4 overflow-hidden">
+          <aside className="w-full max-w-full lg:w-80 shrink-0 space-y-4 overflow-hidden">
             {/* Profile Card */}
             <div className="gradient-border card-glow rounded-xl p-4 sm:p-5 space-y-4 overflow-hidden max-w-full">
               {/* Identity header */}
@@ -602,6 +688,53 @@ export default function UserProfilePage() {
                     timestamp={timestamps?.get(k.blockNumber.toString())}
                   />
                 ))}
+              </div>
+            )}
+
+            {ownedAgentId && (
+              <div className="mt-10">
+                <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                  Kudos Received
+                  {!!kudosReceived?.length && (
+                    <span className="text-[#00DE73] text-xs font-normal">
+                      {kudosReceived.length}
+                    </span>
+                  )}
+                </h2>
+
+                {loadingReceived ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="border border-border rounded-lg p-4 animate-pulse"
+                      >
+                        <div className="h-4 bg-muted rounded w-2/3 mb-3" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
+                      </div>
+                    ))}
+                  </div>
+                ) : !kudosReceived?.length ? (
+                  <div className="text-center py-12 border border-dashed border-border rounded-xl">
+                    <p className="text-sm text-muted-foreground">
+                      No kudos received yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {kudosReceived.map((k, i) => (
+                      <KudosReceivedCard
+                        key={`${k.txHash}-${i}`}
+                        sender={k.sender}
+                        category={k.tag2}
+                        feedbackURI={k.feedbackURI}
+                        txHash={k.txHash}
+                        blockNumber={k.blockNumber}
+                        timestamp={timestamps?.get(k.blockNumber.toString())}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </section>

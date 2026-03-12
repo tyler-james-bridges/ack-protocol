@@ -138,7 +138,13 @@ function KudosCard({
               </Link>
             )}
             <IdentityBadge
-              type={twitterHandle && !senderAgent ? 'human' : isSenderAgent ? 'agent' : 'human'}
+              type={
+                twitterHandle && !senderAgent
+                  ? 'human'
+                  : isSenderAgent
+                    ? 'agent'
+                    : 'human'
+              }
             />
             <span>gave</span>
             <Link href={`/agent/2741/${agentId}`} className="shrink-0">

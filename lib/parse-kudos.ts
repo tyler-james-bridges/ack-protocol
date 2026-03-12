@@ -4,7 +4,8 @@
  */
 
 export interface ParsedKudos {
-  targetHandle: string;
+  targetHandle?: string;
+  targetAgentId?: number;
   sentiment: 'positive' | 'negative';
   amount: number;
   tipAmountUsd?: number; // parsed from $X.XX syntax
@@ -38,6 +39,24 @@ export function parsePostPreview(text: string): ParsedKudos[] {
       tipAmountUsd: parseTipAmount(match[3]),
       category: match[5] || undefined,
       message: match[6] || undefined,
+    });
+  }
+  if (results.length > 0) return results;
+
+  // Pattern 1a: explicit agent id targeting (#649 or agent:649)
+  const byIdRegex =
+    /(?:#|(agent:))(\d+)\s*(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(\w+)?\s*(?:"([^"]*)")?/gi;
+  while ((match = byIdRegex.exec(cleaned)) !== null) {
+    const rawId = parseInt(match[2], 10);
+    if (!Number.isFinite(rawId) || rawId <= 0) continue;
+    const rawAmount = match[5] ? parseInt(match[5], 10) : 1;
+    results.push({
+      targetAgentId: rawId,
+      sentiment: match[3] === '++' ? 'positive' : 'negative',
+      amount: Math.min(Math.max(rawAmount, 1), 100),
+      tipAmountUsd: parseTipAmount(match[4]),
+      category: match[6] || undefined,
+      message: match[7] || undefined,
     });
   }
   if (results.length > 0) return results;

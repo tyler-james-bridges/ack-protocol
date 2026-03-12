@@ -22,7 +22,8 @@ export function parseClaimCode(text: string): string | null {
 }
 
 export interface KudosCommand {
-  targetHandle: string;
+  targetHandle?: string;
+  targetAgentId?: number;
   category?: string;
   message?: string;
   amount: number; // default 1, or explicit (e.g. ++ 5)
@@ -67,6 +68,29 @@ export function parseAllKudos(text: string): KudosCommand[] {
     });
   }
 
+  if (results.length > 0) {
+    scanForTip(text, results);
+    return results;
+  }
+
+  // Pattern 1a: explicit agent id targeting (#649 or agent:649)
+  const byIdRegex =
+    /(?:#|agent:)(\d+)\s*(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(\w+)?\s*(?:"([^"]*)")?/gi;
+  while ((match = byIdRegex.exec(cleaned)) !== null) {
+    const rawId = parseInt(match[1], 10);
+    if (!Number.isFinite(rawId) || rawId <= 0) continue;
+    const rawAmount = match[4] ? parseInt(match[4], 10) : 1;
+    const amount = Math.min(Math.max(rawAmount, 1), 100);
+    results.push({
+      targetAgentId: rawId,
+      sentiment: match[2] === '++' ? 'positive' : 'negative',
+      amount,
+      tipAmountUsd: parseTipAmount(match[3]),
+      category: match[5] || undefined,
+      message: match[6] || undefined,
+      isExplicit: true,
+    });
+  }
   if (results.length > 0) {
     scanForTip(text, results);
     return results;
@@ -182,5 +206,9 @@ export function parseKudos(text: string): KudosCommand | null {
  * Validate that a parsed kudos command has enough info to submit.
  */
 export function isValidKudos(cmd: KudosCommand): boolean {
+  if (typeof cmd.targetAgentId === 'number') {
+    return Number.isInteger(cmd.targetAgentId) && cmd.targetAgentId > 0;
+  }
+  if (!cmd.targetHandle) return false;
   return cmd.targetHandle.length > 0 && cmd.targetHandle.length <= 15;
 }

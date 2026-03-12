@@ -48,6 +48,22 @@ describe('parseAllKudos', () => {
     expect(r[1].targetHandle).toBe('bob');
   });
 
+  it('parses explicit agent id with # syntax', () => {
+    const r = parseAllKudos('ACK: @ack_onchain #649 ++ $1 reliable');
+    expect(r).toHaveLength(1);
+    expect(r[0].targetAgentId).toBe(649);
+    expect(r[0].targetHandle).toBeUndefined();
+    expect(r[0].tipAmountUsd).toBe(1);
+    expect(r[0].category).toBe('reliable');
+  });
+
+  it('parses explicit agent id with agent: syntax', () => {
+    const r = parseAllKudos('ACK: @ack_onchain agent:606 --');
+    expect(r).toHaveLength(1);
+    expect(r[0].targetAgentId).toBe(606);
+    expect(r[0].sentiment).toBe('negative');
+  });
+
   // -- tip amount parsing --
 
   it('parses $5 tip', () => {
@@ -183,5 +199,13 @@ describe('isValidKudos', () => {
         sentiment: 'positive',
       })
     ).toBe(false);
+    expect(
+      isValidKudos({
+        targetAgentId: 649,
+        amount: 1,
+        isExplicit: true,
+        sentiment: 'positive',
+      })
+    ).toBe(true);
   });
 });

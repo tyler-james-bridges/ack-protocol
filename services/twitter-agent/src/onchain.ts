@@ -61,6 +61,16 @@ const TOKEN_URI_ABI = [
   },
 ] as const;
 
+const OWNER_OF_ABI = [
+  {
+    name: 'ownerOf',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'tokenId', type: 'uint256' }],
+    outputs: [{ name: '', type: 'address' }],
+  },
+] as const;
+
 // HandleRegistry ABI
 const HANDLE_REGISTRY_ABI = [
   {
@@ -391,6 +401,31 @@ export async function getAgentName(tokenId: number): Promise<string | null> {
     }
 
     return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve and validate explicit agent id targeting against 8004.
+ */
+export async function resolveAgentId(agentId: number): Promise<number | null> {
+  if (!Number.isInteger(agentId) || agentId <= 0) return null;
+
+  try {
+    const client = createPublicClient({
+      chain: abstract,
+      transport: http(),
+    });
+
+    await client.readContract({
+      address: IDENTITY_REGISTRY,
+      abi: OWNER_OF_ABI,
+      functionName: 'ownerOf',
+      args: [BigInt(agentId)],
+    });
+
+    return agentId;
   } catch {
     return null;
   }

@@ -15,6 +15,7 @@ import {
   submitKudos,
   submitClaim,
   resolveHandleToAgentId,
+  resolveAgentId,
   getAgentName,
   ensureHandleRegistered,
 } from './onchain.js';
@@ -137,8 +138,9 @@ async function processMention(tweet: Tweet): Promise<void> {
   const results: string[] = [];
 
   for (const kudos of validKudos) {
-    // Block self-kudos
+    // Block self-kudos for handle-targeted posts
     if (
+      kudos.targetHandle &&
       kudos.targetHandle.toLowerCase() === tweet.authorUsername.toLowerCase()
     ) {
       console.log(
@@ -147,14 +149,34 @@ async function processMention(tweet: Tweet): Promise<void> {
       continue;
     }
 
+    const targetLabel =
+      kudos.targetAgentId !== undefined
+        ? `#${kudos.targetAgentId}`
+        : `@${kudos.targetHandle}`;
+
     console.log(
-      `[kudos] Target: @${kudos.targetHandle}, Sentiment: ${kudos.sentiment}, Category: ${kudos.category || 'none'}, Message: ${kudos.message || 'none'}, Explicit: ${kudos.isExplicit}`
+      `[kudos] Target: ${targetLabel}, Sentiment: ${kudos.sentiment}, Category: ${kudos.category || 'none'}, Message: ${kudos.message || 'none'}, Explicit: ${kudos.isExplicit}`
     );
 
-    // Resolve twitter handle to agent ID
-    const agentId = await resolveHandleToAgentId(kudos.targetHandle);
+    // Resolve target in priority order: explicit agentId, then handle
+    let agentId: number | null = null;
+    if (typeof kudos.targetAgentId === 'number') {
+      agentId = await resolveAgentId(kudos.targetAgentId);
+      if (!agentId) {
+        console.log(`[skip] Agent #${kudos.targetAgentId} not found on 8004`);
+        results.push({
+          success: false,
+          agentName: `Agent #${kudos.targetAgentId}`,
+          sentiment: kudos.sentiment,
+          amount: kudos.amount,
+        });
+        continue;
+      }
+    } else if (kudos.targetHandle) {
+      agentId = await resolveHandleToAgentId(kudos.targetHandle);
+    }
 
-    if (!agentId) {
+    if (!agentId && kudos.targetHandle) {
       // Not an 8004 agent - register in HandleRegistry and record feedback there
       console.log(
         `[handle] @${kudos.targetHandle} not an 8004 agent, registering in HandleRegistry`
@@ -204,7 +226,7 @@ async function processMention(tweet: Tweet): Promise<void> {
       continue;
     }
 
-    const agentName = (await getAgentName(agentId)) || kudos.targetHandle;
+    const agentName = (await getAgentName(agentId)) || `Agent #${agentId}`;
 
     if (DRY_RUN) {
       console.log(

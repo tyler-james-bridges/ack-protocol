@@ -499,8 +499,8 @@ export default function AgentProfilePage({
               </details>
 
               {/* ── Protocols & Tags (collapsed) ── */}
-              {(agent.supported_protocols.length > 0 ||
-                agent.tags.length > 0) && (
+              {(agent?.supported_protocols?.length > 0 ||
+                agent?.tags?.length > 0) && (
                 <details
                   open
                   className="group rounded-lg border border-border/50 overflow-hidden"
@@ -523,7 +523,7 @@ export default function AgentProfilePage({
                     </svg>
                   </summary>
                   <div className="border-t border-border/50 px-3 py-2.5 space-y-2.5">
-                    {agent.supported_protocols.length > 0 && (
+                    {agent?.supported_protocols?.length > 0 && (
                       <div className="space-y-1">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                           Protocols
@@ -541,7 +541,7 @@ export default function AgentProfilePage({
                         </div>
                       </div>
                     )}
-                    {agent.tags.length > 0 && (
+                    {agent?.tags?.length > 0 && (
                       <div className="space-y-1">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                           Tags

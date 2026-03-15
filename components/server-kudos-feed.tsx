@@ -38,6 +38,8 @@ function FeedItem({
   timestamp,
   senderStreak,
   tipAmountUsd,
+  tipFromAddress,
+  tipFromAgent,
 }: {
   kudos: RecentKudosItem;
   agent?: ScanAgent;
@@ -45,6 +47,8 @@ function FeedItem({
   timestamp?: number;
   senderStreak?: StreakData;
   tipAmountUsd?: number;
+  tipFromAddress?: string;
+  tipFromAgent?: ScanAgent;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -118,6 +122,27 @@ function FeedItem({
             &ldquo;{kudos.message}&rdquo;
           </p>
         )}
+
+        {tipFromAddress && (
+          <p className="text-[11px] text-muted-foreground/60 mt-1">
+            Tipped by{' '}
+            {tipFromAgent ? (
+              <Link
+                href={`/agent/${tipFromAgent.chain_id}/${tipFromAgent.token_id}`}
+                className="hover:text-[#00DE73] transition-colors font-semibold text-muted-foreground"
+              >
+                {tipFromAgent.name}
+              </Link>
+            ) : (
+              <Link
+                href={`/address/${tipFromAddress}`}
+                className="hover:text-[#00DE73] transition-colors font-mono"
+              >
+                {truncateAddress(tipFromAddress)}
+              </Link>
+            )}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -161,6 +186,9 @@ export async function ServerKudosFeed({
           await Promise.all(
             kudos.map(async (k, i) => {
               const tip = await getTipByKudosTxHash(k.txHash);
+              const tipFromAgent = tip?.fromAgentId
+                ? agentMap.get(tip.fromAgentId)
+                : undefined;
               return (
                 <FeedItem
                   key={`${k.txHash}-${i}`}
@@ -170,6 +198,8 @@ export async function ServerKudosFeed({
                   timestamp={timestamps[k.blockNumber]}
                   senderStreak={streaks?.[k.sender.toLowerCase()]}
                   tipAmountUsd={tip?.amountUsd}
+                  tipFromAddress={tip?.fromAddress}
+                  tipFromAgent={tipFromAgent}
                 />
               );
             })

@@ -66,6 +66,8 @@ function KudosCard({
   timestamp,
   isSenderAgent,
   tipAmountUsd,
+  tipFromAddress,
+  tipFromAgent,
 }: {
   kudos: KudosEvent;
   agentId: number;
@@ -74,6 +76,8 @@ function KudosCard({
   timestamp?: number;
   isSenderAgent: boolean;
   tipAmountUsd?: number;
+  tipFromAddress?: string;
+  tipFromAgent?: ScanAgent;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -193,6 +197,27 @@ function KudosCard({
         {message && (
           <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed">
             &ldquo;{message}&rdquo;
+          </p>
+        )}
+
+        {tipFromAddress && (
+          <p className="text-[11px] text-muted-foreground/60 mt-1">
+            Tipped by{' '}
+            {tipFromAgent ? (
+              <Link
+                href={`/agent/${tipFromAgent.chain_id}/${tipFromAgent.token_id}`}
+                className="hover:text-[#00DE73] transition-colors font-semibold text-muted-foreground"
+              >
+                {tipFromAgent.name}
+              </Link>
+            ) : (
+              <Link
+                href={`/address/${tipFromAddress}`}
+                className="hover:text-[#00DE73] transition-colors font-mono"
+              >
+                {truncateAddress(tipFromAddress)}
+              </Link>
+            )}
           </p>
         )}
       </div>

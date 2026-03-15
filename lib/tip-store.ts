@@ -18,6 +18,7 @@ export interface TipRecord {
   kudosTxHash: string;
   agentId: number;
   fromAddress: string;
+  fromAgentId?: number;
   toAddress: string;
   amountUsd: number;
   amountRaw: bigint;
@@ -34,6 +35,7 @@ export interface TipRecordJSON {
   kudosTxHash: string;
   agentId: number;
   fromAddress: string;
+  fromAgentId?: number;
   toAddress: string;
   amountUsd: number;
   amountRaw: string;
@@ -45,6 +47,72 @@ export interface TipRecordJSON {
 }
 
 const viemClient = createPublicClient({ chain: abstract, transport: http() });
+
+/** Cached wallet-to-agentId mapping with 5-minute TTL */
+let walletAgentCache: { map: Map<string, number>; expiresAt: number } | null =
+  null;
+const WALLET_CACHE_TTL_MS = 5 * 60 * 1000;
+
+async function buildWalletAgentMap(): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  try {
+    const totalSupply = await viemClient.readContract({
+      address: IDENTITY_REGISTRY_ADDRESS,
+      abi: IDENTITY_REGISTRY_ABI,
+      functionName: 'totalSupply',
+    });
+    const count = Number(totalSupply);
+    if (count === 0) return map;
+
+    const ownerCalls = Array.from({ length: count }, (_, i) => ({
+      address: IDENTITY_REGISTRY_ADDRESS,
+      abi: IDENTITY_REGISTRY_ABI,
+      functionName: 'ownerOf' as const,
+      args: [BigInt(i + 1)] as const,
+    }));
+    const walletCalls = Array.from({ length: count }, (_, i) => ({
+      address: IDENTITY_REGISTRY_ADDRESS,
+      abi: IDENTITY_REGISTRY_ABI,
+      functionName: 'getAgentWallet' as const,
+      args: [BigInt(i + 1)] as const,
+    }));
+
+    const [ownerResults, walletResults] = await Promise.all([
+      viemClient.multicall({ contracts: ownerCalls }),
+      viemClient.multicall({ contracts: walletCalls }),
+    ]);
+
+    for (let i = 0; i < count; i++) {
+      const tokenId = i + 1;
+      const ownerRes = ownerResults[i];
+      if (ownerRes.status === 'success' && ownerRes.result) {
+        map.set((ownerRes.result as string).toLowerCase(), tokenId);
+      }
+      const walletRes = walletResults[i];
+      if (walletRes.status === 'success' && walletRes.result) {
+        map.set((walletRes.result as string).toLowerCase(), tokenId);
+      }
+    }
+  } catch {
+    // Registry read failed, return empty map
+  }
+  return map;
+}
+
+/**
+ * Resolve a wallet address to an ERC-8004 agent ID.
+ * Checks both owner addresses and agent wallets.
+ * Results are cached for 5 minutes.
+ */
+export async function resolveAgentByWallet(
+  address: string
+): Promise<number | null> {
+  if (!walletAgentCache || walletAgentCache.expiresAt <= Date.now()) {
+    const map = await buildWalletAgentMap();
+    walletAgentCache = { map, expiresAt: Date.now() + WALLET_CACHE_TTL_MS };
+  }
+  return walletAgentCache.map.get(address.toLowerCase()) ?? null;
+}
 
 /**
  * Resolve the payment address for an agent. Tries ownerOf from
@@ -160,7 +228,11 @@ export async function getTipByKudosTxHash(
     LIMIT 1
   `;
 
-  return rows.length > 0 ? rowToTip(rows[0]) : undefined;
+  if (rows.length === 0) return undefined;
+  const tip = rowToTip(rows[0]);
+  const fromAgentId = await resolveAgentByWallet(tip.fromAddress);
+  if (fromAgentId !== null) tip.fromAgentId = fromAgentId;
+  return tip;
 }
 
 /** Look up a tip by ID. */

@@ -49,69 +49,63 @@ export interface TipRecordJSON {
 const viemClient = createPublicClient({ chain: abstract, transport: http() });
 
 /** Cached wallet-to-agentId mapping with 5-minute TTL */
-let walletAgentCache: { map: Map<string, number>; expiresAt: number } | null =
-  null;
+const walletAgentCache = new Map<
+  string,
+  { agentId: number | null; expiresAt: number }
+>();
 const WALLET_CACHE_TTL_MS = 5 * 60 * 1000;
-
-async function buildWalletAgentMap(): Promise<Map<string, number>> {
-  const map = new Map<string, number>();
-  try {
-    const totalSupply = await viemClient.readContract({
-      address: IDENTITY_REGISTRY_ADDRESS,
-      abi: IDENTITY_REGISTRY_ABI,
-      functionName: 'totalSupply',
-    });
-    const count = Number(totalSupply);
-    if (count === 0) return map;
-
-    const ownerCalls = Array.from({ length: count }, (_, i) => ({
-      address: IDENTITY_REGISTRY_ADDRESS,
-      abi: IDENTITY_REGISTRY_ABI,
-      functionName: 'ownerOf' as const,
-      args: [BigInt(i + 1)] as const,
-    }));
-    const walletCalls = Array.from({ length: count }, (_, i) => ({
-      address: IDENTITY_REGISTRY_ADDRESS,
-      abi: IDENTITY_REGISTRY_ABI,
-      functionName: 'getAgentWallet' as const,
-      args: [BigInt(i + 1)] as const,
-    }));
-
-    const [ownerResults, walletResults] = await Promise.all([
-      viemClient.multicall({ contracts: ownerCalls }),
-      viemClient.multicall({ contracts: walletCalls }),
-    ]);
-
-    for (let i = 0; i < count; i++) {
-      const tokenId = i + 1;
-      const ownerRes = ownerResults[i];
-      if (ownerRes.status === 'success' && ownerRes.result) {
-        map.set((ownerRes.result as string).toLowerCase(), tokenId);
-      }
-      const walletRes = walletResults[i];
-      if (walletRes.status === 'success' && walletRes.result) {
-        map.set((walletRes.result as string).toLowerCase(), tokenId);
-      }
-    }
-  } catch {
-    // Registry read failed, return empty map
-  }
-  return map;
-}
 
 /**
  * Resolve a wallet address to an ERC-8004 agent ID.
- * Checks both owner addresses and agent wallets.
- * Results are cached for 5 minutes.
+ * Looks up the wallet against 8004scan agents (owner_address and agent_wallet).
+ * Results are cached per-address for 5 minutes.
  */
 export async function resolveAgentByWallet(
   address: string
 ): Promise<number | null> {
-  if (!walletAgentCache || walletAgentCache.expiresAt <= Date.now()) {
-    const map = await buildWalletAgentMap();
-    walletAgentCache = { map, expiresAt: Date.now() + WALLET_CACHE_TTL_MS };
+  const key = address.toLowerCase();
+  const cached = walletAgentCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.agentId;
   }
-  return walletAgentCache.map.get(address.toLowerCase()) ?? null;
+
+  try {
+    // Search 8004scan for agents matching this wallet
+    const baseUrl =
+      process.env.NEXT_PUBLIC_8004SCAN_API || 'https://api.8004scan.com/v1';
+    const res = await fetch(`${baseUrl}/agents?search=${key}&limit=50`);
+    if (!res.ok) {
+      walletAgentCache.set(key, {
+        agentId: null,
+        expiresAt: Date.now() + WALLET_CACHE_TTL_MS,
+      });
+      return null;
+    }
+    const data = await res.json();
+    const items = data.items || [];
+
+    for (const agent of items) {
+      if (
+        agent.owner_address?.toLowerCase() === key ||
+        agent.agent_wallet?.toLowerCase() === key
+      ) {
+        const agentId = Number(agent.token_id);
+        walletAgentCache.set(key, {
+          agentId,
+          expiresAt: Date.now() + WALLET_CACHE_TTL_MS,
+        });
+        return agentId;
+      }
+    }
+  } catch {
+    // API unavailable, cache negative result briefly
+  }
+
+  walletAgentCache.set(key, {
+    agentId: null,
+    expiresAt: Date.now() + WALLET_CACHE_TTL_MS,
+  });
+  return null;
 }
 
 /**

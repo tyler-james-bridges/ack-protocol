@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useKudosReceived, type KudosEvent } from '@/hooks/useKudosReceived';
 import { useLeaderboard, useIsAgent } from '@/hooks';
@@ -12,6 +13,30 @@ import {
   formatRelativeTime,
 } from '@/hooks/useBlockTimestamps';
 import type { ScanAgent } from '@/lib/api';
+
+interface TipInfo {
+  amountUsd: number;
+  fromAddress: string;
+  fromAgentId?: number;
+}
+
+function useTipsForKudos(txHashes: string[]) {
+  const [tips, setTips] = useState<Record<string, TipInfo>>({});
+
+  useEffect(() => {
+    if (txHashes.length === 0) return;
+    fetch('/api/tips/by-kudos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ txHashes }),
+    })
+      .then((r) => (r.ok ? r.json() : { tips: {} }))
+      .then((data) => setTips(data.tips || {}))
+      .catch(() => {});
+  }, [txHashes.join(',')]);
+
+  return tips;
+}
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -235,8 +260,10 @@ export function KudosFeed({ agentId }: { agentId: number }) {
 
   const blockNumbers = kudos?.map((k) => k.blockNumber) || [];
   const senders = kudos?.map((k) => k.sender) || [];
+  const txHashes = kudos?.map((k) => k.txHash) || [];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
   const { data: agentSet } = useIsAgent(senders);
+  const tipMap = useTipsForKudos(txHashes);
 
   // Build lookups
   const agentMap = new Map<number, ScanAgent>();
@@ -287,6 +314,18 @@ export function KudosFeed({ agentId }: { agentId: number }) {
             isSenderAgent={
               agentSet?.has(k.sender.toLowerCase()) ??
               !!senderMap.get(k.sender.toLowerCase())
+            }
+            tipAmountUsd={tipMap[k.txHash.toLowerCase()]?.amountUsd}
+            tipFromAddress={tipMap[k.txHash.toLowerCase()]?.fromAddress}
+            tipFromAgent={
+              tipMap[k.txHash.toLowerCase()]?.fromAgentId
+                ? senderMap.get(
+                    agentMap
+                      .get(tipMap[k.txHash.toLowerCase()]?.fromAgentId!)
+                      ?.owner_address?.toLowerCase() || ''
+                  ) ||
+                  agentMap.get(tipMap[k.txHash.toLowerCase()]?.fromAgentId!)
+                : undefined
             }
           />
         ))}

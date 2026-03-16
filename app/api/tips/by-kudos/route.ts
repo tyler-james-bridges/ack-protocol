@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getTipByKudosTxHash, tipToJSON } from '@/lib/tip-store';
-import { fetchAgent } from '@/lib/api';
 
 interface TipFromAgent {
   name: string;
@@ -43,17 +42,27 @@ export async function POST(req: Request) {
           // Resolve agent info from 8004scan if we have an agentId
           if (json.fromAgentId) {
             try {
-              const agent = await fetchAgent(`2741:${json.fromAgentId}`);
-              if (agent) {
-                result.fromAgent = {
-                  name: agent.name,
-                  imageUrl: agent.image_url || undefined,
-                  chainId: agent.chain_id,
-                  tokenId: agent.token_id,
-                };
+              const scanRes = await fetch(
+                `https://www.8004scan.io/api/v1/agents?search=${json.fromAgentId}&chain_id=2741&limit=5`
+              );
+              if (scanRes.ok) {
+                const scanData = await scanRes.json();
+                const match = (scanData.items || []).find(
+                  (a: { token_id: string; chain_id: number }) =>
+                    a.token_id === String(json.fromAgentId) &&
+                    a.chain_id === 2741
+                );
+                if (match) {
+                  result.fromAgent = {
+                    name: match.name,
+                    imageUrl: match.image_url || undefined,
+                    chainId: match.chain_id,
+                    tokenId: match.token_id,
+                  };
+                }
               }
             } catch {
-              // Agent not found in 8004scan, leave fromAgent undefined
+              // Agent not found, leave fromAgent undefined
             }
           }
 

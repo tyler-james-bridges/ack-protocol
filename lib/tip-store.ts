@@ -71,8 +71,7 @@ export async function resolveAgentByWallet(
 
   try {
     // Search 8004scan for agents matching this wallet
-    const baseUrl =
-      process.env.NEXT_PUBLIC_8004SCAN_API || 'https://api.8004scan.com/v1';
+    const baseUrl = 'https://www.8004scan.io/api/v1';
     const res = await fetch(`${baseUrl}/agents?search=${key}&limit=50`);
     if (!res.ok) {
       walletAgentCache.set(key, {
@@ -86,8 +85,9 @@ export async function resolveAgentByWallet(
 
     for (const agent of items) {
       if (
-        agent.owner_address?.toLowerCase() === key ||
-        agent.agent_wallet?.toLowerCase() === key
+        agent.chain_id === 2741 &&
+        (agent.owner_address?.toLowerCase() === key ||
+          agent.agent_wallet?.toLowerCase() === key)
       ) {
         const agentId = Number(agent.token_id);
         walletAgentCache.set(key, {

@@ -680,9 +680,9 @@ function InfoRow({
   mono?: boolean;
 }) {
   const truncated =
-    mono && value.length > 20
+    mono && value && value.length > 20
       ? `${value.slice(0, 8)}...${value.slice(-6)}`
-      : value;
+      : value || '-';
 
   return (
     <div className="flex items-center justify-between gap-2">

@@ -14,10 +14,18 @@ import {
 } from '@/hooks/useBlockTimestamps';
 import type { ScanAgent } from '@/lib/api';
 
+interface TipFromAgent {
+  name: string;
+  imageUrl?: string;
+  chainId: number;
+  tokenId: string;
+}
+
 interface TipInfo {
   amountUsd: number;
   fromAddress: string;
   fromAgentId?: number;
+  fromAgent?: TipFromAgent;
 }
 
 function useTipsForKudos(txHashes: string[]) {
@@ -319,8 +327,21 @@ export function KudosFeed({ agentId }: { agentId: number }) {
             tipFromAddress={tipMap[k.txHash.toLowerCase()]?.fromAddress}
             tipFromAgent={(() => {
               const tipInfo = tipMap[k.txHash.toLowerCase()];
-              if (!tipInfo?.fromAgentId) return undefined;
-              return agentMap.get(tipInfo.fromAgentId);
+              if (!tipInfo) return undefined;
+              // Use agent info resolved by the API (covers all agents, not just top 50)
+              if (tipInfo.fromAgent) {
+                return {
+                  name: tipInfo.fromAgent.name,
+                  chain_id: tipInfo.fromAgent.chainId,
+                  token_id: tipInfo.fromAgent.tokenId,
+                  image_url: tipInfo.fromAgent.imageUrl || null,
+                } as ScanAgent;
+              }
+              // Fallback to local agent map
+              if (tipInfo.fromAgentId) {
+                return agentMap.get(tipInfo.fromAgentId);
+              }
+              return undefined;
             })()}
           />
         ))}

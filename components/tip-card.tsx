@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { AgentAvatar } from '@/components/agent-avatar';
+import { IdentityBadge } from '@/components/identity-badge';
 import { TipBadge } from '@/components/tip-badge';
 import type { StandaloneTip } from '@/hooks/useTipsFeed';
 import type { ScanAgent } from '@/lib/api';
@@ -52,6 +53,7 @@ export function TipCard({
             >
               {payerName}
             </Link>
+            <IdentityBadge type={tip.fromAgent ? 'agent' : 'human'} />
             <span>tipped</span>
             <Link href={`/agent/2741/${tip.agentId}`} className="shrink-0">
               <AgentAvatar

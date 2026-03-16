@@ -14,9 +14,10 @@ const agentMetadata = {
       a2aSkills: [
         'natural_language_processing/information_retrieval_synthesis/search',
         'natural_language_processing/natural_language_understanding/contextual_comprehension',
-        'natural_language_processing/information_retrieval_synthesis/question_answering',
-        'analytical_skills/data_engineering',
-        'tool_interaction/workflow_automation',
+        'natural_language_processing/conversation/chatbot',
+        'tool_interaction/automation/workflow_automation',
+        'tool_interaction/api_integration',
+        'data_analysis/quantitative_analysis',
       ],
     },
     {
@@ -41,15 +42,17 @@ const agentMetadata = {
       skills: [
         'natural_language_processing/information_retrieval_synthesis/search',
         'natural_language_processing/natural_language_understanding/contextual_comprehension',
-        'natural_language_processing/information_retrieval_synthesis/question_answering',
-        'analytical_skills/data_engineering',
-        'tool_interaction/workflow_automation',
+        'natural_language_processing/conversation/chatbot',
+        'tool_interaction/automation/workflow_automation',
+        'tool_interaction/api_integration',
+        'data_analysis/quantitative_analysis',
+        'data_analysis/pattern_recognition',
       ],
       domains: [
-        'technology/blockchain',
-        'technology/blockchain/smart_contracts',
-        'technology/software_engineering',
-        'technology/security',
+        'technology/software_engineering/apis_integration',
+        'technology/software_engineering/web_development',
+        'technology/artificial_intelligence/deep_learning',
+        'research_and_development/research/data_collection',
       ],
     },
     {

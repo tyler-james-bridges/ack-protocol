@@ -317,16 +317,11 @@ export function KudosFeed({ agentId }: { agentId: number }) {
             }
             tipAmountUsd={tipMap[k.txHash.toLowerCase()]?.amountUsd}
             tipFromAddress={tipMap[k.txHash.toLowerCase()]?.fromAddress}
-            tipFromAgent={
-              tipMap[k.txHash.toLowerCase()]?.fromAgentId
-                ? senderMap.get(
-                    agentMap
-                      .get(tipMap[k.txHash.toLowerCase()]?.fromAgentId!)
-                      ?.owner_address?.toLowerCase() || ''
-                  ) ||
-                  agentMap.get(tipMap[k.txHash.toLowerCase()]?.fromAgentId!)
-                : undefined
-            }
+            tipFromAgent={(() => {
+              const tipInfo = tipMap[k.txHash.toLowerCase()];
+              if (!tipInfo?.fromAgentId) return undefined;
+              return agentMap.get(tipInfo.fromAgentId);
+            })()}
           />
         ))}
     </div>

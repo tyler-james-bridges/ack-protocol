@@ -33,6 +33,9 @@ export default function AgentProfilePage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalTipsUsd, setTotalTipsUsd] = useState<number | null>(null);
+  const [tipsGivenUsd, setTipsGivenUsd] = useState<number | null>(null);
+  const [tipsReceivedCount, setTipsReceivedCount] = useState(0);
+  const [tipsGivenCount, setTipsGivenCount] = useState(0);
   const agentTokenId = agent ? Number(agent.token_id) : undefined;
   const { data: linkedHandles } = useLinkedHandles(agentTokenId);
   const { data: kudos } = useKudosReceived(agentTokenId, linkedHandles);
@@ -79,12 +82,16 @@ export default function AgentProfilePage({
     fetchAgent(scanId)
       .then((a) => {
         setAgent(a);
-        // Fetch total tips for this agent (non-blocking)
-        fetch(`/api/tips?agentId=${a.token_id}`)
+        // Fetch tip stats for this agent (non-blocking)
+        const wallet = a.owner_address || '';
+        fetch(`/api/tips/stats?agentId=${a.token_id}&wallet=${wallet}`)
           .then((r) => (r.ok ? r.json() : null))
           .then((data) => {
-            if (data && typeof data.totalUsd === 'number') {
-              setTotalTipsUsd(data.totalUsd);
+            if (data) {
+              setTotalTipsUsd(data.totalReceived || 0);
+              setTipsGivenUsd(data.totalGiven || 0);
+              setTipsReceivedCount(data.countReceived || 0);
+              setTipsGivenCount(data.countGiven || 0);
             }
           })
           .catch(() => {});
@@ -375,12 +382,22 @@ export default function AgentProfilePage({
                       </span>
                     </div>
                     {totalTipsUsd !== null && totalTipsUsd > 0 && (
-                      <div className="col-span-2">
+                      <div>
                         <span className="text-[#00FF94] font-semibold">
                           ${totalTipsUsd.toFixed(2)}
                         </span>
                         <span className="text-muted-foreground ml-1 text-xs">
-                          tips received
+                          received ({tipsReceivedCount})
+                        </span>
+                      </div>
+                    )}
+                    {tipsGivenUsd !== null && tipsGivenUsd > 0 && (
+                      <div>
+                        <span className="text-[#00FF94] font-semibold">
+                          ${tipsGivenUsd.toFixed(2)}
+                        </span>
+                        <span className="text-muted-foreground ml-1 text-xs">
+                          tipped ({tipsGivenCount})
                         </span>
                       </div>
                     )}

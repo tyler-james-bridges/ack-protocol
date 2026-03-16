@@ -32,7 +32,7 @@ const agentMetadata = {
       ],
       mcpResources: ['agent_registry', 'reputation_registry'],
       mcpPrompts: ['reputation_check', 'trust_assessment'],
-      capabilities: [],
+      capabilities: ['tools', 'resources', 'prompts'],
     },
     {
       name: 'OASF',
@@ -56,14 +56,10 @@ const agentMetadata = {
       name: 'web',
       endpoint: 'https://ack-onchain.dev',
     },
-    {
-      name: 'DID',
-      endpoint: 'did:ethr:0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c',
-      version: 'v1',
-    },
   ],
   x402Support: true,
   active: true,
+  updatedAt: Math.floor(Date.now() / 1000),
   registrations: [
     {
       agentId: 606,

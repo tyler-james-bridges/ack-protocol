@@ -186,9 +186,18 @@ export async function ServerKudosFeed({
           await Promise.all(
             kudos.map(async (k, i) => {
               const tip = await getTipByKudosTxHash(k.txHash);
-              const tipFromAgent = tip?.fromAgentId
+              let tipFromAgent = tip?.fromAgentId
                 ? agentMap.get(tip.fromAgentId)
                 : undefined;
+              // If not in local map, fetch from 8004scan
+              if (!tipFromAgent && tip?.fromAgentId) {
+                try {
+                  const { fetchAgent } = await import('@/lib/api');
+                  tipFromAgent = await fetchAgent(`2741:${tip.fromAgentId}`);
+                } catch {
+                  // Agent not found, leave undefined
+                }
+              }
               return (
                 <FeedItem
                   key={`${k.txHash}-${i}`}

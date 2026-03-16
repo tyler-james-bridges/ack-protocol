@@ -12,6 +12,8 @@ import {
   formatRelativeTime,
 } from '@/hooks/useBlockTimestamps';
 import { useTipsForKudos } from '@/hooks/useTipsForKudos';
+import { useTipsFeed, type StandaloneTip } from '@/hooks/useTipsFeed';
+import { TipCard } from '@/components/tip-card';
 import type { ScanAgent } from '@/lib/api';
 
 function truncateAddress(addr: string) {
@@ -228,6 +230,7 @@ export function KudosFeed({ agentId }: { agentId: number }) {
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
   const { data: agentSet } = useIsAgent(senders);
   const tipMap = useTipsForKudos(txHashes);
+  const { data: standaloneTips } = useTipsFeed(agentId);
 
   // Build lookups
   const agentMap = new Map<number, ScanAgent>();
@@ -252,22 +255,55 @@ export function KudosFeed({ agentId }: { agentId: number }) {
     return <div className="text-red-400 text-sm">Failed to load kudos</div>;
   }
 
-  if (!kudos?.length) {
+  const totalCount = (kudos?.length || 0) + (standaloneTips?.length || 0);
+
+  if (!totalCount) {
     return (
       <div id="kudos-feed" className="text-muted-foreground text-sm">
-        No onchain kudos yet - be the first!
+        No onchain activity yet - be the first!
       </div>
     );
   }
 
+  // Build merged feed: kudos entries + standalone tips, sorted by time
+  type FeedItem =
+    | { kind: 'kudos'; data: KudosEvent; ts: number }
+    | { kind: 'tip'; data: StandaloneTip; ts: number };
+
+  const feedItems: FeedItem[] = [];
+
+  if (kudos) {
+    for (const k of kudos) {
+      const ts = timestamps?.get(k.blockNumber.toString());
+      feedItems.push({ kind: 'kudos', data: k, ts: ts ? ts * 1000 : 0 });
+    }
+  }
+
+  if (standaloneTips) {
+    for (const t of standaloneTips) {
+      feedItems.push({ kind: 'tip', data: t, ts: t.completedAt });
+    }
+  }
+
+  feedItems.sort((a, b) => b.ts - a.ts);
+
   return (
     <div id="kudos-feed" className="space-y-3">
       <h3 className="text-sm font-medium text-[#00DE73]">
-        Onchain Kudos ({kudos.length})
+        Onchain Activity ({totalCount})
       </h3>
-      {[...kudos]
-        .sort((a, b) => (a.blockNumber > b.blockNumber ? -1 : 1))
-        .map((k, i) => (
+      {feedItems.map((item, i) => {
+        if (item.kind === 'tip') {
+          return (
+            <TipCard
+              key={`tip-${item.data.tipId}`}
+              tip={item.data}
+              receiverAgent={agentMap.get(agentId)}
+            />
+          );
+        }
+        const k = item.data;
+        return (
           <KudosCard
             key={`${k.txHash}-${i}`}
             kudos={k}
@@ -284,7 +320,6 @@ export function KudosFeed({ agentId }: { agentId: number }) {
             tipFromAgent={(() => {
               const tipInfo = tipMap[k.txHash.toLowerCase()];
               if (!tipInfo) return undefined;
-              // Use agent info resolved by the API (covers all agents, not just top 50)
               if (tipInfo.fromAgent) {
                 return {
                   name: tipInfo.fromAgent.name,
@@ -293,14 +328,14 @@ export function KudosFeed({ agentId }: { agentId: number }) {
                   image_url: tipInfo.fromAgent.imageUrl || null,
                 } as ScanAgent;
               }
-              // Fallback to local agent map
               if (tipInfo.fromAgentId) {
                 return agentMap.get(tipInfo.fromAgentId);
               }
               return undefined;
             })()}
           />
-        ))}
+        );
+      })}
     </div>
   );
 }

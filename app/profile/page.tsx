@@ -23,6 +23,8 @@ import { useKudosReceived } from '@/hooks/useKudosReceived';
 import { CategoryBadge } from '@/components/category-badge';
 import { StreakCard } from '@/components/streak-card';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import { useTipsForKudos } from '@/hooks/useTipsForKudos';
+import { TipBadge, TipAttribution } from '@/components/tip-badge';
 
 const BALANCE_OF_ABI = [
   {
@@ -100,6 +102,12 @@ export default function ProfilePage() {
   const { data: kudosReceived, isLoading: loadingReceived } = useKudosReceived(
     myAgent ? Number(myAgent.token_id) : undefined
   );
+
+  const allProfileTxHashes = [
+    ...(kudosGiven?.map((k) => k.txHash) || []),
+    ...(kudosReceived?.map((k) => k.txHash) || []),
+  ];
+  const tipMap = useTipsForKudos(allProfileTxHashes);
 
   if (!isConnected) {
     return (
@@ -367,6 +375,7 @@ export default function ProfilePage() {
                         message={parseMessage(k.feedbackURI)}
                         txHash={k.txHash}
                         blockNumber={k.blockNumber}
+                        tipInfo={tipMap[k.txHash.toLowerCase()]}
                       />
                     ))}
                   </div>
@@ -430,6 +439,7 @@ export default function ProfilePage() {
                       message={k.message}
                       txHash={k.txHash}
                       blockNumber={k.blockNumber}
+                      tipInfo={tipMap[k.txHash.toLowerCase()]}
                     />
                   ))}
                 </div>
@@ -628,6 +638,7 @@ function KudosCard({
   message,
   txHash,
   blockNumber,
+  tipInfo,
 }: {
   sender: string | null;
   agentId: number | null;
@@ -635,6 +646,11 @@ function KudosCard({
   message: string | null;
   txHash: string;
   blockNumber: bigint;
+  tipInfo?: {
+    amountUsd: number;
+    fromAddress: string;
+    fromAgent?: { name: string; chainId: number; tokenId: string };
+  };
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(tag2 as KudosCategory);
 
@@ -667,7 +683,12 @@ function KudosCard({
       )}
 
       <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-        <span>Block #{blockNumber.toString()}</span>
+        <div className="flex items-center gap-1.5">
+          <span>Block #{blockNumber.toString()}</span>
+          {tipInfo && tipInfo.amountUsd > 0 && (
+            <TipBadge amountUsd={tipInfo.amountUsd} />
+          )}
+        </div>
         <a
           href={`/kudos/${txHash}`}
           className="hover:text-[#00DE73] transition-colors"
@@ -675,6 +696,12 @@ function KudosCard({
           View kudos
         </a>
       </div>
+      {tipInfo?.fromAddress && (
+        <TipAttribution
+          fromAddress={tipInfo.fromAddress}
+          fromAgent={tipInfo.fromAgent}
+        />
+      )}
     </div>
   );
 }

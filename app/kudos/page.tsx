@@ -31,6 +31,8 @@ import {
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTipsForKudos, type TipInfo } from '@/hooks/useTipsForKudos';
+import { TipBadge, TipAttribution } from '@/components/tip-badge';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -43,6 +45,7 @@ function RecentKudosCard({
   senderAgent,
   timestamp,
   senderStreak,
+  tipInfo,
 }: {
   kudos: RecentKudos;
   isAgent: boolean;
@@ -50,6 +53,7 @@ function RecentKudosCard({
   senderAgent?: ScanAgent;
   timestamp?: number;
   senderStreak?: { currentStreak: number; isActiveToday: boolean };
+  tipInfo?: TipInfo;
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -108,14 +112,25 @@ function RecentKudosCard({
         </p>
       )}
 
-      <a
-        href={`/kudos/${kudos.txHash}`}
-        className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
-      >
-        {timestamp
-          ? formatRelativeTime(timestamp)
-          : `Block #${kudos.blockNumber.toString()}`}
-      </a>
+      <div className="flex items-center gap-1.5">
+        {tipInfo && tipInfo.amountUsd > 0 && (
+          <TipBadge amountUsd={tipInfo.amountUsd} />
+        )}
+        <a
+          href={`/kudos/${kudos.txHash}`}
+          className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+        >
+          {timestamp
+            ? formatRelativeTime(timestamp)
+            : `Block #${kudos.blockNumber.toString()}`}
+        </a>
+      </div>
+      {tipInfo?.fromAddress && (
+        <TipAttribution
+          fromAddress={tipInfo.fromAddress}
+          fromAgent={tipInfo.fromAgent}
+        />
+      )}
     </div>
   );
 }
@@ -131,7 +146,9 @@ export default function GiveKudosPage() {
   const blockNumbers = recentKudos?.map((k) => k.blockNumber) || [];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
   const senders = recentKudos?.map((k) => k.sender) || [];
+  const kudosTxHashes = recentKudos?.map((k) => k.txHash) || [];
   const { data: agentSet } = useIsAgent(senders);
+  const tipMap = useTipsForKudos(kudosTxHashes);
   const { data: agents } = useLeaderboard({
     limit: 50,
     chainId: 2741,
@@ -338,6 +355,7 @@ export default function GiveKudosPage() {
                     senderAgent={senderMap.get(k.sender.toLowerCase())}
                     timestamp={timestamps?.get(k.blockNumber.toString())}
                     senderStreak={streaksData?.[k.sender.toLowerCase()]}
+                    tipInfo={tipMap[k.txHash.toLowerCase()]}
                   />
                 ))}
               {recentKudos.filter(

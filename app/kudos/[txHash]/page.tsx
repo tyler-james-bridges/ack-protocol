@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
+import { TipBadge, TipAttribution } from '@/components/tip-badge';
+import type { TipInfo } from '@/hooks/useTipsForKudos';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 
 type KudosDetails = {
@@ -32,6 +34,7 @@ export default function KudosTxPage({
   const [data, setData] = useState<KudosDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tipInfo, setTipInfo] = useState<TipInfo | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,6 +54,19 @@ export default function KudosTxPage({
         if (!cancelled) {
           setData(json);
           setError(null);
+
+          // Fetch tip data for this kudos
+          fetch('/api/tips/by-kudos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ txHashes: [txHash] }),
+          })
+            .then((r) => (r.ok ? r.json() : { tips: {} }))
+            .then((tipData) => {
+              const tip = tipData.tips?.[txHash.toLowerCase()];
+              if (tip && !cancelled) setTipInfo(tip);
+            })
+            .catch(() => {});
         }
       } catch (err) {
         if (!cancelled) {
@@ -132,6 +148,21 @@ export default function KudosTxPage({
                 {new Date(data.timestamp).toLocaleString()}
               </p>
             </div>
+
+            {tipInfo && (
+              <div className="border-t border-border pt-3 mt-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-sm">Tip:</span>
+                  <TipBadge amountUsd={tipInfo.amountUsd} />
+                </div>
+                {tipInfo.fromAddress && (
+                  <TipAttribution
+                    fromAddress={tipInfo.fromAddress}
+                    fromAgent={tipInfo.fromAgent}
+                  />
+                )}
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-3 pt-2">
               <a

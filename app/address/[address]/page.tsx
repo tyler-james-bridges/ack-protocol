@@ -24,6 +24,8 @@ import { abstract } from 'viem/chains';
 import { StreakCard } from '@/components/streak-card';
 import { useStreak } from '@/hooks';
 import { useKudosReceived } from '@/hooks/useKudosReceived';
+import { useTipsForKudos } from '@/hooks/useTipsForKudos';
+import { TipBadge, TipAttribution } from '@/components/tip-badge';
 
 const abstractClient = createPublicClient({
   chain: abstract,
@@ -70,11 +72,17 @@ function KudosHistoryCard({
   agent,
   senderAgent,
   timestamp,
+  tipInfo,
 }: {
   kudos: KudosGivenEvent;
   agent?: ScanAgent;
   senderAgent?: ScanAgent;
   timestamp?: number;
+  tipInfo?: {
+    amountUsd: number;
+    fromAddress: string;
+    fromAgent?: { name: string; chainId: number; tokenId: string };
+  };
 }) {
   const isValidCategory = KUDOS_CATEGORIES.includes(
     kudos.tag2 as KudosCategory
@@ -125,7 +133,10 @@ function KudosHistoryCard({
               </>
             )}
           </div>
-          <div className="flex items-center justify-end mt-1">
+          <div className="flex items-center justify-end gap-1.5 mt-1">
+            {tipInfo && tipInfo.amountUsd > 0 && (
+              <TipBadge amountUsd={tipInfo.amountUsd} />
+            )}
             <a
               href={`https://abscan.org/tx/${kudos.txHash}`}
               target="_blank"
@@ -143,6 +154,12 @@ function KudosHistoryCard({
             <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-all">
               &ldquo;{kudos.message}&rdquo;
             </p>
+          )}
+          {tipInfo?.fromAddress && (
+            <TipAttribution
+              fromAddress={tipInfo.fromAddress}
+              fromAgent={tipInfo.fromAgent}
+            />
           )}
         </div>
       </div>
@@ -169,6 +186,7 @@ function KudosReceivedCard({
   txHash,
   blockNumber,
   timestamp,
+  tipInfo,
 }: {
   sender: `0x${string}`;
   category: string;
@@ -176,6 +194,11 @@ function KudosReceivedCard({
   txHash: `0x${string}`;
   blockNumber: bigint;
   timestamp?: number;
+  tipInfo?: {
+    amountUsd: number;
+    fromAddress: string;
+    fromAgent?: { name: string; chainId: number; tokenId: string };
+  };
 }) {
   const parsedCategory = KUDOS_CATEGORIES.includes(category as KudosCategory)
     ? (category as KudosCategory)
@@ -204,7 +227,10 @@ function KudosReceivedCard({
               </>
             )}
           </div>
-          <div className="flex items-center justify-end mt-1">
+          <div className="flex items-center justify-end gap-1.5 mt-1">
+            {tipInfo && tipInfo.amountUsd > 0 && (
+              <TipBadge amountUsd={tipInfo.amountUsd} />
+            )}
             <a
               href={`https://abscan.org/tx/${txHash}`}
               target="_blank"
@@ -222,6 +248,12 @@ function KudosReceivedCard({
             <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-all">
               &ldquo;{message}&rdquo;
             </p>
+          )}
+          {tipInfo?.fromAddress && (
+            <TipAttribution
+              fromAddress={tipInfo.fromAddress}
+              fromAgent={tipInfo.fromAgent}
+            />
           )}
         </div>
       </div>
@@ -437,6 +469,12 @@ export default function UserProfilePage() {
     ...(kudosReceived?.map((k) => k.blockNumber) || []),
   ];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
+
+  const allTxHashes = [
+    ...(kudosGiven?.map((k) => k.txHash) || []),
+    ...(kudosReceived?.map((k) => k.txHash) || []),
+  ];
+  const tipMap = useTipsForKudos(allTxHashes);
 
   // Compute stats
   const totalKudos = kudosGiven?.length || 0;
@@ -686,6 +724,7 @@ export default function UserProfilePage() {
                     agent={agentMap?.get(k.agentId)}
                     senderAgent={senderAgentMap.get(k.sender.toLowerCase())}
                     timestamp={timestamps?.get(k.blockNumber.toString())}
+                    tipInfo={tipMap[k.txHash.toLowerCase()]}
                   />
                 ))}
               </div>
@@ -731,6 +770,7 @@ export default function UserProfilePage() {
                         txHash={k.txHash}
                         blockNumber={k.blockNumber}
                         timestamp={timestamps?.get(k.blockNumber.toString())}
+                        tipInfo={tipMap[k.txHash.toLowerCase()]}
                       />
                     ))}
                   </div>

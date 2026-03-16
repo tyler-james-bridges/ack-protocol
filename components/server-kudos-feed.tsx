@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { AgentAvatar } from './agent-avatar';
 import { CategoryBadge } from './category-badge';
 import { StreakBadge } from './streak-badge';
+import { TipBadge, TipAttribution } from './tip-badge';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
 import { formatRelativeTime } from '@/lib/utils';
 import type { RecentKudosItem } from '@/lib/home-data';
@@ -19,16 +20,6 @@ interface ServerKudosFeedProps {
   senderMap: Map<string, ScanAgent>;
   timestamps: Record<string, number>;
   streaks?: Record<string, StreakData>;
-}
-
-function TipBadge({ amountUsd }: { amountUsd: number }) {
-  const display =
-    amountUsd < 1 ? `$${amountUsd.toFixed(2)}` : `$${amountUsd.toFixed(0)}`;
-  return (
-    <span className="inline-flex items-center rounded-full bg-[#00DE73]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#00DE73]">
-      {display}
-    </span>
-  );
 }
 
 function FeedItem({
@@ -124,24 +115,18 @@ function FeedItem({
         )}
 
         {tipFromAddress && (
-          <p className="text-[11px] text-muted-foreground/60 mt-1">
-            Tipped by{' '}
-            {tipFromAgent ? (
-              <Link
-                href={`/agent/${tipFromAgent.chain_id}/${tipFromAgent.token_id}`}
-                className="hover:text-[#00DE73] transition-colors font-semibold text-muted-foreground"
-              >
-                {tipFromAgent.name}
-              </Link>
-            ) : (
-              <Link
-                href={`/address/${tipFromAddress}`}
-                className="hover:text-[#00DE73] transition-colors font-mono"
-              >
-                {truncateAddress(tipFromAddress)}
-              </Link>
-            )}
-          </p>
+          <TipAttribution
+            fromAddress={tipFromAddress}
+            fromAgent={
+              tipFromAgent
+                ? {
+                    name: tipFromAgent.name,
+                    chainId: tipFromAgent.chain_id,
+                    tokenId: tipFromAgent.token_id,
+                  }
+                : undefined
+            }
+          />
         )}
       </div>
     </div>

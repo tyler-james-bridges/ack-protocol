@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useKudosReceived, type KudosEvent } from '@/hooks/useKudosReceived';
 import { useLeaderboard, useIsAgent } from '@/hooks';
@@ -12,39 +11,8 @@ import {
   useBlockTimestamps,
   formatRelativeTime,
 } from '@/hooks/useBlockTimestamps';
+import { useTipsForKudos } from '@/hooks/useTipsForKudos';
 import type { ScanAgent } from '@/lib/api';
-
-interface TipFromAgent {
-  name: string;
-  imageUrl?: string;
-  chainId: number;
-  tokenId: string;
-}
-
-interface TipInfo {
-  amountUsd: number;
-  fromAddress: string;
-  fromAgentId?: number;
-  fromAgent?: TipFromAgent;
-}
-
-function useTipsForKudos(txHashes: string[]) {
-  const [tips, setTips] = useState<Record<string, TipInfo>>({});
-
-  useEffect(() => {
-    if (txHashes.length === 0) return;
-    fetch('/api/tips/by-kudos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ txHashes }),
-    })
-      .then((r) => (r.ok ? r.json() : { tips: {} }))
-      .then((data) => setTips(data.tips || {}))
-      .catch(() => {});
-  }, [txHashes.join(',')]);
-
-  return tips;
-}
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -83,13 +51,7 @@ function parseFeedbackContext(feedbackURI: string): {
   return { message: null, sourceFrom: null };
 }
 
-function TipBadge({ amountUsd }: { amountUsd: number }) {
-  return (
-    <span className="inline-flex items-center rounded-full bg-[#00FF94]/10 text-[#00FF94] text-[10px] font-semibold px-1.5 py-0.5 tabular-nums">
-      ${amountUsd.toFixed(amountUsd < 1 ? 2 : 0)}
-    </span>
-  );
-}
+import { TipBadge, TipAttribution } from '@/components/tip-badge';
 
 function KudosCard({
   kudos,
@@ -234,24 +196,18 @@ function KudosCard({
         )}
 
         {tipFromAddress && (
-          <p className="text-[11px] text-muted-foreground/60 mt-1">
-            Tipped by{' '}
-            {tipFromAgent ? (
-              <Link
-                href={`/agent/${tipFromAgent.chain_id}/${tipFromAgent.token_id}`}
-                className="hover:text-[#00DE73] transition-colors font-semibold text-muted-foreground"
-              >
-                {tipFromAgent.name}
-              </Link>
-            ) : (
-              <Link
-                href={`/address/${tipFromAddress}`}
-                className="hover:text-[#00DE73] transition-colors font-mono"
-              >
-                {truncateAddress(tipFromAddress)}
-              </Link>
-            )}
-          </p>
+          <TipAttribution
+            fromAddress={tipFromAddress}
+            fromAgent={
+              tipFromAgent
+                ? {
+                    name: tipFromAgent.name,
+                    chainId: tipFromAgent.chain_id,
+                    tokenId: tipFromAgent.token_id,
+                  }
+                : undefined
+            }
+          />
         )}
       </div>
     </div>

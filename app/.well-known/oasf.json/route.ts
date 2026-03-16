@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server';
  * Returns standardized skills and domains for the ACK Protocol agent.
  * Spec: https://schema.oasf.outshift.com/0.8.0
  * Taxonomy: https://github.com/agntcy/oasf/releases
+ * Valid skills: https://github.com/agntcy/oasf/tree/main/schema/skills
+ * Valid domains: https://github.com/agntcy/oasf/tree/main/schema/domains
  */
 
 const oasfProfile = {
@@ -43,39 +45,43 @@ const oasfProfile = {
       ],
     },
     {
-      slug: 'natural_language_processing/conversation/chatbot',
-      name: 'Chatbot',
+      slug: 'natural_language_processing/information_retrieval_synthesis/question_answering',
+      name: 'Question Answering',
       description:
-        'Answer questions about agent reputation, trust scores, and feedback history via conversational interface.',
-      tags: ['natural-language-processing', 'conversation', 'chatbot'],
+        'Answer questions about agent reputation, trust scores, and feedback history.',
+      tags: [
+        'natural-language-processing',
+        'information-retrieval-synthesis',
+        'question-answering',
+      ],
     },
     {
-      slug: 'tool_interaction/automation/workflow_automation',
+      slug: 'tool_interaction/workflow_automation',
       name: 'Workflow Automation',
       description:
         'Expose MCP and A2A protocol interfaces, SDK integration, and API endpoints for agent-to-agent interoperability.',
-      tags: ['tool-interaction', 'automation', 'workflow-automation'],
+      tags: ['tool-interaction', 'workflow-automation'],
     },
     {
-      slug: 'tool_interaction/api_integration',
-      name: 'API Integration',
+      slug: 'tool_interaction/api_schema_understanding',
+      name: 'API Schema Understanding',
       description:
         'Integrate with external APIs and blockchain services for agent data aggregation.',
-      tags: ['tool-interaction', 'api-integration'],
+      tags: ['tool-interaction', 'api-schema-understanding'],
     },
     {
-      slug: 'data_analysis/quantitative_analysis',
-      name: 'Quantitative Analysis',
+      slug: 'data_engineering/data_quality_assessment',
+      name: 'Data Quality Assessment',
       description:
         'Aggregate and analyze onchain reputation signals across multiple chains and agent categories.',
-      tags: ['data-analysis', 'quantitative-analysis'],
+      tags: ['data-engineering', 'data-quality-assessment'],
     },
     {
-      slug: 'data_analysis/pattern_recognition',
-      name: 'Pattern Recognition',
+      slug: 'evaluation_monitoring/anomaly_detection',
+      name: 'Anomaly Detection',
       description:
-        'Identify reputation trends, feedback patterns, and trust signals across agent networks.',
-      tags: ['data-analysis', 'pattern-recognition'],
+        'Identify reputation trends, feedback anomalies, and trust signals across agent networks.',
+      tags: ['evaluation-monitoring', 'anomaly-detection'],
     },
   ],
   domains: [
@@ -86,22 +92,21 @@ const oasfProfile = {
         'MCP, A2A, and OASF protocol endpoints for agent interoperability.',
     },
     {
-      path: 'technology/software_engineering/web_development',
-      name: 'Web Development',
-      description:
-        'Web-based agent discovery, profile pages, and reputation dashboards.',
+      path: 'technology/blockchain/blockchain',
+      name: 'Blockchain',
+      description: 'ERC-8004 agent identity and reputation on EVM chains.',
     },
     {
-      path: 'technology/artificial_intelligence/deep_learning',
-      name: 'AI and Deep Learning',
+      path: 'technology/blockchain/smart_contracts',
+      name: 'Smart Contracts',
       description:
-        'AI agent identity, reputation scoring, and trust assessment.',
+        'Onchain kudos, registration, and feedback via ERC-8004 smart contracts.',
     },
     {
-      path: 'research_and_development/research/data_collection',
-      name: 'Data Collection',
+      path: 'technology/security/identity_management',
+      name: 'Identity Management',
       description:
-        'Onchain data collection and indexing of agent feedback and reputation signals.',
+        'AI agent identity verification, trust scoring, and reputation assessment.',
     },
   ],
 };

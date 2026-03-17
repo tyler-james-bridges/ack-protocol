@@ -23,90 +23,77 @@ const oasfProfile = {
   },
   skills: [
     {
-      slug: 'natural_language_processing/information_retrieval_synthesis/search',
+      slug: 'information_retrieval_synthesis_search',
       name: 'Search',
       description:
         'Search and discover ERC-8004 registered agents across multiple chains by name, description, or capability.',
-      tags: [
-        'natural-language-processing',
-        'information-retrieval-synthesis',
-        'search',
-      ],
     },
     {
-      slug: 'natural_language_processing/natural_language_understanding/contextual_comprehension',
+      slug: 'contextual_comprehension',
       name: 'Contextual Comprehension',
       description:
         'Compute and aggregate multi-dimensional reputation scores from peer feedback across reliability, speed, accuracy, creativity, collaboration, and security.',
-      tags: [
-        'natural-language-processing',
-        'natural-language-understanding',
-        'contextual-comprehension',
-      ],
     },
     {
-      slug: 'natural_language_processing/information_retrieval_synthesis/question_answering',
+      slug: 'question_answering',
       name: 'Question Answering',
       description:
         'Answer questions about agent reputation, trust scores, and feedback history.',
-      tags: [
-        'natural-language-processing',
-        'information-retrieval-synthesis',
-        'question-answering',
-      ],
     },
     {
-      slug: 'tool_interaction/workflow_automation',
+      slug: 'workflow_automation',
       name: 'Workflow Automation',
       description:
         'Expose MCP and A2A protocol interfaces, SDK integration, and API endpoints for agent-to-agent interoperability.',
-      tags: ['tool-interaction', 'workflow-automation'],
     },
     {
-      slug: 'tool_interaction/api_schema_understanding',
+      slug: 'api_schema_understanding',
       name: 'API Schema Understanding',
       description:
         'Integrate with external APIs and blockchain services for agent data aggregation.',
-      tags: ['tool-interaction', 'api-schema-understanding'],
     },
     {
-      slug: 'data_engineering/data_quality_assessment',
+      slug: 'data_quality_assessment',
       name: 'Data Quality Assessment',
       description:
         'Aggregate and analyze onchain reputation signals across multiple chains and agent categories.',
-      tags: ['data-engineering', 'data-quality-assessment'],
     },
     {
-      slug: 'evaluation_monitoring/anomaly_detection',
+      slug: 'anomaly_detection',
       name: 'Anomaly Detection',
       description:
         'Identify reputation trends, feedback anomalies, and trust signals across agent networks.',
-      tags: ['evaluation-monitoring', 'anomaly-detection'],
     },
   ],
   domains: [
     {
-      path: 'technology/software_engineering/apis_integration',
+      slug: 'apis_integration',
       name: 'APIs and Integration',
       description:
         'MCP, A2A, and OASF protocol endpoints for agent interoperability.',
     },
     {
-      path: 'technology/blockchain/blockchain',
+      slug: 'blockchain',
       name: 'Blockchain',
       description: 'ERC-8004 agent identity and reputation on EVM chains.',
     },
     {
-      path: 'technology/blockchain/smart_contracts',
+      slug: 'smart_contracts',
       name: 'Smart Contracts',
       description:
         'Onchain kudos, registration, and feedback via ERC-8004 smart contracts.',
     },
     {
-      path: 'technology/security/identity_management',
+      slug: 'identity_management',
       name: 'Identity Management',
       description:
         'AI agent identity verification, trust scoring, and reputation assessment.',
+    },
+    {
+      slug: 'defi',
+      name: 'Decentralized Finance',
+      description:
+        'Agent reputation and trust for DeFi protocols on Abstract chain.',
     },
   ],
 };

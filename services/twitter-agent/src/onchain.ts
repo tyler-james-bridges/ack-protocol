@@ -8,6 +8,7 @@ import {
   http,
   defineChain,
   keccak256,
+  toBytes,
   toHex,
   encodeFunctionData,
 } from 'viem';
@@ -335,7 +336,7 @@ export async function submitKudos(
 
     const feedbackHash =
       feedbackURI.length > 0
-        ? keccak256(toHex(feedbackURI))
+        ? keccak256(toBytes(feedbackURI))
         : ('0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`);
 
     const data = encodeFunctionData({

@@ -4,7 +4,11 @@ import path from 'path';
 export default defineConfig({
   test: {
     globals: true,
-    include: ['lib/**/*.test.ts', 'config/**/*.test.ts'],
+    include: [
+      'lib/**/*.test.ts',
+      'config/**/*.test.ts',
+      'services/**/*.test.ts',
+    ],
   },
   resolve: {
     alias: {

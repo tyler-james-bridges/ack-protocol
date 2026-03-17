@@ -35,19 +35,23 @@ Scrape 8004scan for Abstract agents that have known X handles (from their metada
 **Extraction:** Regex agent `description` fields for `@handle` patterns and `x.com/handle` links. Filter out common non-handle words (@AbstractChain, @the, etc).
 
 **Current yield:** 2 of 53 agents have discoverable X handles:
+
 - Rocky (#649) -> @Rocky_onabs
 - Bandit (#612) -> @mybuppys
 
 **Steps:**
+
 1. For each discovered handle, call `registerHandle("x", handle)` then `linkAgent(hash, agentId)` using ACK's wallet
 2. Log all registrations for audit
 
 **Risks:**
+
 - Linking the wrong handle to an agent (description may be wrong)
 - Gas costs for batch registration (minimal, ~$0.01-0.05 per registration)
 - We're asserting the link without the owner verifying it
 
 **Mitigation:**
+
 - Only link handles where the evidence is strong (exact match in agent description/metadata)
 - Owners can override via the claim flow
 - Keep a log of all auto-linked handles
@@ -63,6 +67,7 @@ Scrape 8004scan for Abstract agents that have known X handles (from their metada
 When HandleRegistry lookup fails, search 8004scan for an agent whose metadata contains the target X handle. If found, auto-link in the HandleRegistry and process the kudos.
 
 **Resolution order (updated):**
+
 1. HandleRegistry contract lookup
 2. 8004scan metadata search (new)
 3. If found, auto-register + auto-link in HandleRegistry (new)
@@ -70,6 +75,7 @@ When HandleRegistry lookup fails, search 8004scan for an agent whose metadata co
 5. If none, trigger onboarding reply (Phase 3)
 
 **Search strategy:**
+
 - `GET https://www.8004scan.io/api/v1/public/agents/search?q={handle}&chainId=2741&semanticWeight=0`
 - 8004scan public API with keyword search (semanticWeight=0) and Abstract chain filter
 - Returns agents whose name or description matches the query
@@ -79,11 +85,13 @@ When HandleRegistry lookup fails, search 8004scan for an agent whose metadata co
 - Anonymous tier allows 10 results per query, no auth required
 
 **Auto-link behavior:**
+
 - When a match is found via metadata search, register the handle AND link the agent in one flow
 - This builds the HandleRegistry over time as kudos are given
 - Future lookups for the same handle hit the registry directly (fast path)
 
 **Edge case: Multiple agents claim the same X handle**
+
 - First match wins (by token ID order from 8004scan)
 - Owner can override via claim flow
 
@@ -96,6 +104,7 @@ When HandleRegistry lookup fails, search 8004scan for an agent whose metadata co
 When a handle can't be resolved after all fallbacks, instead of silently failing, reply with a helpful message.
 
 **Reply template:**
+
 ```
 I don't recognize @{handle} as a registered agent yet.
 
@@ -105,6 +114,7 @@ You can also give kudos by agent ID: @ack_onchain #{id} ++
 ```
 
 **Claim flow (already built):**
+
 1. Owner replies with agent ID
 2. Bot creates challenge via `createChallenge(handle, ownerWallet, agentId)`
 3. Bot replies: "Tweet this code to verify: ack-claim-XXXXXX"
@@ -119,6 +129,7 @@ You can also give kudos by agent ID: @ack_onchain #{id} ++
 No new contracts or tables needed. Everything uses the existing HandleRegistry at `0xf32ed012f0978a9b963df11743e797a108c94871`.
 
 HandleRegistry stores:
+
 - `platform` (string): always "x" for Twitter
 - `handle` (string): lowercase X handle
 - `claimedBy` (address): wallet that claimed it

@@ -476,6 +476,170 @@ export async function resolveHandleToAgentId(
     console.error('[resolve-handle] Registry lookup failed:', error);
   }
 
+  // Fall back: search 8004scan descriptions for @handle mention
+  try {
+    const scanResult = await searchHandleIn8004scan(lowerHandle);
+    if (scanResult !== null) {
+      console.log(
+        `[resolve-handle] Found @${lowerHandle} via 8004scan -> agent #${scanResult}`
+      );
+      // Auto-register and link in HandleRegistry for future fast lookups
+      await autoLinkHandle(lowerHandle, scanResult);
+      return scanResult;
+    }
+  } catch (error) {
+    console.error('[resolve-handle] 8004scan search failed:', error);
+  }
+
   // Fall back to hardcoded map
   return knownAgents[lowerHandle] || null;
+}
+
+/** Cache for 8004scan handle lookups (5-min TTL) */
+const handleSearchCache = new Map<
+  string,
+  { agentId: number | null; expiresAt: number }
+>();
+const HANDLE_SEARCH_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * Search 8004scan for an agent whose description mentions @handle.
+ * Uses the public API keyword search with Abstract chain filter.
+ */
+export async function searchHandleIn8004scan(
+  handle: string
+): Promise<number | null> {
+  const key = handle.toLowerCase();
+  const cached = handleSearchCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.agentId;
+  }
+
+  try {
+    const url = `https://www.8004scan.io/api/v1/public/agents/search?q=${encodeURIComponent(key)}&chainId=2741&semanticWeight=0&limit=10`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      handleSearchCache.set(key, {
+        agentId: null,
+        expiresAt: Date.now() + HANDLE_SEARCH_TTL_MS,
+      });
+      return null;
+    }
+
+    const json = await res.json();
+    const items = json.data || [];
+
+    // Find an agent whose description contains @handle (case-insensitive)
+    const pattern = new RegExp(`@${key}\\b`, 'i');
+    for (const agent of items) {
+      const desc = agent.description || '';
+      if (pattern.test(desc) && agent.chain_id === 2741) {
+        const agentId = Number(agent.token_id);
+        if (Number.isFinite(agentId) && agentId > 0) {
+          handleSearchCache.set(key, {
+            agentId,
+            expiresAt: Date.now() + HANDLE_SEARCH_TTL_MS,
+          });
+          return agentId;
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[8004scan-search] Error:', error);
+  }
+
+  handleSearchCache.set(key, {
+    agentId: null,
+    expiresAt: Date.now() + HANDLE_SEARCH_TTL_MS,
+  });
+  return null;
+}
+
+/**
+ * Auto-register and link a handle in the HandleRegistry.
+ * Best-effort: failures are logged but don't block kudos.
+ */
+async function autoLinkHandle(handle: string, agentId: number): Promise<void> {
+  const privateKey = process.env.AGENT_PRIVATE_KEY;
+  if (!privateKey) return;
+
+  try {
+    const account = privateKeyToAccount(
+      privateKey.startsWith('0x')
+        ? (privateKey as `0x${string}`)
+        : (`0x${privateKey}` as `0x${string}`)
+    );
+
+    const publicClient = createPublicClient({
+      chain: abstract,
+      transport: http(),
+    });
+
+    const walletClient = createWalletClient({
+      account,
+      chain: abstract,
+      transport: http(),
+    });
+
+    const lowerHandle = handle.toLowerCase();
+
+    // Check if already registered
+    const alreadyExists = await publicClient.readContract({
+      address: HANDLE_REGISTRY as `0x${string}`,
+      abi: HANDLE_REGISTRY_ABI,
+      functionName: 'exists',
+      args: ['x', lowerHandle],
+    });
+
+    let hash: `0x${string}`;
+    if (!alreadyExists) {
+      // Register the handle first
+      const regHash = await walletClient.writeContract({
+        address: HANDLE_REGISTRY as `0x${string}`,
+        abi: HANDLE_REGISTRY_ABI,
+        functionName: 'registerHandle',
+        args: ['x', lowerHandle],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: regHash });
+
+      hash = await publicClient.readContract({
+        address: HANDLE_REGISTRY as `0x${string}`,
+        abi: HANDLE_REGISTRY_ABI,
+        functionName: 'handleHash',
+        args: ['x', lowerHandle],
+      });
+    } else {
+      hash = await publicClient.readContract({
+        address: HANDLE_REGISTRY as `0x${string}`,
+        abi: HANDLE_REGISTRY_ABI,
+        functionName: 'handleHash',
+        args: ['x', lowerHandle],
+      });
+
+      // Check if already linked
+      const handleData = await publicClient.readContract({
+        address: HANDLE_REGISTRY as `0x${string}`,
+        abi: HANDLE_REGISTRY_ABI,
+        functionName: 'getHandle',
+        args: [hash],
+      });
+      if (Number(handleData.linkedAgentId) > 0) {
+        return; // Already linked, nothing to do
+      }
+    }
+
+    // Link the agent
+    const linkTx = await walletClient.writeContract({
+      address: HANDLE_REGISTRY as `0x${string}`,
+      abi: HANDLE_REGISTRY_ABI,
+      functionName: 'linkAgent',
+      args: [hash, BigInt(agentId)],
+    });
+    await publicClient.waitForTransactionReceipt({ hash: linkTx });
+    console.log(
+      `[auto-link] Linked @${lowerHandle} -> agent #${agentId} (tx: ${linkTx})`
+    );
+  } catch (error) {
+    console.error(`[auto-link] Failed to link @${handle}:`, error);
+  }
 }

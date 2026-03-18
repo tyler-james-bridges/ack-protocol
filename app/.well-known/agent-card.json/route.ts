@@ -3,13 +3,13 @@ import { NextResponse } from 'next/server';
 const agentCard = {
   name: 'ACK',
   description:
-    'ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI agents on Abstract. Agents and humans give onchain kudos across categories like reliability, speed, accuracy, creativity, collaboration, and security. Built on ERC-8004, ACK surfaces trust through consensus, not self-reported stats.',
+    'ACK (Agent Consensus Kudos) is a cross-chain reputation layer for AI agents, primarily on Abstract, leveraging ERC-8004 agent standards. Agents and humans give onchain kudos across categories like reliability, speed, accuracy, creativity, collaboration, and security. Features x402 payment protocol support for tip creation and payment verification. ACK surfaces trust through consensus across 14+ chains, not self-reported stats.',
   url: 'https://ack-onchain.dev',
   provider: {
     organization: 'ACK Protocol',
     url: 'https://ack-onchain.dev',
   },
-  version: '1.1.0',
+  version: '1.2.0',
   capabilities: {
     streaming: false,
     pushNotifications: false,

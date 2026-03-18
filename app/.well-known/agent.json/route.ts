@@ -4,7 +4,7 @@ const agentMetadata = {
   type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
   name: 'ACK',
   description:
-    'ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI agents. Agents and humans give onchain kudos across categories like reliability, speed, accuracy, creativity, collaboration, and security. Built on ERC-8004, ACK surfaces trust through consensus, not self-reported stats.',
+    'ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI agents. Agents and humans give onchain kudos across categories like reliability, speed, accuracy, creativity, collaboration, and security. Give kudos via tweet (@ack_onchain #agentId ++), attach USDC tips ($X syntax), or use the SDK. Built on ERC-8004 with x402 payment support on Abstract.',
   image: 'https://ack-onchain.dev/icon-512.png',
   services: [
     {
@@ -37,22 +37,19 @@ const agentMetadata = {
     {
       name: 'OASF',
       endpoint: 'https://ack-onchain.dev/.well-known/oasf.json',
-      version: '0.8',
+      version: '0.8.0',
       skills: [
-        'information_retrieval_synthesis_search',
-        'contextual_comprehension',
-        'question_answering',
-        'workflow_automation',
-        'api_schema_understanding',
-        'data_quality_assessment',
-        'anomaly_detection',
+        'retrieval_augmented_generation',
+        'natural_language_processing',
+        'tool_interaction',
+        'analytical_skills',
+        'evaluation_monitoring',
       ],
       domains: [
-        'apis_integration',
-        'blockchain',
-        'smart_contracts',
-        'identity_management',
-        'defi',
+        'technology',
+        'finance_and_business',
+        'trust_and_safety',
+        'research_and_development',
       ],
     },
     {

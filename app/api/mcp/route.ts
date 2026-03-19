@@ -153,7 +153,9 @@ export async function POST(request: NextRequest) {
         result: {
           protocolVersion: '2025-06-18',
           capabilities: {
-            tools: {},
+            tools: { listChanged: false },
+            prompts: { listChanged: false },
+            resources: { listChanged: false },
           },
           serverInfo: {
             name: 'ack-protocol-server',

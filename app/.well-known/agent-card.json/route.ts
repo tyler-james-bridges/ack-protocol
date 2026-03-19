@@ -24,6 +24,7 @@ const agentCard = {
     a2a: 'https://ack-onchain.dev/api/a2a',
     mcp: 'https://ack-onchain.dev/api/mcp',
     agentCard: 'https://ack-onchain.dev/.well-known/agent-card.json',
+    email: 'mailto:onchaindevex@gmail.com',
   },
   mcp: {
     endpoint: 'https://ack-onchain.dev/api/mcp',

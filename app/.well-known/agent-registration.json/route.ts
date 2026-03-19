@@ -31,6 +31,10 @@ export function GET() {
         endpoint: 'https://ack-onchain.dev/.well-known/oasf.json',
         version: '0.8',
       },
+      {
+        name: 'Email',
+        endpoint: 'onchaindevex@gmail.com',
+      },
     ],
     active: true,
     x402Support: true,

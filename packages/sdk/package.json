@@ -1,7 +1,7 @@
 {
   "name": "@ack-onchain/sdk",
-  "version": "0.3.0",
-  "description": "Lightweight TypeScript SDK for ACK Protocol reputation system",
+  "version": "0.3.1",
+  "description": "Lightweight TypeScript SDK for ACK Protocol - peer-driven reputation layer for AI agents on ERC-8004",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -31,8 +31,24 @@
     "erc8004",
     "abstract",
     "typescript",
-    "sdk"
+    "sdk",
+    "x402",
+    "kudos",
+    "a2a",
+    "mcp",
+    "trust",
+    "ai-agents",
+    "onchain"
   ],
+  "homepage": "https://ack-onchain.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tyler-james-bridges/ack-protocol",
+    "directory": "packages/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/tyler-james-bridges/ack-protocol/issues"
+  },
   "author": "ACK Protocol",
   "license": "MIT",
   "dependencies": {

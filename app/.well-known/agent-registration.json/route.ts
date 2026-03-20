@@ -35,6 +35,11 @@ export function GET() {
         name: 'Email',
         endpoint: 'onchaindevex@gmail.com',
       },
+      {
+        name: 'ENS',
+        endpoint: 'ack-onchain.eth',
+        version: 'v1',
+      },
     ],
     active: true,
     x402Support: true,

@@ -102,7 +102,7 @@ async function fetchScanAgents(
 export async function getHomePageData(): Promise<HomePageData> {
   // Wave 1: Fetch everything in parallel (Abstract-only)
   const [abstractAgentsRes, feedbackEvents, allStreaks] = await Promise.all([
-    fetchScanAgents({ chain_id: 2741, limit: 50 }),
+    fetchScanAgents({ chain_id: 2741, limit: 100 }),
     getAllFeedbackEvents(),
     getAllStreaks(),
   ]);

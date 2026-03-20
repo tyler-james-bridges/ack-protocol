@@ -136,7 +136,7 @@ export async function fetchAgentsByChain(
   chainId: number,
   options: Omit<FetchAgentsOptions, 'chainId'> = {}
 ): Promise<ScanAgentsResponse> {
-  const result = await fetchAgents({ ...options, limit: options.limit || 50 });
+  const result = await fetchAgents({ ...options, limit: options.limit || 100 });
   const filtered = result.items.filter(
     (a) => a.chain_id === chainId && !a.is_testnet
   );

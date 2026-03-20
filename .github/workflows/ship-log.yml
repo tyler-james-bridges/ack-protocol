@@ -1,0 +1,40 @@
+name: Ship Log
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main, master]
+  release:
+    types: [published]
+
+jobs:
+  ship-log:
+    # Only run on merged PRs or releases
+    if: >
+      (github.event_name == 'release') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post to shipped-log
+        env:
+          WEBHOOK_URL: ${{ secrets.SHIPPED_LOG_WEBHOOK }}
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          REPO="${{ github.event.repository.name }}"
+
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TITLE="Release ${{ github.event.release.tag_name }}"
+            URL="${{ github.event.release.html_url }}"
+          else
+            TITLE="PR #${{ github.event.pull_request.number }} merged: ${{ github.event.pull_request.title }}"
+            URL="${{ github.event.pull_request.html_url }}"
+          fi
+
+          OWNER="${{ github.event.sender.login }}"
+
+          # Discord webhook payload
+          CONTENT="${DATE} | ${REPO} | ${TITLE} | ${URL} | ${OWNER}"
+
+          curl -s -H "Content-Type: application/json" \
+            -d "{\"content\": \"${CONTENT}\"}" \
+            "$WEBHOOK_URL"

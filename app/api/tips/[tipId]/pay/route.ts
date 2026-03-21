@@ -8,6 +8,7 @@ import {
 } from '@/lib/tip-store';
 import {
   buildMppChallenge,
+  buildMppChallengeResponse,
   getMppConfig,
   mppEnabled,
   verifyMppCredential,
@@ -154,7 +155,16 @@ export async function GET(
         message: `Tip $${price} to Agent #${tip.agentId} via x402`,
       };
 
-      return NextResponse.json(
+      let mppChallengeResponse: Response | null = null;
+      try {
+        mppChallengeResponse = await buildMppChallengeResponse({
+          amount: price,
+        });
+      } catch {
+        mppChallengeResponse = null;
+      }
+
+      const response = NextResponse.json(
         {
           error: {
             code: 'PAYMENT_REQUIRED',
@@ -164,13 +174,25 @@ export async function GET(
             mpp: challenge,
           },
         },
-        {
-          status: 402,
-          headers: {
-            'WWW-Authenticate': `Payment realm="${challenge.realm}", asset="${challenge.asset}", payto="${challenge.payTo}"`,
-          },
-        }
+        { status: 402 }
       );
+
+      if (mppChallengeResponse) {
+        for (const [key, value] of mppChallengeResponse.headers.entries()) {
+          if (key.toLowerCase() === 'www-authenticate') {
+            response.headers.append('WWW-Authenticate', value);
+          }
+        }
+      }
+
+      if (!response.headers.get('WWW-Authenticate')) {
+        response.headers.set(
+          'WWW-Authenticate',
+          `Payment realm="${challenge.realm}", asset="${challenge.asset}", payto="${challenge.payTo}"`
+        );
+      }
+
+      return response;
     }
   }
 

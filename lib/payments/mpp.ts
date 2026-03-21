@@ -17,6 +17,10 @@ export interface VerifyMppOptions {
   amount: string;
 }
 
+export interface BuildMppChallengeResponseOptions {
+  amount: string;
+}
+
 export function mppEnabled(): boolean {
   return process.env.MPP_ENABLED === 'true';
 }
@@ -76,6 +80,29 @@ function extractCredential(authHeader: string | null): string | null {
   if (!authHeader.toLowerCase().startsWith('payment ')) return null;
   const credential = authHeader.slice('Payment '.length).trim();
   return credential || null;
+}
+
+export async function buildMppChallengeResponse(
+  options: BuildMppChallengeResponseOptions
+): Promise<Response> {
+  const config = getMppConfig();
+  const server = getMppxServer(config);
+
+  const handler = server.charge({
+    amount: options.amount,
+    currency: config.asset,
+  });
+
+  const request = new Request(`https://${config.realm}/mpp-challenge`, {
+    method: 'GET',
+  });
+
+  const result = await handler(request);
+  if (result.status !== 402) {
+    throw new Error('Failed to build MPP challenge');
+  }
+
+  return result.challenge;
 }
 
 export async function verifyMppCredential(

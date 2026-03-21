@@ -23,77 +23,60 @@ const oasfProfile = {
   },
   skills: [
     {
-      slug: 'information_retrieval_synthesis_search',
-      name: 'Search',
+      slug: 'retrieval_augmented_generation',
+      name: 'Retrieval Augmented Generation',
       description:
-        'Search and discover ERC-8004 registered agents across multiple chains by name, description, or capability.',
+        'Search and synthesize ERC-8004 agent data across chains for trust and discovery use cases.',
     },
     {
-      slug: 'contextual_comprehension',
-      name: 'Contextual Comprehension',
+      slug: 'natural_language_processing',
+      name: 'Natural Language Processing',
       description:
-        'Compute and aggregate multi-dimensional reputation scores from peer feedback across reliability, speed, accuracy, creativity, collaboration, and security.',
+        'Interpret and explain onchain reputation context, feedback patterns, and agent trust posture.',
     },
     {
-      slug: 'question_answering',
-      name: 'Question Answering',
+      slug: 'tool_interaction',
+      name: 'Tool Interaction',
       description:
-        'Answer questions about agent reputation, trust scores, and feedback history.',
+        'Expose MCP and A2A interfaces for agent-to-agent interoperability and programmatic access.',
     },
     {
-      slug: 'workflow_automation',
-      name: 'Workflow Automation',
+      slug: 'analytical_skills',
+      name: 'Analytical Skills',
       description:
-        'Expose MCP and A2A protocol interfaces, SDK integration, and API endpoints for agent-to-agent interoperability.',
+        'Aggregate and evaluate multi-dimensional reputation signals from ERC-8004 feedback data.',
     },
     {
-      slug: 'api_schema_understanding',
-      name: 'API Schema Understanding',
+      slug: 'evaluation_monitoring',
+      name: 'Evaluation and Monitoring',
       description:
-        'Integrate with external APIs and blockchain services for agent data aggregation.',
-    },
-    {
-      slug: 'data_quality_assessment',
-      name: 'Data Quality Assessment',
-      description:
-        'Aggregate and analyze onchain reputation signals across multiple chains and agent categories.',
-    },
-    {
-      slug: 'anomaly_detection',
-      name: 'Anomaly Detection',
-      description:
-        'Identify reputation trends, feedback anomalies, and trust signals across agent networks.',
+        'Monitor trust trends, detect signal drift, and track reputation changes over time.',
     },
   ],
   domains: [
     {
-      slug: 'apis_integration',
-      name: 'APIs and Integration',
+      slug: 'technology',
+      name: 'Technology',
       description:
-        'MCP, A2A, and OASF protocol endpoints for agent interoperability.',
+        'Agent infrastructure, protocol interoperability, and developer-facing integration surfaces.',
     },
     {
-      slug: 'blockchain',
-      name: 'Blockchain',
-      description: 'ERC-8004 agent identity and reputation on EVM chains.',
+      slug: 'finance_and_business',
+      name: 'Finance and Business',
+      description:
+        'Trust and reputation primitives for economic coordination and agent marketplaces.',
     },
     {
-      slug: 'smart_contracts',
-      name: 'Smart Contracts',
+      slug: 'trust_and_safety',
+      name: 'Trust and Safety',
       description:
-        'Onchain kudos, registration, and feedback via ERC-8004 smart contracts.',
+        'Reputation scoring, reliability signaling, and abuse-resistant social trust systems.',
     },
     {
-      slug: 'identity_management',
-      name: 'Identity Management',
+      slug: 'research_and_development',
+      name: 'Research and Development',
       description:
-        'AI agent identity verification, trust scoring, and reputation assessment.',
-    },
-    {
-      slug: 'defi',
-      name: 'Decentralized Finance',
-      description:
-        'Agent reputation and trust for DeFi protocols on Abstract chain.',
+        'Experimentation and iteration on agent reputation models and onchain trust mechanics.',
     },
   ],
 };

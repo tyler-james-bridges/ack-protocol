@@ -50,9 +50,20 @@ export function buildMppChallenge(config?: MppConfig): MppChallenge {
   };
 }
 
-let mppxServer: any = null;
+type MppChargeResult =
+  | { status: 402; challenge: Response }
+  | { status: 200; withReceipt: (response: Response) => Response };
 
-function getMppxServer(config: MppConfig): any {
+type MppServerLike = {
+  charge: (options: {
+    amount: string;
+    currency: string;
+  }) => (request: Request) => Promise<MppChargeResult>;
+};
+
+let mppxServer: MppServerLike | null = null;
+
+function getMppxServer(config: MppConfig): MppServerLike {
   if (mppxServer) return mppxServer;
 
   const secretKey = process.env.MPP_SECRET_KEY;
@@ -70,7 +81,7 @@ function getMppxServer(config: MppConfig): any {
         recipient: config.payTo as `0x${string}`,
       }),
     ],
-  });
+  }) as unknown as MppServerLike;
 
   return mppxServer;
 }

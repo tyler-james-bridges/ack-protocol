@@ -64,15 +64,13 @@ export const GetAgentFeedbacksSchema = z
  */
 export const GiveKudosSchema = z
   .object({
-    chainId: z
-      .number()
-      .describe('Chain ID of the target agent (must match wallet network)'),
     agentId: z.number().describe('Token ID of the agent to give kudos to'),
     value: z
       .number()
+      .int()
       .min(0)
       .max(100)
-      .describe('Kudos score from 0-100 (stored with 0 decimals)'),
+      .describe('Kudos score from 0-100 (integer, stored with 0 decimals)'),
     tag1: z
       .string()
       .optional()

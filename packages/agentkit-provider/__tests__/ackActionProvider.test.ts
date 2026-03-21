@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AckActionProvider } from '../src/ackActionProvider';
 import {
+  ACK_API_BASE_URL,
   IDENTITY_REGISTRY_ADDRESS,
   REPUTATION_REGISTRY_ADDRESS,
 } from '../src/constants';
@@ -199,9 +200,11 @@ describe('AckActionProvider', () => {
       });
 
       expect(result).toContain('Reputation for ACK Agent');
-      expect(result).toContain('Score: 95');
+      expect(result).toContain('Overall score: 95');
       expect(result).toContain('Rank: #5');
       expect(result).toContain('Feedback count: 42');
+      expect(result).toContain('Average feedback score: 88.5');
+      expect(result).toContain('Health status: good');
     });
   });
 
@@ -257,7 +260,6 @@ describe('AckActionProvider', () => {
   describe('give_kudos', () => {
     it('sends kudos transaction', async () => {
       const result = await provider.giveKudos(mockWalletProvider, {
-        chainId: 2741,
         agentId: 606,
         value: 85,
         tag1: 'reliability',
@@ -265,6 +267,7 @@ describe('AckActionProvider', () => {
       });
 
       expect(result).toContain('Successfully gave 85 kudos to agent 606');
+      expect(result).toContain('on the connected chain');
       expect(result).toContain('0xMockTxHash');
       expect(mockWalletProvider.sendTransaction).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -282,7 +285,6 @@ describe('AckActionProvider', () => {
       );
 
       const result = await provider.giveKudos(mockWalletProvider, {
-        chainId: 2741,
         agentId: 606,
         value: 50,
         tag1: '',
@@ -301,6 +303,7 @@ describe('AckActionProvider', () => {
       });
 
       expect(result).toContain('Successfully registered new agent');
+      expect(result).toContain('on the connected chain');
       expect(result).toContain('0xMockTxHash');
       expect(mockWalletProvider.sendTransaction).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -331,6 +334,7 @@ describe('AckActionProvider', () => {
 
       expect(result).toContain('Successfully updated agent 606');
       expect(result).toContain('ipfs://QmNewHash');
+      expect(result).toContain('on the connected chain');
       expect(result).toContain('0xMockTxHash');
       expect(mockWalletProvider.sendTransaction).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -375,7 +379,7 @@ describe('AckActionProvider', () => {
       expect(result).toContain('tip_abc123');
       expect(result).toContain('Great work!');
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'https://ack-onchain.dev/api/tips',
+        `${ACK_API_BASE_URL}/api/tips`,
         expect.objectContaining({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

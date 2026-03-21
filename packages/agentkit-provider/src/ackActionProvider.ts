@@ -19,6 +19,7 @@ import {
 } from './schemas';
 import {
   API_BASE_URL,
+  ACK_API_BASE_URL,
   IDENTITY_REGISTRY_ADDRESS,
   IDENTITY_REGISTRY_ABI,
   REPUTATION_REGISTRY_ADDRESS,
@@ -85,7 +86,8 @@ Useful for discovering agents across Abstract, Base, Ethereum, and other EVM cha
 
       return `Found ${agents.length} agent(s) matching "${args.query}":\n${results.join('\n')}`;
     } catch (error) {
-      return `Error searching agents: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error searching agents: ${msg}`;
     }
   }
 
@@ -113,6 +115,9 @@ Returns the agent's name, description, rank, score, services, and protocols.
       }
 
       const data = (await response.json()) as Record<string, unknown>;
+      // The 8004scan API response shape varies: some endpoints wrap in `.agent`,
+      // others in `.data`, or return the object directly. Defensive unwrapping
+      // handles all known variants.
       const agent = (data.agent ?? data.data ?? data) as Record<
         string,
         unknown
@@ -133,7 +138,8 @@ Returns the agent's name, description, rank, score, services, and protocols.
         .filter(Boolean)
         .join('\n');
     } catch (error) {
-      return `Error getting agent: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error getting agent: ${msg}`;
     }
   }
 
@@ -161,6 +167,7 @@ Returns total score, feedback count, average score, and health status from 8004s
       }
 
       const data = (await response.json()) as Record<string, unknown>;
+      // Defensive unwrap: API may nest under .agent, .data, or return flat
       const agent = (data.agent ?? data.data ?? data) as Record<
         string,
         unknown
@@ -168,20 +175,30 @@ Returns total score, feedback count, average score, and health status from 8004s
 
       return [
         `Reputation for ${agent.name ?? `agent ${args.tokenId}`} (chain ${args.chainId}):`,
-        agent.score !== undefined ? `Score: ${agent.score}` : null,
+        agent.score !== undefined ? `Overall score: ${agent.score}` : null,
         agent.rank !== undefined ? `Rank: #${agent.rank}` : null,
         agent.feedbackCount !== undefined
           ? `Feedback count: ${agent.feedbackCount}`
           : null,
         agent.averageScore !== undefined
-          ? `Average score: ${agent.averageScore}`
+          ? `Average feedback score: ${agent.averageScore}`
           : null,
-        agent.health !== undefined ? `Health: ${agent.health}` : null,
+        agent.health !== undefined ? `Health status: ${agent.health}` : null,
+        agent.star_count !== undefined || agent.starCount !== undefined
+          ? `Star count: ${agent.star_count ?? agent.starCount}`
+          : null,
+        Array.isArray(agent.trustCategories) && agent.trustCategories.length
+          ? `Trust categories: ${(agent.trustCategories as string[]).join(', ')}`
+          : null,
+        agent.lastFeedbackAt !== undefined
+          ? `Last feedback: ${agent.lastFeedbackAt}`
+          : null,
       ]
         .filter(Boolean)
         .join('\n');
     } catch (error) {
-      return `Error getting reputation: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error getting reputation: ${msg}`;
     }
   }
 
@@ -233,7 +250,8 @@ Returns feedback entries with scores, tags, and timestamps.
 
       return `Found ${feedbacks.length} feedback(s) for agent ${args.tokenId}:\n${entries.join('\n')}`;
     } catch (error) {
-      return `Error getting feedbacks: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error getting feedbacks: ${msg}`;
     }
   }
 
@@ -277,9 +295,10 @@ Common tags: reliability, speed, accuracy, creativity, collaboration, security, 
 
       await walletProvider.waitForTransactionReceipt(hash);
 
-      return `Successfully gave ${args.value} kudos to agent ${args.agentId} on chain ${args.chainId} with tag "${args.tag1 ?? ''}". Transaction: ${hash}`;
+      return `Successfully gave ${args.value} kudos to agent ${args.agentId} on the connected chain with tag "${args.tag1 ?? ''}". Transaction: ${hash}`;
     } catch (error) {
-      return `Error giving kudos to agent ${args.agentId}: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error giving kudos to agent ${args.agentId}: ${msg}`;
     }
   }
 
@@ -314,9 +333,10 @@ Returns the transaction hash on success.
 
       await walletProvider.waitForTransactionReceipt(hash);
 
-      return `Successfully registered new agent. Transaction: ${hash}. Check the transaction receipt logs for the new agent token ID.`;
+      return `Successfully registered new agent on the connected chain. Transaction: ${hash}. Check the transaction receipt logs for the new agent token ID.`;
     } catch (error) {
-      return `Error registering agent: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error registering agent: ${msg}`;
     }
   }
 
@@ -350,9 +370,10 @@ The wallet's connected chain will be used.
 
       await walletProvider.waitForTransactionReceipt(hash);
 
-      return `Successfully updated agent ${args.agentId} URI to "${args.newURI}". Transaction: ${hash}`;
+      return `Successfully updated agent ${args.agentId} URI to "${args.newURI}" on the connected chain. Transaction: ${hash}`;
     } catch (error) {
-      return `Error updating agent URI: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error updating agent URI: ${msg}`;
     }
   }
 
@@ -382,7 +403,7 @@ Returns a tip ID and payment URL on success.
         body.message = args.message;
       }
 
-      const response = await fetch('https://ack-onchain.dev/api/tips', {
+      const response = await fetch(`${ACK_API_BASE_URL}/api/tips`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -405,7 +426,8 @@ Returns a tip ID and payment URL on success.
         .filter(Boolean)
         .join('\n');
     } catch (error) {
-      return `Error tipping agent ${args.agentId}: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error tipping agent ${args.agentId}: ${msg}`;
     }
   }
 
@@ -486,7 +508,8 @@ Defaults to Abstract (chain 2741) and top 10 agents.
 
       return `Top ${agents.length} agents on chain ${chainId}:\n${entries.join('\n')}`;
     } catch (error) {
-      return `Error getting leaderboard: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error getting leaderboard: ${msg}`;
     }
   }
 
@@ -521,6 +544,7 @@ of their scores, ranks, feedback counts, and other reputation data.
 
       const dataA = (await responseA.json()) as Record<string, unknown>;
       const dataB = (await responseB.json()) as Record<string, unknown>;
+      // Defensive unwrap: API may nest under .agent, .data, or return flat
       const agentA = (dataA.agent ?? dataA.data ?? dataA) as Record<
         string,
         unknown
@@ -565,7 +589,8 @@ of their scores, ranks, feedback counts, and other reputation data.
         formatAgent(agentB, nameB, args.chainIdB, args.tokenIdB),
       ].join('\n');
     } catch (error) {
-      return `Error comparing agents: ${error}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Error comparing agents: ${msg}`;
     }
   }
 

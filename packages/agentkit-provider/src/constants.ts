@@ -16,6 +16,11 @@ export const REPUTATION_REGISTRY_ADDRESS =
 export const API_BASE_URL = 'https://www.8004scan.io/api/v1/public' as const;
 
 /**
+ * ACK Protocol website base URL (used for tip API).
+ */
+export const ACK_API_BASE_URL = 'https://ack-onchain.dev' as const;
+
+/**
  * ABI for Identity Registry - register and setAgentURI functions.
  */
 export const IDENTITY_REGISTRY_ABI = [

@@ -6,6 +6,17 @@ import {
   tipToJSON,
   resolvePaymentAddress,
 } from '@/lib/tip-store';
+import {
+  buildMppChallenge,
+  getMppConfig,
+  mppEnabled,
+  verifyMppCredential,
+} from '@/lib/payments/mpp';
+import {
+  isProofReplayed,
+  markProofUsed,
+  parseXPaymentProofId,
+} from '@/lib/payments/replay';
 
 /**
  * GET /api/tips/[tipId]/pay
@@ -74,6 +85,112 @@ export async function GET(
 
   if (tip.status !== 'pending') {
     return handler(request);
+  }
+
+  if (mppEnabled()) {
+    let challenge;
+    try {
+      challenge = buildMppChallenge(getMppConfig());
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'MPP_CONFIG_INVALID',
+            message:
+              err instanceof Error ? err.message : 'Invalid MPP configuration',
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    let mpp;
+    try {
+      mpp = await verifyMppCredential(request.headers.get('authorization'), {
+        amount: tip.amountUsd.toFixed(2),
+      });
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'MPP_VERIFY_ERROR',
+            message:
+              err instanceof Error ? err.message : 'MPP verification failed',
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    if (mpp.ok) {
+      const mppProofId = `mpp:${mpp.receiptId}`;
+      if (isProofReplayed(mppProofId)) {
+        return NextResponse.json(
+          {
+            error: {
+              code: 'PAYMENT_PROOF_REPLAYED',
+              message: 'MPP payment proof has already been used.',
+              proofId: mppProofId,
+            },
+          },
+          { status: 402 }
+        );
+      }
+      markProofUsed(mppProofId);
+      return handler(request);
+    }
+
+    const xPayment = request.headers.get('x-payment');
+
+    // If client has not provided x402 proof, return dual challenge.
+    if (!xPayment) {
+      const payTo = await resolvePaymentAddress(tip.agentId);
+      const price = tip.amountUsd.toFixed(2);
+      const x402Challenge = {
+        scheme: 'exact',
+        network: 'eip155:2741',
+        payTo,
+        price,
+        message: `Tip $${price} to Agent #${tip.agentId} via x402`,
+      };
+
+      return NextResponse.json(
+        {
+          error: {
+            code: 'PAYMENT_REQUIRED',
+            message:
+              'Payment required. Accepts x402 (X-Payment proof) or MPP (Authorization: Payment).',
+            x402: x402Challenge,
+            mpp: challenge,
+          },
+        },
+        {
+          status: 402,
+          headers: {
+            'WWW-Authenticate': `Payment realm="${challenge.realm}", asset="${challenge.asset}", payto="${challenge.payTo}"`,
+          },
+        }
+      );
+    }
+  }
+
+  const proofId = parseXPaymentProofId(request.headers.get('x-payment'));
+  if (proofId) {
+    if (isProofReplayed(proofId)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'PAYMENT_PROOF_REPLAYED',
+            message: 'Payment proof has already been used.',
+            proofId,
+          },
+        },
+        { status: 402 }
+      );
+    }
+
+    // Pre-mark proof id to prevent rapid replay attempts against the same tip path.
+    markProofUsed(proofId);
   }
 
   const payTo = await resolvePaymentAddress(tip.agentId);

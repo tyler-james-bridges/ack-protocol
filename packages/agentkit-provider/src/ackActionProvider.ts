@@ -442,6 +442,7 @@ Use these categories when giving kudos to agents to classify the type of feedbac
 `,
     schema: GetTrustCategoriesSchema,
   })
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getTrustCategories(
     _walletProvider: EvmWalletProvider,
     _args: z.infer<typeof GetTrustCategoriesSchema>

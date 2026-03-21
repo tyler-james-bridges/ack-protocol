@@ -60,6 +60,10 @@ Mention @ack_onchain on X with ++ syntax to give kudos and optional tips:
 
 **Tips:** USDC.e on Abstract, $0.01 minimum, $100 maximum, 24h expiry. Bot replies with abscan tx link and tip payment URL.
 
+## Abstract Madness Integration
+
+ACK includes Abstract Madness bracket integration for community engagement and agent visibility events. Bracket-driven participation can be reflected through ACK reputation interactions and related social discovery flows.
+
 ## x402 Payment Protocol
 
 ACK supports the x402 payment protocol for gated API access.
@@ -73,6 +77,46 @@ ACK supports the x402 payment protocol for gated API access.
 - `/api/portfolio/[address]/analysis` - $0.02
 - `/api/signals/[address]` - $0.10
 - `/api/journal/[address]/full` - $0.01
+
+## Handle Resolution and Agent Discovery
+
+ACK resolves targets in this order when processing handle-based kudos:
+
+1. Exact agent ID (`#649`)
+2. X handle in agent description/profile metadata (8004scan)
+3. 8004scan address/handle search fallback
+
+This allows posts like `@ack_onchain @Rocky_onabs ++` to resolve without requiring a numeric agent ID.
+
+## Agent Review / Feedback Bot System
+
+ACK includes an automated review flow for processing and surfacing feedback events:
+
+- parses kudos intents from X posts (`++` / `--` syntax)
+- validates category/message/tip combinations
+- creates onchain feedback transactions
+- records tip/payment linkage and verification state
+- returns canonical explorer links for auditability
+
+## Metadata, OASF, and agentURI
+
+ACK publishes structured metadata endpoints under `.well-known` and keeps `agentURI` synchronized with current capabilities.
+
+- OASF profile endpoint: `/.well-known/oasf.json`
+- agent profile endpoint: `/.well-known/agent.json`
+- agent card endpoint: `/.well-known/agent-card.json`
+
+Current metadata includes tags/categories/agentType and x402 support flags.
+
+## Multi-Chain Registration (Live)
+
+ACK is registered on multiple networks:
+
+- Abstract: Agent `#606`
+- Ethereum: Agent `#26424`
+- Base: Agent `#19125`
+
+ACK remains Abstract-first for execution, with cross-chain identity coverage for discovery and trust portability.
 
 ## Register Your Agent
 
@@ -139,6 +183,8 @@ await ack.kudos(123, {
 
 ### Option B: SIWA authenticated API
 
+SIWA flow supports both EOAs and AGW smart contract wallets (ERC-1271).
+
 ```typescript
 // 1. Get nonce
 const { nonce, nonceToken } = await fetch(
@@ -203,7 +249,7 @@ const feedbackFile = {
 
 const jsonStr = JSON.stringify(feedbackFile);
 const feedbackURI = `data:application/json;base64,${btoa(jsonStr)}`;
-const feedbackHash = keccak256(toBytes(jsonStr));
+const feedbackHash = keccak256(toBytes(feedbackURI));
 
 await contract.giveFeedback(
   BigInt(123), // agentId
@@ -263,7 +309,7 @@ https://ack-onchain.dev/agent/abstract/606
 
 | Endpoint                               | Method   | Description                       |
 | -------------------------------------- | -------- | --------------------------------- |
-| `/api/mcp`                             | GET      | MCP server (SSE transport)        |
+| `/api/mcp`                             | POST     | MCP server (streamable-http)      |
 | `/api/agents`                          | GET      | Proxy to 8004scan API             |
 | `/api/feedback`                        | GET      | Onchain feedback events (cached)  |
 | `/api/reputation/{address}`            | GET      | Aggregated reputation by wallet   |

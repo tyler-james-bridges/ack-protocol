@@ -33,12 +33,12 @@ export function AbstractLogo({ className = '' }: { className?: string }) {
         width="104"
         height="104"
         rx="22"
-        stroke="#00FF94"
+        stroke="currentColor"
         strokeWidth="12"
         fill="none"
       />
-      <circle cx="44" cy="60" r="14" fill="#00FF94" />
-      <circle cx="76" cy="60" r="14" fill="#00FF94" />
+      <circle cx="44" cy="60" r="14" fill="currentColor" />
+      <circle cx="76" cy="60" r="14" fill="currentColor" />
     </svg>
   );
 }
@@ -76,7 +76,7 @@ export function EthereumLogo({ className = '' }: { className?: string }) {
 
 export function TempoLogo({ className = '' }: { className?: string }) {
   return (
-    <span className={`font-bold italic tracking-tight ${className}`}>
+    <span className={`font-extrabold uppercase tracking-tight ${className}`}>
       TEMPO
     </span>
   );

@@ -1,12 +1,6 @@
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
-import {
-  BaseLogo,
-  AbstractLogo,
-  EthereumLogo,
-  TempoLogo,
-  X402Logo,
-} from '@/components/protocol-logos';
+import { BaseLogo, AbstractLogo, TempoLogo } from '@/components/protocol-logos';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { HeroSearch } from '@/components/hero-search';
@@ -61,57 +55,34 @@ export default async function Home() {
 
           {/* Protocol rail */}
           <div className="mt-8 flex flex-wrap items-center gap-6">
-            <span className="text-[10px] text-black/30 uppercase tracking-widest font-mono">
-              Built on
+            <span className="text-[10px] text-black/30 uppercase tracking-[0.2em] font-mono">
+              Payments on
             </span>
-            <a
-              href="https://abs.xyz"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-            >
-              <AbstractLogo className="h-4 w-4" />
-              <span className="text-sm font-mono font-bold text-[#00FF94]">
-                abstract
-              </span>
-            </a>
             <a
               href="https://base.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
             >
-              <BaseLogo className="h-4 w-4" />
-              <span className="text-sm font-mono font-bold text-[#0052FF]">
-                base
-              </span>
+              <BaseLogo className="h-3.5 w-3.5" />
+              <span className="text-sm font-bold text-black">base</span>
             </a>
             <a
-              href="https://ethereum.org"
+              href="https://abs.xyz"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
             >
-              <EthereumLogo className="h-4 w-4" />
-              <span className="text-sm font-mono font-bold text-[#627EEA]">
-                ethereum
-              </span>
+              <AbstractLogo className="h-3.5 w-3.5" />
+              <span className="text-sm text-black">abstract</span>
             </a>
             <a
               href="https://tempo.xyz"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:opacity-80 transition-opacity"
+              className="hover:opacity-70 transition-opacity"
             >
-              <TempoLogo className="text-sm font-mono text-[#FF6B35]" />
-            </a>
-            <a
-              href="https://x402.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:opacity-80 transition-opacity"
-            >
-              <X402Logo className="text-sm font-mono text-[#8B5CF6]" />
+              <TempoLogo className="text-sm text-black" />
             </a>
           </div>
 

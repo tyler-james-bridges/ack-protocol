@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
-import { BaseLogo, AbstractLogo, TempoLogo } from '@/components/protocol-logos';
+import Image from 'next/image';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { HeroSearch } from '@/components/hero-search';
@@ -62,19 +62,29 @@ export default async function Home() {
               href="https://abs.xyz"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+              className="hover:opacity-70 transition-opacity"
             >
-              <AbstractLogo className="h-3.5 w-3.5 text-black" />
-              <span className="text-sm text-black">abstract</span>
+              <Image
+                src="/abstract-logo.png"
+                alt="Abstract"
+                width={98}
+                height={14}
+                className="h-3.5 w-auto"
+              />
             </a>
             <a
               href="https://base.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+              className="hover:opacity-70 transition-opacity"
             >
-              <BaseLogo className="h-3.5 w-3.5" />
-              <span className="text-sm font-bold text-black">base</span>
+              <Image
+                src="/base-logo-brand.png"
+                alt="Base"
+                width={64}
+                height={36}
+                className="h-5 w-auto"
+              />
             </a>
             <a
               href="https://tempo.xyz"
@@ -82,7 +92,13 @@ export default async function Home() {
               rel="noopener noreferrer"
               className="hover:opacity-70 transition-opacity"
             >
-              <TempoLogo className="text-sm text-black" />
+              <Image
+                src="/tempo-logo.png"
+                alt="Tempo"
+                width={59}
+                height={14}
+                className="h-3.5 w-auto"
+              />
             </a>
           </div>
 

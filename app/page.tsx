@@ -59,6 +59,15 @@ export default async function Home() {
               Payments on
             </span>
             <a
+              href="https://abs.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+            >
+              <AbstractLogo className="h-3.5 w-3.5 text-black" />
+              <span className="text-sm text-black">abstract</span>
+            </a>
+            <a
               href="https://base.org"
               target="_blank"
               rel="noopener noreferrer"
@@ -66,15 +75,6 @@ export default async function Home() {
             >
               <BaseLogo className="h-3.5 w-3.5" />
               <span className="text-sm font-bold text-black">base</span>
-            </a>
-            <a
-              href="https://abs.xyz"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
-            >
-              <AbstractLogo className="h-3.5 w-3.5" />
-              <span className="text-sm text-black">abstract</span>
             </a>
             <a
               href="https://tempo.xyz"

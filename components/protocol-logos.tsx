@@ -22,23 +22,47 @@ export function BaseLogo({ className = '' }: { className?: string }) {
 export function AbstractLogo({ className = '' }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 120 120"
+      viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect
-        x="8"
-        y="8"
-        width="104"
-        height="104"
-        rx="22"
+      <line
+        x1="50"
+        y1="5"
+        x2="50"
+        y2="95"
         stroke="currentColor"
-        strokeWidth="12"
-        fill="none"
+        strokeWidth="8"
+        strokeLinecap="round"
       />
-      <circle cx="44" cy="60" r="14" fill="currentColor" />
-      <circle cx="76" cy="60" r="14" fill="currentColor" />
+      <line
+        x1="5"
+        y1="50"
+        x2="95"
+        y2="50"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      <line
+        x1="18"
+        y1="18"
+        x2="82"
+        y2="82"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      <line
+        x1="82"
+        y1="18"
+        x2="18"
+        y2="82"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

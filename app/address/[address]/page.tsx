@@ -48,7 +48,7 @@ function CopyableAddress({ address }: { address: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="group flex items-center gap-1.5 font-mono text-base font-bold text-foreground hover:text-primary transition-colors"
+      className="group flex items-center gap-1.5 font-mono text-base font-bold text-black hover:text-black transition-colors"
       title={`Click to copy: ${address}`}
     >
       <span>{truncateAddress(address)}</span>
@@ -60,9 +60,7 @@ function CopyableAddress({ address }: { address: string }) {
         <path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.379a3 3 0 00-.879-2.121L10.5 5.379A3 3 0 008.379 4.5H7v-1z" />
         <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z" />
       </svg>
-      {copied && (
-        <span className="text-xs text-[#00DE73] font-sans">Copied</span>
-      )}
+      {copied && <span className="text-xs text-black font-sans">Copied</span>}
     </button>
   );
 }
@@ -94,7 +92,7 @@ function KudosHistoryCard({
     : `/address/${kudos.sender}`;
 
   return (
-    <div className="border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors overflow-hidden max-w-full">
+    <div className="border border-black/20 rounded-none p-4 bg-black/5/50 hover:border-black transition-colors overflow-hidden max-w-full">
       <div className="flex gap-3">
         <Link href={senderLink} className="shrink-0 mt-0.5">
           <AgentAvatar
@@ -104,10 +102,10 @@ function KudosHistoryCard({
           />
         </Link>
         <div className="min-w-0 flex-1 overflow-hidden">
-          <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 flex-wrap text-xs text-black/50">
             <Link
               href={senderLink}
-              className={`truncate max-w-[100px] hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
+              className={`truncate max-w-[100px] hover:underline transition-colors ${senderAgent ? 'font-semibold text-black' : 'font-mono'}`}
             >
               {senderName}
             </Link>
@@ -121,7 +119,7 @@ function KudosHistoryCard({
             </Link>
             <Link
               href={`/agent/2741/${kudos.agentId}`}
-              className="truncate max-w-[100px] font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+              className="truncate max-w-[100px] font-semibold text-black hover:underline transition-colors"
             >
               {agentName}
             </Link>
@@ -141,7 +139,7 @@ function KudosHistoryCard({
               href={`https://abscan.org/tx/${kudos.txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+              className="text-[11px] text-black/50/50 hover:underline transition-colors"
               title="View transaction on Abscan"
             >
               {timestamp
@@ -151,7 +149,7 @@ function KudosHistoryCard({
             </a>
           </div>
           {kudos.message && (
-            <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-all">
+            <p className="text-xs text-black/50/70 mt-1 line-clamp-2 leading-relaxed break-all">
               &ldquo;{kudos.message}&rdquo;
             </p>
           )}
@@ -206,16 +204,16 @@ function KudosReceivedCard({
   const message = parseFeedbackMessage(feedbackURI);
 
   return (
-    <div className="border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors overflow-hidden max-w-full">
+    <div className="border border-black/20 rounded-none p-4 bg-black/5/50 hover:border-black transition-colors overflow-hidden max-w-full">
       <div className="flex gap-3">
         <Link href={`/address/${sender}`} className="shrink-0 mt-0.5">
           <AgentAvatar name={sender} size={36} />
         </Link>
         <div className="min-w-0 flex-1 overflow-hidden">
-          <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 flex-wrap text-xs text-black/50">
             <Link
               href={`/address/${sender}`}
-              className="truncate max-w-[120px] hover:text-[#00DE73] transition-colors font-mono"
+              className="truncate max-w-[120px] hover:underline transition-colors font-mono"
             >
               {truncateAddress(sender)}
             </Link>
@@ -235,7 +233,7 @@ function KudosReceivedCard({
               href={`https://abscan.org/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+              className="text-[11px] text-black/50/50 hover:underline transition-colors"
               title="View transaction on Abscan"
             >
               {timestamp
@@ -245,7 +243,7 @@ function KudosReceivedCard({
             </a>
           </div>
           {message && (
-            <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed break-all">
+            <p className="text-xs text-black/50/70 mt-1 line-clamp-2 leading-relaxed break-all">
               &ldquo;{message}&rdquo;
             </p>
           )}
@@ -511,7 +509,7 @@ export default function UserProfilePage() {
   ).sort((a, b) => (categoryCounts[b] || 0) - (categoryCounts[a] || 0));
 
   return (
-    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden">
+    <div className="min-h-screen bg-white w-full max-w-[100vw] overflow-x-hidden">
       <Nav />
 
       <div className="mx-auto max-w-5xl px-4 pt-6 pb-16 w-full box-border">
@@ -521,17 +519,17 @@ export default function UserProfilePage() {
           {/* ================================================================ */}
           <aside className="w-full max-w-full lg:w-80 shrink-0 space-y-4 overflow-hidden">
             {/* Profile Card */}
-            <div className="gradient-border card-glow rounded-xl p-4 sm:p-5 space-y-4 overflow-hidden max-w-full">
+            <div className="border-2 border-black p-4 sm:p-5 space-y-4 overflow-hidden max-w-full">
               {/* Identity header */}
               <div className="flex items-start gap-3.5">
-                <div className="rounded-xl overflow-hidden shrink-0 ring-2 ring-primary/20">
+                <div className="overflow-hidden shrink-0 border-2 border-black">
                   <AgentAvatar name={address} size={64} />
                 </div>
                 <div className="min-w-0 flex-1 pt-0.5">
                   <CopyableAddress address={address} />
                   <div className="flex items-center gap-2 mt-1.5">
                     {balance !== undefined && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-black/50">
                         {parseFloat(balance).toFixed(4)} ETH
                       </span>
                     )}
@@ -539,7 +537,7 @@ export default function UserProfilePage() {
                       href={`https://abscan.org/address/${address}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      className="inline-flex items-center gap-1 text-xs text-black/50 hover:text-black transition-colors"
                     >
                       <svg
                         className="h-3 w-3"
@@ -562,10 +560,10 @@ export default function UserProfilePage() {
 
               {/* Agent badge */}
               {ownedAgent ? (
-                <div className="pt-3 border-t border-border/50">
+                <div className="pt-3 border-t border-black/20/50">
                   <Link
                     href={`/agent/${ownedAgent.chain_id}/${ownedAgent.token_id}`}
-                    className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 text-sm text-[#00DE73] hover:bg-muted transition-colors font-medium"
+                    className="inline-flex items-center gap-2 rounded-none bg-black/5/50 px-2.5 py-1.5 text-sm text-black hover:bg-black/5 transition-colors font-medium"
                   >
                     <AgentAvatar
                       name={ownedAgent.name}
@@ -578,13 +576,13 @@ export default function UserProfilePage() {
               ) : null}
 
               {/* Stats */}
-              <div className="rounded-lg bg-muted/30 border border-border/50 p-4">
+              <div className="rounded-none bg-black/5/30 border border-black/20/50 p-4">
                 <div className="flex items-center gap-4">
                   <div className="text-center shrink-0">
-                    <div className="text-3xl font-bold text-primary leading-none">
+                    <div className="text-3xl font-bold text-black leading-none">
                       {totalKudos}
                     </div>
-                    <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider font-medium">
+                    <div className="text-[10px] text-black/50 mt-1 uppercase tracking-wider font-medium">
                       Kudos
                     </div>
                   </div>
@@ -593,29 +591,29 @@ export default function UserProfilePage() {
 
                   <div className="grid grid-cols-1 gap-y-1.5 flex-1 text-sm">
                     <div>
-                      <span className="text-foreground font-semibold">
+                      <span className="text-black font-semibold">
                         {uniqueAgents}
                       </span>
-                      <span className="text-muted-foreground ml-1 text-xs">
+                      <span className="text-black/50 ml-1 text-xs">
                         {uniqueAgents === 1 ? 'agent' : 'agents'} reviewed
                       </span>
                     </div>
                     <div>
-                      <span className="text-foreground font-semibold">
+                      <span className="text-black font-semibold">
                         {mostUsedCategory
                           ? CATEGORY_META[mostUsedCategory[0] as KudosCategory]
                               .label
                           : '--'}
                       </span>
-                      <span className="text-muted-foreground ml-1 text-xs">
+                      <span className="text-black/50 ml-1 text-xs">
                         top category
                       </span>
                     </div>
                     <div>
-                      <span className="text-foreground font-semibold text-xs">
+                      <span className="text-black font-semibold text-xs">
                         {firstKudosDate}
                       </span>
-                      <span className="text-muted-foreground ml-1 text-xs">
+                      <span className="text-black/50 ml-1 text-xs">
                         first kudos
                       </span>
                     </div>
@@ -631,7 +629,7 @@ export default function UserProfilePage() {
               {/* Reputation / Category Breakdown */}
               {sortedCategories.length > 0 && (
                 <div>
-                  <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+                  <h3 className="text-[10px] font-semibold text-black/50 uppercase tracking-widest mb-3">
                     Reputation
                   </h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -662,13 +660,13 @@ export default function UserProfilePage() {
                           >
                             {meta.label}
                           </span>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[10px] text-black/50">
                             {count} ({pct}%)
                           </span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-1.5 rounded-none bg-black/5 overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all duration-500"
+                            className="h-full rounded-none transition-all duration-500"
                             style={{
                               width: `${pct}%`,
                               backgroundColor: meta.color,
@@ -691,7 +689,7 @@ export default function UserProfilePage() {
             <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
               Kudos Given
               {totalKudos > 0 && (
-                <span className="text-[#00DE73] text-xs font-normal">
+                <span className="text-black text-xs font-normal">
                   {totalKudos}
                 </span>
               )}
@@ -702,18 +700,16 @@ export default function UserProfilePage() {
                 {[...Array(3)].map((_, i) => (
                   <div
                     key={i}
-                    className="border border-border rounded-lg p-4 animate-pulse"
+                    className="border border-black/20 rounded-none p-4 animate-pulse"
                   >
-                    <div className="h-4 bg-muted rounded w-2/3 mb-3" />
-                    <div className="h-3 bg-muted rounded w-1/2" />
+                    <div className="h-4 bg-black/5 rounded w-2/3 mb-3" />
+                    <div className="h-3 bg-black/5 rounded w-1/2" />
                   </div>
                 ))}
               </div>
             ) : !kudosGiven?.length ? (
-              <div className="text-center py-12 border border-dashed border-border rounded-xl">
-                <p className="text-sm text-muted-foreground">
-                  No kudos given yet.
-                </p>
+              <div className="text-center py-12 border border-dashed border-black/20 rounded-none">
+                <p className="text-sm text-black/50">No kudos given yet.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -735,7 +731,7 @@ export default function UserProfilePage() {
                 <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
                   Kudos Received
                   {!!kudosReceived?.length && (
-                    <span className="text-[#00DE73] text-xs font-normal">
+                    <span className="text-black text-xs font-normal">
                       {kudosReceived.length}
                     </span>
                   )}
@@ -746,16 +742,16 @@ export default function UserProfilePage() {
                     {[...Array(3)].map((_, i) => (
                       <div
                         key={i}
-                        className="border border-border rounded-lg p-4 animate-pulse"
+                        className="border border-black/20 rounded-none p-4 animate-pulse"
                       >
-                        <div className="h-4 bg-muted rounded w-2/3 mb-3" />
-                        <div className="h-3 bg-muted rounded w-1/2" />
+                        <div className="h-4 bg-black/5 rounded w-2/3 mb-3" />
+                        <div className="h-3 bg-black/5 rounded w-1/2" />
                       </div>
                     ))}
                   </div>
                 ) : !kudosReceived?.length ? (
-                  <div className="text-center py-12 border border-dashed border-border rounded-xl">
-                    <p className="text-sm text-muted-foreground">
+                  <div className="text-center py-12 border border-dashed border-black/20 rounded-none">
+                    <p className="text-sm text-black/50">
                       No kudos received yet.
                     </p>
                   </div>

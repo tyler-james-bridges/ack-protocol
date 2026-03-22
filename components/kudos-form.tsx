@@ -51,7 +51,7 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
         <label className="text-sm md:text-base font-medium">Agent</label>
         <AgentSearch onSelect={setSelectedAgent} />
         {selectedAgent && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-black/50">
             Selected: <span className="font-medium">{selectedAgent.name}</span>{' '}
             (#{selectedAgent.token_id})
           </p>
@@ -61,17 +61,17 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
       {/* Mode toggle */}
       <div className="space-y-2">
         <label className="text-sm md:text-base font-medium">Type</label>
-        <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
+        <div className="flex gap-1 rounded-none bg-black/5 p-1 w-fit">
           {(['kudos', 'review'] as const).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
               className={cn(
-                'px-3 py-1 text-sm rounded-md transition-colors capitalize',
+                'px-3 py-1 text-sm rounded-none transition-colors capitalize',
                 mode === m
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-white text-black shadow-sm'
+                  : 'text-black/50 hover:text-black'
               )}
             >
               {m}
@@ -96,13 +96,13 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
                 type="button"
                 onClick={() => setReviewValue(v)}
                 className={cn(
-                  'w-9 h-9 rounded-md text-sm font-medium border transition-colors',
+                  'w-9 h-9 rounded-none text-sm font-medium border transition-colors',
                   reviewValue === v
                     ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/50',
+                    : 'border-black/20 hover:border-primary/50',
                   v < 0 && 'text-red-500',
                   v > 0 && 'text-green-500',
-                  v === 0 && 'text-muted-foreground'
+                  v === 0 && 'text-black/50'
                 )}
               >
                 {v > 0 ? `+${v}` : v}
@@ -123,7 +123,7 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
               className={cn(
                 'transition-all duration-150',
                 category === cat
-                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-full'
+                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-none'
                   : 'opacity-60 hover:opacity-100'
               )}
             >
@@ -148,15 +148,13 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
           rows={3}
           maxLength={280}
           className={cn(
-            'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm md:text-base',
-            'placeholder:text-muted-foreground',
+            'w-full rounded-none border border-input bg-white px-3 py-2 text-sm md:text-base',
+            'placeholder:text-black/50',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             'resize-none'
           )}
         />
-        <p className="text-xs text-muted-foreground text-right">
-          {message.length}/280
-        </p>
+        <p className="text-xs text-black/50 text-right">{message.length}/280</p>
       </div>
 
       <Button

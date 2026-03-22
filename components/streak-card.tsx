@@ -10,8 +10,8 @@ export function StreakCard({ streak }: StreakCardProps) {
   const atRisk = streak.currentStreak > 0 && !streak.isActiveToday;
 
   return (
-    <div className="rounded-lg bg-muted/30 border border-border/50 p-4 space-y-3">
-      <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+    <div className="rounded-none bg-black/5/30 border border-black/20/50 p-4 space-y-3">
+      <h3 className="text-[10px] font-semibold text-black/50 uppercase tracking-widest">
         Kudos Streak
       </h3>
 
@@ -23,7 +23,7 @@ export function StreakCard({ streak }: StreakCardProps) {
             )}
             {streak.currentStreak}
           </div>
-          <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider font-medium">
+          <div className="text-[10px] text-black/50 mt-1 uppercase tracking-wider font-medium">
             Current
           </div>
         </div>
@@ -31,7 +31,7 @@ export function StreakCard({ streak }: StreakCardProps) {
           <div className="text-2xl font-bold leading-none">
             {streak.longestStreak}
           </div>
-          <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider font-medium">
+          <div className="text-[10px] text-black/50 mt-1 uppercase tracking-wider font-medium">
             Best
           </div>
         </div>
@@ -39,7 +39,7 @@ export function StreakCard({ streak }: StreakCardProps) {
           <div className="text-2xl font-bold leading-none">
             {streak.totalDaysActive}
           </div>
-          <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider font-medium">
+          <div className="text-[10px] text-black/50 mt-1 uppercase tracking-wider font-medium">
             Days
           </div>
         </div>

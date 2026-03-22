@@ -371,7 +371,7 @@ export default function TipPage({
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-black">
       <Nav />
       <div className="mx-auto max-w-lg px-4 pt-4">
         <Breadcrumbs items={[{ label: 'Home', href: '/' }]} current="Tip" />
@@ -379,23 +379,23 @@ export default function TipPage({
 
       <main className="mx-auto max-w-lg px-4 pt-12 pb-24">
         {pageStatus === 'loading' && (
-          <div className="rounded-xl border border-border bg-card p-8 space-y-4">
+          <div className="border-2 border-black bg-white p-8 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="h-14 w-14 animate-pulse rounded-xl bg-muted" />
+              <div className="h-14 w-14 bg-black/10" />
               <div className="space-y-2 flex-1">
-                <div className="h-5 w-32 animate-pulse rounded bg-muted" />
-                <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+                <div className="h-5 w-32 bg-black/10" />
+                <div className="h-4 w-20 bg-black/10" />
               </div>
             </div>
-            <div className="h-10 animate-pulse rounded-lg bg-muted" />
-            <div className="h-10 animate-pulse rounded-md bg-muted" />
+            <div className="h-10 bg-black/10" />
+            <div className="h-10 bg-black/10" />
           </div>
         )}
 
         {pageStatus === 'error' && !tip && (
-          <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
+          <div className="border-2 border-black bg-white p-8 text-center space-y-4">
             <p className="text-lg font-semibold">Tip not found</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-black/50">
               {errorMsg || 'This tip link may have expired or is invalid.'}
             </p>
             <Button variant="outline" asChild>
@@ -408,7 +408,7 @@ export default function TipPage({
           <div className="space-y-6">
             {/* Header */}
             <div className="text-center space-y-2">
-              <p className="text-xs font-semibold tracking-widest text-primary uppercase">
+              <p className="text-xs font-semibold tracking-widest text-black uppercase">
                 Tipped Kudos
               </p>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
@@ -417,28 +417,28 @@ export default function TipPage({
             </div>
 
             {/* Tip card */}
-            <div className="rounded-xl border border-border bg-card p-6 space-y-5">
+            <div className="border-2 border-black bg-white p-6 space-y-5">
               {/* Agent info */}
               <div className="flex items-center gap-3">
                 <AgentAvatar
                   name={tip.agentName}
                   imageUrl={tip.agentImageUrl}
                   size={56}
-                  className="rounded-xl ring-2 ring-primary/20"
+                  className="rounded-none border-2 border-black"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-lg truncate">
                     {tip.agentName}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-black/50">
                     Agent #{tip.agentTokenId}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="text-2xl font-bold text-black">
                     {formattedAmount}
                   </p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                  <p className="text-[10px] text-black/50 uppercase tracking-wide">
                     USDC
                   </p>
                 </div>
@@ -446,18 +446,18 @@ export default function TipPage({
 
               {/* Message */}
               {tip.message && (
-                <div className="rounded-lg bg-muted/30 border border-border/50 p-3">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                <div className="border-2 border-black p-3">
+                  <p className="text-xs text-black/50 uppercase tracking-wider mb-1">
                     Kudos message
                   </p>
-                  <p className="text-sm text-foreground leading-relaxed">
+                  <p className="text-sm text-black leading-relaxed">
                     &ldquo;{tip.message}&rdquo;
                   </p>
                 </div>
               )}
 
               {/* Destination */}
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center justify-between text-xs text-black/50">
                 <span>Recipient wallet</span>
                 <span className="font-mono">
                   {tip.toAddress.slice(0, 8)}...{tip.toAddress.slice(-6)}
@@ -466,25 +466,25 @@ export default function TipPage({
 
               {/* Status-dependent content */}
               {pageStatus === 'success' ? (
-                <div className="rounded-lg border border-primary/30 bg-primary/5 p-5 text-center space-y-3">
+                <div className="border-2 border-black p-5 text-center space-y-3">
                   <div className="text-3xl">&#10003;</div>
                   <p className="text-lg font-semibold">Tip Sent</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-black/50">
                     {formattedAmount} USDC sent to {tip.agentName}
                   </p>
                   <a
                     href={`/agent/${tip.agentChainId}/${tip.agentTokenId}`}
-                    className="text-sm text-primary hover:underline inline-block"
+                    className="text-sm text-black hover:underline inline-block"
                   >
                     View agent profile
                   </a>
                 </div>
               ) : tip.status === 'expired' ? (
-                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 text-center space-y-2">
+                <div className="border-2 border-black p-4 text-center space-y-2">
                   <p className="text-sm font-medium text-yellow-400">
                     This tip link has expired
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-black/50">
                     Tip links expire after 24 hours. The kudos is still recorded
                     onchain.
                   </p>
@@ -523,20 +523,20 @@ export default function TipPage({
                   )}
 
                   {isConnected && address && (
-                    <p className="text-xs text-muted-foreground text-center">
+                    <p className="text-xs text-black/50 text-center">
                       Connected: {address.slice(0, 6)}...{address.slice(-4)}
                     </p>
                   )}
 
                   {pageStatus === 'error' && errorMsg && (
-                    <div className="rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-400 text-center">
+                    <div className="border-2 border-black px-3 py-2 text-sm text-red-400 text-center">
                       {errorMsg}
                       <button
                         onClick={() => {
                           setPageStatus('ready');
                           setErrorMsg(null);
                         }}
-                        className="block mx-auto mt-2 text-xs text-muted-foreground hover:text-foreground underline"
+                        className="block mx-auto mt-2 text-xs text-black/50 hover:text-black underline"
                       >
                         Try again
                       </button>
@@ -548,20 +548,20 @@ export default function TipPage({
 
             {/* Payment info footer */}
             {pageStatus !== 'success' && tip.status !== 'expired' && (
-              <div className="rounded-lg border border-border/50 bg-card/50 p-3 space-y-1">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="border-2 border-black/50 bg-white/50 p-3 space-y-1">
+                <p className="text-[10px] font-semibold text-black/50 uppercase tracking-wider">
                   Supported Payment Rails
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-black/50 leading-relaxed">
                   This tip accepts{' '}
-                  <span className="text-foreground font-medium">x402</span>
+                  <span className="text-black font-medium">x402</span>
                   {paymentMethods.some((m) => m.id === 'mpp') && (
                     <>
-                      , <span className="text-foreground font-medium">MPP</span>
+                      , <span className="text-black font-medium">MPP</span>
                     </>
                   )}
                   , and{' '}
-                  <span className="text-foreground font-medium">
+                  <span className="text-black font-medium">
                     direct USDC transfer
                   </span>{' '}
                   on Abstract.
@@ -573,7 +573,7 @@ export default function TipPage({
             <p className="text-center">
               <a
                 href={`/kudos/${tip.kudosTxHash}`}
-                className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                className="text-xs text-black/50 hover:text-black transition-colors"
               >
                 View original kudos transaction
               </a>

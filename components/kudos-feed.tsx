@@ -97,7 +97,7 @@ function KudosCard({
       : `/address/${kudos.sender}`;
 
   return (
-    <div className="flex gap-3 border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00DE73]/40 transition-colors">
+    <div className="flex gap-3 border border-black/20 rounded-none p-4 bg-black/5/50 hover:border-black transition-colors">
       {/* Sender avatar */}
       {twitterHandle && !senderAgent ? (
         <a
@@ -120,20 +120,20 @@ function KudosCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-black/50">
             {twitterHandle && !senderAgent ? (
               <a
                 href={senderLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#00DE73] transition-colors font-semibold text-foreground"
+                className="hover:text-black transition-colors font-semibold text-black"
               >
                 {senderName}
               </a>
             ) : (
               <Link
                 href={senderLink}
-                className={`hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
+                className={`hover:text-black transition-colors ${senderAgent ? 'font-semibold text-black' : 'font-mono'}`}
               >
                 {senderName}
               </Link>
@@ -157,7 +157,7 @@ function KudosCard({
             </Link>
             <Link
               href={`/agent/2741/${agentId}`}
-              className="font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+              className="font-semibold text-black hover:text-black transition-colors"
             >
               {receiverName}
             </Link>
@@ -177,7 +177,7 @@ function KudosCard({
               href={`https://abscan.org/tx/${kudos.txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+              className="text-[11px] text-black/50/50 hover:text-black transition-colors"
               title="View transaction on Abscan"
             >
               {timestamp ? formatRelativeTime(timestamp) : 'tx'} ↗
@@ -186,13 +186,13 @@ function KudosCard({
         </div>
 
         {twitterHandle && !senderAgent && (
-          <p className="text-[11px] text-muted-foreground/60 mt-1">
+          <p className="text-[11px] text-black/50/60 mt-1">
             Submitted via ACK relay, attributed to {senderName}
           </p>
         )}
 
         {message && (
-          <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-black/50/70 mt-1 line-clamp-2 leading-relaxed">
             &ldquo;{message}&rdquo;
           </p>
         )}
@@ -245,7 +245,7 @@ export function KudosFeed({ agentId }: { agentId: number }) {
 
   if (isLoading) {
     return (
-      <div className="text-muted-foreground text-sm animate-pulse">
+      <div className="text-black/50 text-sm animate-pulse">
         Loading onchain kudos...
       </div>
     );
@@ -259,7 +259,7 @@ export function KudosFeed({ agentId }: { agentId: number }) {
 
   if (!totalCount) {
     return (
-      <div id="kudos-feed" className="text-muted-foreground text-sm">
+      <div id="kudos-feed" className="text-black/50 text-sm">
         No onchain activity yet - be the first!
       </div>
     );
@@ -289,7 +289,7 @@ export function KudosFeed({ agentId }: { agentId: number }) {
 
   return (
     <div id="kudos-feed" className="space-y-3">
-      <h3 className="text-sm font-medium text-[#00DE73]">
+      <h3 className="text-sm font-medium text-black">
         Onchain Activity ({totalCount})
       </h3>
       {feedItems.map((item, i) => {

@@ -19,15 +19,13 @@ export function CategoryBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full font-medium',
-        size === 'sm' && 'px-2 py-0.5 text-xs',
-        size === 'md' && 'px-3 py-1 text-sm',
+        'inline-flex items-center font-mono uppercase tracking-wider border border-black/10',
+        size === 'sm' && 'px-2 py-0.5 text-[10px]',
+        size === 'md' && 'px-3 py-1 text-xs',
         className
       )}
       style={{
-        backgroundColor: `${meta.color}15`,
         color: meta.color,
-        border: `1px solid ${meta.color}30`,
       }}
     >
       {meta.label}

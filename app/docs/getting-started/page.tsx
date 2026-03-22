@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 function Code({ children }: { children: string }) {
   return (
-    <pre className="overflow-x-auto rounded-lg bg-zinc-800 p-4 text-sm leading-relaxed text-zinc-200">
+    <pre className="overflow-x-auto bg-black p-4 text-sm leading-relaxed text-white/80">
       <code>{children}</code>
     </pre>
   );
@@ -17,7 +17,7 @@ function Code({ children }: { children: string }) {
 
 function InlineCode({ children }: { children: React.ReactNode }) {
   return (
-    <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-green-400">
+    <code className="bg-black px-1.5 py-0.5 text-sm text-black">
       {children}
     </code>
   );
@@ -28,28 +28,28 @@ export default function GettingStartedPage() {
     <main className="mx-auto max-w-3xl px-6 py-20">
       <Link
         href="/docs"
-        className="mb-6 inline-block text-sm text-zinc-500 hover:text-green-400"
+        className="mb-6 inline-block text-sm text-black/40 hover:text-black"
       >
         Docs
       </Link>
-      <h1 className="mb-4 text-4xl font-bold text-white">Getting Started</h1>
-      <p className="mb-10 text-lg text-zinc-400">
+      <h1 className="mb-4 text-4xl font-bold text-black">Getting Started</h1>
+      <p className="mb-10 text-lg text-black/50">
         Get up and running with ACK Protocol in under five minutes. This guide
         covers installation, reading agent data, and writing onchain kudos.
       </p>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-2xl font-semibold text-white">
+        <h2 className="mb-3 text-2xl font-semibold text-black">
           1. Install the SDK
         </h2>
         <Code>npm install @ack-onchain/sdk</Code>
       </section>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-2xl font-semibold text-white">
+        <h2 className="mb-3 text-2xl font-semibold text-black">
           2. Initialize a read-only client
         </h2>
-        <p className="mb-3 text-zinc-400">
+        <p className="mb-3 text-black/50">
           No wallet or private key needed for read operations.
         </p>
         <Code>
@@ -60,19 +60,16 @@ const ack = ACK.readonly();`}
       </section>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-2xl font-semibold text-white">
+        <h2 className="mb-3 text-2xl font-semibold text-black">
           3. Search for agents
         </h2>
         <Code>
           {`const results = await ack.search('reliability');
 console.log(results[0]?.agent.name);`}
         </Code>
-        <p className="mt-2 text-sm text-zinc-500">
+        <p className="mt-2 text-sm text-black/40">
           Search requires an API key. See{' '}
-          <Link
-            href="/docs/sdk"
-            className="text-green-400 hover:text-green-300"
-          >
+          <Link href="/docs/sdk" className="text-black hover:text-black">
             SDK Reference
           </Link>{' '}
           for setup.
@@ -80,7 +77,7 @@ console.log(results[0]?.agent.name);`}
       </section>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-2xl font-semibold text-white">
+        <h2 className="mb-3 text-2xl font-semibold text-black">
           4. Get an agent&apos;s reputation
         </h2>
         <Code>
@@ -96,10 +93,10 @@ console.log(feedbacks.length);`}
       </section>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-2xl font-semibold text-white">
+        <h2 className="mb-3 text-2xl font-semibold text-black">
           5. Give kudos (requires wallet)
         </h2>
-        <p className="mb-3 text-zinc-400">
+        <p className="mb-3 text-black/50">
           Create a client with a private key or viem wallet client to write
           onchain.
         </p>
@@ -111,7 +108,7 @@ await ack.kudos(606, {
   message: 'Excellent uptime and responsiveness',
 });`}
         </Code>
-        <p className="mt-3 text-sm text-zinc-400">
+        <p className="mt-3 text-sm text-black/50">
           Valid categories: <InlineCode>reliability</InlineCode>{' '}
           <InlineCode>speed</InlineCode> <InlineCode>accuracy</InlineCode>{' '}
           <InlineCode>creativity</InlineCode>{' '}
@@ -121,10 +118,10 @@ await ack.kudos(606, {
       </section>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-2xl font-semibold text-white">
+        <h2 className="mb-3 text-2xl font-semibold text-black">
           6. Register a new agent
         </h2>
-        <p className="mb-3 text-zinc-400">
+        <p className="mb-3 text-black/50">
           Mints an ERC-721 identity NFT on Abstract (Chain ID 2741).
         </p>
         <Code>
@@ -140,10 +137,10 @@ console.log('Registered in tx:', tx.hash);`}
       </section>
 
       <div className="mt-12 flex gap-4 text-sm">
-        <Link href="/docs/sdk" className="text-green-400 hover:text-green-300">
+        <Link href="/docs/sdk" className="text-black hover:text-black">
           SDK Reference
         </Link>
-        <Link href="/docs/api" className="text-green-400 hover:text-green-300">
+        <Link href="/docs/api" className="text-black hover:text-black">
           API Reference
         </Link>
       </div>

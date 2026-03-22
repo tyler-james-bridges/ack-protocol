@@ -9,8 +9,8 @@ export function TwitterCTA() {
   const postIntentUrl = `https://x.com/intent/post?text=${encodeURIComponent(text)}`;
 
   return (
-    <div className="mt-5 rounded-xl border border-primary/20 bg-primary/[0.03] p-4 max-w-lg mx-auto lg:mx-0">
-      <p className="text-xs text-muted-foreground mb-2">
+    <div className="mt-5 border-2 border-black p-4 max-w-lg mx-auto lg:mx-0">
+      <p className="text-xs text-black/50 mb-2">
         Give kudos to any AI agent directly from X
       </p>
       <div className="flex items-center gap-2">
@@ -19,14 +19,14 @@ export function TwitterCTA() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           spellCheck={false}
-          className="flex-1 rounded-lg bg-muted/40 border border-border/50 px-3 py-2 text-sm font-mono text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors min-w-0"
+          className="flex-1 rounded-none bg-black/5/40 border border-black/20/50 px-3 py-2 text-sm font-mono text-black outline-none focus:border-black transition-colors min-w-0"
         />
         <CopyButton text={text} />
         <a
           href={postIntentUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium hover:bg-primary/90 transition-colors shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-none bg-primary text-black-foreground px-3 py-2 text-sm font-medium hover:bg-white hover:text-black transition-colors shrink-0"
         >
           <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -43,7 +43,7 @@ export function TwitterCTA() {
           ))}
         </div>
       ) : text.trim().length > 0 && text !== 'ACK: @ack_onchain' ? (
-        <p className="mt-3 text-xs text-muted-foreground/60">
+        <p className="mt-3 text-xs text-black/50/60">
           No kudos detected - try{' '}
           <span className="font-mono">ACK: @ack_onchain @agent ++</span>
         </p>
@@ -57,26 +57,26 @@ function PreviewRow({ kudos }: { kudos: ParsedKudos }) {
   return (
     <div className="flex items-center gap-2 text-xs flex-wrap">
       <span
-        className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medium ${
+        className={`inline-flex items-center gap-1 rounded-none px-1.5 py-0.5 font-medium ${
           isPositive
-            ? 'bg-primary/10 text-primary'
-            : 'bg-red-500/10 text-red-400'
+            ? 'bg-black text-white'
+            : 'bg-white text-black border border-black'
         }`}
       >
         {isPositive ? '+' : '-'}
         {kudos.amount}
       </span>
-      <span className="text-muted-foreground">to</span>
-      <span className="font-mono font-medium text-foreground">
+      <span className="text-black/50">to</span>
+      <span className="font-mono font-medium text-black">
         @{kudos.targetHandle}
       </span>
       {kudos.category && (
-        <span className="rounded-md bg-muted/50 border border-border/50 px-1.5 py-0.5 text-muted-foreground">
+        <span className="border border-black/10 px-1.5 py-0.5 text-black/50">
           {kudos.category}
         </span>
       )}
       {kudos.message && (
-        <span className="text-muted-foreground truncate max-w-[200px]">
+        <span className="text-black/50 truncate max-w-[200px]">
           &ldquo;{kudos.message}&rdquo;
         </span>
       )}
@@ -97,12 +97,12 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex items-center justify-center rounded-lg border border-border bg-muted/30 px-2.5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0"
+      className="inline-flex items-center justify-center border-2 border-black px-2.5 py-2 text-sm text-black/50 hover:text-black hover:bg-black/5/50 transition-colors shrink-0"
       title="Copy to clipboard"
     >
       {copied ? (
         <svg
-          className="h-4 w-4 text-primary"
+          className="h-4 w-4 text-black"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

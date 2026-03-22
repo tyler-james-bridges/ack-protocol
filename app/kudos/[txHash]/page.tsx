@@ -85,7 +85,7 @@ export default function KudosTxPage({
   }, [params]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-white text-black">
       <Nav />
       <div className="mx-auto max-w-2xl px-4 pt-4">
         <Breadcrumbs
@@ -99,26 +99,26 @@ export default function KudosTxPage({
 
       <main className="mx-auto max-w-2xl px-4 pt-10 pb-24">
         {loading && (
-          <div className="rounded-xl border border-border bg-card p-6">
-            <p className="text-sm text-muted-foreground">
+          <div className="border-2 border-black bg-white p-6">
+            <p className="text-sm text-black/50">
               Loading kudos transaction...
             </p>
           </div>
         )}
 
         {!loading && error && (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 space-y-3">
-            <p className="font-semibold text-destructive">
+          <div className=" border border-black p-6 space-y-3">
+            <p className="font-semibold text-black">
               Could not load this kudos transaction
             </p>
-            <p className="text-sm text-muted-foreground">{error}</p>
+            <p className="text-sm text-black/50">{error}</p>
           </div>
         )}
 
         {!loading && data && (
-          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+          <div className="border-2 border-black bg-white p-6 space-y-4">
             <div>
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">
+              <p className="text-xs uppercase tracking-wider text-black/50">
                 Kudos Transaction
               </p>
               <h1 className="text-2xl font-bold">{data.agentName}</h1>
@@ -126,33 +126,31 @@ export default function KudosTxPage({
 
             <div className="grid gap-2 text-sm">
               <p>
-                <span className="text-muted-foreground">From:</span>{' '}
+                <span className="text-black/50">From:</span>{' '}
                 {data.senderName || truncateAddress(data.sender)}
               </p>
               <p>
-                <span className="text-muted-foreground">Category:</span>{' '}
-                {data.category}
+                <span className="text-black/50">Category:</span> {data.category}
               </p>
               {!!data.message && (
                 <p>
-                  <span className="text-muted-foreground">Message:</span> “
+                  <span className="text-black/50">Message:</span> “
                   {data.message}”
                 </p>
               )}
               <p>
-                <span className="text-muted-foreground">Block:</span>{' '}
-                {data.blockNumber}
+                <span className="text-black/50">Block:</span> {data.blockNumber}
               </p>
               <p>
-                <span className="text-muted-foreground">Time:</span>{' '}
+                <span className="text-black/50">Time:</span>{' '}
                 {new Date(data.timestamp).toLocaleString()}
               </p>
             </div>
 
             {tipInfo && (
-              <div className="border-t border-border pt-3 mt-1 space-y-1">
+              <div className="border-t border-black/20 pt-3 mt-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-sm">Tip:</span>
+                  <span className="text-black/50 text-sm">Tip:</span>
                   <TipBadge amountUsd={tipInfo.amountUsd} />
                 </div>
                 {tipInfo.fromAddress && (
@@ -169,13 +167,13 @@ export default function KudosTxPage({
                 href={`https://abscan.org/tx/${data.txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-primary hover:underline"
+                className="text-sm text-black hover:underline"
               >
                 View on Abscan ↗
               </a>
               <Link
                 href="/kudos"
-                className="text-sm text-muted-foreground hover:text-foreground"
+                className="text-sm text-black/50 hover:text-black"
               >
                 Back to Kudos
               </Link>

@@ -16,13 +16,13 @@ export function StatsCard({
   return (
     <div
       className={cn(
-        'rounded-xl border border-border bg-card p-4 space-y-1 card-glow',
+        'rounded-none border border-black/20 bg-white p-4 space-y-1 ',
         className
       )}
     >
-      <p className="text-sm md:text-base text-muted-foreground">{label}</p>
+      <p className="text-sm md:text-base text-black/50">{label}</p>
       <p className="text-2xl md:text-3xl font-bold tracking-tight">{value}</p>
-      {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+      {subtitle && <p className="text-xs text-black/50">{subtitle}</p>}
     </div>
   );
 }

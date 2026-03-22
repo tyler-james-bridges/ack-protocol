@@ -185,7 +185,7 @@ function LeaderboardPage() {
     router.push(`/agent/${agent.chain_id}/${agent.token_id}`);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <Nav />
       <div className="mx-auto max-w-5xl px-4 pt-4">
         <Breadcrumbs
@@ -197,13 +197,13 @@ function LeaderboardPage() {
       <div className="mx-auto max-w-5xl px-4 pt-8 pb-16">
         {/* Header */}
         <div className="mb-6">
-          <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-1">
+          <p className="text-xs font-semibold tracking-widest text-black uppercase mb-1">
             Explore
           </p>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
             Explore Agents
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground mt-1">
+          <p className="text-sm md:text-base text-black/50 mt-1">
             Discover and explore AI agents on Abstract.
           </p>
         </div>
@@ -211,7 +211,7 @@ function LeaderboardPage() {
         {/* Abstract Stats */}
         {networkStats && (
           <div className="mb-6">
-            <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-2">
+            <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-2">
               Abstract Network
             </p>
             <div className="grid grid-cols-3 gap-3">
@@ -234,17 +234,17 @@ function LeaderboardPage() {
         {/* Sort */}
         <div className="mb-6">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
+            <span className="text-[10px] font-medium tracking-wider text-black/50 uppercase">
               Sort by
             </span>
             {SORT_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setSortBy(opt.value)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                className={`px-2.5 py-1 text-xs font-medium transition-colors ${
                   sortBy === opt.value
-                    ? 'bg-foreground text-background'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-black text-white'
+                    : 'text-black/50 hover:text-black'
                 }`}
               >
                 {opt.label}
@@ -261,24 +261,22 @@ function LeaderboardPage() {
             className="flex items-center gap-3 w-full mb-3 text-left cursor-pointer group"
           >
             <ChainIcon chainId={2741} size={20} />
-            <h2 className="text-lg font-bold" style={{ color: '#00FF94' }}>
-              Abstract
-            </h2>
-            <span className="text-xs text-muted-foreground">
+            <h2 className="text-lg font-bold">Abstract</h2>
+            <span className="text-xs text-black/50">
               {abstractAgents.length} agents
             </span>
             {abstractAgents.reduce((s, a) => s + a.kudos, 0) > 0 && (
-              <span className="text-xs text-[#00DE73] font-medium">
+              <span className="text-xs text-black font-medium">
                 {abstractAgents.reduce((s, a) => s + a.kudos, 0)} kudos
               </span>
             )}
-            <span className="ml-auto text-muted-foreground text-xs group-hover:text-foreground transition-colors">
+            <span className="ml-auto text-black/50 text-xs group-hover:text-black transition-colors">
               {expandedChains.has(2741) ? 'Collapse' : 'Expand'}
             </span>
           </button>
 
           {expandedChains.has(2741) && (
-            <div className="rounded-xl border border-[#00FF94]/20 overflow-hidden bg-[#00FF94]/[0.02]">
+            <div className="border-2 border-black overflow-hidden bg-white">
               {isLoadingAbstract ? (
                 <LoadingSkeleton count={5} />
               ) : isErrorAbstract ? (
@@ -304,7 +302,7 @@ function LeaderboardPage() {
         {/* Other Chains */}
         {isLoadingAll && !allAgentsList && (
           <div className="mb-8">
-            <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-4">
+            <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-4">
               Other Chains
             </p>
             <LoadingSkeleton count={3} />
@@ -312,17 +310,17 @@ function LeaderboardPage() {
         )}
         {isErrorAll && !allAgentsList && (
           <div className="mb-8">
-            <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-4">
+            <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-4">
               Other Chains
             </p>
-            <div className="rounded-xl border border-border overflow-hidden">
+            <div className="border-2 border-black overflow-hidden">
               <ErrorState />
             </div>
           </div>
         )}
         {otherChainEntries.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-4">
+            <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-4">
               Other Chains
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -333,21 +331,21 @@ function LeaderboardPage() {
                 return (
                   <div
                     key={chainId}
-                    className="rounded-xl border border-border overflow-hidden"
+                    className="border-2 border-black overflow-hidden"
                   >
                     <button
                       type="button"
                       onClick={() => toggleChain(chainId)}
-                      className="flex items-center gap-2 w-full px-4 py-3 text-left cursor-pointer hover:bg-muted/30 transition-colors"
+                      className="flex items-center gap-2 w-full px-4 py-3 text-left cursor-pointer hover:bg-black/5 transition-colors"
                     >
                       <ChainIcon chainId={chainId} size={16} />
                       <span className="text-sm font-semibold">
                         {getChainName(chainId)}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-black/50">
                         {agents.length} agents
                       </span>
-                      <span className="ml-auto text-xs text-muted-foreground">
+                      <span className="ml-auto text-xs text-black/50">
                         {isExpanded ? 'Collapse' : 'Expand'}
                       </span>
                     </button>
@@ -359,9 +357,9 @@ function LeaderboardPage() {
                             key={agent.id}
                             type="button"
                             onClick={() => goToAgent(agent)}
-                            className="flex items-center gap-2 w-full text-left py-1 hover:text-primary transition-colors cursor-pointer"
+                            className="flex items-center gap-2 w-full text-left py-1 hover:text-black transition-colors cursor-pointer"
                           >
-                            <span className="text-xs text-muted-foreground w-5">
+                            <span className="text-xs text-black/50 w-5">
                               #{i + 1}
                             </span>
                             <AgentAvatar
@@ -372,13 +370,13 @@ function LeaderboardPage() {
                             <span className="text-xs font-medium truncate flex-1">
                               {agent.name}
                             </span>
-                            <span className="text-xs tabular-nums text-muted-foreground">
+                            <span className="text-xs tabular-nums text-black/50">
                               {agent.total_score.toFixed(1)}
                             </span>
                           </button>
                         ))}
                         {agents.length > 3 && (
-                          <p className="text-[10px] text-muted-foreground pt-1">
+                          <p className="text-[10px] text-black/50 pt-1">
                             +{agents.length - 3} more
                           </p>
                         )}
@@ -429,11 +427,11 @@ function AgentRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-4 w-full px-4 py-3 text-left transition-colors hover:bg-muted/30 border-b border-border last:border-b-0 cursor-pointer"
+      className="flex items-center gap-4 w-full px-4 py-3 text-left transition-colors hover:bg-black/5 border-b border-black/10 last:border-b-0 cursor-pointer"
     >
       <span
         className={`w-8 text-sm font-bold tabular-nums ${
-          rank <= 3 ? 'text-primary' : 'text-muted-foreground'
+          rank <= 3 ? 'text-black' : 'text-black/50'
         }`}
       >
         #{rank}
@@ -451,11 +449,11 @@ function AgentRow({
               />
             )}
           </div>
-          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-1 text-[11px] text-black/50">
             <ChainIcon chainId={agent.chain_id} size={12} />
             <span>{getChainName(agent.chain_id)}</span>
             {agent.kudos > 0 && (
-              <span className="text-[#00DE73]">· {agent.kudos} kudos</span>
+              <span className="text-black">· {agent.kudos} kudos</span>
             )}
           </div>
         </div>
@@ -480,19 +478,17 @@ function StatCard({
 }) {
   return (
     <div
-      className={`rounded-lg border p-4 ${accent ? 'border-[#00DE73]/20 bg-[#00DE73]/5' : 'border-border'}`}
+      className={`border-2 border-black p-4 ${accent ? 'border-black' : 'border-black/10'}`}
     >
-      <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
+      <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase">
         {label}
       </p>
       <p
-        className={`text-2xl md:text-3xl font-bold tracking-tight mt-1 ${accent ? 'text-[#00DE73]' : ''}`}
+        className={`text-2xl md:text-3xl font-bold tracking-tight mt-1 ${accent ? 'text-black' : ''}`}
       >
         {value}
       </p>
-      {sub && (
-        <p className="text-[10px] text-muted-foreground/50 mt-0.5">{sub}</p>
-      )}
+      {sub && <p className="text-[10px] text-black/50/50 mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -503,7 +499,7 @@ function LoadingSkeleton({ count }: { count: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="h-16 animate-pulse bg-muted/30 border-b border-border last:border-b-0"
+          className="h-16 animate-pulse bg-black/5 border-b border-black/10 last:border-b-0"
         />
       ))}
     </div>
@@ -512,21 +508,17 @@ function LoadingSkeleton({ count }: { count: number }) {
 
 function EmptyState() {
   return (
-    <div className="px-4 py-12 text-center text-muted-foreground">
-      No agents found.
-    </div>
+    <div className="px-4 py-12 text-center text-black/50">No agents found.</div>
   );
 }
 
 function ErrorState() {
   return (
     <div className="px-4 py-12 text-center space-y-2">
-      <p className="text-muted-foreground">
-        Failed to load agents. Try refreshing.
-      </p>
+      <p className="text-black/50">Failed to load agents. Try refreshing.</p>
       <button
         onClick={() => window.location.reload()}
-        className="text-sm text-primary hover:underline"
+        className="text-sm text-black hover:underline"
       >
         Refresh
       </button>
@@ -548,22 +540,20 @@ function SortMetric({
     <>
       {secondary && (
         <div className="text-right w-14 hidden sm:block">
-          <p className="text-xs tabular-nums text-muted-foreground">
+          <p className="text-xs tabular-nums text-black/50">
             {secondary.value}
           </p>
-          <p className="text-[10px] text-muted-foreground/50">
-            {secondary.label}
-          </p>
+          <p className="text-[10px] text-black/50/50">{secondary.label}</p>
         </div>
       )}
       <div className="text-right w-14">
         <p
-          className={`text-sm font-bold tabular-nums ${primary.accent ? 'text-[#00DE73]' : ''}`}
+          className={`text-sm font-bold tabular-nums ${primary.accent ? 'text-black' : ''}`}
         >
           {primary.value}
         </p>
         <p
-          className={`text-[10px] ${primary.accent ? 'text-[#00DE73]/70' : 'text-muted-foreground'}`}
+          className={`text-[10px] ${primary.accent ? 'text-black/70' : 'text-black/50'}`}
         >
           {primary.label}
         </p>

@@ -65,7 +65,7 @@ function RecentKudosCard({
     : `/address/${kudos.sender}`;
 
   return (
-    <div className="border border-border rounded-lg p-3 sm:p-4 bg-card hover:border-[#00DE73]/40 transition-colors">
+    <div className="border border-black/20 rounded-none p-3 sm:p-4 bg-white hover:border-black transition-colors">
       <div className="flex items-center gap-1.5 flex-wrap mb-1">
         <Link href={senderLink} className="shrink-0">
           <AgentAvatar
@@ -76,7 +76,7 @@ function RecentKudosCard({
         </Link>
         <Link
           href={senderLink}
-          className={`text-xs sm:text-sm hover:text-[#00DE73] transition-colors shrink-0 ${senderAgent ? 'font-semibold text-foreground' : 'font-mono text-muted-foreground'}`}
+          className={`text-xs sm:text-sm hover:text-black transition-colors shrink-0 ${senderAgent ? 'font-semibold text-black' : 'font-mono text-black/50'}`}
         >
           {senderName}
         </Link>
@@ -88,7 +88,7 @@ function RecentKudosCard({
             size="sm"
           />
         )}
-        <span className="text-muted-foreground/40 text-xs shrink-0">to</span>
+        <span className="text-black/50/40 text-xs shrink-0">to</span>
         <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
           <AgentAvatar
             name={receiverName}
@@ -98,7 +98,7 @@ function RecentKudosCard({
         </Link>
         <Link
           href={`/agent/2741/${kudos.agentId}`}
-          className="text-xs sm:text-sm font-semibold text-foreground hover:text-[#00DE73] transition-colors truncate"
+          className="text-xs sm:text-sm font-semibold text-black hover:text-black transition-colors truncate"
         >
           {receiverName}
         </Link>
@@ -107,7 +107,7 @@ function RecentKudosCard({
         )}
       </div>
       {kudos.message && (
-        <p className="text-xs sm:text-sm text-foreground/80 my-1 line-clamp-3">
+        <p className="text-xs sm:text-sm text-black/80 my-1 line-clamp-3">
           &ldquo;{kudos.message}&rdquo;
         </p>
       )}
@@ -118,7 +118,7 @@ function RecentKudosCard({
         )}
         <a
           href={`/kudos/${kudos.txHash}`}
-          className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+          className="text-[11px] text-black/50/50 hover:text-black transition-colors"
         >
           {timestamp
             ? formatRelativeTime(timestamp)
@@ -208,13 +208,13 @@ export default function GiveKudosPage() {
             >
               <div className="text-6xl">&#127881;</div>
               <h1 className="text-3xl md:text-4xl font-bold">Kudos Sent!</h1>
-              <p className="text-muted-foreground">
+              <p className="text-black/50">
                 Your kudos is now onchain on the ERC-8004 Reputation Registry.
               </p>
               {txHash && (
                 <a
                   href={`/kudos/${txHash}`}
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-black hover:underline"
                 >
                   View transaction
                 </a>
@@ -236,15 +236,15 @@ export default function GiveKudosPage() {
             >
               <div className="space-y-2">
                 <h1 className="text-3xl md:text-4xl font-bold">Give Kudos</h1>
-                <p className="text-muted-foreground md:text-lg">
+                <p className="text-black/50 md:text-lg">
                   Recognize an agent for great work. Your kudos goes directly
                   onchain via ERC-8004.
                 </p>
               </div>
 
               {!isConnected && accountStatus !== 'reconnecting' ? (
-                <div className="rounded-xl border border-border p-8 text-center space-y-4">
-                  <p className="text-muted-foreground">
+                <div className="border-2 border-black p-8 text-center space-y-4">
+                  <p className="text-black/50">
                     Connect your wallet to give kudos.
                   </p>
                   <Button size="lg" onClick={() => openConnectModal?.()}>
@@ -252,23 +252,21 @@ export default function GiveKudosPage() {
                   </Button>
                 </div>
               ) : accountStatus === 'reconnecting' ? (
-                <div className="rounded-xl border border-border p-8 text-center">
-                  <p className="text-muted-foreground">
-                    Reconnecting wallet...
-                  </p>
+                <div className="border-2 border-black p-8 text-center">
+                  <p className="text-black/50">Reconnecting wallet...</p>
                 </div>
               ) : (
                 <>
                   <KudosForm onSubmit={handleSubmit} isLoading={isLoading} />
 
                   {status === 'error' && (
-                    <p className="text-sm text-destructive text-center">
+                    <p className="text-sm text-black text-center">
                       Something went wrong. Please try again.
                     </p>
                   )}
 
                   {(status === 'confirming' || status === 'waiting') && (
-                    <div className="text-center text-sm text-muted-foreground space-y-1">
+                    <div className="text-center text-sm text-black/50 space-y-1">
                       {status === 'confirming' && (
                         <p>Confirm in your wallet...</p>
                       )}
@@ -289,7 +287,7 @@ export default function GiveKudosPage() {
             <h2 className="text-lg md:text-xl font-bold tracking-tight">
               Recent Kudos
             </h2>
-            <p className="text-sm md:text-base text-muted-foreground">
+            <p className="text-sm md:text-base text-black/50">
               Latest onchain kudos across all agents on Abstract.
             </p>
           </div>
@@ -298,10 +296,10 @@ export default function GiveKudosPage() {
             <button
               type="button"
               onClick={() => setActiveFilter('all')}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+              className={`px-3 py-1 rounded-none text-xs font-medium border transition-colors ${
                 activeFilter === 'all'
-                  ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                  : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500'
+                  ? 'bg-black text-white border-black'
+                  : 'bg-white text-black/50 border-black/20 hover:border-black'
               }`}
             >
               All
@@ -311,10 +309,10 @@ export default function GiveKudosPage() {
                 key={cat}
                 type="button"
                 onClick={() => setActiveFilter(cat)}
-                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                className={`px-3 py-1 rounded-none text-xs font-medium border transition-colors ${
                   activeFilter === cat
-                    ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                    : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500'
+                    ? 'bg-black text-white border-black'
+                    : 'bg-white text-black/50 border-black/20 hover:border-black'
                 }`}
               >
                 {CATEGORY_META[cat].label}
@@ -327,16 +325,16 @@ export default function GiveKudosPage() {
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="border border-border rounded-lg p-4 animate-pulse"
+                  className="border border-black/20 rounded-none p-4 animate-pulse"
                 >
-                  <div className="h-4 bg-muted rounded w-2/3 mb-3" />
-                  <div className="h-3 bg-muted rounded w-1/2" />
+                  <div className="h-4 bg-black/5 rounded w-2/3 mb-3" />
+                  <div className="h-3 bg-black/5 rounded w-1/2" />
                 </div>
               ))}
             </div>
           ) : !recentKudos?.length ? (
-            <div className="rounded-xl border border-border p-8 text-center">
-              <p className="text-sm text-muted-foreground">
+            <div className="border-2 border-black p-8 text-center">
+              <p className="text-sm text-black/50">
                 No onchain kudos yet. Be the first!
               </p>
             </div>
@@ -361,8 +359,8 @@ export default function GiveKudosPage() {
               {recentKudos.filter(
                 (k) => activeFilter === 'all' || k.tag2 === activeFilter
               ).length === 0 && (
-                <div className="rounded-xl border border-border p-8 text-center">
-                  <p className="text-sm text-muted-foreground">
+                <div className="border-2 border-black p-8 text-center">
+                  <p className="text-sm text-black/50">
                     No kudos in this category yet.
                   </p>
                 </div>

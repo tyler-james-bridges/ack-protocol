@@ -23,10 +23,10 @@ export function ChainBadgePill({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border border-gray-700 bg-gray-800 ${padding} ${textSize} font-medium text-gray-300`}
+      className={`inline-flex items-center gap-1.5 rounded-none border border-gray-700 bg-gray-800 ${padding} ${textSize} font-medium text-gray-300`}
     >
       <span
-        className={`${dotSize} shrink-0 rounded-full`}
+        className={`${dotSize} shrink-0 rounded-none`}
         style={{ backgroundColor: color }}
       />
       <span className="truncate">{name}</span>

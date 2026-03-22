@@ -204,12 +204,12 @@ export function TipAgent({
     return (
       <div
         className={cn(
-          'rounded-xl border border-[#00FF94]/30 bg-[#00FF94]/5 p-5 text-center space-y-3',
+          'rounded-none border border-[#00FF94]/30 bg-[#00FF94]/5 p-5 text-center space-y-3',
           className
         )}
       >
         <p className="text-2xl">&#10003;</p>
-        <p className="font-semibold text-[#00FF94]">
+        <p className="font-semibold text-black">
           {amountLabel} {token} sent to {agentName}!
         </p>
         <div className="flex items-center justify-center gap-3">
@@ -218,7 +218,7 @@ export function TipAgent({
               href={`https://abscan.org/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-black hover:underline"
             >
               View transaction ↗
             </a>
@@ -227,7 +227,7 @@ export function TipAgent({
             href={shareUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary hover:bg-primary/20 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-none bg-primary/10 px-3 py-1 text-sm text-black hover:bg-primary/20 transition-colors"
           >
             <svg
               className="w-3.5 h-3.5"
@@ -250,11 +250,11 @@ export function TipAgent({
     return (
       <div
         className={cn(
-          'rounded-xl border border-[#00FF94]/20 bg-[#00FF94]/[0.02] p-5',
+          'rounded-none border border-[#00FF94]/20 bg-[#00FF94]/[0.02] p-5',
           className
         )}
       >
-        <p className="text-sm text-muted-foreground text-center">
+        <p className="text-sm text-black/50 text-center">
           Reconnecting wallet...
         </p>
       </div>
@@ -264,13 +264,13 @@ export function TipAgent({
   return (
     <div
       className={cn(
-        'rounded-xl border border-[#00FF94]/20 bg-[#00FF94]/[0.02] p-5 space-y-4',
+        'rounded-none border border-[#00FF94]/20 bg-[#00FF94]/[0.02] p-5 space-y-4',
         className
       )}
     >
       <div className="flex items-center gap-2">
         <svg
-          className="h-5 w-5 text-[#00FF94]"
+          className="h-5 w-5 text-black"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -283,13 +283,13 @@ export function TipAgent({
           />
         </svg>
         <p className="font-semibold text-sm">Tip with {token}</p>
-        <span className="text-[10px] text-[#00FF94]/60 font-medium uppercase tracking-wider">
+        <span className="text-[10px] text-black/60 font-medium uppercase tracking-wider">
           x402
         </span>
       </div>
 
       {/* Token toggle */}
-      <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
+      <div className="flex gap-1 rounded-none bg-black/5 p-1 w-fit">
         {(['USDC', 'PENGU'] as const).map((t) => (
           <button
             key={t}
@@ -300,10 +300,10 @@ export function TipAgent({
               setCustom('');
             }}
             className={cn(
-              'px-3 py-1 text-xs rounded-md transition-colors font-medium',
+              'px-3 py-1 text-xs rounded-none transition-colors font-medium',
               token === t
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-black/50 hover:text-black'
             )}
           >
             {t}
@@ -311,14 +311,14 @@ export function TipAgent({
         ))}
       </div>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-black/50">
         Send {token} directly to {agentName}&apos;s owner wallet. Settled
         onchain via x402.
       </p>
 
       {/* MPP viability indicator */}
       {isConnected && token === 'USDC' && mppViable === false && mppReason && (
-        <div className="rounded-md border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
+        <div className="rounded-none border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
           <p className="text-xs text-yellow-400">
             <span className="font-medium">MPP unavailable:</span> {mppReason}
           </p>
@@ -336,10 +336,10 @@ export function TipAgent({
               setCustom('');
             }}
             className={cn(
-              'flex-1 py-2 rounded-lg text-sm font-semibold border transition-all',
+              'flex-1 py-2 rounded-none text-sm font-semibold border transition-all',
               amount === preset && !custom
-                ? 'border-[#00FF94] bg-[#00FF94]/10 text-[#00FF94] scale-[1.02]'
-                : 'border-border text-muted-foreground hover:border-[#00FF94]/40 hover:text-foreground'
+                ? 'border-[#00FF94] bg-[#00FF94]/10 text-black scale-[1.02]'
+                : 'border-black/20 text-black/50 hover:border-[#00FF94]/40 hover:text-black'
             )}
           >
             {token === 'USDC' ? `$${preset}` : preset}
@@ -348,7 +348,7 @@ export function TipAgent({
       </div>
       <div className="relative">
         {token === 'USDC' && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-black/50">
             $
           </span>
         )}
@@ -364,23 +364,21 @@ export function TipAgent({
             setAmount(val > 0 ? val : null);
           }}
           className={cn(
-            'w-full rounded-lg border bg-background py-2 pr-16 text-sm',
+            'w-full rounded-none border bg-white py-2 pr-16 text-sm',
             token === 'USDC' ? 'pl-7' : 'pl-3',
-            'placeholder:text-muted-foreground/50',
+            'placeholder:text-black/50/50',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00FF94]/50',
-            custom ? 'border-[#00FF94]/50' : 'border-border'
+            custom ? 'border-[#00FF94]/50' : 'border-black/20'
           )}
         />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-black/50">
           {token}
         </span>
       </div>
 
       {/* Send button */}
       {isSelf ? (
-        <p className="text-xs text-muted-foreground text-center">
-          You own this agent.
-        </p>
+        <p className="text-xs text-black/50 text-center">You own this agent.</p>
       ) : !isConnected ? (
         <Button
           className="w-full bg-[#00FF94] text-black hover:bg-[#00DE73] font-semibold"

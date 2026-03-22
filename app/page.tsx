@@ -15,7 +15,6 @@ export const revalidate = 30;
 export default async function Home() {
   const data = await getHomePageData();
 
-  // Build agent/sender lookup maps for the kudos feed
   const agentMap = new Map<number, ScanAgent & { kudos: number }>();
   const senderMap = new Map<string, ScanAgent & { kudos: number }>();
   for (const agent of data.leaderboard) {
@@ -37,332 +36,411 @@ export default async function Home() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <Nav />
 
-      {/* Hero — two-column: left copy + search, right leaderboard */}
-      <section className="hero-grid relative">
-        <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Left column: headline, search, stats */}
-            <div className="text-center lg:text-left lg:flex lg:flex-col">
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Onchain reputation{' '}
-                <span className="text-primary">through consensus.</span>
-              </h1>
-              <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
-                Give kudos to AI agents. Via post. Onchain.
-              </p>
+      {/* Hero */}
+      <section className="border-b-2 border-black">
+        <div className="mx-auto max-w-6xl px-4 pt-16 pb-16">
+          <h1 className="text-5xl sm:text-7xl font-bold font-mono uppercase tracking-tight leading-none">
+            ONCHAIN
+            <br />
+            REPUTATION
+            <br />
+            THROUGH
+            <br />
+            CONSENSUS.
+          </h1>
+          <p className="mt-6 max-w-lg text-base font-mono text-black/50">
+            Give kudos to AI agents. Via post. Onchain.
+          </p>
 
-              {/* Protocol rail */}
-              <div className="mt-4 flex flex-wrap items-center gap-2 justify-center lg:justify-start">
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                  Built on
-                </span>
-                {[
-                  { name: 'Abstract', href: 'https://abs.xyz' },
-                  { name: 'Tempo', href: 'https://tempo.xyz' },
-                  { name: 'x402', href: 'https://x402.org' },
-                ].map((p) => (
-                  <a
-                    key={p.name}
-                    href={p.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-                  >
-                    {p.name}
-                  </a>
-                ))}
-              </div>
-
-              {/* X CTA Card */}
-              <TwitterCTA />
-
-              {/* Search — client island */}
-              <HeroSearch />
-
-              {/* Live Kudos Feed — fills remaining left column space */}
-              <div className="mt-8 hidden lg:block flex-1">
-                <ServerKudosFeed
-                  kudos={data.recentKudos}
-                  agentMap={agentMap}
-                  senderMap={senderMap}
-                  timestamps={data.timestamps}
-                  streaks={data.streaks}
-                />
-              </div>
-            </div>
-
-            {/* Right column: Abstract leaderboard */}
-            <div className="lg:flex lg:flex-col">
-              <div className="flex-1 flex flex-col">
-                <div className="rounded-xl border border-[#00FF94]/20 overflow-hidden bg-[#00FF94]/[0.02] flex-1 flex flex-col">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                    <div className="flex items-center gap-2">
-                      <ChainIcon chainId={2741} size={18} />
-                      <h2 className="text-sm font-bold">
-                        Top Agents on Abstract
-                      </h2>
-                    </div>
-                    <Link
-                      href="/leaderboard"
-                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      View all →
-                    </Link>
-                  </div>
-                  {data.leaderboard.map((agent, i) => (
-                    <Link
-                      key={agent.id}
-                      href={`/agent/${agent.chain_id}/${agent.token_id}`}
-                      className="flex items-center gap-3 w-full px-4 py-3 text-left transition-all hover:bg-muted/30 border-b border-border last:border-b-0 hover:pl-5 flex-1"
-                    >
-                      <span
-                        className={`w-6 text-sm font-bold tabular-nums ${
-                          i < 3 ? 'text-primary' : 'text-muted-foreground'
-                        }`}
-                      >
-                        #{i + 1}
-                      </span>
-                      <AgentAvatar
-                        name={agent.name}
-                        imageUrl={agent.image_url}
-                        size={32}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-semibold truncate">
-                            {agent.name}
-                          </p>
-                          {(() => {
-                            const s = getAgentStreak(agent);
-                            return s && s.currentStreak > 0 ? (
-                              <StreakBadge
-                                streak={s.currentStreak}
-                                isActive={s.isActiveToday}
-                                size="sm"
-                              />
-                            ) : null;
-                          })()}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <span>{agent.total_score.toFixed(1)} score</span>
-                          {agent.kudos > 0 && (
-                            <>
-                              <span>·</span>
-                              <span className="text-[#00DE73]">
-                                {agent.kudos} kudos
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold tabular-nums">
-                          {agent.total_score.toFixed(1)}
-                        </p>
-                        {agent.kudos > 0 && (
-                          <p className="text-xs text-[#00DE73] font-medium">
-                            +{agent.kudos} kudos
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
+          {/* Protocol rail */}
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-black/40 uppercase tracking-wider font-mono">
+              Built on
+            </span>
+            {[
+              { name: 'ABSTRACT', href: 'https://abs.xyz' },
+              { name: 'BASE', href: 'https://base.org' },
+              { name: 'ETHEREUM', href: 'https://ethereum.org' },
+              { name: 'TEMPO', href: 'https://tempo.xyz' },
+              { name: 'X402', href: 'https://x402.org' },
+            ].map((p) => (
+              <a
+                key={p.name}
+                href={p.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center border-2 border-black/20 px-2.5 py-1 text-xs font-mono uppercase tracking-wider text-black/50 transition-colors hover:border-black hover:text-black hover:bg-black hover:text-white"
+              >
+                {p.name}
+              </a>
+            ))}
           </div>
+
+          <TwitterCTA />
+          <HeroSearch />
         </div>
       </section>
 
-      {/* Mobile-only Kudos Feed */}
-      <section className="mx-auto max-w-6xl px-4 pb-10 lg:hidden">
-        <ServerKudosFeed
-          kudos={data.recentKudos}
-          agentMap={agentMap}
-          senderMap={senderMap}
-          timestamps={data.timestamps}
-        />
+      {/* Stats strip */}
+      <section className="border-b-2 border-black">
+        <div className="mx-auto max-w-6xl grid grid-cols-2 sm:grid-cols-4">
+          {[
+            {
+              label: 'AGENTS',
+              value: data.leaderboard.length.toString(),
+            },
+            {
+              label: 'KUDOS',
+              value: data.recentKudos.length.toString(),
+            },
+            {
+              label: 'CHAINS',
+              value: '14+',
+            },
+            {
+              label: 'STREAKERS',
+              value: data.topStreakers.length.toString(),
+            },
+          ].map((stat, i) => (
+            <div
+              key={stat.label}
+              className={`px-4 py-4 ${i > 0 ? 'border-l-2 border-black' : ''}`}
+            >
+              <p className="text-3xl font-bold font-mono tabular-nums">
+                {stat.value}
+              </p>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-black/40 mt-1">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* Top Streakers */}
-      {data.topStreakers.length >= 3 && (
-        <section className="mx-auto max-w-6xl px-4 pb-10">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold uppercase tracking-wider">
-              Top Streakers
-            </h2>
-            <Link
-              href="/leaderboard"
-              className="text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              View all →
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {data.topStreakers.map(({ address, streak }) => (
+      {/* Two-column: Top Agents + Recent Kudos */}
+      <section className="border-b-2 border-black">
+        <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2">
+          {/* Top Agents */}
+          <div className="lg:border-r-2 lg:border-black">
+            <div className="flex items-center justify-between px-4 py-3 border-b-2 border-black">
+              <div className="flex items-center gap-2">
+                <ChainIcon chainId={2741} size={18} />
+                <h2 className="text-sm font-bold font-mono uppercase tracking-wider">
+                  TOP AGENTS
+                </h2>
+              </div>
               <Link
-                key={address}
-                href={`/address/${address}`}
-                className="rounded-xl border border-border p-3 card-glow hover:border-primary/30 transition-colors text-center"
+                href="/leaderboard"
+                className="text-xs font-mono uppercase tracking-wider text-black/50 hover:text-black transition-colors"
               >
+                View all &rarr;
+              </Link>
+            </div>
+            {data.leaderboard.slice(0, 5).map((agent, i) => (
+              <Link
+                key={agent.id}
+                href={`/agent/${agent.chain_id}/${agent.token_id}`}
+                className="flex items-center gap-3 w-full px-4 py-3 text-left transition-all hover:bg-black hover:text-white border-b border-black/10 last:border-b-0"
+              >
+                <span
+                  className={`w-6 text-sm font-bold font-mono tabular-nums ${
+                    i < 3 ? 'text-black' : 'text-black/40'
+                  }`}
+                >
+                  #{i + 1}
+                </span>
                 <AgentAvatar
-                  name={address}
-                  size={36}
-                  className="mx-auto mb-2 rounded-full"
+                  name={agent.name}
+                  imageUrl={agent.image_url}
+                  size={32}
+                  className="rounded-none"
                 />
-                <p className="text-xs font-mono text-muted-foreground truncate">
-                  {address.slice(0, 6)}...{address.slice(-4)}
-                </p>
-                <div className="mt-1 flex items-center justify-center gap-1">
-                  <StreakBadge
-                    streak={streak.currentStreak}
-                    isActive={streak.isActiveToday}
-                    size="sm"
-                  />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-bold font-mono truncate">
+                      {agent.name}
+                    </p>
+                    {(() => {
+                      const s = getAgentStreak(agent);
+                      return s && s.currentStreak > 0 ? (
+                        <StreakBadge
+                          streak={s.currentStreak}
+                          isActive={s.isActiveToday}
+                          size="sm"
+                        />
+                      ) : null;
+                    })()}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-mono opacity-50">
+                    <span>{agent.total_score.toFixed(1)} score</span>
+                    {agent.kudos > 0 && (
+                      <>
+                        <span>|</span>
+                        <span>{agent.kudos} kudos</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-bold font-mono tabular-nums">
+                    {agent.total_score.toFixed(1)}
+                  </p>
                 </div>
               </Link>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground mt-3 text-center lg:text-left">
-            Start your streak - give kudos today
-          </p>
-        </section>
-      )}
 
-      {/* How It Works */}
-      <section className="mx-auto max-w-6xl px-4 pb-16">
-        <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
-          How ACK Works
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <HowItWorksCard
-            step="01"
-            title="Post Kudos"
-            desc="ACK: @ack_onchain @agent ++ - give kudos from X. Add categories or messages. No wallet needed, recorded onchain."
-            ctaHref="https://x.com/intent/post?text=ACK%3A%20%40ack_onchain%20%40agent%20%2B%2B"
-            ctaLabel="Try it on X"
-            external
-          />
-          <HowItWorksCard
-            step="02"
-            title="Build Streaks"
-            desc="Give kudos daily to build your streak. Streakers earn badges on the leaderboard."
-            ctaHref="/leaderboard"
-            ctaLabel="View streakers"
-          />
-          <HowItWorksCard
-            step="03"
-            title="Explore Reputation"
-            desc="See scores, peer reviews, and category breakdowns for any registered agent."
-            ctaHref="/leaderboard"
-            ctaLabel="Browse agents"
-          />
-          <HowItWorksCard
-            step="04"
-            title="Register Your Agent"
-            desc="Get an ERC-8004 identity - the open standard for onchain AI agents. Portable across chains. Gas-free via paymaster."
-            ctaHref="/register"
-            ctaLabel="Register now"
-          />
-          <HowItWorksCard
-            step="05"
-            title="Tip with USDC"
-            desc="Back your kudos with real USDC. Tips go directly to the agent's owner wallet via x402 payment protocol."
-            ctaHref="/docs"
-            ctaLabel="Learn more"
-          />
+          {/* Recent Kudos */}
+          <div>
+            <ServerKudosFeed
+              kudos={data.recentKudos}
+              agentMap={agentMap}
+              senderMap={senderMap}
+              timestamps={data.timestamps}
+              streaks={data.streaks}
+            />
+          </div>
         </div>
       </section>
 
-      {/* Built on Open Standards */}
-      <section className="mx-auto max-w-6xl px-4 pb-16">
-        <h2 className="text-sm font-bold uppercase tracking-wider mb-4">
-          Built on Open Standards
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* Value Props */}
+      <section className="border-b-2 border-black">
+        <div className="mx-auto max-w-6xl grid grid-cols-1 sm:grid-cols-3">
+          {[
+            {
+              title: 'IDENTITY',
+              desc: 'ERC-8004 onchain identity for AI agents. Portable across 14+ EVM chains. Permanent and verifiable.',
+            },
+            {
+              title: 'REPUTATION',
+              desc: 'Peer-driven reputation through consensus. Kudos, reviews, and categories build trust onchain.',
+            },
+            {
+              title: 'PAYMENTS',
+              desc: 'Tip agents with USDC via x402 or MPP. Back your kudos with real value. Instant settlement.',
+            },
+          ].map((prop, i) => (
+            <div
+              key={prop.title}
+              className={`px-6 py-8 ${i > 0 ? 'border-t-2 sm:border-t-0 sm:border-l-2 border-black' : ''}`}
+            >
+              <h3 className="text-lg font-bold font-mono uppercase tracking-wider">
+                {prop.title}
+              </h3>
+              <p className="mt-2 text-sm font-mono text-black/50 leading-relaxed">
+                {prop.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Code snippet */}
+      <section className="border-b-2 border-black">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <h2 className="text-sm font-bold font-mono uppercase tracking-wider mb-4">
+            GET STARTED
+          </h2>
+          <pre className="bg-black text-white/80 font-mono text-sm p-6 overflow-x-auto">
+            <code>{`npm install @ack-onchain/sdk
+
+import { ACK } from '@ack-onchain/sdk';
+
+const ack = ACK.readonly();
+const agent = await ack.getAgent(606);
+await ack.kudos(606, { category: 'reliability' });`}</code>
+          </pre>
+          <div className="mt-4 flex gap-3">
+            <Link
+              href="/docs/getting-started"
+              className="inline-flex items-center border-2 border-black bg-black text-white px-4 py-2 text-sm font-mono uppercase tracking-wider hover:bg-white hover:text-black transition-colors"
+            >
+              DOCUMENTATION &rarr;
+            </Link>
+            <Link
+              href="/register"
+              className="inline-flex items-center border-2 border-black/20 px-4 py-2 text-sm font-mono uppercase tracking-wider text-black hover:border-black hover:bg-black hover:text-white transition-colors"
+            >
+              REGISTER AGENT
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="border-b-2 border-black">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <h2 className="text-sm font-bold font-mono uppercase tracking-wider mb-6">
+            HOW ACK WORKS
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-0">
+            {[
+              {
+                step: '01',
+                title: 'POST KUDOS',
+                desc: 'ACK: @ack_onchain @agent ++ - give kudos from X. No wallet needed.',
+                href: 'https://x.com/intent/post?text=ACK%3A%20%40ack_onchain%20%40agent%20%2B%2B',
+                label: 'Try on X',
+                external: true,
+              },
+              {
+                step: '02',
+                title: 'BUILD STREAKS',
+                desc: 'Give kudos daily to build your streak. Streakers earn badges.',
+                href: '/leaderboard',
+                label: 'View streakers',
+              },
+              {
+                step: '03',
+                title: 'EXPLORE',
+                desc: 'See scores, peer reviews, and category breakdowns for any agent.',
+                href: '/leaderboard',
+                label: 'Browse agents',
+              },
+              {
+                step: '04',
+                title: 'REGISTER',
+                desc: 'Get an ERC-8004 identity. Gas-free via paymaster.',
+                href: '/register',
+                label: 'Register now',
+              },
+              {
+                step: '05',
+                title: 'TIP WITH USDC',
+                desc: 'Back your kudos with real USDC via x402 payment protocol.',
+                href: '/docs',
+                label: 'Learn more',
+              },
+            ].map((card, i) => (
+              <div
+                key={card.step}
+                className={`p-4 ${i > 0 ? 'border-t-2 sm:border-t-0 sm:border-l-2 border-black' : ''}`}
+              >
+                <span className="text-lg font-bold font-mono text-black/20 tabular-nums">
+                  {card.step}
+                </span>
+                <p className="font-bold text-sm font-mono uppercase tracking-wider mt-1">
+                  {card.title}
+                </p>
+                <p className="text-xs font-mono text-black/50 mt-1">
+                  {card.desc}
+                </p>
+                {card.external ? (
+                  <a
+                    href={card.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-mono font-bold text-black hover:underline mt-2 inline-block uppercase tracking-wider"
+                  >
+                    {card.label} &rarr;
+                  </a>
+                ) : (
+                  <Link
+                    href={card.href}
+                    className="text-sm font-mono font-bold text-black hover:underline mt-2 inline-block uppercase tracking-wider"
+                  >
+                    {card.label} &rarr;
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Open Standards */}
+      <section className="border-b-2 border-black">
+        <div className="mx-auto max-w-6xl grid grid-cols-1 sm:grid-cols-2">
           <a
             href="https://eips.ethereum.org/EIPS/eip-8004"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-xl border border-border p-5 card-glow transition-colors hover:border-primary/30 flex flex-col"
+            className="p-6 hover:bg-black hover:text-white transition-colors border-b-2 sm:border-b-0 sm:border-r-2 border-black"
           >
-            <p className="text-lg font-bold text-primary">ERC-8004</p>
-            <p className="text-sm font-semibold mt-1">
+            <p className="text-lg font-bold font-mono uppercase tracking-wider">
+              ERC-8004
+            </p>
+            <p className="text-sm font-bold font-mono mt-1 uppercase tracking-wider">
               Agent Identity Standard
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs font-mono opacity-50 mt-2">
               Open standard for registering AI agents onchain. Portable
               identity, metadata, and reputation across any EVM chain.
             </p>
-            <span className="text-green-400 hover:text-green-300 text-sm mt-3 inline-flex items-center gap-1">
+            <span className="text-sm font-mono font-bold mt-3 inline-block uppercase tracking-wider">
               Read the EIP &rarr;
             </span>
           </a>
           <Link
             href="/docs"
-            className="rounded-xl border border-border p-5 card-glow transition-colors hover:border-primary/30 flex flex-col"
+            className="p-6 hover:bg-black hover:text-white transition-colors"
           >
-            <p className="text-lg font-bold text-primary">x402 + MPP</p>
-            <p className="text-sm font-semibold mt-1">Dual Payment Rails</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Two payment protocols for tipped kudos. x402 for signed
-              authorizations, MPP via Tempo for instant micropayments. Both
-              settle in USDC onchain.
+            <p className="text-lg font-bold font-mono uppercase tracking-wider">
+              X402 + MPP
             </p>
-            <span className="text-green-400 hover:text-green-300 text-sm mt-3 inline-flex items-center gap-1">
+            <p className="text-sm font-bold font-mono mt-1 uppercase tracking-wider">
+              Dual Payment Rails
+            </p>
+            <p className="text-xs font-mono opacity-50 mt-2">
+              Two payment protocols for tipped kudos. x402 for signed
+              authorizations, MPP via Tempo for instant micropayments.
+            </p>
+            <span className="text-sm font-mono font-bold mt-3 inline-block uppercase tracking-wider">
               Learn more &rarr;
             </span>
           </Link>
         </div>
       </section>
-    </div>
-  );
-}
 
-function HowItWorksCard({
-  step,
-  title,
-  desc,
-  ctaHref,
-  ctaLabel,
-  external,
-}: {
-  step: string;
-  title: string;
-  desc: string;
-  ctaHref?: string;
-  ctaLabel?: string;
-  external?: boolean;
-}) {
-  return (
-    <div className="rounded-xl border border-border p-4 card-glow transition-colors hover:border-primary/30 h-full flex flex-col">
-      <span className="text-lg font-bold text-primary/30 tabular-nums">
-        {step}
-      </span>
-      <p className="font-semibold text-sm mt-1">{title}</p>
-      <p className="text-xs text-muted-foreground mt-1">{desc}</p>
-      {ctaHref &&
-        ctaLabel &&
-        (external ? (
-          <a
-            href={ctaHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-green-400 hover:text-green-300 text-sm mt-2 inline-flex items-center gap-1"
-          >
-            {ctaLabel} &rarr;
-          </a>
-        ) : (
-          <Link
-            href={ctaHref}
-            className="text-green-400 hover:text-green-300 text-sm mt-2 inline-flex items-center gap-1"
-          >
-            {ctaLabel} &rarr;
-          </Link>
-        ))}
+      {/* Top Streakers */}
+      {data.topStreakers.length >= 3 && (
+        <section className="border-b-2 border-black">
+          <div className="mx-auto max-w-6xl px-4 py-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold font-mono uppercase tracking-wider">
+                TOP STREAKERS
+              </h2>
+              <Link
+                href="/leaderboard"
+                className="text-xs font-mono uppercase tracking-wider text-black/50 hover:text-black transition-colors"
+              >
+                View all &rarr;
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-0">
+              {data.topStreakers.map(({ address, streak }, i) => (
+                <Link
+                  key={address}
+                  href={`/address/${address}`}
+                  className={`border-2 border-black p-3 hover:bg-black hover:text-white transition-colors text-center ${i > 0 ? '-ml-0.5' : ''}`}
+                >
+                  <AgentAvatar
+                    name={address}
+                    size={36}
+                    className="mx-auto mb-2 rounded-none"
+                  />
+                  <p className="text-xs font-mono text-current opacity-50 truncate">
+                    {address.slice(0, 6)}...{address.slice(-4)}
+                  </p>
+                  <div className="mt-1 flex items-center justify-center gap-1">
+                    <StreakBadge
+                      streak={streak.currentStreak}
+                      isActive={streak.isActiveToday}
+                      size="sm"
+                    />
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <p className="text-xs font-mono text-black/40 mt-3 uppercase tracking-wider">
+              Start your streak - give kudos today
+            </p>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

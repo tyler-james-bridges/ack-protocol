@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 function Code({ children }: { children: string }) {
   return (
-    <pre className="overflow-x-auto rounded-lg bg-zinc-800 p-4 text-sm leading-relaxed text-zinc-200">
+    <pre className="overflow-x-auto bg-black p-4 text-sm leading-relaxed text-white/80">
       <code>{children}</code>
     </pre>
   );
@@ -27,14 +27,14 @@ function MethodCard({
   example: string;
 }) {
   return (
-    <div className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-      <h3 className="mb-1 font-mono text-lg font-semibold text-green-400">
+    <div className="mb-8 border-2 border-black bg-white p-6">
+      <h3 className="mb-1 font-mono text-lg font-semibold text-black">
         {name}
       </h3>
-      <pre className="mb-3 text-sm text-zinc-400">
+      <pre className="mb-3 text-sm text-black/50">
         <code>{signature}</code>
       </pre>
-      <p className="mb-4 text-sm text-zinc-300">{description}</p>
+      <p className="mb-4 text-sm text-black/70">{description}</p>
       <Code>{example}</Code>
     </div>
   );
@@ -45,14 +45,14 @@ export default function SDKReferencePage() {
     <main className="mx-auto max-w-3xl px-6 py-20">
       <Link
         href="/docs"
-        className="mb-6 inline-block text-sm text-zinc-500 hover:text-green-400"
+        className="mb-6 inline-block text-sm text-black/40 hover:text-black"
       >
         Docs
       </Link>
-      <h1 className="mb-4 text-4xl font-bold text-white">SDK Reference</h1>
-      <p className="mb-4 text-lg text-zinc-400">
+      <h1 className="mb-4 text-4xl font-bold text-black">SDK Reference</h1>
+      <p className="mb-4 text-lg text-black/50">
         Full reference for{' '}
-        <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-green-400">
+        <code className="bg-black px-1.5 py-0.5 text-black">
           @ack-onchain/sdk
         </code>
         . Minimal dependency (just viem), works in Node.js and browsers.
@@ -60,7 +60,7 @@ export default function SDKReferencePage() {
 
       <Code>npm install @ack-onchain/sdk</Code>
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-white">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
         Constructors
       </h2>
 
@@ -94,7 +94,7 @@ const walletClient = createWalletClient({ account, transport: http() });
 const ack = ACK.fromWalletClient(walletClient);`}
       />
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-white">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
         Read Methods
       </h2>
 
@@ -138,7 +138,7 @@ console.log(results[0]?.agent.name);`}
 top.forEach(entry => console.log(entry.agent.name, entry.score));`}
       />
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-white">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
         Write Methods
       </h2>
 
@@ -179,7 +179,7 @@ await ack.kudos(606, {
 });`}
       />
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-white">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
         Configuration
       </h2>
       <Code>
@@ -193,35 +193,35 @@ await ack.kudos(606, {
 // arbitrum, optimism, polygon, scroll, avalanche, linea, taiko, xlayer`}
       </Code>
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-white">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
         Contract Addresses
       </h2>
-      <p className="mb-4 text-sm text-zinc-400">
+      <p className="mb-4 text-sm text-black/50">
         Deterministic across all supported chains (Abstract, Base, Ethereum,
         etc.):
       </p>
-      <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-sm">
+      <div className="overflow-x-auto border-2 border-black bg-white p-4 text-sm">
         <table className="w-full text-left">
           <thead>
-            <tr className="text-zinc-400">
+            <tr className="text-black/50">
               <th className="pb-2 pr-4">Contract</th>
               <th className="pb-2">Address</th>
             </tr>
           </thead>
-          <tbody className="font-mono text-zinc-200">
+          <tbody className="font-mono text-white/80">
             <tr>
-              <td className="py-1 pr-4 text-zinc-400">Identity Registry</td>
+              <td className="py-1 pr-4 text-black/50">Identity Registry</td>
               <td>0x8004A169FB4a3325136EB29fA0ceB6D2e539a432</td>
             </tr>
             <tr>
-              <td className="py-1 pr-4 text-zinc-400">Reputation Registry</td>
+              <td className="py-1 pr-4 text-black/50">Reputation Registry</td>
               <td>0x8004BAa17C55a88189AE136b182e5fdA19dE9b63</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-white">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
         TypeScript Types
       </h2>
       <Code>
@@ -238,11 +238,11 @@ await ack.kudos(606, {
       <div className="mt-12 flex gap-4 text-sm">
         <Link
           href="/docs/getting-started"
-          className="text-green-400 hover:text-green-300"
+          className="text-black hover:text-black"
         >
           Getting Started
         </Link>
-        <Link href="/docs/api" className="text-green-400 hover:text-green-300">
+        <Link href="/docs/api" className="text-black hover:text-black">
           API Reference
         </Link>
       </div>

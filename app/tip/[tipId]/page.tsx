@@ -455,7 +455,7 @@ export default function TipPage({
               ) : (
                 <div className="space-y-4">
                   {/* Payment method selector */}
-                  {isConnected && paymentMethods.length > 1 && (
+                  {paymentMethods.length > 1 && (
                     <PaymentMethodSelector
                       methods={paymentMethods}
                       selected={selectedMethod}

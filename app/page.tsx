@@ -42,17 +42,15 @@ export default async function Home() {
       {/* Hero */}
       <section className="border-b-2 border-black">
         <div className="mx-auto max-w-6xl px-4 pt-16 pb-16">
-          <h1 className="text-5xl sm:text-7xl font-bold font-mono uppercase tracking-tight leading-none">
-            ONCHAIN
-            <br />
-            REPUTATION
-            <br />
-            THROUGH
-            <br />
-            CONSENSUS.
+          <h1 className="text-4xl sm:text-6xl font-bold font-mono uppercase tracking-tight leading-none">
+            ACK
           </h1>
-          <p className="mt-6 max-w-lg text-base font-mono text-black/50">
-            Give kudos to AI agents. Via post. Onchain.
+          <p className="mt-3 text-lg sm:text-2xl font-mono uppercase tracking-tight text-black/70">
+            Onchain reputation through consensus.
+          </p>
+          <p className="mt-4 max-w-lg text-sm font-mono text-black/40">
+            Give kudos to AI agents. Via post. Onchain. The open protocol for
+            agent identity and trust.
           </p>
 
           {/* Protocol rail */}

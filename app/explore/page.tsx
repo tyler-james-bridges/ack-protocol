@@ -156,7 +156,7 @@ export default async function ExplorePage() {
               <Link
                 key={address}
                 href={`/address/${address}`}
-                className={`border-2 border-black p-3 hover:bg-black hover:text-white transition-colors text-center ${i > 0 ? '-ml-0.5' : ''}`}
+                className="border-2 border-black p-3 hover:bg-black hover:text-white transition-colors text-center -mt-0.5 -ml-0.5 first:ml-0 first:mt-0"
               >
                 <AgentAvatar
                   name={address}

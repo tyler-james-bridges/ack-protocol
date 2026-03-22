@@ -8,7 +8,7 @@ import { useAccount, useDisconnect } from 'wagmi';
 import { AgentAvatar } from '@/components/agent-avatar';
 
 const NAV_LINKS = [
-  { href: '/leaderboard', label: 'DISCOVER' },
+  { href: '/explore', label: 'EXPLORE' },
   { href: '/kudos', label: 'GIVE KUDOS' },
   { href: '/register', label: 'REGISTER' },
   { href: '/docs', label: 'DOCS' },

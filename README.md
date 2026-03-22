@@ -34,7 +34,9 @@ await ack.kudos(606, { category: 'fast' });
 - **Give Kudos** -- Categorized onchain feedback (6 categories) via the Reputation Registry.
 - **Reviews** -- Negative feedback with -5 to +5 scoring.
 - **Tipped Kudos** -- Attach USDC tips to kudos via `$X` syntax from X or the web app.
+- **Dual Payment Rails** -- x402 (USDC on Abstract) and MPP/Tempo (pathUSD). Discover available rails at `/api/payments/methods`.
 - **x402 Payment Protocol** -- Real payment endpoint for tips using USDC.e on Abstract.
+- **MPP (Micropayment Protocol)** -- Tempo-based micropayments via `mppx`. Preflight returns 402 with challenge parameters.
 - **X Bot** -- [@ack_onchain](https://x.com/ack_onchain) on X. Post kudos using `++` syntax.
 - **Streaks** -- Daily kudos build streak badges on your profile.
 - **Cross-Chain Reputation** -- Aggregates data across Abstract, Ethereum, Base, BNB, Gnosis, Arbitrum, Optimism, Polygon, Scroll, Avalanche, Linea, Taiko, and XLayer (14+ chains).
@@ -98,6 +100,7 @@ Endpoint: `https://ack-onchain.dev/api/mcp` (Streamable HTTP transport)
 | `/api/tips/{tipId}/verify`             | POST     | Verify USDC payment onchain      |
 | `/api/x402`                            | GET      | x402 payment discovery           |
 | `/api/x402`                            | POST     | x402 payment details per agent   |
+| `/api/payments/methods`                | GET      | Payment method discovery         |
 | `/api/siwa/nonce`                      | POST     | SIWA nonce                       |
 | `/api/siwa/verify`                     | POST     | SIWA verification                |
 | `/.well-known/agent-card.json`         | GET      | A2A agent card                   |

@@ -111,44 +111,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Stats strip */}
-      <section className="border-b-2 border-black">
-        <div className="mx-auto max-w-6xl grid grid-cols-3">
-          {[
-            {
-              label: 'ERC-8004 AGENTS',
-              value: data.stats.total_agents
-                ? data.stats.total_agents.toLocaleString()
-                : '116,000+',
-            },
-            {
-              label: 'ONCHAIN FEEDBACKS',
-              value: data.stats.total_feedbacks
-                ? data.stats.total_feedbacks.toLocaleString()
-                : '108,000+',
-            },
-            {
-              label: 'CHAINS',
-              value: data.stats.total_chains
-                ? data.stats.total_chains.toString()
-                : '24',
-            },
-          ].map((stat, i) => (
-            <div
-              key={stat.label}
-              className={`px-4 py-5 ${i > 0 ? 'border-l-2 border-black' : ''}`}
-            >
-              <p className="text-xl sm:text-3xl font-bold font-mono tabular-nums">
-                {stat.value}
-              </p>
-              <p className="text-[10px] font-mono uppercase tracking-wider text-black/40 mt-1">
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Two-column: Top Agents + Recent Kudos */}
       <section className="border-b-2 border-black">
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2">

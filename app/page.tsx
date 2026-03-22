@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
-
+import {
+  BaseLogo,
+  AbstractLogo,
+  EthereumLogo,
+  TempoLogo,
+  X402Logo,
+} from '@/components/protocol-logos';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { HeroSearch } from '@/components/hero-search';
@@ -54,27 +60,53 @@ export default async function Home() {
           </p>
 
           {/* Protocol rail */}
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            <span className="text-xs text-black/40 uppercase tracking-wider font-mono">
+          <div className="mt-8 flex flex-wrap items-center gap-6">
+            <span className="text-[10px] text-black/30 uppercase tracking-widest font-mono">
               Built on
             </span>
-            {[
-              { name: 'ABSTRACT', href: 'https://abs.xyz' },
-              { name: 'BASE', href: 'https://base.org' },
-              { name: 'ETHEREUM', href: 'https://ethereum.org' },
-              { name: 'TEMPO', href: 'https://tempo.xyz' },
-              { name: 'X402', href: 'https://x402.org' },
-            ].map((p) => (
-              <a
-                key={p.name}
-                href={p.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center border-2 border-black/20 px-2.5 py-1 text-xs font-mono uppercase tracking-wider text-black/50 transition-colors hover:border-black hover:text-black hover:bg-black hover:text-white"
-              >
-                {p.name}
-              </a>
-            ))}
+            <a
+              href="https://abs.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-black/40 hover:text-black transition-colors"
+            >
+              <AbstractLogo className="h-4 w-4" />
+              <span className="text-sm font-mono font-bold">abstract</span>
+            </a>
+            <a
+              href="https://base.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-black/40 hover:text-black transition-colors"
+            >
+              <BaseLogo className="h-4 w-4" />
+              <span className="text-sm font-mono font-bold">base</span>
+            </a>
+            <a
+              href="https://ethereum.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-black/40 hover:text-black transition-colors"
+            >
+              <EthereumLogo className="h-4 w-4" />
+              <span className="text-sm font-mono font-bold">ethereum</span>
+            </a>
+            <a
+              href="https://tempo.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-black/40 hover:text-black transition-colors"
+            >
+              <TempoLogo className="text-sm font-mono" />
+            </a>
+            <a
+              href="https://x402.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-black/40 hover:text-black transition-colors"
+            >
+              <X402Logo className="text-sm font-mono" />
+            </a>
           </div>
 
           <TwitterCTA />

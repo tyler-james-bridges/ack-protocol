@@ -13,14 +13,17 @@ export function Breadcrumbs({
   current: string;
 }) {
   return (
-    <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
+    <nav
+      aria-label="Breadcrumb"
+      className="text-sm font-mono uppercase tracking-wider text-black/50"
+    >
       <ol className="flex items-center gap-1.5">
         {items.map((item, i) => (
           <li key={item.href} className="flex items-center gap-1.5">
             {i > 0 && <span aria-hidden="true">/</span>}
             <Link
               href={item.href}
-              className="hover:text-foreground transition-colors"
+              className="hover:text-black transition-colors"
             >
               {item.label}
             </Link>
@@ -28,7 +31,7 @@ export function Breadcrumbs({
         ))}
         <li className="flex items-center gap-1.5">
           <span aria-hidden="true">/</span>
-          <span className="font-semibold text-foreground">{current}</span>
+          <span className="font-bold text-black">{current}</span>
         </li>
       </ol>
     </nav>

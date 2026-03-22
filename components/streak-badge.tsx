@@ -20,18 +20,17 @@ export function StreakBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-0.5 rounded-full font-medium tabular-nums shrink-0',
+        'inline-flex items-center gap-0.5 font-mono uppercase tracking-wider tabular-nums shrink-0',
         isActive
-          ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-          : 'bg-muted/50 text-muted-foreground border border-border',
+          ? 'bg-black text-white border border-black'
+          : 'bg-white text-black border border-black/20',
         size === 'sm' && 'px-1.5 py-0.5 text-[10px] leading-none',
         size === 'md' && 'px-2 py-1 text-xs',
         className
       )}
       title={`${streak}-day kudos streak${isActive ? ' (active today)' : ''}`}
     >
-      <span className={size === 'sm' ? 'text-[10px]' : 'text-xs'}>🔥</span>
-      {streak}
+      {streak}d
     </span>
   );
 }

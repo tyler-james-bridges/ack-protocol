@@ -34,7 +34,7 @@ export function TipCard({
   const receiverName = receiverAgent?.name || `Agent #${tip.agentId}`;
 
   return (
-    <div className="flex gap-3 border border-border rounded-lg p-4 bg-muted/50 hover:border-[#00FF94]/40 transition-colors">
+    <div className="flex gap-3 border border-black/20 rounded-none p-4 bg-black/5/50 hover:border-[#00FF94]/40 transition-colors">
       {/* Payer avatar */}
       <Link href={payerLink} className="shrink-0 mt-0.5">
         <AgentAvatar
@@ -46,10 +46,10 @@ export function TipCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-black/50">
             <Link
               href={payerLink}
-              className={`hover:text-[#00DE73] transition-colors ${tip.fromAgent ? 'font-semibold text-foreground' : 'font-mono'}`}
+              className={`hover:text-black transition-colors ${tip.fromAgent ? 'font-semibold text-black' : 'font-mono'}`}
             >
               {payerName}
             </Link>
@@ -64,7 +64,7 @@ export function TipCard({
             </Link>
             <Link
               href={`/agent/2741/${tip.agentId}`}
-              className="font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+              className="font-semibold text-black hover:text-black transition-colors"
             >
               {receiverName}
             </Link>
@@ -77,7 +77,7 @@ export function TipCard({
                   href={`https://abscan.org/tx/${tip.paymentTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors"
+                  className="text-[11px] text-black/50/50 hover:text-black transition-colors"
                   title="View payment on Abscan"
                 >
                   {formatRelativeTime(tip.completedAt)} ↗
@@ -85,7 +85,7 @@ export function TipCard({
               )}
             {(!tip.paymentTxHash ||
               tip.paymentTxHash === 'x402-facilitator-settlement') && (
-              <span className="text-[11px] text-muted-foreground/50">
+              <span className="text-[11px] text-black/50/50">
                 {formatRelativeTime(tip.completedAt)}
               </span>
             )}

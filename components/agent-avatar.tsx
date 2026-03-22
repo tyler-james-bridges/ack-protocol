@@ -51,7 +51,7 @@ export function AgentAvatar({
     return (
       <div
         className={cn(
-          'relative shrink-0 overflow-hidden rounded-lg bg-muted',
+          'relative shrink-0 overflow-hidden rounded-none bg-white',
           className
         )}
         style={{ width: size, height: size }}
@@ -75,7 +75,7 @@ export function AgentAvatar({
   if (size <= 28) {
     return (
       <div
-        className={cn('shrink-0 rounded-full', className)}
+        className={cn('shrink-0 rounded-none', className)}
         style={{
           width: size,
           height: size,
@@ -86,7 +86,7 @@ export function AgentAvatar({
   }
 
   return (
-    <div className={cn('shrink-0 rounded-lg overflow-hidden', className)}>
+    <div className={cn('shrink-0 rounded-none overflow-hidden', className)}>
       <Facehash
         name={name}
         size={size}

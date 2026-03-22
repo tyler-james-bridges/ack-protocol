@@ -9,14 +9,14 @@ export function IdentityBadge({ type }: { type: IdentityType }) {
 
   const style =
     type === 'agent'
-      ? 'bg-[#00DE73]/10 text-[#00DE73] border-[#00DE73]/30'
+      ? 'bg-[#00DE73]/10 text-black border-[#00DE73]/30'
       : type === 'human'
         ? 'bg-blue-500/10 text-blue-300 border-blue-500/25'
         : 'bg-zinc-500/10 text-zinc-300 border-zinc-500/25';
 
   return (
     <span
-      className={`inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border ${style}`}
+      className={`inline-flex h-[18px] w-[18px] items-center justify-center rounded-none border ${style}`}
       title={label}
       aria-label={label}
     >

@@ -18,7 +18,7 @@ export function AgentCard({ agent, onClick, className }: AgentCardProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full text-left rounded-xl border border-border bg-card p-4 card-glow',
+        'w-full text-left rounded-none border border-black/20 bg-white p-4 ',
         'transition-all duration-200 hover:border-primary/30',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         onClick && 'cursor-pointer',
@@ -42,12 +42,12 @@ export function AgentCard({ agent, onClick, className }: AgentCardProps) {
           </div>
 
           {agent.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">
+            <p className="text-xs text-black/50 line-clamp-2">
               {agent.description}
             </p>
           )}
 
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-2 text-[11px] text-black/50">
             <span className="font-medium">{getChainName(agent.chain_id)}</span>
             <span>#{agent.token_id}</span>
             {agent.total_feedbacks > 0 && (

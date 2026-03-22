@@ -49,7 +49,7 @@ function FeedItem({
     : `/address/${kudos.sender}`;
 
   return (
-    <div className="flex gap-3 px-4 py-3 border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors">
+    <div className="flex gap-3 px-4 py-3 border-b border-black/20/50 last:border-b-0 hover:bg-black/5/20 transition-colors">
       <Link href={senderLink} className="shrink-0 mt-0.5">
         <AgentAvatar
           name={senderName}
@@ -63,7 +63,7 @@ function FeedItem({
           <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
             <Link
               href={senderLink}
-              className={`text-xs hover:text-[#00DE73] transition-colors ${senderAgent ? 'font-semibold text-foreground' : 'font-mono text-muted-foreground'}`}
+              className={`text-xs hover:text-black transition-colors ${senderAgent ? 'font-semibold text-black' : 'font-mono text-black/50'}`}
             >
               {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
             </Link>
@@ -75,20 +75,20 @@ function FeedItem({
                 size="sm"
               />
             )}
-            <span className="text-xs text-muted-foreground">gave</span>
+            <span className="text-xs text-black/50">gave</span>
             <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
               <AgentAvatar name={name} imageUrl={agent?.image_url} size={32} />
             </Link>
             <Link
               href={`/agent/2741/${kudos.agentId}`}
-              className="text-xs font-semibold text-foreground hover:text-[#00DE73] transition-colors"
+              className="text-xs font-semibold text-black hover:text-black transition-colors"
             >
               {name}
             </Link>
-            <span className="text-xs text-muted-foreground">kudos</span>
+            <span className="text-xs text-black/50">kudos</span>
             {isValidCategory && (
               <>
-                <span className="text-xs text-muted-foreground">for</span>
+                <span className="text-xs text-black/50">for</span>
                 <CategoryBadge category={kudos.tag2 as KudosCategory} />
               </>
             )}
@@ -97,7 +97,7 @@ function FeedItem({
             href={`https://abscan.org/tx/${kudos.txHash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[11px] text-muted-foreground/50 hover:text-[#00DE73] transition-colors shrink-0 mt-0.5"
+            className="text-[11px] text-black/50/50 hover:text-black transition-colors shrink-0 mt-0.5"
             title="View transaction on Abscan"
           >
             {timestamp ? formatRelativeTime(timestamp) : 'tx'} ↗
@@ -105,7 +105,7 @@ function FeedItem({
         </div>
 
         {kudos.message && (
-          <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-black/50/70 mt-1 line-clamp-2 leading-relaxed">
             &ldquo;{kudos.message}&rdquo;
           </p>
         )}
@@ -150,13 +150,13 @@ export function LiveKudosFeed() {
   const { data: streaksData } = useStreaksBulk(senderAddresses);
 
   return (
-    <div className="rounded-xl border border-border overflow-hidden bg-card/50 flex flex-col">
+    <div className="rounded-none border border-black/20 overflow-hidden bg-white/50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-black/20">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00DE73] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00DE73]" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-none bg-[#00DE73] opacity-75" />
+            <span className="relative inline-flex rounded-none h-2 w-2 bg-[#00DE73]" />
           </span>
           <h2 className="text-sm font-bold uppercase tracking-wider">
             Latest Kudos
@@ -164,7 +164,7 @@ export function LiveKudosFeed() {
         </div>
         <Link
           href="/kudos"
-          className="text-xs text-muted-foreground hover:text-primary transition-colors"
+          className="text-xs text-black/50 hover:text-black transition-colors"
         >
           View all →
         </Link>
@@ -177,19 +177,19 @@ export function LiveKudosFeed() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="flex gap-3 px-4 py-3 border-b border-border/50"
+                className="flex gap-3 px-4 py-3 border-b border-black/20/50"
               >
-                <div className="w-8 h-8 rounded-lg bg-muted/40 animate-pulse shrink-0" />
+                <div className="w-8 h-8 rounded-none bg-black/5/40 animate-pulse shrink-0" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 bg-muted/40 rounded w-2/3 animate-pulse" />
-                  <div className="h-3 bg-muted/40 rounded w-1/3 animate-pulse" />
+                  <div className="h-3.5 bg-black/5/40 rounded w-2/3 animate-pulse" />
+                  <div className="h-3 bg-black/5/40 rounded w-1/3 animate-pulse" />
                 </div>
               </div>
             ))}
           </div>
         ) : !recent?.length ? (
           <div className="px-4 py-8 text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-black/50">
               No kudos yet - be the first!
             </p>
           </div>

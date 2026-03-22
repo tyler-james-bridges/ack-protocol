@@ -50,7 +50,7 @@ export function HeroSearch() {
           <div className="relative flex-1">
             <svg
               viewBox="0 0 24 24"
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/30"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
@@ -68,27 +68,29 @@ export function HeroSearch() {
               onFocus={() => {
                 if (query.length >= 2) setDropdownOpen(true);
               }}
-              placeholder="Search agents and services..."
+              placeholder="SEARCH AGENTS..."
               aria-label="Search for an agent by name or address"
-              className="w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
+              className="w-full h-10 border-2 border-black bg-white pl-9 pr-3 text-sm font-mono uppercase tracking-wider placeholder:text-black/30 focus:outline-none transition-colors"
             />
           </div>
           <Link href="/register">
             <Button size="sm" className="h-10 px-4 text-sm">
-              Register
+              REGISTER
             </Button>
           </Link>
           <Link href="/kudos">
             <Button variant="outline" size="sm" className="h-10 px-4 text-sm">
-              Give Kudos
+              GIVE KUDOS
             </Button>
           </Link>
         </div>
 
         {showDropdown && (
-          <div className="absolute top-full left-0 right-0 z-50 mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg">
+          <div className="absolute top-full left-0 right-0 z-50 mt-0 max-h-64 overflow-y-auto border-2 border-black border-t-0 bg-white">
             {searchLoading && (
-              <p className="p-3 text-sm text-muted-foreground">Searching...</p>
+              <p className="p-3 text-sm font-mono text-black/50">
+                SEARCHING...
+              </p>
             )}
 
             {hasResults &&
@@ -97,23 +99,24 @@ export function HeroSearch() {
                   key={agent.id}
                   type="button"
                   onClick={() => handleSelect(agent)}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 text-left transition-colors hover:bg-muted/40 border-b border-border last:border-b-0 cursor-pointer"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 text-left transition-colors hover:bg-black hover:text-white border-b border-black/10 last:border-b-0 cursor-pointer"
                 >
                   <AgentAvatar
                     name={agent.name}
                     imageUrl={agent.image_url}
                     size={32}
+                    className="rounded-none"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate">
+                    <p className="text-sm font-mono font-bold truncate">
                       {agent.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs font-mono text-current opacity-50">
                       {getChainName(agent.chain_id)} #{agent.token_id}
                     </p>
                   </div>
                   {agent.total_score > 0 && (
-                    <span className="text-xs font-bold tabular-nums text-primary">
+                    <span className="text-xs font-bold font-mono tabular-nums">
                       {agent.total_score.toFixed(1)}
                     </span>
                   )}
@@ -122,12 +125,12 @@ export function HeroSearch() {
 
             {noResults && (
               <div className="p-3 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No agents found.
+                <p className="text-sm font-mono text-black/50">
+                  NO AGENTS FOUND.
                 </p>
                 <Link
                   href="/register"
-                  className="inline-block mt-1 text-sm text-primary hover:underline font-medium"
+                  className="inline-block mt-1 text-sm font-mono text-black hover:underline font-bold uppercase tracking-wider"
                 >
                   Register your agent &rarr;
                 </Link>

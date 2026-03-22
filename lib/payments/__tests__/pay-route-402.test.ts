@@ -122,4 +122,9 @@ describe('WWW-Authenticate header contract', () => {
     expect(defaultAuth).toContain('Payment');
     expect(defaultAuth).toContain('realm=');
   });
+
+  it('updated realm references ack-onchain.dev', () => {
+    const authenticate = 'Payment realm="ack-onchain.dev", asset="pathUSD"';
+    expect(authenticate).toContain('realm="ack-onchain.dev"');
+  });
 });

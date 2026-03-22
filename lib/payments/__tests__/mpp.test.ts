@@ -5,6 +5,7 @@ import {
   buildMppChallenge,
   resetMppxServer,
   toRawUnits,
+  verifyMppCredential,
 } from '../mpp';
 import {
   mapMppError,
@@ -122,6 +123,47 @@ describe('buildMppChallenge', () => {
       asset: 'USDC',
       instruction: 'Provide Authorization: Payment <credential>',
     });
+  });
+});
+
+// --- config-invalid: MPP_SECRET_KEY missing ---
+
+describe('getMppxServer config-invalid', () => {
+  const origEnv = { ...process.env };
+
+  afterEach(() => {
+    process.env = { ...origEnv };
+    resetMppxServer();
+  });
+
+  it('verifyMppCredential returns ok:false with config error when MPP_SECRET_KEY is missing', async () => {
+    process.env.MPP_ENABLED = 'true';
+    process.env.MPP_REALM = 'ack-onchain.dev';
+    process.env.MPP_PAY_TO = '0xabc';
+    delete process.env.MPP_SECRET_KEY;
+    resetMppxServer();
+
+    const result = await verifyMppCredential('Payment some-credential', {
+      amount: '1.00',
+    });
+    expect(result.ok).toBe(false);
+    expect(result.userError?.code).toBe('MPP_CONFIG_ERROR');
+  });
+});
+
+// --- verifyMppCredential auth header validation ---
+
+describe('verifyMppCredential auth header validation', () => {
+  it('returns ok:false when no auth header is provided', async () => {
+    const result = await verifyMppCredential(null, { amount: '1.00' });
+    expect(result.ok).toBe(false);
+  });
+
+  it('returns ok:false when auth header does not start with "payment "', async () => {
+    const result = await verifyMppCredential('Bearer some-token', {
+      amount: '1.00',
+    });
+    expect(result.ok).toBe(false);
   });
 });
 
@@ -276,6 +318,13 @@ describe('replay protection', () => {
   it('does not double-add the same id', () => {
     const id = 'test-dedup-' + Date.now();
     markProofUsed(id);
+    markProofUsed(id);
+    expect(isProofReplayed(id)).toBe(true);
+  });
+
+  it('detects replay for mpp: prefixed proof IDs', () => {
+    const id = 'mpp:proof-' + Date.now();
+    expect(isProofReplayed(id)).toBe(false);
     markProofUsed(id);
     expect(isProofReplayed(id)).toBe(true);
   });

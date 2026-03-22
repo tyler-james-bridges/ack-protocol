@@ -70,6 +70,10 @@ export default async function Home() {
                 width={98}
                 height={14}
                 className="h-4 w-auto"
+                style={{
+                  filter:
+                    'invert(70%) sepia(50%) saturate(600%) hue-rotate(95deg) brightness(95%) contrast(95%)',
+                }}
               />
             </a>
             <a

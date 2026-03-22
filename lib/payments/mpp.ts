@@ -26,7 +26,11 @@ export function getMppConfig(): MppConfig {
   const realm = process.env.MPP_REALM || '';
   const payTo =
     process.env.MPP_PAY_TO || process.env.AGENT_WALLET_ADDRESS || '';
-  const asset = process.env.MPP_ASSET || 'pathUSD';
+  const isTestnet = process.env.MPP_TESTNET === 'true';
+  const defaultAsset = isTestnet
+    ? '0x20c0000000000000000000000000000000000000'
+    : '0x20C000000000000000000000b9537d11c60E8b50';
+  const asset = process.env.MPP_ASSET || defaultAsset;
 
   if (!realm) throw new Error('MPP_ENABLED=true requires MPP_REALM');
   if (!payTo)
@@ -74,12 +78,15 @@ function getMppxServer(config: MppConfig): MppServerInstance {
     );
   }
 
+  const isTestnet = process.env.MPP_TESTNET === 'true';
+
   const server = Mppx.create({
     realm: config.realm,
     secretKey,
     methods: [
       tempo.charge({
         recipient: config.payTo as `0x${string}`,
+        ...(isTestnet && { testnet: true }),
       }),
     ],
   });

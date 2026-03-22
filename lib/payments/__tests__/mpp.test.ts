@@ -88,13 +88,24 @@ describe('getMppConfig', () => {
     });
   });
 
-  it('defaults asset to pathUSD when MPP_ASSET is not set', () => {
+  it('defaults asset to mainnet PathUSD address when MPP_ASSET is not set', () => {
     process.env.MPP_ENABLED = 'true';
     process.env.MPP_REALM = 'ack-onchain.dev';
     process.env.MPP_PAY_TO = '0xpayto';
     delete process.env.MPP_ASSET;
+    delete process.env.MPP_TESTNET;
     const config = getMppConfig();
-    expect(config.asset).toBe('pathUSD');
+    expect(config.asset).toBe('0x20C000000000000000000000b9537d11c60E8b50');
+  });
+
+  it('defaults asset to testnet PathUSD address when MPP_TESTNET is true', () => {
+    process.env.MPP_ENABLED = 'true';
+    process.env.MPP_REALM = 'ack-onchain.dev';
+    process.env.MPP_PAY_TO = '0xpayto';
+    delete process.env.MPP_ASSET;
+    process.env.MPP_TESTNET = 'true';
+    const config = getMppConfig();
+    expect(config.asset).toBe('0x20c0000000000000000000000000000000000000');
   });
 });
 

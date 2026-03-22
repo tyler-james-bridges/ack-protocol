@@ -103,6 +103,18 @@ function getMppxServer(config: MppConfig): MppServerInstance {
 }
 
 /**
+ * Convert a USD amount string (e.g. "1.00") to raw token units.
+ * Assumes 6 decimal places (USDC standard).
+ */
+export function toRawUnits(usdAmount: string, decimals = 6): string {
+  const parts = usdAmount.split('.');
+  const whole = parts[0] || '0';
+  const frac = (parts[1] || '').padEnd(decimals, '0').slice(0, decimals);
+  const raw = BigInt(whole) * BigInt(10 ** decimals) + BigInt(frac);
+  return raw.toString();
+}
+
+/**
  * Build a 402 challenge response with proper WWW-Authenticate headers
  * using the mppx server SDK.
  */
@@ -113,7 +125,7 @@ export async function buildMppChallengeResponse(options: {
   const server = getMppxServer(config);
 
   const handler = server.charge({
-    amount: options.amount,
+    amount: toRawUnits(options.amount),
     currency: config.asset,
   });
 
@@ -159,7 +171,7 @@ export async function verifyMppCredential(
   }
 
   const handler = server.charge({
-    amount: options.amount,
+    amount: toRawUnits(options.amount),
     currency: config.asset,
   });
 

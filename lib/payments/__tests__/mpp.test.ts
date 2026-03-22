@@ -4,6 +4,7 @@ import {
   getMppConfig,
   buildMppChallenge,
   resetMppxServer,
+  toRawUnits,
 } from '../mpp';
 import { mapMppError, type MppUserError } from '../mpp-errors';
 import {
@@ -106,6 +107,30 @@ describe('buildMppChallenge', () => {
       asset: 'USDC',
       instruction: 'Provide Authorization: Payment <credential>',
     });
+  });
+});
+
+// --- toRawUnits ---
+
+describe('toRawUnits', () => {
+  it('converts "1.00" to 1000000', () => {
+    expect(toRawUnits('1.00')).toBe('1000000');
+  });
+
+  it('converts "0.01" to 10000', () => {
+    expect(toRawUnits('0.01')).toBe('10000');
+  });
+
+  it('converts "100" to 100000000', () => {
+    expect(toRawUnits('100')).toBe('100000000');
+  });
+
+  it('converts "0.50" to 500000', () => {
+    expect(toRawUnits('0.50')).toBe('500000');
+  });
+
+  it('handles extra decimal places by truncating', () => {
+    expect(toRawUnits('1.123456789')).toBe('1123456');
   });
 });
 

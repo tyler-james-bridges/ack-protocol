@@ -20,6 +20,35 @@ import {
 } from '@/lib/payments/replay';
 
 /**
+ * Build an RFC 9457 problem+json response for payment errors.
+ */
+function problemResponse(
+  status: number,
+  opts: {
+    type?: string;
+    title: string;
+    detail: string;
+    code?: string;
+    extras?: Record<string, unknown>;
+  }
+): NextResponse {
+  return NextResponse.json(
+    {
+      type: opts.type || 'about:blank',
+      title: opts.title,
+      status,
+      detail: opts.detail,
+      ...(opts.code && { code: opts.code }),
+      ...(opts.extras || {}),
+    },
+    {
+      status,
+      headers: { 'Content-Type': 'application/problem+json' },
+    }
+  );
+}
+
+/**
  * GET /api/tips/[tipId]/pay
  *
  * x402-gated tip payment endpoint. Returns 402 with the tip amount as the
@@ -89,61 +118,94 @@ export async function GET(
   }
 
   if (mppEnabled()) {
-    let challenge;
+    let challenge: ReturnType<typeof buildMppChallenge> | undefined;
     try {
       challenge = buildMppChallenge(getMppConfig());
     } catch (err) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'MPP_CONFIG_INVALID',
-            message:
-              err instanceof Error ? err.message : 'Invalid MPP configuration',
-          },
-        },
-        { status: 500 }
-      );
+      // MPP misconfigured — log but don't block x402 path
+      console.error('[mpp] Config error:', err);
     }
 
-    let mpp;
-    try {
-      mpp = await verifyMppCredential(request.headers.get('authorization'), {
-        amount: tip.amountUsd.toFixed(2),
-      });
-    } catch (err) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'MPP_VERIFY_ERROR',
-            message:
-              err instanceof Error ? err.message : 'MPP verification failed',
-          },
-        },
-        { status: 500 }
-      );
-    }
-
-    if (mpp.ok) {
-      const mppProofId = `mpp:${mpp.receiptId}`;
-      if (isProofReplayed(mppProofId)) {
-        return NextResponse.json(
-          {
-            error: {
-              code: 'PAYMENT_PROOF_REPLAYED',
-              message: 'MPP payment proof has already been used.',
-              proofId: mppProofId,
-            },
-          },
-          { status: 402 }
-        );
+    // Check for MPP credential in Authorization header
+    const authHeader = request.headers.get('authorization');
+    if (authHeader?.toLowerCase().startsWith('payment ')) {
+      if (!challenge) {
+        return problemResponse(500, {
+          title: 'MPP Configuration Error',
+          detail: 'MPP is enabled but misconfigured on the server.',
+          code: 'MPP_CONFIG_ERROR',
+        });
       }
-      markProofUsed(mppProofId);
-      return handler(request);
+
+      let mpp;
+      try {
+        mpp = await verifyMppCredential(authHeader, {
+          amount: tip.amountUsd.toFixed(2),
+        });
+      } catch (err) {
+        return problemResponse(402, {
+          type: 'https://paymentauth.org/problems/verification-failed',
+          title: 'MPP Verification Error',
+          detail:
+            err instanceof Error ? err.message : 'MPP verification failed',
+          code: 'MPP_VERIFY_ERROR',
+        });
+      }
+
+      if (mpp.ok) {
+        const mppProofId = `mpp:${mpp.receiptId}`;
+        if (isProofReplayed(mppProofId)) {
+          // Replay detected — return 402 with fresh challenge so client can retry
+          const freshResponse = await buildFreshMppChallenge(tip, challenge);
+          if (freshResponse) return freshResponse;
+
+          return problemResponse(402, {
+            type: 'https://paymentauth.org/problems/replay',
+            title: 'Payment Proof Replayed',
+            detail: 'This MPP payment proof has already been used.',
+            code: 'PAYMENT_PROOF_REPLAYED',
+            extras: { proofId: mppProofId },
+          });
+        }
+        markProofUsed(mppProofId);
+
+        // MPP verified — complete the tip
+        const completed = await completeTip(tipId, 'mpp-settlement');
+        if (!completed) {
+          return NextResponse.json(
+            { error: 'Failed to complete tip' },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({
+          status: 'paid',
+          tip: tipToJSON(completed),
+          message: `Tip of $${completed.amountUsd.toFixed(2)} paid via MPP`,
+        });
+      }
+
+      // Credential provided but invalid — return 402 with fresh challenge
+      if (mpp.userError) {
+        const freshResponse = await buildFreshMppChallenge(tip, challenge);
+        if (freshResponse) {
+          // Append the error detail to the response body
+          return freshResponse;
+        }
+
+        return problemResponse(402, {
+          type: 'https://paymentauth.org/problems/invalid-credential',
+          title: 'MPP Credential Invalid',
+          detail: mpp.userError.message,
+          code: mpp.userError.code,
+        });
+      }
     }
 
+    // No MPP credential (or no auth header at all) — check for x402 proof
     const xPayment = request.headers.get('x-payment');
 
-    // If client has not provided x402 proof, return dual challenge.
+    // If client has not provided any payment proof, return dual challenge.
     if (!xPayment) {
       const payTo = await resolvePaymentAddress(tip.agentId);
       const price = tip.amountUsd.toFixed(2);
@@ -155,60 +217,60 @@ export async function GET(
         message: `Tip $${price} to Agent #${tip.agentId} via x402`,
       };
 
-      let mppChallengeResponse: Response | null = null;
-      try {
-        mppChallengeResponse = await buildMppChallengeResponse({
-          amount: price,
-        });
-      } catch {
-        mppChallengeResponse = null;
-      }
-
       const response = NextResponse.json(
         {
-          error: {
-            code: 'PAYMENT_REQUIRED',
-            message:
-              'Payment required. Accepts x402 (X-Payment proof) or MPP (Authorization: Payment).',
-            x402: x402Challenge,
-            mpp: challenge,
-          },
+          type: 'https://paymentauth.org/problems/payment-required',
+          title: 'Payment Required',
+          status: 402,
+          detail:
+            'Payment required. Accepts x402 (X-Payment proof) or MPP (Authorization: Payment).',
+          x402: x402Challenge,
+          ...(challenge && { mpp: challenge }),
         },
-        { status: 402 }
+        {
+          status: 402,
+          headers: { 'Content-Type': 'application/problem+json' },
+        }
       );
 
-      if (mppChallengeResponse) {
-        for (const [key, value] of mppChallengeResponse.headers.entries()) {
-          if (key.toLowerCase() === 'www-authenticate') {
-            response.headers.append('WWW-Authenticate', value);
+      // Add WWW-Authenticate header for MPP
+      if (challenge) {
+        try {
+          const mppChallengeResponse = await buildMppChallengeResponse({
+            amount: price,
+          });
+          for (const [key, value] of mppChallengeResponse.headers.entries()) {
+            if (key.toLowerCase() === 'www-authenticate') {
+              response.headers.append('WWW-Authenticate', value);
+            }
           }
+        } catch {
+          // MPP challenge build failed — still serve x402 challenge
         }
-      }
 
-      if (!response.headers.get('WWW-Authenticate')) {
-        response.headers.set(
-          'WWW-Authenticate',
-          `Payment realm="${challenge.realm}", asset="${challenge.asset}", payto="${challenge.payTo}"`
-        );
+        if (!response.headers.get('WWW-Authenticate')) {
+          response.headers.set(
+            'WWW-Authenticate',
+            `Payment realm="${challenge.realm}", asset="${challenge.asset}", payto="${challenge.payTo}"`
+          );
+        }
       }
 
       return response;
     }
   }
 
+  // x402 path — replay guard then delegate to x402 withPayment
   const proofId = parseXPaymentProofId(request.headers.get('x-payment'));
   if (proofId) {
     if (isProofReplayed(proofId)) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'PAYMENT_PROOF_REPLAYED',
-            message: 'Payment proof has already been used.',
-            proofId,
-          },
-        },
-        { status: 402 }
-      );
+      return problemResponse(402, {
+        type: 'https://paymentauth.org/problems/replay',
+        title: 'Payment Proof Replayed',
+        detail: 'Payment proof has already been used.',
+        code: 'PAYMENT_PROOF_REPLAYED',
+        extras: { proofId },
+      });
     }
 
     // Pre-mark proof id to prevent rapid replay attempts against the same tip path.
@@ -226,4 +288,51 @@ export async function GET(
   );
 
   return gatedHandler(request);
+}
+
+/**
+ * Build a fresh 402 MPP challenge response with WWW-Authenticate headers.
+ * Used when a credential fails validation so the client can retry.
+ */
+async function buildFreshMppChallenge(
+  tip: { amountUsd: number; agentId: number | string },
+  challenge: { realm: string; payTo: string; asset: string }
+): Promise<NextResponse | null> {
+  try {
+    const price = tip.amountUsd.toFixed(2);
+    const mppChallengeResponse = await buildMppChallengeResponse({
+      amount: price,
+    });
+
+    const response = NextResponse.json(
+      {
+        type: 'https://paymentauth.org/problems/payment-required',
+        title: 'Payment Required',
+        status: 402,
+        detail: 'Previous payment credential was invalid. Please retry.',
+        mpp: challenge,
+      },
+      {
+        status: 402,
+        headers: { 'Content-Type': 'application/problem+json' },
+      }
+    );
+
+    for (const [key, value] of mppChallengeResponse.headers.entries()) {
+      if (key.toLowerCase() === 'www-authenticate') {
+        response.headers.append('WWW-Authenticate', value);
+      }
+    }
+
+    if (!response.headers.get('WWW-Authenticate')) {
+      response.headers.set(
+        'WWW-Authenticate',
+        `Payment realm="${challenge.realm}", asset="${challenge.asset}", payto="${challenge.payTo}"`
+      );
+    }
+
+    return response;
+  } catch {
+    return null;
+  }
 }

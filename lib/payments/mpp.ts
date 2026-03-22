@@ -1,4 +1,5 @@
 import { Mppx, tempo } from 'mppx/server';
+import { mapMppError, type MppUserError } from './mpp-errors';
 
 export interface MppChallenge {
   realm: string;
@@ -14,10 +15,6 @@ export interface MppConfig {
 }
 
 export interface VerifyMppOptions {
-  amount: string;
-}
-
-export interface BuildMppChallengeResponseOptions {
   amount: string;
 }
 
@@ -50,20 +47,24 @@ export function buildMppChallenge(config?: MppConfig): MppChallenge {
   };
 }
 
+// --- mppx server singleton ---
+
 type MppChargeResult =
   | { status: 402; challenge: Response }
   | { status: 200; withReceipt: (response: Response) => Response };
 
-type MppServerLike = {
-  charge: (options: {
-    amount: string;
-    currency: string;
-  }) => (request: Request) => Promise<MppChargeResult>;
-};
+type MppChargeFn = (options: {
+  amount: string;
+  currency: string;
+}) => (request: Request) => Promise<MppChargeResult>;
 
-let mppxServer: MppServerLike | null = null;
+interface MppServerInstance {
+  charge: MppChargeFn;
+}
 
-function getMppxServer(config: MppConfig): MppServerLike {
+let mppxServer: MppServerInstance | null = null;
+
+function getMppxServer(config: MppConfig): MppServerInstance {
   if (mppxServer) return mppxServer;
 
   const secretKey = process.env.MPP_SECRET_KEY;
@@ -73,7 +74,7 @@ function getMppxServer(config: MppConfig): MppServerLike {
     );
   }
 
-  mppxServer = Mppx.create({
+  const server = Mppx.create({
     realm: config.realm,
     secretKey,
     methods: [
@@ -81,21 +82,33 @@ function getMppxServer(config: MppConfig): MppServerLike {
         recipient: config.payTo as `0x${string}`,
       }),
     ],
-  }) as unknown as MppServerLike;
+  });
+
+  // The mppx server exposes `charge` as a nested handler: server.tempo.charge
+  // or server['tempo/charge']. Normalize to our interface.
+  mppxServer = {
+    charge: (options: { amount: string; currency: string }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const handler = (server as any).charge ?? (server as any)['tempo/charge'];
+      if (typeof handler !== 'function') {
+        throw new Error(
+          'mppx server does not expose a charge handler. Check mppx version.'
+        );
+      }
+      return handler(options);
+    },
+  };
 
   return mppxServer;
 }
 
-function extractCredential(authHeader: string | null): string | null {
-  if (!authHeader) return null;
-  if (!authHeader.toLowerCase().startsWith('payment ')) return null;
-  const credential = authHeader.slice('Payment '.length).trim();
-  return credential || null;
-}
-
-export async function buildMppChallengeResponse(
-  options: BuildMppChallengeResponseOptions
-): Promise<Response> {
+/**
+ * Build a 402 challenge response with proper WWW-Authenticate headers
+ * using the mppx server SDK.
+ */
+export async function buildMppChallengeResponse(options: {
+  amount: string;
+}): Promise<Response> {
   const config = getMppConfig();
   const server = getMppxServer(config);
 
@@ -104,6 +117,7 @@ export async function buildMppChallengeResponse(
     currency: config.asset,
   });
 
+  // Send a request with no credential to get the 402 challenge
   const request = new Request(`https://${config.realm}/mpp-challenge`, {
     method: 'GET',
   });
@@ -116,15 +130,33 @@ export async function buildMppChallengeResponse(
   return result.challenge;
 }
 
+/**
+ * Verify an MPP credential from the Authorization header.
+ *
+ * Returns `{ ok: true, receiptId }` on success, or `{ ok: false, error, userError }`
+ * with a mapped user-friendly error on failure.
+ */
 export async function verifyMppCredential(
   authHeader: string | null,
   options: VerifyMppOptions
-): Promise<{ ok: boolean; receiptId?: string; error?: string }> {
+): Promise<{
+  ok: boolean;
+  receiptId?: string;
+  error?: string;
+  userError?: MppUserError;
+}> {
   const credential = extractCredential(authHeader);
   if (!credential) return { ok: false };
 
   const config = getMppConfig();
-  const server = getMppxServer(config);
+
+  let server: MppServerInstance;
+  try {
+    server = getMppxServer(config);
+  } catch (err) {
+    const userError = mapMppError(err);
+    return { ok: false, error: userError.message, userError };
+  }
 
   const handler = server.charge({
     amount: options.amount,
@@ -138,9 +170,30 @@ export async function verifyMppCredential(
     },
   });
 
-  const result = await handler(request);
+  let result: MppChargeResult;
+  try {
+    result = await handler(request);
+  } catch (err) {
+    const userError = mapMppError(err);
+    return { ok: false, error: userError.message, userError };
+  }
+
   if (result.status !== 200) {
-    return { ok: false, error: 'MPP credential verification failed' };
+    // The challenge response body may contain RFC 9457 problem details
+    let problemDetail: string | undefined;
+    try {
+      const body = await (result.challenge as Response).json();
+      problemDetail =
+        (body as Record<string, string>).detail ||
+        (body as Record<string, string>).title;
+    } catch {
+      // Not JSON — that is fine
+    }
+
+    const userError = mapMppError(
+      problemDetail || 'MPP credential verification failed'
+    );
+    return { ok: false, error: userError.message, userError };
   }
 
   const receiptResponse = result.withReceipt(new Response(null));
@@ -150,4 +203,20 @@ export async function verifyMppCredential(
     credential;
 
   return { ok: true, receiptId };
+}
+
+// --- internal helpers ---
+
+function extractCredential(authHeader: string | null): string | null {
+  if (!authHeader) return null;
+  if (!authHeader.toLowerCase().startsWith('payment ')) return null;
+  const credential = authHeader.slice('Payment '.length).trim();
+  return credential || null;
+}
+
+/**
+ * Reset the cached mppx server instance. Useful for testing.
+ */
+export function resetMppxServer(): void {
+  mppxServer = null;
 }

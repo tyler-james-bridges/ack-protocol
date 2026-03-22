@@ -30,6 +30,8 @@ import {
   trackPaymentEvent,
   createPaymentTimer,
 } from '@/lib/payments/telemetry';
+import { mapMppError } from '@/lib/payments/mpp-errors';
+import { checkMppPreflight } from '@/lib/payments/mpp-preflight';
 
 interface TipData {
   id: string;
@@ -68,6 +70,9 @@ export default function TipPage({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>('x402');
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [mppUnavailableReason, setMppUnavailableReason] = useState<
+    string | undefined
+  >(undefined);
 
   const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
 
@@ -98,6 +103,31 @@ export default function TipPage({
         setPageStatus('error');
       });
   }, [tipId]);
+
+  // MPP preflight: check when wallet connects and MPP is in the method list
+  useEffect(() => {
+    const hasMpp = paymentMethods.some((m) => m.id === 'mpp');
+    if (!hasMpp || !walletClient) {
+      setMppUnavailableReason(undefined);
+      return;
+    }
+
+    let cancelled = false;
+    checkMppPreflight(walletClient).then((result) => {
+      if (cancelled) return;
+      if (!result.viable) {
+        setMppUnavailableReason(result.reason);
+        // If MPP was selected, fall back to x402
+        setSelectedMethod((prev) => (prev === 'mpp' ? 'x402' : prev));
+      } else {
+        setMppUnavailableReason(undefined);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [walletClient, paymentMethods]);
 
   // When direct-transfer tx confirms onchain, verify with the backend
   useEffect(() => {
@@ -236,7 +266,8 @@ export default function TipPage({
       } else {
         const data = await res.json().catch(() => ({}));
         throw new Error(
-          (data as Record<string, string>).error ||
+          (data as Record<string, string>).detail ||
+            (data as Record<string, string>).error ||
             `Payment failed (${res.status})`
         );
       }
@@ -287,20 +318,21 @@ export default function TipPage({
         setPageStatus('success');
       } else {
         const data = await res.json().catch(() => ({}));
-        throw new Error(
-          (data as Record<string, string>).error ||
-            `MPP payment failed (${res.status})`
-        );
+        const detail =
+          (data as Record<string, string>).detail ||
+          (data as Record<string, string>).error;
+        throw new Error(detail || `MPP payment failed (${res.status})`);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'MPP payment failed';
+      // Map raw errors to user-friendly messages
+      const userError = mapMppError(err);
       trackPaymentEvent('payment_failed', {
         method: 'mpp',
         tipId,
-        error: msg,
+        error: userError.message,
         durationMs: timer.elapsed(),
       });
-      setErrorMsg(msg);
+      setErrorMsg(userError.message);
       setPageStatus('error');
     }
   }
@@ -332,6 +364,11 @@ export default function TipPage({
     : `Pay ${tip ? `$${tip.amountUsd.toFixed(2)}` : ''} via ${selectedMethod === 'x402' ? 'x402' : selectedMethod === 'mpp' ? 'MPP' : 'Direct Transfer'}`;
 
   const formattedAmount = tip ? `$${tip.amountUsd.toFixed(2)}` : '';
+
+  const unavailableReasons: Partial<Record<PaymentMethodId, string>> = {};
+  if (mppUnavailableReason) {
+    unavailableReasons.mpp = mppUnavailableReason;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -461,6 +498,7 @@ export default function TipPage({
                       selected={selectedMethod}
                       onSelect={handleMethodSelect}
                       disabled={isProcessing}
+                      unavailableReasons={unavailableReasons}
                     />
                   )}
 

@@ -36,6 +36,8 @@ export interface HomePageData {
   stats: {
     total_agents: number;
     total_kudos: number;
+    total_feedbacks: number;
+    total_chains: number;
     top_score: number;
     unique_givers: number;
   };
@@ -153,14 +155,37 @@ export async function getHomePageData(): Promise<HomePageData> {
     });
   }
 
-  // Stats (Abstract-only)
+  // Stats (global from 8004scan + Abstract-specific)
+  let globalAgents = 0;
+  let globalFeedbacks = 0;
+  let globalChains = 0;
+  try {
+    const globalRes = await fetch(
+      'https://www.8004scan.io/api/v1/public/stats',
+      { next: { revalidate: 300 } }
+    );
+    if (globalRes.ok) {
+      const globalData = await globalRes.json();
+      globalAgents = globalData.data?.total_agents || 0;
+      globalFeedbacks = globalData.data?.total_feedbacks || 0;
+      globalChains =
+        globalData.data?.supported_chains?.filter(
+          (c: { is_testnet: boolean; enabled: boolean }) =>
+            !c.is_testnet && c.enabled
+        ).length || 0;
+    }
+  } catch {
+    // fallback to 0, template handles it
+  }
   const topScore = leaderboard.length > 0 ? leaderboard[0].total_score : 0;
   const uniqueGivers = new Set(
     feedbackEvents.map((e) => e.sender.toLowerCase())
   ).size;
   const stats = {
-    total_agents: abstractAgentsRes.total || 0,
+    total_agents: globalAgents || abstractAgentsRes.total || 0,
     total_kudos: feedbackEvents.length,
+    total_feedbacks: globalFeedbacks,
+    total_chains: globalChains,
     top_score: topScore,
     unique_givers: uniqueGivers,
   };

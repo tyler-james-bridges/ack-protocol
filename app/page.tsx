@@ -68,44 +68,50 @@ export default async function Home() {
               href="https://abs.xyz"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-black/40 hover:text-black transition-colors"
+              className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
             >
               <AbstractLogo className="h-4 w-4" />
-              <span className="text-sm font-mono font-bold">abstract</span>
+              <span className="text-sm font-mono font-bold text-[#00FF94]">
+                abstract
+              </span>
             </a>
             <a
               href="https://base.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-black/40 hover:text-black transition-colors"
+              className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
             >
               <BaseLogo className="h-4 w-4" />
-              <span className="text-sm font-mono font-bold">base</span>
+              <span className="text-sm font-mono font-bold text-[#0052FF]">
+                base
+              </span>
             </a>
             <a
               href="https://ethereum.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-black/40 hover:text-black transition-colors"
+              className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
             >
               <EthereumLogo className="h-4 w-4" />
-              <span className="text-sm font-mono font-bold">ethereum</span>
+              <span className="text-sm font-mono font-bold text-[#627EEA]">
+                ethereum
+              </span>
             </a>
             <a
               href="https://tempo.xyz"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-black/40 hover:text-black transition-colors"
+              className="hover:opacity-80 transition-opacity"
             >
-              <TempoLogo className="text-sm font-mono" />
+              <TempoLogo className="text-sm font-mono text-[#FF6B35]" />
             </a>
             <a
               href="https://x402.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-black/40 hover:text-black transition-colors"
+              className="hover:opacity-80 transition-opacity"
             >
-              <X402Logo className="text-sm font-mono" />
+              <X402Logo className="text-sm font-mono text-[#8B5CF6]" />
             </a>
           </div>
 

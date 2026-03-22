@@ -13,7 +13,7 @@ export function BaseLogo({ className = '' }: { className?: string }) {
     >
       <path
         d="M54.921 110.034C85.359 110.034 110.034 85.402 110.034 55.017C110.034 24.6319 85.359 0 54.921 0C26.0432 0 2.35281 22.1714 0 50.3923H72.8467V59.6416H0C2.35281 87.8625 26.0432 110.034 54.921 110.034Z"
-        fill="currentColor"
+        fill="#0052FF"
       />
     </svg>
   );
@@ -33,12 +33,12 @@ export function AbstractLogo({ className = '' }: { className?: string }) {
         width="104"
         height="104"
         rx="22"
-        stroke="currentColor"
+        stroke="#00FF94"
         strokeWidth="12"
         fill="none"
       />
-      <circle cx="44" cy="60" r="14" fill="currentColor" />
-      <circle cx="76" cy="60" r="14" fill="currentColor" />
+      <circle cx="44" cy="60" r="14" fill="#00FF94" />
+      <circle cx="76" cy="60" r="14" fill="#00FF94" />
     </svg>
   );
 }

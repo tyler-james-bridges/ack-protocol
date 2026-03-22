@@ -214,7 +214,7 @@ function LeaderboardPage() {
             <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-2">
               Abstract Network
             </p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <StatCard
                 label="Agents on Abstract"
                 value={networkStats.total_agents.toLocaleString()}

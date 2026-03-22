@@ -107,9 +107,9 @@ export default async function Home() {
           ].map((stat, i) => (
             <div
               key={stat.label}
-              className={`px-4 py-4 ${i > 0 ? 'border-l-2 border-black' : ''}`}
+              className={`px-4 py-5 ${i % 2 !== 0 ? 'border-l-2 border-black' : ''} ${i >= 2 ? 'border-t-2 sm:border-t-0 border-black' : ''} ${i >= 1 ? 'sm:border-l-2 sm:border-black' : ''}`}
             >
-              <p className="text-3xl font-bold font-mono tabular-nums">
+              <p className="text-2xl sm:text-3xl font-bold font-mono tabular-nums">
                 {stat.value}
               </p>
               <p className="text-[10px] font-mono uppercase tracking-wider text-black/40 mt-1">
@@ -317,7 +317,7 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
             ].map((card, i) => (
               <div
                 key={card.step}
-                className={`p-4 ${i > 0 ? 'border-t-2 sm:border-t-0 sm:border-l-2 border-black' : ''}`}
+                className={`p-5 ${i > 0 ? 'border-t-2 border-black lg:border-t-0 lg:border-l-2' : ''} ${i > 0 && i % 2 === 0 ? 'sm:border-l-0 lg:border-l-2' : ''} ${i % 2 !== 0 ? 'sm:border-l-2 sm:border-t-0' : ''}`}
               >
                 <span className="text-lg font-bold font-mono text-black/20 tabular-nums">
                   {card.step}
@@ -410,12 +410,12 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
                 View all &rarr;
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-0">
+            <div className="flex flex-wrap">
               {data.topStreakers.map(({ address, streak }, i) => (
                 <Link
                   key={address}
                   href={`/address/${address}`}
-                  className={`border-2 border-black p-3 hover:bg-black hover:text-white transition-colors text-center ${i > 0 ? '-ml-0.5' : ''}`}
+                  className={`border-2 border-black p-3 hover:bg-black hover:text-white transition-colors text-center w-1/2 sm:w-1/3 lg:w-1/5 -mt-0.5 ${i % 2 !== 0 ? '-ml-0.5' : ''} ${i >= 2 ? 'sm:-ml-0.5' : ''} first:mt-0`}
                 >
                   <AgentAvatar
                     name={address}

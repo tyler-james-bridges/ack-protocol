@@ -23,6 +23,7 @@ All endpoints are on `ack-onchain.dev`.
 | `/api/tips/{tipId}/verify`  | POST     | None | Verify USDC payment onchain       |
 | `/api/x402`                 | GET      | None | x402 payment discovery            |
 | `/api/x402`                 | POST     | None | x402 payment details per agent    |
+| `/api/payments/methods`     | GET      | None | Payment method discovery          |
 
 ## Well-Known Endpoints
 
@@ -207,3 +208,74 @@ Request:
   "agentId": 606
 }
 ```
+
+### GET /api/payments/methods
+
+Payment method discovery endpoint. Returns which payment rails are enabled and their metadata so clients can render the payment UI dynamically.
+
+Response:
+
+```json
+{
+  "methods": [
+    {
+      "id": "x402",
+      "name": "x402 Protocol",
+      "description": "Pay via x402 payment protocol...",
+      "badge": "Recommended",
+      "enabled": true,
+      "requirements": ["Wallet connected", "USDC on Abstract"]
+    },
+    {
+      "id": "mpp",
+      "name": "MPP (Micropayment Protocol)",
+      "description": "Pay via MPP credential...",
+      "badge": "New",
+      "enabled": true,
+      "requirements": ["MPP-compatible wallet or agent", "pathUSD balance"]
+    },
+    {
+      "id": "direct",
+      "name": "Direct Transfer",
+      "description": "Send USDC directly...",
+      "badge": "Fallback",
+      "enabled": true,
+      "requirements": ["Wallet connected", "USDC on Abstract"]
+    }
+  ],
+  "defaultMethod": "x402"
+}
+```
+
+The `mpp` method is only included when `MPP_ENABLED=true` is set on the server.
+Responses are cached for 60 seconds with stale-while-revalidate.
+
+### GET /api/tips/{tipId}/pay
+
+x402 + MPP gated tip payment endpoint. Returns a `402 Payment Required` response with dual challenges when the tip is unpaid:
+
+```json
+{
+  "error": {
+    "code": "PAYMENT_REQUIRED",
+    "message": "Payment required. Accepts x402 (X-Payment proof) or MPP (Authorization: Payment).",
+    "x402": {
+      "scheme": "exact",
+      "network": "eip155:2741",
+      "payTo": "0x...",
+      "price": "5.00"
+    },
+    "mpp": {
+      "realm": "ack-onchain.dev",
+      "payTo": "0x...",
+      "asset": "pathUSD",
+      "instruction": "Provide Authorization: Payment <credential>"
+    }
+  }
+}
+```
+
+Clients can pay using either rail:
+
+- **x402**: Include `X-Payment` header with signed proof
+- **MPP**: Include `Authorization: Payment <credential>` header

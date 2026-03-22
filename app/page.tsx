@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
-import { AgentHero } from '@/components/agent-hero';
+
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { HeroSearch } from '@/components/hero-search';
@@ -40,9 +40,6 @@ export default async function Home() {
     <div className="min-h-screen">
       <Nav />
 
-      {/* Agent-focused hero: endpoints, protocol rail, trust signals */}
-      <AgentHero />
-
       {/* Hero — two-column: left copy + search, right leaderboard */}
       <section className="hero-grid relative">
         <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-10">
@@ -56,6 +53,28 @@ export default async function Home() {
               <p className="mt-3 max-w-lg text-base text-muted-foreground mx-auto lg:mx-0">
                 Give kudos to AI agents. Via post. Onchain.
               </p>
+
+              {/* Protocol rail */}
+              <div className="mt-4 flex flex-wrap items-center gap-2 justify-center lg:justify-start">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Built on
+                </span>
+                {[
+                  { name: 'Abstract', href: 'https://abs.xyz' },
+                  { name: 'Tempo', href: 'https://tempo.xyz' },
+                  { name: 'x402', href: 'https://x402.org' },
+                ].map((p) => (
+                  <a
+                    key={p.name}
+                    href={p.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                  >
+                    {p.name}
+                  </a>
+                ))}
+              </div>
 
               {/* X CTA Card */}
               <TwitterCTA />
@@ -286,11 +305,12 @@ export default async function Home() {
             href="/docs"
             className="rounded-xl border border-border p-5 card-glow transition-colors hover:border-primary/30 flex flex-col"
           >
-            <p className="text-lg font-bold text-primary">x402</p>
-            <p className="text-sm font-semibold mt-1">Payment Protocol</p>
+            <p className="text-lg font-bold text-primary">x402 + MPP</p>
+            <p className="text-sm font-semibold mt-1">Dual Payment Rails</p>
             <p className="text-xs text-muted-foreground mt-2">
-              HTTP-native payment protocol for tipped kudos. Attach real USDC to
-              your recognition - settled directly onchain.
+              Two payment protocols for tipped kudos. x402 for signed
+              authorizations, MPP via Tempo for instant micropayments. Both
+              settle in USDC onchain.
             </p>
             <span className="text-green-400 hover:text-green-300 text-sm mt-3 inline-flex items-center gap-1">
               Learn more &rarr;

@@ -6,7 +6,11 @@ import {
   resetMppxServer,
   toRawUnits,
 } from '../mpp';
-import { mapMppError, type MppUserError } from '../mpp-errors';
+import {
+  mapMppError,
+  mapMppErrorToUiMessage,
+  type MppUserError,
+} from '../mpp-errors';
 import {
   isProofReplayed,
   markProofUsed,
@@ -206,6 +210,40 @@ describe('mapMppError', () => {
   it('handles non-Error, non-string input gracefully', () => {
     const err = mapMppError(42);
     expect(err.code).toBe('MPP_UNKNOWN_ERROR');
+  });
+});
+
+// --- mapMppErrorToUiMessage ---
+
+describe('mapMppErrorToUiMessage', () => {
+  it('prefers problem+json detail field when present', () => {
+    const apiError = {
+      detail: 'Payment authorization has expired.',
+      code: 'MPP_EXPIRED',
+    };
+    expect(mapMppErrorToUiMessage(apiError)).toBe(
+      'Payment authorization has expired.'
+    );
+  });
+
+  it('falls back to mapMppError for Error objects', () => {
+    const msg = mapMppErrorToUiMessage(new Error('insufficient balance'));
+    expect(msg).toContain('Insufficient balance');
+  });
+
+  it('falls back to mapMppError for plain strings', () => {
+    const msg = mapMppErrorToUiMessage('user rejected');
+    expect(msg).toBe('Payment was cancelled.');
+  });
+
+  it('returns generic message for unknown errors', () => {
+    const msg = mapMppErrorToUiMessage(new Error('something wild'));
+    expect(msg).toContain('MPP payment failed');
+  });
+
+  it('handles null/undefined gracefully', () => {
+    const msg = mapMppErrorToUiMessage(null);
+    expect(msg).toContain('MPP payment failed');
   });
 });
 

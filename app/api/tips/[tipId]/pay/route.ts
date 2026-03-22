@@ -21,6 +21,9 @@ import {
 
 /**
  * Build an RFC 9457 problem+json response for payment errors.
+ *
+ * All 402 responses include a `WWW-Authenticate: Payment` header so clients
+ * can programmatically detect the payment challenge per RFC 9110 Section 11.6.1.
  */
 function problemResponse(
   status: number,
@@ -30,8 +33,19 @@ function problemResponse(
     detail: string;
     code?: string;
     extras?: Record<string, unknown>;
+    wwwAuthenticate?: string;
   }
 ): NextResponse {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/problem+json',
+  };
+
+  // All 402 responses MUST include WWW-Authenticate (RFC 9110 Section 11.6.1)
+  if (status === 402) {
+    headers['WWW-Authenticate'] =
+      opts.wwwAuthenticate || 'Payment realm="ack-protocol"';
+  }
+
   return NextResponse.json(
     {
       type: opts.type || 'about:blank',
@@ -41,10 +55,7 @@ function problemResponse(
       ...(opts.code && { code: opts.code }),
       ...(opts.extras || {}),
     },
-    {
-      status,
-      headers: { 'Content-Type': 'application/problem+json' },
-    }
+    { status, headers }
   );
 }
 
@@ -139,16 +150,33 @@ export async function GET(
 
       let mpp;
       try {
+        console.log(
+          '[mpp] Verifying credential, amount:',
+          tip.amountUsd.toFixed(2),
+          'auth:',
+          authHeader?.substring(0, 60) + '...'
+        );
         mpp = await verifyMppCredential(authHeader, {
           amount: tip.amountUsd.toFixed(2),
         });
+        console.log(
+          '[mpp] Verify result:',
+          JSON.stringify({
+            ok: mpp.ok,
+            receiptId: mpp.receiptId,
+            error: mpp.error,
+            code: mpp.userError?.code,
+          })
+        );
       } catch (err) {
+        console.error('[mpp] Verify threw:', err);
         return problemResponse(402, {
           type: 'https://paymentauth.org/problems/verification-failed',
           title: 'MPP Verification Error',
           detail:
             err instanceof Error ? err.message : 'MPP verification failed',
           code: 'MPP_VERIFY_ERROR',
+          wwwAuthenticate: `Payment realm="${challenge.realm}", asset="${challenge.asset}"`,
         });
       }
 
@@ -165,6 +193,7 @@ export async function GET(
             detail: 'This MPP payment proof has already been used.',
             code: 'PAYMENT_PROOF_REPLAYED',
             extras: { proofId: mppProofId },
+            wwwAuthenticate: `Payment realm="${challenge.realm}", asset="${challenge.asset}"`,
           });
         }
         markProofUsed(mppProofId);
@@ -198,6 +227,7 @@ export async function GET(
           title: 'MPP Credential Invalid',
           detail: mpp.userError.message,
           code: mpp.userError.code,
+          wwwAuthenticate: `Payment realm="${challenge.realm}", asset="${challenge.asset}"`,
         });
       }
     }

@@ -125,7 +125,7 @@ export async function buildMppChallengeResponse(options: {
   const server = getMppxServer(config);
 
   const handler = server.charge({
-    amount: toRawUnits(options.amount),
+    amount: options.amount,
     currency: config.asset,
   });
 
@@ -171,7 +171,7 @@ export async function verifyMppCredential(
   }
 
   const handler = server.charge({
-    amount: toRawUnits(options.amount),
+    amount: options.amount,
     currency: config.asset,
   });
 

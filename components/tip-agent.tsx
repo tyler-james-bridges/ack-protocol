@@ -19,6 +19,8 @@ import {
   PENGU_DECIMALS,
 } from '@/config/tokens';
 import { cn } from '@/lib/utils';
+import { checkMppPreflight } from '@/lib/payments/mpp-preflight';
+import { mapMppErrorToUiMessage } from '@/lib/payments/mpp-errors';
 import type { Address } from 'viem';
 
 const TIP_PRESETS = [1, 2, 5, 10] as const;
@@ -57,6 +59,26 @@ export function TipAgent({
   >('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
+  const [mppViable, setMppViable] = useState<boolean | null>(null);
+  const [mppReason, setMppReason] = useState<string | null>(null);
+
+  // Run MPP preflight when wallet connects
+  useEffect(() => {
+    if (!walletClient) {
+      setMppViable(null);
+      setMppReason(null);
+      return;
+    }
+    let cancelled = false;
+    checkMppPreflight(walletClient).then((result) => {
+      if (cancelled) return;
+      setMppViable(result.viable);
+      setMppReason(result.viable ? null : (result.reason ?? null));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [walletClient]);
 
   const isSelf =
     address &&
@@ -136,7 +158,7 @@ export function TipAgent({
 
         setStatus('success');
       } catch (err) {
-        setErrorMsg(err instanceof Error ? err.message : 'x402 payment failed');
+        setErrorMsg(mapMppErrorToUiMessage(err));
         setStatus('error');
       }
       return;
@@ -293,6 +315,15 @@ export function TipAgent({
         Send {token} directly to {agentName}&apos;s owner wallet. Settled
         onchain via x402.
       </p>
+
+      {/* MPP viability indicator */}
+      {isConnected && token === 'USDC' && mppViable === false && mppReason && (
+        <div className="rounded-md border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
+          <p className="text-xs text-yellow-400">
+            <span className="font-medium">MPP unavailable:</span> {mppReason}
+          </p>
+        </div>
+      )}
 
       {/* Amount presets + custom input */}
       <div className="flex gap-2">

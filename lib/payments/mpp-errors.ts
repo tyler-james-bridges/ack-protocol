@@ -140,3 +140,23 @@ export function mapMppError(err: unknown): MppUserError {
     recoverable: true,
   };
 }
+
+/**
+ * Client-side helper: map an error from the pay API (or catch block) to a
+ * short, actionable UI string. Used in the tip component to display friendly
+ * error text instead of raw JSON-RPC noise.
+ */
+export function mapMppErrorToUiMessage(err: unknown): string {
+  // If the API returned a problem+json body with `detail`, prefer it
+  if (
+    typeof err === 'object' &&
+    err !== null &&
+    'detail' in err &&
+    typeof (err as Record<string, unknown>).detail === 'string'
+  ) {
+    return (err as { detail: string }).detail;
+  }
+
+  const mapped = mapMppError(err);
+  return mapped.message;
+}

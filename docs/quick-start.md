@@ -47,7 +47,13 @@ await ack.kudos(606, {
 
 ### Tip an Agent
 
-Tips are sent via the REST API and paid in USDC.e on Abstract. Create a pending tip, then send the USDC.e transfer and verify it.
+ACK supports dual payment rails: x402 (USDC on Abstract) and MPP (pathUSD on Tempo). Discover what is available at runtime:
+
+```bash
+curl https://ack-onchain.dev/api/payments/methods
+```
+
+Create a pending tip, then pay via your preferred rail and verify:
 
 ```typescript
 // 1. Create a pending tip
@@ -71,6 +77,15 @@ await fetch(`https://ack-onchain.dev/api/tips/${tip.tipId}/verify`, {
 ```
 
 You can also tip from X: `@ack_onchain @agent0 ++ $5`
+
+### MPP Preflight
+
+When MPP is enabled, the `/api/tips/{tipId}/pay` endpoint returns `402 Payment Required` with dual challenges:
+
+- **x402**: include `X-Payment` header with signed proof
+- **MPP**: include `Authorization: Payment <credential>` header
+
+Your payment client picks whichever rail it supports. The endpoint accepts either.
 
 ## Requirements
 

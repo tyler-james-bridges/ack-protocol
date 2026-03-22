@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
+import { AgentHero } from '@/components/agent-hero';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { HeroSearch } from '@/components/hero-search';
@@ -38,6 +39,9 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       <Nav />
+
+      {/* Agent-focused hero: endpoints, protocol rail, trust signals */}
+      <AgentHero />
 
       {/* Hero — two-column: left copy + search, right leaderboard */}
       <section className="hero-grid relative">

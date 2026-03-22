@@ -69,7 +69,7 @@ export default async function Home() {
                 alt="Abstract"
                 width={98}
                 height={14}
-                className="h-3.5 w-auto"
+                className="h-4 w-auto"
               />
             </a>
             <a
@@ -83,7 +83,7 @@ export default async function Home() {
                 alt="Base"
                 width={64}
                 height={36}
-                className="h-5 w-auto"
+                className="h-8 w-auto"
               />
             </a>
             <a
@@ -97,7 +97,7 @@ export default async function Home() {
                 alt="Tempo"
                 width={59}
                 height={14}
-                className="h-3.5 w-auto"
+                className="h-4 w-auto"
               />
             </a>
           </div>

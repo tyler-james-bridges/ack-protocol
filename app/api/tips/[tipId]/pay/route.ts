@@ -207,11 +207,18 @@ export async function GET(
           );
         }
 
-        return NextResponse.json({
-          status: 'paid',
-          tip: tipToJSON(completed),
-          message: `Tip of $${completed.amountUsd.toFixed(2)} paid via MPP`,
-        });
+        return NextResponse.json(
+          {
+            status: 'paid',
+            tip: tipToJSON(completed),
+            message: `Tip of $${completed.amountUsd.toFixed(2)} paid via MPP`,
+          },
+          {
+            headers: {
+              'Payment-Receipt': mpp.receiptId || '',
+            },
+          }
+        );
       }
 
       // Credential provided but invalid — return 402 with fresh challenge

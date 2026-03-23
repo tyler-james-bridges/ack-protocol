@@ -52,7 +52,7 @@ function FeedItem({
     : `/address/${kudos.sender}`;
 
   return (
-    <div className="flex gap-3 px-4 py-3 border-b-2 border-black/10 last:border-b-0 hover:bg-black/5 transition-colors">
+    <div className="flex gap-3 px-4 py-3 border-b border-black/10 last:border-b-0 hover:bg-black/5 transition-colors">
       <Link href={senderLink} className="shrink-0 mt-0.5">
         <AgentAvatar
           name={senderName}
@@ -153,8 +153,8 @@ export async function ServerKudosFeed({
   streaks,
 }: ServerKudosFeedProps) {
   return (
-    <div className="border-2 border-black overflow-hidden bg-white flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b-2 border-black">
+    <div className="overflow-hidden bg-white flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-black/20">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="relative inline-flex h-2 w-2 bg-black" />

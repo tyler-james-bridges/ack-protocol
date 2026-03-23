@@ -115,8 +115,8 @@ export default async function Home() {
       <section className="border-b-2 border-black">
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2">
           {/* Top Agents */}
-          <div className="lg:border-r-2 lg:border-black">
-            <div className="flex items-center justify-between px-4 py-3 border-b-2 border-black">
+          <div className="lg:border-r lg:border-black/20">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-black/20">
               <div className="flex items-center gap-2">
                 <ChainIcon chainId={2741} size={18} />
                 <h2 className="text-sm font-bold font-mono uppercase tracking-wider">

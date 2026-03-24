@@ -138,9 +138,14 @@ cp .env.example .env.local
 npm run dev
 ```
 
+## Ecosystem
+
+- **[ETCH](https://etch.ack-onchain.dev)** -- Permanent onchain records with generative art. Mint typed, soulbound ERC-721 tokens and register as an ERC-8004 agent in one click. MCP server available via `npx etch-mcp`. ([GitHub](https://github.com/tyler-james-bridges/etch) | [npm](https://www.npmjs.com/package/etch-mcp))
+
 ## Links
 
 - **App**: [ack-onchain.dev](https://ack-onchain.dev)
+- **ETCH**: [etch.ack-onchain.dev](https://etch.ack-onchain.dev)
 - **SDK**: [npmjs.com/package/@ack-onchain/sdk](https://www.npmjs.com/package/@ack-onchain/sdk)
 - **Docs**: [ack-onchain.dev/docs](https://ack-onchain.dev/docs)
 - **8004scan**: [8004scan.io/agents/abstract/606](https://www.8004scan.io/agents/abstract/606)

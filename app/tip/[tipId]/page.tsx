@@ -478,9 +478,9 @@ export default function TipPage({
                       </span>
                     )}
                   </p>
-                  {tip.paymentTxHash?.startsWith('mpp:') && (
+                  {tip.paymentTxHash?.startsWith('mpp:0x') && (
                     <a
-                      href={`https://explorer.tempo.xyz`}
+                      href={`https://explorer.tempo.xyz/tx/${tip.paymentTxHash.slice(4)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-black hover:underline inline-block"

@@ -198,8 +198,23 @@ export async function GET(
         }
         markProofUsed(mppProofId);
 
-        // MPP verified — complete the tip with receipt ID as tx reference
-        const mppTxRef = `mpp:${mpp.receiptId || 'settlement'}`;
+        // MPP verified — extract Tempo tx hash from receipt
+        let tempoTxHash = '';
+        if (mpp.receiptId) {
+          try {
+            const padded =
+              mpp.receiptId + '='.repeat((4 - (mpp.receiptId.length % 4)) % 4);
+            const decoded = JSON.parse(
+              Buffer.from(padded, 'base64url').toString()
+            );
+            tempoTxHash = decoded.reference || '';
+          } catch {
+            // Receipt not decodable — use raw ID
+          }
+        }
+        const mppTxRef = tempoTxHash
+          ? `mpp:${tempoTxHash}`
+          : `mpp:${mpp.receiptId || 'settlement'}`;
         const completed = await completeTip(tipId, mppTxRef);
         if (!completed) {
           return NextResponse.json(

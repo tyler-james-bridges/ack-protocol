@@ -255,62 +255,10 @@ export async function GET(
       }
     }
 
-    // No MPP credential (or no auth header at all) — check for x402 proof
-    const xPayment = request.headers.get('x-payment');
-
-    // If client has not provided any payment proof, return dual challenge.
-    if (!xPayment) {
-      const payTo = await resolvePaymentAddress(tip.agentId);
-      const price = tip.amountUsd.toFixed(2);
-      const x402Challenge = {
-        scheme: 'exact',
-        network: 'eip155:2741',
-        payTo,
-        price,
-        message: `Tip $${price} to Agent #${tip.agentId} via x402`,
-      };
-
-      const response = NextResponse.json(
-        {
-          type: 'https://paymentauth.org/problems/payment-required',
-          title: 'Payment Required',
-          status: 402,
-          detail:
-            'Payment required. Accepts x402 (X-Payment proof) or MPP (Authorization: Payment).',
-          x402: x402Challenge,
-          ...(challenge && { mpp: challenge }),
-        },
-        {
-          status: 402,
-          headers: { 'Content-Type': 'application/problem+json' },
-        }
-      );
-
-      // Add WWW-Authenticate header for MPP
-      if (challenge) {
-        try {
-          const mppChallengeResponse = await buildMppChallengeResponse({
-            amount: price,
-          });
-          for (const [key, value] of mppChallengeResponse.headers.entries()) {
-            if (key.toLowerCase() === 'www-authenticate') {
-              response.headers.append('WWW-Authenticate', value);
-            }
-          }
-        } catch {
-          // MPP challenge build failed — still serve x402 challenge
-        }
-
-        if (!response.headers.get('WWW-Authenticate')) {
-          response.headers.set(
-            'WWW-Authenticate',
-            `Payment realm="${challenge.realm}", asset="${challenge.asset}", payto="${challenge.payTo}"`
-          );
-        }
-      }
-
-      return response;
-    }
+    // No MPP credential — fall through to x402 path below.
+    // The x402 withPayment wrapper will generate a standard 402 that
+    // x402 clients can parse. We add MPP WWW-Authenticate headers to
+    // the x402 response via a response interceptor below.
   }
 
   // x402 path — replay guard then delegate to x402 withPayment

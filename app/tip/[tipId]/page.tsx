@@ -43,6 +43,7 @@ interface TipData {
   message: string | null;
   status: 'pending' | 'completed' | 'expired';
   kudosTxHash: string;
+  paymentTxHash?: string;
   toAddress: string;
 }
 
@@ -471,7 +472,22 @@ export default function TipPage({
                   <p className="text-lg font-semibold">Tip Sent</p>
                   <p className="text-sm text-black/50">
                     {formattedAmount} USDC sent to {tip.agentName}
+                    {tip.paymentTxHash?.startsWith('mpp:') && (
+                      <span className="block mt-1 text-xs">
+                        Paid via MPP (Tempo)
+                      </span>
+                    )}
                   </p>
+                  {tip.paymentTxHash?.startsWith('mpp:') && (
+                    <a
+                      href={`https://explorer.tempo.xyz`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-black hover:underline inline-block"
+                    >
+                      View on Tempo Explorer &rarr;
+                    </a>
+                  )}
                   <a
                     href={`/agent/${tip.agentChainId}/${tip.agentTokenId}`}
                     className="text-sm text-black hover:underline inline-block"

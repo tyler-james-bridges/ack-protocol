@@ -198,8 +198,9 @@ export async function GET(
         }
         markProofUsed(mppProofId);
 
-        // MPP verified — complete the tip
-        const completed = await completeTip(tipId, 'mpp-settlement');
+        // MPP verified — complete the tip with receipt ID as tx reference
+        const mppTxRef = `mpp:${mpp.receiptId || 'settlement'}`;
+        const completed = await completeTip(tipId, mppTxRef);
         if (!completed) {
           return NextResponse.json(
             { error: 'Failed to complete tip' },

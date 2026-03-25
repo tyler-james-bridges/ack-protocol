@@ -93,8 +93,15 @@ async function handler(request: NextRequest): Promise<NextResponse<any>> {
     return NextResponse.json({ error: 'Tip has expired' }, { status: 410 });
   }
 
-  // Mark the tip as completed (x402 facilitator already settled the payment)
-  const completed = await completeTip(tipId, 'x402-facilitator-settlement');
+  // Extract x402 settlement tx hash from the payment proof if available
+  const x402Proof = request.headers.get('x-payment');
+  const x402TxHash = parseXPaymentProofId(x402Proof);
+  const x402Ref = x402TxHash
+    ? `x402:${x402TxHash}`
+    : 'x402-facilitator-settlement';
+
+  // Mark the tip as completed with the settlement reference
+  const completed = await completeTip(tipId, x402Ref);
   if (!completed) {
     return NextResponse.json(
       { error: 'Failed to complete tip' },

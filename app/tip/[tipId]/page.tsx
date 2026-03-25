@@ -502,6 +502,16 @@ export default function TipPage({
                       View on Tempo Explorer &rarr;
                     </a>
                   )}
+                  {tip.paymentTxHash?.startsWith('x402:0x') && (
+                    <a
+                      href={`https://abscan.org/tx/${tip.paymentTxHash.slice(5)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-black hover:underline inline-block"
+                    >
+                      View on Abstract Explorer &rarr;
+                    </a>
+                  )}
                   {tip.paymentTxHash === 'x402-facilitator-settlement' && (
                     <p className="text-xs text-black/40 mt-1">
                       Settled via x402 facilitator on Abstract

@@ -73,6 +73,9 @@ function problemResponse(
  * 4. Facilitator settles USDC onchain
  * 5. Server marks tip as completed, returns confirmation
  */
+// Module-level stash for x402 tx hash (set in GET, read in handler)
+let _pendingX402TxHash: string | null = null;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handler(request: NextRequest): Promise<NextResponse<any>> {
   const tipId = request.nextUrl.pathname.split('/').slice(-2)[0];
@@ -94,7 +97,8 @@ async function handler(request: NextRequest): Promise<NextResponse<any>> {
   }
 
   // Extract x402 settlement tx hash — stashed by GET before withPayment runs
-  const x402TxHash = request.headers.get('x-payment-tx-hash');
+  const x402TxHash = _pendingX402TxHash;
+  _pendingX402TxHash = null; // consume it
   const x402Ref = x402TxHash
     ? `x402:${x402TxHash}`
     : 'x402-facilitator-settlement';
@@ -284,7 +288,7 @@ export async function GET(
     markProofUsed(proofId);
 
     // Stash the tx hash so handler() can store it with the tip
-    request.headers.set('x-payment-tx-hash', proofId);
+    _pendingX402TxHash = proofId;
   }
 
   const payTo = await resolvePaymentAddress(tip.agentId);

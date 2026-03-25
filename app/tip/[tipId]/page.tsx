@@ -502,6 +502,11 @@ export default function TipPage({
                       View on Tempo Explorer &rarr;
                     </a>
                   )}
+                  {tip.paymentTxHash === 'x402-facilitator-settlement' && (
+                    <p className="text-xs text-black/40 mt-1">
+                      Settled via x402 facilitator on Abstract
+                    </p>
+                  )}
                   <a
                     href={`/agent/${tip.agentChainId}/${tip.agentTokenId}`}
                     className="text-sm text-black hover:underline inline-block"
@@ -599,15 +604,17 @@ export default function TipPage({
               </div>
             )}
 
-            {/* Kudos link */}
-            <p className="text-center">
-              <a
-                href={`/kudos/${tip.kudosTxHash}`}
-                className="text-xs text-black/50 hover:text-black transition-colors"
-              >
-                View original kudos transaction
-              </a>
-            </p>
+            {/* Kudos link — only show when there's a real kudos tx */}
+            {tip.kudosTxHash && tip.kudosTxHash.startsWith('0x') && (
+              <p className="text-center">
+                <a
+                  href={`/kudos/${tip.kudosTxHash}`}
+                  className="text-xs text-black/50 hover:text-black transition-colors"
+                >
+                  View original kudos transaction
+                </a>
+              </p>
+            )}
           </div>
         )}
       </main>

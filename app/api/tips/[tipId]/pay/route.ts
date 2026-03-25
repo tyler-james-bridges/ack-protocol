@@ -95,6 +95,20 @@ async function handler(request: NextRequest): Promise<NextResponse<any>> {
 
   // Extract x402 settlement tx hash from the payment proof if available
   const x402Proof = request.headers.get('x-payment');
+  const x402Response = request.headers.get('x-payment-response');
+  console.log(
+    '[x402] handler headers - x-payment:',
+    x402Proof?.substring(0, 40),
+    'x-payment-response:',
+    x402Response?.substring(0, 40)
+  );
+  console.log(
+    '[x402] all headers:',
+    JSON.stringify(Object.fromEntries(request.headers.entries())).substring(
+      0,
+      500
+    )
+  );
   const x402TxHash = parseXPaymentProofId(x402Proof);
   const x402Ref = x402TxHash
     ? `x402:${x402TxHash}`

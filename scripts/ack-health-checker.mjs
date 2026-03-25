@@ -93,6 +93,7 @@ function saveState(state) {
 
 // --- 8004scan API ---
 function getScanApiKey() {
+  if (process.env.SCAN_API_KEY) return process.env.SCAN_API_KEY;
   try {
     return execSync(
       'security find-generic-password -s openclaw-8004scan-api-key -w',
@@ -522,7 +523,7 @@ function submitFeedback(agentId, value, tag2, endpoint, review) {
     `"${endpoint}"`,
     `"${feedbackURI}"`,
     feedbackHash,
-    '--private-key "$(security find-generic-password -s openclaw-assembly-ack-private-key -w)"',
+    `--private-key "${process.env.ACK_PRIVATE_KEY || '$(security find-generic-password -s openclaw-assembly-ack-private-key -w)'}"`,
     `--rpc-url ${chain.rpc}`,
   ].join(' ');
 

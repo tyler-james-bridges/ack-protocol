@@ -1,0 +1,29 @@
+name: ACK Health Check
+
+on:
+  schedule:
+    - cron: '0 16 * * *' # 9am MST daily
+  workflow_dispatch: # manual trigger
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chain: [abstract, base, eth]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run health checks (${{ matrix.chain }})
+        env:
+          ACK_PRIVATE_KEY: ${{ secrets.ACK_PRIVATE_KEY }}
+          SCAN_API_KEY: ${{ secrets.SCAN_API_KEY }}
+        run: |
+          node scripts/ack-health-checker.mjs --chain ${{ matrix.chain }} --limit 5

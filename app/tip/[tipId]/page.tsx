@@ -62,9 +62,11 @@ export default function TipPage({
   params: Promise<{ tipId: string }>;
 }) {
   const { tipId } = use(params);
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId: activeChainId } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { openConnectModal } = useConnectModal();
+
+  const isWrongChain = isConnected && activeChainId !== abstract.id;
 
   const [tip, setTip] = useState<TipData | null>(null);
   const [pageStatus, setPageStatus] = useState<PageStatus>('loading');
@@ -338,7 +340,17 @@ export default function TipPage({
     }
   }
 
-  function handlePay() {
+  async function handlePay() {
+    // Auto-switch to Abstract if on wrong chain (x402 and direct need it)
+    if (isWrongChain && selectedMethod !== 'mpp' && walletClient) {
+      try {
+        await walletClient.switchChain({ id: abstract.id });
+      } catch {
+        setErrorMsg('Please switch your wallet to Abstract network to pay.');
+        return;
+      }
+    }
+
     switch (selectedMethod) {
       case 'x402':
         return handleX402Pay();
@@ -362,7 +374,9 @@ export default function TipPage({
 
   const buttonLabel = isProcessing
     ? statusLabel[pageStatus]
-    : `Pay ${tip ? `$${tip.amountUsd.toFixed(2)}` : ''} via ${selectedMethod === 'x402' ? 'x402' : selectedMethod === 'mpp' ? 'MPP' : 'Direct Transfer'}`;
+    : isWrongChain && selectedMethod !== 'mpp'
+      ? 'Switch to Abstract & Pay'
+      : `Pay ${tip ? `$${tip.amountUsd.toFixed(2)}` : ''} via ${selectedMethod === 'x402' ? 'x402' : selectedMethod === 'mpp' ? 'MPP' : 'Direct Transfer'}`;
 
   const formattedAmount = tip ? `$${tip.amountUsd.toFixed(2)}` : '';
 

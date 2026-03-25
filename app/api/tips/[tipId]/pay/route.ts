@@ -93,23 +93,8 @@ async function handler(request: NextRequest): Promise<NextResponse<any>> {
     return NextResponse.json({ error: 'Tip has expired' }, { status: 410 });
   }
 
-  // Extract x402 settlement tx hash from the payment proof if available
-  const x402Proof = request.headers.get('x-payment');
-  const x402Response = request.headers.get('x-payment-response');
-  console.log(
-    '[x402] handler headers - x-payment:',
-    x402Proof?.substring(0, 40),
-    'x-payment-response:',
-    x402Response?.substring(0, 40)
-  );
-  console.log(
-    '[x402] all headers:',
-    JSON.stringify(Object.fromEntries(request.headers.entries())).substring(
-      0,
-      500
-    )
-  );
-  const x402TxHash = parseXPaymentProofId(x402Proof);
+  // Extract x402 settlement tx hash — stashed by GET before withPayment runs
+  const x402TxHash = request.headers.get('x-payment-tx-hash');
   const x402Ref = x402TxHash
     ? `x402:${x402TxHash}`
     : 'x402-facilitator-settlement';
@@ -297,6 +282,9 @@ export async function GET(
 
     // Pre-mark proof id to prevent rapid replay attempts against the same tip path.
     markProofUsed(proofId);
+
+    // Stash the tx hash so handler() can store it with the tip
+    request.headers.set('x-payment-tx-hash', proofId);
   }
 
   const payTo = await resolvePaymentAddress(tip.agentId);

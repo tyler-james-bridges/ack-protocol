@@ -1,0 +1,60 @@
+name: ACK Wallet Health Heartbeat
+
+on:
+  schedule:
+    - cron: '35 17 * * *' # 10:35 AM Phoenix (MST)
+  workflow_dispatch:
+
+jobs:
+  wallet-health-heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Send wallet heartbeat tx
+        id: send
+        env:
+          ACK_PRIVATE_KEY: ${{ secrets.ACK_PRIVATE_KEY }}
+          ACK_RELAY_WALLET: 0x77696ebf0bEC353048d1E9d7baE9DeDd0d503831
+          ABSTRACT_RPC: https://api.mainnet.abs.xyz
+        run: |
+          set -euo pipefail
+          TX_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$ABSTRACT_RPC" --json)
+          TX_HASH=$(echo "$TX_JSON" | jq -r '.transactionHash')
+          echo "tx_hash=$TX_HASH" >> "$GITHUB_OUTPUT"
+          echo "TX hash: $TX_HASH"
+
+      - name: Check 8004scan status
+        id: status
+        env:
+          SCAN_API_KEY: ${{ secrets.SCAN_API_KEY }}
+        run: |
+          set -euo pipefail
+          STATUS_JSON=$(curl -sL "https://8004scan.io/api/v1/public/agents/2741/606" -H "X-API-Key: $SCAN_API_KEY")
+          SCORE=$(echo "$STATUS_JSON" | jq -r '.data.total_score')
+          RANK=$(echo "$STATUS_JSON" | jq -r '.data.rank')
+          OWNER_STATUS=$(echo "$STATUS_JSON" | jq -r '.data.health_status.owner_wallet.status')
+          OWNER_MESSAGE=$(echo "$STATUS_JSON" | jq -r '.data.health_status.owner_wallet.message')
+          INTEGRITY=$(echo "$STATUS_JSON" | jq -r '.data.scores.breakdown.leaderboard_policy.integrity_tier')
+
+          echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+          echo "rank=$RANK" >> "$GITHUB_OUTPUT"
+          echo "owner_status=$OWNER_STATUS" >> "$GITHUB_OUTPUT"
+          echo "owner_message=$OWNER_MESSAGE" >> "$GITHUB_OUTPUT"
+          echo "integrity=$INTEGRITY" >> "$GITHUB_OUTPUT"
+
+      - name: Job summary
+        run: |
+          {
+            echo "## ACK Wallet Health Heartbeat"
+            echo ""
+            echo "- tx: https://abscan.org/tx/${{ steps.send.outputs.tx_hash }}"
+            echo "- owner wallet: ${{ steps.status.outputs.owner_status }}"
+            echo "- owner message: ${{ steps.status.outputs.owner_message }}"
+            echo "- score: ${{ steps.status.outputs.score }}"
+            echo "- rank: ${{ steps.status.outputs.rank }}"
+            echo "- integrity tier: ${{ steps.status.outputs.integrity }}"
+          } >> "$GITHUB_STEP_SUMMARY"

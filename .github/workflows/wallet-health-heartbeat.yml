@@ -18,8 +18,8 @@ jobs:
         id: send
         env:
           ACK_PRIVATE_KEY: ${{ secrets.ACK_PRIVATE_KEY }}
-          ACK_RELAY_WALLET: 0x77696ebf0bEC353048d1E9d7baE9DeDd0d503831
-          ABSTRACT_RPC: https://api.mainnet.abs.xyz
+          ACK_RELAY_WALLET: "0x77696ebf0bEC353048d1E9d7baE9DeDd0d503831"
+          ABSTRACT_RPC: "https://api.mainnet.abs.xyz"
         run: |
           set -euo pipefail
           TX_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$ABSTRACT_RPC" --json)

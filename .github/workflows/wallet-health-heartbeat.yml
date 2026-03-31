@@ -2,7 +2,7 @@ name: ACK Wallet Health Heartbeat
 
 on:
   schedule:
-    - cron: '35 17 * * *' # 10:35 AM Phoenix (MST)
+    - cron: '35 */6 * * *' # Every 6 hours
   workflow_dispatch:
 
 jobs:
@@ -14,47 +14,97 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Send wallet heartbeat tx
+      - name: Send heartbeat txs (all chains)
         id: send
         env:
           ACK_PRIVATE_KEY: ${{ secrets.ACK_PRIVATE_KEY }}
           ACK_RELAY_WALLET: '0x77696ebf0bEC353048d1E9d7baE9DeDd0d503831'
           ABSTRACT_RPC: 'https://api.mainnet.abs.xyz'
+          BASE_RPC: 'https://mainnet.base.org'
+          ETH_RPC: 'https://eth.llamarpc.com'
         run: |
           set -euo pipefail
-          TX_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$ABSTRACT_RPC" --json)
-          TX_HASH=$(echo "$TX_JSON" | jq -r '.transactionHash')
-          echo "tx_hash=$TX_HASH" >> "$GITHUB_OUTPUT"
-          echo "TX hash: $TX_HASH"
 
-      - name: Check 8004scan status
+          # Abstract
+          ABS_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$ABSTRACT_RPC" --json)
+          ABS_TX=$(echo "$ABS_JSON" | jq -r '.transactionHash')
+          echo "abs_tx=$ABS_TX" >> "$GITHUB_OUTPUT"
+          echo "Abstract TX: $ABS_TX"
+
+          # Base
+          BASE_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$BASE_RPC" --json)
+          BASE_TX=$(echo "$BASE_JSON" | jq -r '.transactionHash')
+          echo "base_tx=$BASE_TX" >> "$GITHUB_OUTPUT"
+          echo "Base TX: $BASE_TX"
+
+          # Ethereum
+          ETH_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$ETH_RPC" --json)
+          ETH_TX=$(echo "$ETH_JSON" | jq -r '.transactionHash')
+          echo "eth_tx=$ETH_TX" >> "$GITHUB_OUTPUT"
+          echo "Ethereum TX: $ETH_TX"
+
+      - name: Wait for indexing
+        run: sleep 30
+
+      - name: Check 8004scan status (all chains)
         id: status
         env:
           SCAN_API_KEY: ${{ secrets.SCAN_API_KEY }}
         run: |
           set -euo pipefail
-          STATUS_JSON=$(curl -sL "https://8004scan.io/api/v1/public/agents/2741/606" -H "X-API-Key: $SCAN_API_KEY")
-          SCORE=$(echo "$STATUS_JSON" | jq -r '.data.total_score')
-          RANK=$(echo "$STATUS_JSON" | jq -r '.data.rank')
-          OWNER_STATUS=$(echo "$STATUS_JSON" | jq -r '.data.health_status.owner_wallet.status')
-          OWNER_MESSAGE=$(echo "$STATUS_JSON" | jq -r '.data.health_status.owner_wallet.message')
-          INTEGRITY=$(echo "$STATUS_JSON" | jq -r '.data.scores.breakdown.leaderboard_policy.integrity_tier')
 
-          echo "score=$SCORE" >> "$GITHUB_OUTPUT"
-          echo "rank=$RANK" >> "$GITHUB_OUTPUT"
-          echo "owner_status=$OWNER_STATUS" >> "$GITHUB_OUTPUT"
-          echo "owner_message=$OWNER_MESSAGE" >> "$GITHUB_OUTPUT"
-          echo "integrity=$INTEGRITY" >> "$GITHUB_OUTPUT"
+          for CHAIN_INFO in "2741:606:abstract" "8453:19125:base" "1:26424:eth"; do
+            IFS=: read -r CHAIN_ID TOKEN_ID CHAIN_NAME <<< "$CHAIN_INFO"
+            STATUS_JSON=$(curl -sL "https://8004scan.io/api/v1/public/agents/$CHAIN_ID/$TOKEN_ID" -H "X-API-Key: $SCAN_API_KEY")
+            SCORE=$(echo "$STATUS_JSON" | jq -r '.data.total_score')
+            RANK=$(echo "$STATUS_JSON" | jq -r '.data.rank')
+            OWNER_STATUS=$(echo "$STATUS_JSON" | jq -r '.data.health_status.owner_wallet.status')
+            OWNER_MSG=$(echo "$STATUS_JSON" | jq -r '.data.health_status.owner_wallet.message')
+            INTEGRITY=$(echo "$STATUS_JSON" | jq -r '.data.scores.breakdown.leaderboard_policy.integrity_tier')
+
+            echo "${CHAIN_NAME}_score=$SCORE" >> "$GITHUB_OUTPUT"
+            echo "${CHAIN_NAME}_rank=$RANK" >> "$GITHUB_OUTPUT"
+            echo "${CHAIN_NAME}_wallet=$OWNER_STATUS" >> "$GITHUB_OUTPUT"
+            echo "${CHAIN_NAME}_wallet_msg=$OWNER_MSG" >> "$GITHUB_OUTPUT"
+            echo "${CHAIN_NAME}_integrity=$INTEGRITY" >> "$GITHUB_OUTPUT"
+
+            echo "$CHAIN_NAME: score=$SCORE rank=$RANK wallet=$OWNER_STATUS integrity=$INTEGRITY"
+          done
 
       - name: Job summary
         run: |
           {
             echo "## ACK Wallet Health Heartbeat"
             echo ""
-            echo "- tx: https://abscan.org/tx/${{ steps.send.outputs.tx_hash }}"
-            echo "- owner wallet: ${{ steps.status.outputs.owner_status }}"
-            echo "- owner message: ${{ steps.status.outputs.owner_message }}"
-            echo "- score: ${{ steps.status.outputs.score }}"
-            echo "- rank: ${{ steps.status.outputs.rank }}"
-            echo "- integrity tier: ${{ steps.status.outputs.integrity }}"
+            echo "### Transactions"
+            echo "- Abstract: https://abscan.org/tx/${{ steps.send.outputs.abs_tx }}"
+            echo "- Base: https://basescan.org/tx/${{ steps.send.outputs.base_tx }}"
+            echo "- Ethereum: https://etherscan.io/tx/${{ steps.send.outputs.eth_tx }}"
+            echo ""
+            echo "### Abstract (2741:606)"
+            echo "- Score: ${{ steps.status.outputs.abstract_score }}"
+            echo "- Rank: ${{ steps.status.outputs.abstract_rank }}"
+            echo "- Wallet: ${{ steps.status.outputs.abstract_wallet }}"
+            echo "- Wallet msg: ${{ steps.status.outputs.abstract_wallet_msg }}"
+            echo "- Integrity: ${{ steps.status.outputs.abstract_integrity }}"
+            echo ""
+            echo "### Base (8453:19125)"
+            echo "- Score: ${{ steps.status.outputs.base_score }}"
+            echo "- Rank: ${{ steps.status.outputs.base_rank }}"
+            echo "- Wallet: ${{ steps.status.outputs.base_wallet }}"
+            echo "- Integrity: ${{ steps.status.outputs.base_integrity }}"
+            echo ""
+            echo "### Ethereum (1:26424)"
+            echo "- Score: ${{ steps.status.outputs.eth_score }}"
+            echo "- Rank: ${{ steps.status.outputs.eth_rank }}"
+            echo "- Wallet: ${{ steps.status.outputs.eth_wallet }}"
+            echo "- Integrity: ${{ steps.status.outputs.eth_integrity }}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Alert on degraded
+        if: contains(steps.status.outputs.abstract_wallet, 'degraded') || contains(steps.status.outputs.base_wallet, 'degraded') || contains(steps.status.outputs.eth_wallet, 'degraded')
+        run: |
+          echo "::warning::One or more chains still showing degraded wallet status after heartbeat tx!"
+          echo "Abstract: ${{ steps.status.outputs.abstract_wallet }}"
+          echo "Base: ${{ steps.status.outputs.base_wallet }}"
+          echo "Ethereum: ${{ steps.status.outputs.eth_wallet }}"

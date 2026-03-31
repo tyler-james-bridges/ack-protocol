@@ -426,16 +426,17 @@ export function scoreHealthResults(results) {
     (result) => result.success
   ).length;
 
+  // 8004scan uses 0-100 scale for decimals=0 feedback values
   if (successes === declared && declared >= 2) {
-    return { value: 5, tag2: 'service_quality', status: 'healthy' };
+    return { value: 90, tag2: 'service_quality', status: 'healthy' };
   }
   if (successes >= 2) {
-    return { value: 4, tag2: 'service_quality', status: 'degraded' };
+    return { value: 75, tag2: 'service_quality', status: 'degraded' };
   }
   if (successes === 1) {
-    return { value: 3, tag2: 'service_quality', status: 'degraded' };
+    return { value: 55, tag2: 'service_quality', status: 'degraded' };
   }
-  return { value: 1, tag2: 'liveness', status: 'unreachable' };
+  return { value: 20, tag2: 'liveness', status: 'unreachable' };
 }
 
 function formatLatency(latencyMs) {
@@ -645,7 +646,7 @@ export async function main() {
     const review = buildReviewText(results);
     const endpoint = getPrimaryEndpoint(endpoints, tokenId);
 
-    console.log(`  Rating: ${value}/5 (${tag2})`);
+    console.log(`  Rating: ${value}/100 (${tag2})`);
     console.log(`  Review: ${review}`);
 
     const { txHash, success } = submitFeedback(

@@ -19,29 +19,40 @@ jobs:
         env:
           ACK_PRIVATE_KEY: ${{ secrets.ACK_PRIVATE_KEY }}
           ACK_RELAY_WALLET: '0x77696ebf0bEC353048d1E9d7baE9DeDd0d503831'
-          ABSTRACT_RPC: 'https://api.mainnet.abs.xyz'
-          BASE_RPC: 'https://mainnet.base.org'
-          ETH_RPC: 'https://eth.llamarpc.com'
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          FAILURES=0
 
-          # Abstract
-          ABS_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$ABSTRACT_RPC" --json)
-          ABS_TX=$(echo "$ABS_JSON" | jq -r '.transactionHash')
+          # Abstract (try primary, then fallback)
+          ABS_TX="skipped"
+          for RPC in "https://api.mainnet.abs.xyz" "https://abstract-mainnet.g.alchemy.com/public"; do
+            ABS_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$RPC" --json 2>&1) && {
+              ABS_TX=$(echo "$ABS_JSON" | jq -r '.transactionHash')
+              echo "Abstract TX: $ABS_TX (via $RPC)"
+              break
+            } || echo "Abstract RPC failed: $RPC"
+          done
+          [ "$ABS_TX" = "skipped" ] && { echo "::warning::Abstract heartbeat failed on all RPCs"; FAILURES=$((FAILURES+1)); }
           echo "abs_tx=$ABS_TX" >> "$GITHUB_OUTPUT"
-          echo "Abstract TX: $ABS_TX"
 
           # Base
-          BASE_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$BASE_RPC" --json)
-          BASE_TX=$(echo "$BASE_JSON" | jq -r '.transactionHash')
+          BASE_TX="skipped"
+          BASE_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "https://mainnet.base.org" --json 2>&1) && {
+            BASE_TX=$(echo "$BASE_JSON" | jq -r '.transactionHash')
+            echo "Base TX: $BASE_TX"
+          } || { echo "::warning::Base heartbeat failed"; FAILURES=$((FAILURES+1)); }
           echo "base_tx=$BASE_TX" >> "$GITHUB_OUTPUT"
-          echo "Base TX: $BASE_TX"
 
           # Ethereum
-          ETH_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "$ETH_RPC" --json)
-          ETH_TX=$(echo "$ETH_JSON" | jq -r '.transactionHash')
+          ETH_TX="skipped"
+          ETH_JSON=$(cast send "$ACK_RELAY_WALLET" --value 1 --private-key "$ACK_PRIVATE_KEY" --rpc-url "https://eth.llamarpc.com" --json 2>&1) && {
+            ETH_TX=$(echo "$ETH_JSON" | jq -r '.transactionHash')
+            echo "Ethereum TX: $ETH_TX"
+          } || { echo "::warning::Ethereum heartbeat failed"; FAILURES=$((FAILURES+1)); }
           echo "eth_tx=$ETH_TX" >> "$GITHUB_OUTPUT"
-          echo "Ethereum TX: $ETH_TX"
+
+          echo "failures=$FAILURES" >> "$GITHUB_OUTPUT"
+          [ $FAILURES -eq 3 ] && exit 1 || true
 
       - name: Wait for indexing
         run: sleep 30

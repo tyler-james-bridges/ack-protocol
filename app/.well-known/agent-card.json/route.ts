@@ -10,11 +10,7 @@ const agentCard = {
     url: 'https://ack-onchain.dev',
   },
   version: '1.2.0',
-  capabilities: {
-    streaming: false,
-    pushNotifications: false,
-    stateTransitionHistory: false,
-  },
+  capabilities: ['tools', 'resources', 'prompts'],
   authentication: {
     schemes: ['none'],
   },

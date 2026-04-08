@@ -9,10 +9,12 @@
 ## 1) Product Definition
 
 Paid endpoints:
+
 1. `POST /api/v1/validate/phone`
 2. `POST /api/v1/validate/email`
 
 ### Value proposition
+
 - Validate before expensive actions.
 - High ROI utility for agent workflows.
 - Lightweight infra, fast to ship.
@@ -24,11 +26,13 @@ Paid endpoints:
 ## POST /api/v1/validate/phone
 
 ### Request
+
 ```json
 { "phone": "+16025551234", "countryHint": "US" }
 ```
 
 ### Response (200)
+
 ```json
 {
   "valid": true,
@@ -43,11 +47,13 @@ Paid endpoints:
 ## POST /api/v1/validate/email
 
 ### Request
+
 ```json
 { "email": "founder@example.com" }
 ```
 
 ### Response (200)
+
 ```json
 {
   "valid": true,
@@ -61,6 +67,7 @@ Paid endpoints:
 ```
 
 ### Errors
+
 - `400` bad input
 - `402` payment required
 - `429` rate-limited
@@ -74,6 +81,7 @@ Paid endpoints:
 - Email validation: `$0.002`
 
 Notes:
+
 - Keep these ultra-cheap, high-volume endpoints.
 - Can add bundle endpoint later (`/validate/contact`) at `$0.004`.
 
@@ -82,10 +90,12 @@ Notes:
 ## 4) Provider Strategy
 
 ### Phone
+
 - Primary: Twilio Lookup (or equivalent)
 - Fallback: secondary provider for continuity
 
 ### Email
+
 - MX + SMTP probe + disposable-domain check
 - Role-based mailbox detection (info@, support@)
 
@@ -94,9 +104,11 @@ Notes:
 ## 5) x402 Behavior
 
 Unpaid/invalid payment:
+
 - Return 402 with challenge
 
 Valid payment:
+
 - Return 200 with payload
 - Include `Payment-Receipt` header
 
@@ -105,6 +117,7 @@ Valid payment:
 ## 6) OpenAPI Discovery
 
 Expose `/openapi.json` with:
+
 - both endpoints
 - per-endpoint `x-payment-info`
 - explicit 402 responses
@@ -120,6 +133,7 @@ Expose `/openapi.json` with:
 - store no raw PII longer than needed for logs
 
 PII policy:
+
 - hash identifiers in logs
 - avoid persisting raw email/phone by default
 

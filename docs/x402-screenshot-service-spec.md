@@ -9,10 +9,12 @@
 ## 1) Product Definition
 
 `POST /api/v1/screenshot` (paid)
+
 - Input: URL + viewport options
 - Output: image (binary) or JSON with hosted image URL + metadata
 
 ### Why this service
+
 - Agents can read text today, but cannot reliably assess visual/UI state.
 - High utility for QA, design checks, and monitoring.
 - Very low direct competition in x402 ecosystem.
@@ -24,6 +26,7 @@
 ## POST /api/v1/screenshot
 
 ### Request JSON
+
 ```json
 {
   "url": "https://example.com",
@@ -37,6 +40,7 @@
 ```
 
 ### Validation Rules
+
 - `url`: required, http/https only
 - `width`: 320..2560 (default 1280)
 - `height`: 240..2560 (default 720)
@@ -44,6 +48,7 @@
 - `format`: png|jpeg (default png)
 
 ### Response (200, JSON mode)
+
 ```json
 {
   "imageUrl": "https://cdn.yourdomain.com/screens/abc123.png",
@@ -57,9 +62,11 @@
 ```
 
 ### Response (402)
+
 - x402 challenge + payment requirements
 
 ### Errors
+
 - `400` invalid input
 - `408` render timeout
 - `422` blocked/unsupported URL
@@ -87,6 +94,7 @@
 5. Return JSON payload + `Payment-Receipt`
 
 ### Deployment options
+
 - Preferred: Railway/Fly with dedicated browser workers
 - Alternative: containerized worker queue + API gateway
 
@@ -106,11 +114,13 @@
 ## 6) OpenAPI Discovery Requirements
 
 Expose `/openapi.json` with:
+
 - `x-payment-info` on `POST /api/v1/screenshot`
 - `responses.402`
 - usage guidance for agents
 
 Example payment stanza:
+
 ```json
 "x-payment-info": {
   "pricingMode": "fixed",

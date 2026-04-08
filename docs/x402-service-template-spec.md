@@ -9,6 +9,7 @@
 ## 1) Problem
 
 Each new x402 service is re-implementing the same foundation:
+
 - openapi discovery wiring
 - 402 challenge/verification behavior
 - well-known discovery route
@@ -28,6 +29,7 @@ Create a **distributable service template + shared core package** so new x402 se
 ## 3) Deliverables
 
 1. `x402-service-template` (GitHub template repo)
+
 - Next.js API skeleton
 - paid + free example endpoints
 - `/openapi.json`
@@ -35,17 +37,20 @@ Create a **distributable service template + shared core package** so new x402 se
 - env schema + config docs
 
 2. `@ack/x402-service-core` (shared package)
+
 - `withPayment()` wrapper
 - standard 402 problem response helpers
 - payment receipt helpers
 - logging/telemetry interfaces
 
 3. CI Starter Workflows
+
 - lint/type/build/test
 - discovery validation (`@agentcash/discovery`)
 - optional security scan (deps + secret check)
 
 4. Launch Artifacts
+
 - x402scan submission payload template
 - receipts template
 - release checklist
@@ -97,6 +102,7 @@ Phase 2: Add Copier sync for repo-wide standardization once at least 2 services 
 ## 7) Quality Gate (Template Itself)
 
 Template is considered done when:
+
 - a new repo from template can deploy in <30 min
 - discovery check passes without manual edits
 - one paid sample endpoint works end-to-end with x402

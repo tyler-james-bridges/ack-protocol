@@ -9,15 +9,18 @@
 ## 1) Product Definition
 
 Paid endpoint:
+
 - `POST /api/v1/execute`
 
 Use cases:
+
 - run short Python/JS snippets
 - transform CSV/JSON
 - parse/clean data
 - compute deterministic outputs for workflows
 
 Not intended for:
+
 - long-running jobs
 - GPU/ML workloads
 - persistent compute sessions
@@ -29,6 +32,7 @@ Not intended for:
 ## POST /api/v1/execute
 
 ### Request
+
 ```json
 {
   "language": "python",
@@ -41,6 +45,7 @@ Not intended for:
 ```
 
 ### Response (200)
+
 ```json
 {
   "stdout": "hello\n",
@@ -54,6 +59,7 @@ Not intended for:
 ```
 
 ### Limits
+
 - `language`: python | javascript | bash
 - `timeoutMs`: 1000..15000 (default 5000)
 - max code size: 64 KB
@@ -62,6 +68,7 @@ Not intended for:
 - max output bytes: 1 MB
 
 ### Errors
+
 - `400` invalid payload
 - `402` payment required
 - `408` execution timeout
@@ -88,6 +95,7 @@ Not intended for:
 6. return result + `Payment-Receipt`
 
 ### Execution backend options
+
 - E2B (fastest integration)
 - Fly Machines (isolated ephemeral VMs)
 - custom Firecracker/microVM pool (later)
@@ -97,6 +105,7 @@ Not intended for:
 ## 5) Security Model
 
 Mandatory controls:
+
 - no outbound network by default
 - read-only runtime filesystem except temp workspace
 - process/memory/CPU limits
@@ -105,6 +114,7 @@ Mandatory controls:
 - block dangerous bash builtins/commands where possible
 
 Disallow by default:
+
 - package installation
 - privileged syscalls
 - host mounts
@@ -115,6 +125,7 @@ Disallow by default:
 ## 6) x402/OpenAPI Requirements
 
 Expose `/openapi.json` with:
+
 - `POST /api/v1/execute`
 - `x-payment-info` fixed pricing
 - explicit `402` response
@@ -125,6 +136,7 @@ Expose `/openapi.json` with:
 ## 7) Observability
 
 Track:
+
 - paid executions count
 - p50/p95 runtime
 - timeout rate
@@ -132,6 +144,7 @@ Track:
 - average output size
 
 Log fields (no sensitive code retention by default):
+
 - requestId
 - payer
 - language

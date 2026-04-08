@@ -10,15 +10,18 @@
 ## 1) Scope and Success Criteria
 
 ### In Scope (Phase 1)
+
 1. **ACK Reputation API behind x402** (fastest ship, highest leverage)
 2. **ETCH Notarization API behind x402** (clear novelty, strong distribution)
 
 ### Out of Scope (Phase 1)
+
 - New chain infra
 - Full MPP-first optimization
 - High-compute sandboxing and OCR services
 
 ### Success Criteria
+
 - Discovery validation passes for both services (`@agentcash/discovery check`)
 - Both services return valid `402` challenge and successful paid `200`
 - Listed on x402scan (and MPPscan where applicable)
@@ -30,11 +33,13 @@
 ## 2) Current State (Verified)
 
 ### ACK (already present)
+
 - `GET /api/reputation/[address]` exists and returns aggregated agent reputation
 - `GET /api/x402` exists but is tip-payment discovery oriented, not endpoint-level paid API flow
 - `GET /api/payments/methods` exists
 
 ### Gap
+
 - Reputation endpoint is not yet wrapped with endpoint-specific x402 payment challenge/verification
 - `/openapi.json` for x402 endpoint discovery is not yet complete for paid reputation operations
 
@@ -66,10 +71,12 @@
 ## 4.1 Endpoints
 
 ### Free
+
 - `GET /api/v1/reputation/:address/basic`
   - Returns minimal profile (agent count, score summary)
 
 ### Paid (x402)
+
 - `GET /api/v1/reputation/:address/full`
   - Returns full cross-chain aggregate + category breakdown + metadata
 - `POST /api/v1/reputation/batch`
@@ -79,6 +86,7 @@
 ## 4.2 402 Challenge Contract
 
 For unpaid/invalid requests:
+
 - Status: `402`
 - Header: `WWW-Authenticate` with x402 challenge
 - Body includes:
@@ -89,6 +97,7 @@ For unpaid/invalid requests:
   - facilitator URL
 
 For paid valid requests:
+
 - Status: `200`
 - Header: `Payment-Receipt: <opaque-receipt-id>`
 - Header: `X-Payment-Protocol: x402`
@@ -96,6 +105,7 @@ For paid valid requests:
 ## 4.3 OpenAPI Requirements
 
 Create `GET /openapi.json` exposing:
+
 - paid and free routes
 - `x-payment-info` on paid operations
 - `responses.402`
@@ -150,9 +160,11 @@ interface ReputationFullResponse {
 ## 5.1 Endpoint
 
 ### Paid
+
 - `POST /api/v1/notarize`
 
 Input:
+
 ```json
 {
   "data": "string",
@@ -162,6 +174,7 @@ Input:
 ```
 
 Output:
+
 ```json
 {
   "tokenId": "123",
@@ -174,6 +187,7 @@ Output:
 ```
 
 ### Free
+
 - `GET /api/v1/notarize/verify?dataHash=0x...`
 
 ## 5.2 Behavior
@@ -184,6 +198,7 @@ Output:
 - If mint fails, return `502` with deterministic error code
 
 ## 5.3 Pricing
+
 - Notarize: `$0.01`
 - Optional soulbound variant can be introduced later (`$0.02`)
 
@@ -235,25 +250,30 @@ Output:
 ## 7) Execution Plan (5-day)
 
 ### Day 1
+
 - Reputation paid route scaffolding
 - x402 middleware + challenge + verify path
 - `/openapi.json` v1
 
 ### Day 2
+
 - Reputation batch route
 - tests (unit + integration)
 - discovery validation + fixes
 
 ### Day 3
+
 - ETCH notarize endpoint scaffolding
 - payment guard + mint path
 
 ### Day 4
+
 - ETCH verify endpoint
 - ETCH discovery doc + tests
 - production dry run
 
 ### Day 5
+
 - x402scan registration(s)
 - receipts post + docs polish
 - monitor first paid traffic
@@ -276,6 +296,7 @@ Output:
 ## 9) Immediate Next Step
 
 Start with **Candidate A (Reputation x402)** in ACK repo:
+
 - create `/api/v1/reputation/:address/full`
 - add x402 middleware
 - publish `/openapi.json`

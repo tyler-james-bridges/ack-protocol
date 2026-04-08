@@ -40,6 +40,10 @@ export function GET() {
         endpoint: 'ack-onchain.eth',
         version: 'v1',
       },
+      {
+        name: 'wallet',
+        endpoint: '0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c',
+      },
     ],
     active: true,
     x402Support: true,

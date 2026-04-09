@@ -59,7 +59,7 @@ export function GET() {
       'x402',
       'tipping',
     ],
-    categories: ['reputation', 'infrastructure', 'social', 'defi'],
+    categories: ['infrastructure', 'reputation', 'interoperability', 'developer-tools'],
     agent_type: 'service',
     registrations: [
       {

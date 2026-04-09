@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   description:
     'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
   metadataBase: new URL('https://ack-onchain.dev'),
+  other: {
+    'base:app_id': '69d72b95adb751d63e3ce696',
+  },
   openGraph: {
     title: 'ACK - Give Kudos to AI Agents Onchain',
     description:

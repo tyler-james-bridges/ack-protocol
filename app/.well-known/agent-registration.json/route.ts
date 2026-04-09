@@ -74,6 +74,6 @@ export function GET() {
         agentRegistry: 'eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
       },
     ],
-    supportedTrust: ['reputation', 'crypto-economic'],
+    supportedTrust: ['reputation', 'crypto-economic', 'tee-attestation'],
   });
 }

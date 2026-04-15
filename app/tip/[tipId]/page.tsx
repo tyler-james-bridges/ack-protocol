@@ -47,6 +47,31 @@ interface TipData {
   toAddress: string;
 }
 
+interface SentinelPreflightSuccess {
+  ok: true;
+  providerSelected: string;
+  reasonCodes: string[];
+}
+
+interface SentinelPreflightDeny {
+  ok: false;
+  deny: true;
+  code: string;
+  reasonCodes: string[];
+  action?: string;
+}
+
+interface SentinelPreflightError {
+  ok: false;
+  deny: false;
+  error: string;
+}
+
+type SentinelPreflightResult =
+  | SentinelPreflightSuccess
+  | SentinelPreflightDeny
+  | SentinelPreflightError;
+
 type PageStatus =
   | 'loading'
   | 'ready'
@@ -55,6 +80,77 @@ type PageStatus =
   | 'success'
   | 'error'
   | 'paying';
+
+async function runSentinelPreflight(input: {
+  targets: string[];
+  goal: string;
+  budget?: number;
+}): Promise<SentinelPreflightResult> {
+  try {
+    const res = await fetch(
+      'https://sentinel.0x402.sh/api/bundles/gtm-copilot',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(input),
+      }
+    );
+
+    const body = (await res.json().catch(() => ({}))) as Record<
+      string,
+      unknown
+    >;
+
+    if (res.status === 200) {
+      return {
+        ok: true,
+        providerSelected:
+          typeof body.providerSelected === 'string'
+            ? body.providerSelected
+            : '',
+        reasonCodes: Array.isArray(
+          (body.scoreSnapshot as Record<string, unknown> | undefined)
+            ?.reasonCodes
+        )
+          ? (
+              (body.scoreSnapshot as Record<string, unknown>)
+                .reasonCodes as unknown[]
+            ).filter((code): code is string => typeof code === 'string')
+          : [],
+      };
+    }
+
+    if (res.status === 422) {
+      return {
+        ok: false,
+        deny: true,
+        code: typeof body.code === 'string' ? body.code : 'POLICY_DENY',
+        reasonCodes: Array.isArray(body.reasonCodes)
+          ? (body.reasonCodes as unknown[]).filter(
+              (code): code is string => typeof code === 'string'
+            )
+          : [],
+        action: typeof body.action === 'string' ? body.action : undefined,
+      };
+    }
+
+    return {
+      ok: false,
+      deny: false,
+      error:
+        typeof body.error === 'string'
+          ? body.error
+          : `sentinel error (${res.status})`,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      deny: false,
+      error:
+        error instanceof Error ? error.message : 'sentinel preflight failed',
+    };
+  }
+}
 
 export default function TipPage({
   params,
@@ -236,6 +332,29 @@ export default function TipPage({
     });
 
     try {
+      const useSentinelRouting =
+        process.env.NEXT_PUBLIC_USE_SENTINEL_ROUTING === 'true';
+
+      if (useSentinelRouting) {
+        const preflight = await runSentinelPreflight({
+          targets: [`${window.location.origin}/api/tips/${tipId}/pay`],
+          goal: 'select x402 payment route for tip settlement',
+          budget: tip.amountUsd,
+        });
+
+        if (!preflight.ok && preflight.deny) {
+          const reason = preflight.reasonCodes.join(', ');
+          const action = preflight.action ? ` (${preflight.action})` : '';
+          throw new Error(
+            `Sentinel policy denied x402 payment${reason ? `: ${reason}` : ''}${action}`
+          );
+        }
+
+        if (!preflight.ok && !preflight.deny) {
+          throw new Error(`Sentinel preflight failed: ${preflight.error}`);
+        }
+      }
+
       const { wrapFetchWithPaymentFromConfig } = await import('@x402/fetch');
       const { ExactEvmScheme } = await import('@x402/evm/exact/client');
 

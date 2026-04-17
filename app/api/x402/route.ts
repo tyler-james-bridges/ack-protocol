@@ -68,6 +68,43 @@ export async function GET() {
         createTip: '/api/tips',
         verifyTip: '/api/tips/{tipId}/verify',
         tipPage: '/tip/{tipId}',
+        defiStatus: '/api/defi/status',
+        defiSwap: '/api/defi/swap',
+        defiLend: '/api/defi/lend',
+        defiMarkets: '/api/defi/markets',
+        defiBet: '/api/defi/bet',
+      },
+      defi: {
+        status: {
+          method: 'GET',
+          path: '/api/defi/status',
+          price: 'free',
+          description: 'Portfolio balances and Morpho positions',
+        },
+        swap: {
+          method: 'POST',
+          path: '/api/defi/swap',
+          price: '0.05',
+          description: 'Execute token swap via Aborean DEX',
+        },
+        lend: {
+          method: 'POST',
+          path: '/api/defi/lend',
+          price: '0.05',
+          description: 'Morpho Blue lending operations',
+        },
+        markets: {
+          method: 'GET',
+          path: '/api/defi/markets',
+          price: 'free',
+          description: 'List open Myriad prediction markets',
+        },
+        bet: {
+          method: 'POST',
+          path: '/api/defi/bet',
+          price: '0.05',
+          description: 'Place a prediction market bet',
+        },
       },
     },
     {

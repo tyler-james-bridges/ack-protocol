@@ -17,7 +17,7 @@ import { TipAgent } from '@/components/tip-agent';
 import { getChainName } from '@/hooks';
 import { useKudosReceived } from '@/hooks/useKudosReceived';
 import { useLinkedHandles } from '@/hooks/useLinkedHandles';
-import { fetchAgent, type ScanAgent } from '@/lib/api';
+import { fetchAgent, type ScanAgentDetail } from '@/lib/api';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
 
 export default function AgentProfilePage({
@@ -29,7 +29,7 @@ export default function AgentProfilePage({
   const router = useRouter();
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const [agent, setAgent] = useState<ScanAgent | null>(null);
+  const [agent, setAgent] = useState<ScanAgentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalTipsUsd, setTotalTipsUsd] = useState<number | null>(null);
@@ -477,7 +477,11 @@ export default function AgentProfilePage({
                 </summary>
                 <div className="border-t-2 border-black px-3 py-2.5 space-y-1.5 text-xs font-mono">
                   <InfoRow label="Owner" value={agent.owner_address} mono />
-                  <InfoRow label="Wallet" value={agent.agent_wallet} mono />
+                  <InfoRow
+                    label="Wallet"
+                    value={agent.agent_wallet ?? ''}
+                    mono
+                  />
                   <InfoRow label="Chain" value={getChainName(agent.chain_id)} />
                   <InfoRow label="Token ID" value={agent.token_id} />
                   <InfoRow
@@ -488,8 +492,8 @@ export default function AgentProfilePage({
               </details>
 
               {/* Protocols & Tags */}
-              {(agent?.supported_protocols?.length > 0 ||
-                agent?.tags?.length > 0) && (
+              {((agent?.supported_protocols?.length ?? 0) > 0 ||
+                (agent?.tags?.length ?? 0) > 0) && (
                 <details
                   open
                   className="group border-2 border-black overflow-hidden"
@@ -530,13 +534,13 @@ export default function AgentProfilePage({
                         </div>
                       </div>
                     )}
-                    {agent?.tags?.length > 0 && (
+                    {(agent?.tags?.length ?? 0) > 0 && (
                       <div className="space-y-1">
                         <p className="text-[10px] font-mono text-black/40 uppercase tracking-wider">
                           TAGS
                         </p>
                         <div className="flex flex-wrap gap-1">
-                          {agent.tags.map((t) => (
+                          {agent.tags?.map((t) => (
                             <Badge
                               key={t}
                               variant="outline"

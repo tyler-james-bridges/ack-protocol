@@ -11,7 +11,7 @@ import { getAllFeedbackEvents, type FeedbackEvent } from './feedback-cache';
 import { getAllStreaks, getTopStreakers, type StreakData } from './streaks';
 import type { ScanAgent } from './api';
 
-const SCAN_API = 'https://www.8004scan.io/api/v1';
+const SCAN_API = 'https://8004scan.io/api/v1/public';
 
 const abstractClient = createPublicClient({
   chain: abstract,
@@ -93,7 +93,11 @@ async function fetchScanAgents(
       signal: controller.signal,
     });
     if (!res.ok) return { items: [], total: 0 };
-    return res.json();
+    const json = await res.json();
+    return {
+      items: (json.data as ScanAgent[]) || [],
+      total: json.meta?.pagination?.total ?? 0,
+    };
   } catch {
     return { items: [], total: 0 };
   } finally {
@@ -102,9 +106,16 @@ async function fetchScanAgents(
 }
 
 export async function getHomePageData(): Promise<HomePageData> {
-  // Wave 1: Fetch everything in parallel (Abstract-only)
+  // Wave 1: Fetch everything in parallel (Abstract-only).
+  // Leaderboard order is authoritative from 8004scan — sort by total_score desc
+  // server-side and preserve that order in the UI (matches /agents?chain=2741&sort=total_score).
   const [abstractAgentsRes, feedbackEvents, allStreaks] = await Promise.all([
-    fetchScanAgents({ chain_id: 2741, limit: 100 }),
+    fetchScanAgents({
+      chainId: 2741,
+      sortBy: 'total_score',
+      sortOrder: 'desc',
+      limit: 20,
+    }),
     getAllFeedbackEvents(),
     getAllStreaks(),
   ]);
@@ -115,19 +126,22 @@ export async function getHomePageData(): Promise<HomePageData> {
     feedbackCounts[e.agentId] = (feedbackCounts[e.agentId] || 0) + 1;
   }
 
-  // Enrich leaderboard with kudos counts and sort
-  const enriched = (abstractAgentsRes.items || [])
+  // Enrich with local kudos counts for display; dedupe by chain:token_id.
+  // Do NOT re-sort — 8004scan's total_score ordering is the source of truth.
+  const seenAgents = new Set<string>();
+  const leaderboard = (abstractAgentsRes.items || [])
     .filter((a) => !a.is_testnet)
+    .filter((a) => {
+      const key = `${a.chain_id}:${a.token_id}`;
+      if (seenAgents.has(key)) return false;
+      seenAgents.add(key);
+      return true;
+    })
     .map((agent) => ({
       ...agent,
       kudos: feedbackCounts[Number(agent.token_id)] || 0,
-    }));
-  enriched.sort(
-    (a, b) =>
-      b.total_score + b.kudos * 5 - (a.total_score + a.kudos * 5) ||
-      b.total_feedbacks - a.total_feedbacks
-  );
-  const leaderboard = enriched.slice(0, 10);
+    }))
+    .slice(0, 10);
 
   // Build recent kudos (top 5, newest first), deduplicating near-identical entries.
   // Two events are considered duplicates if they share the same sender, agentId,
@@ -160,10 +174,9 @@ export async function getHomePageData(): Promise<HomePageData> {
   let globalFeedbacks = 0;
   let globalChains = 0;
   try {
-    const globalRes = await fetch(
-      'https://www.8004scan.io/api/v1/public/stats',
-      { next: { revalidate: 300 } }
-    );
+    const globalRes = await fetch(`${SCAN_API}/stats`, {
+      next: { revalidate: 300 },
+    });
     if (globalRes.ok) {
       const globalData = await globalRes.json();
       globalAgents = globalData.data?.total_agents || 0;

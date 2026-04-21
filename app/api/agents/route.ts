@@ -2,19 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const maxDuration = 20;
 
-const API_BASE = 'https://www.8004scan.io/api/v1';
+const API_BASE = 'https://8004scan.io/api/v1/public';
 
 /**
- * Proxy requests to 8004scan API to avoid CORS issues.
- * Forwards all query parameters as-is.
+ * Proxy requests to 8004scan's public API to avoid CORS issues.
+ * Forwards all query parameters as-is. `lib/api.ts` is responsible
+ * for translating snake_case params to camelCase before calling.
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const path = searchParams.get('path') || 'agents';
   searchParams.delete('path');
 
-  // Allowlist guard — only permit known safe paths to prevent SSRF.
-  const ALLOWED_PATH = /^(agents(\/\d+\/[a-zA-Z0-9_-]+\/feedbacks)?|chains)$/;
+  // Allowlist guard — only permit known public API paths to prevent SSRF.
+  const ALLOWED_PATH =
+    /^(agents|agents\/\d+\/[a-zA-Z0-9_-]+|agents\/search|accounts\/0x[a-fA-F0-9]+\/agents|feedbacks|chains|stats)$/;
   if (!ALLOWED_PATH.test(path)) {
     return NextResponse.json(
       { error: 'Invalid path parameter' },
@@ -22,7 +24,19 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const url = `${API_BASE}/${path}?${searchParams.toString()}`;
+  // Translate legacy snake_case query params (chain_id, sort_by, etc.) into the
+  // camelCase form the public API expects (chainId, sortBy). Callers can pass
+  // either style; mixed casing is idempotent because keys already camelCase
+  // have no underscores and pass through unchanged.
+  const translated = new URLSearchParams();
+  for (const [key, value] of searchParams.entries()) {
+    const camelKey = key.replace(/_([a-z])/g, (_, c: string) =>
+      c.toUpperCase()
+    );
+    translated.append(camelKey, value);
+  }
+
+  const url = `${API_BASE}/${path}?${translated.toString()}`;
 
   try {
     const controller = new AbortController();

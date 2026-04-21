@@ -9,6 +9,15 @@
 
 const PROXY = '/api/agents';
 
+/**
+ * Shape of an agent as returned by the list endpoint (/agents) and search.
+ * The list endpoint returns a slim projection — detail-only fields
+ * (agent_wallet, tags, categories, services, scores, raw_metadata,
+ * creator_address, is_active) are absent and must be treated as optional.
+ *
+ * Use `ScanAgentDetail` (from `fetchAgent`) when you need those fields
+ * without null-guards.
+ */
 export interface ScanAgent {
   id: string;
   agent_id: string;
@@ -19,32 +28,50 @@ export interface ScanAgent {
   name: string;
   description: string | null;
   owner_address: string;
-  creator_address: string;
-  agent_wallet: string;
   image_url: string | null;
   is_verified: boolean;
-  is_active: boolean;
   star_count: number;
   total_score: number;
   total_feedbacks: number;
   average_score: number;
-  tags: string[];
-  categories: string[];
   supported_protocols: string[];
-  services: Record<string, { endpoint?: string } | null> | null;
+  created_at: string;
+  updated_at: string;
+  // Fields present on detail endpoint but not the list endpoint — optional
+  // here so list-backed components stay safe. `ScanAgentDetail` narrows them.
+  creator_address?: string;
+  agent_wallet?: string;
+  is_active?: boolean;
+  tags?: string[];
+  categories?: string[];
+  services?: Record<string, { endpoint?: string } | null> | null;
   raw_metadata?: {
     offchain_content?: {
       services?: { name: string; endpoint?: string }[];
     };
   } | null;
-  scores: {
+  scores?: {
     rank: number;
     freshness: number;
     popularity: number;
     chain_rank: number;
   } | null;
-  created_at: string;
-  updated_at: string;
+}
+
+/**
+ * Rich agent shape returned by the detail endpoint (/agents/{chainId}/{tokenId}).
+ * Only `services` stays nullable — an agent may declare no services — but all
+ * other detail-only fields are guaranteed by the upstream API.
+ */
+export interface ScanAgentDetail extends ScanAgent {
+  creator_address: string;
+  agent_wallet: string;
+  is_active: boolean;
+  tags: string[];
+  categories: string[];
+  raw_metadata: NonNullable<ScanAgent['raw_metadata']>;
+  scores: NonNullable<ScanAgent['scores']>;
+  // services intentionally left as-is — may be null on agents with no declared endpoints.
 }
 
 export interface ScanAgentsResponse {
@@ -76,6 +103,32 @@ function proxyUrl(
   return `${PROXY}?${searchParams.toString()}`;
 }
 
+// Unwrap the public API envelope ({success, data, meta}) into the shape the
+// existing callers expect. List endpoints return {items, total, limit, offset};
+// single-resource endpoints return `data` directly.
+function unwrapEnvelope<T>(json: unknown): T {
+  if (!json || typeof json !== 'object' || !('success' in json)) {
+    return json as T;
+  }
+  const envelope = json as {
+    data?: unknown;
+    meta?: { pagination?: { total?: number; limit?: number; page?: number } };
+  };
+  const data = envelope.data;
+  if (Array.isArray(data)) {
+    const pagination = envelope.meta?.pagination;
+    const limit = pagination?.limit ?? data.length;
+    const page = pagination?.page ?? 1;
+    return {
+      items: data,
+      total: pagination?.total ?? data.length,
+      limit,
+      offset: Math.max(0, (page - 1) * limit),
+    } as T;
+  }
+  return (data ?? json) as T;
+}
+
 async function proxyFetch<T>(
   path: string,
   params?: Record<string, string | number | undefined>
@@ -88,7 +141,8 @@ async function proxyFetch<T>(
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    return response.json();
+    const json = await response.json();
+    return unwrapEnvelope<T>(json);
   } finally {
     clearTimeout(timeout);
   }
@@ -110,23 +164,24 @@ export async function fetchAgents(
 
 /**
  * Fetch a single agent by chain:tokenId.
- * 8004scan has no single-agent lookup or filter-by-token endpoint,
- * so we search by tokenId and match chain_id client-side.
+ *
+ * Uses the public API's detail endpoint, which returns the rich agent record
+ * including tags, categories, services, scores.breakdown, agent_wallet, and
+ * raw_metadata — fields the list endpoint omits.
  */
-export async function fetchAgent(scanId: string): Promise<ScanAgent> {
+export async function fetchAgent(scanId: string): Promise<ScanAgentDetail> {
   const [chainId, tokenId] = scanId.split(':');
-  const data = await proxyFetch<ScanAgentsResponse>('agents', {
-    search: tokenId,
-    chain_id: chainId,
-    limit: 20,
-  });
-  const match = (data.items || []).find(
-    (a) => a.token_id === tokenId && a.chain_id === Number(chainId)
-  );
-  if (!match) {
-    throw new Error('Agent not found');
+  if (!chainId || !tokenId) {
+    throw new Error('Invalid agent id');
   }
-  return match;
+  try {
+    return await proxyFetch<ScanAgentDetail>(`agents/${chainId}/${tokenId}`);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('404')) {
+      throw new Error('Agent not found');
+    }
+    throw err;
+  }
 }
 
 /**
@@ -144,16 +199,21 @@ export async function fetchAgentsByChain(
 }
 
 /**
- * Fetch feedback for an agent.
+ * Fetch feedback for a specific agent.
+ *
+ * Uses the public API's top-level /feedbacks endpoint with chainId+tokenId
+ * filters (replaces the old /agents/{chainId}/{tokenId}/feedbacks path that
+ * 404s on the public API).
  */
 export async function fetchAgentFeedback(
   chainId: number,
   tokenId: string
 ): Promise<unknown[]> {
   try {
-    const data = await proxyFetch<{ items?: unknown[] }>(
-      `agents/${chainId}/${tokenId}/feedbacks`
-    );
+    const data = await proxyFetch<{ items?: unknown[] }>('feedbacks', {
+      chain_id: chainId,
+      token_id: tokenId,
+    });
     return data.items || [];
   } catch {
     return [];

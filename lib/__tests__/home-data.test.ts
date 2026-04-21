@@ -62,7 +62,11 @@ describe('home-data', () => {
 
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ items: [], total: 0 }),
+      json: () =>
+        Promise.resolve({
+          data: [],
+          meta: { pagination: { total: 0 } },
+        }),
     } as Response);
 
     const { getHomePageData } = await getModule();
@@ -89,7 +93,11 @@ describe('home-data', () => {
 
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ items: [], total: 0 }),
+      json: () =>
+        Promise.resolve({
+          data: [],
+          meta: { pagination: { total: 0 } },
+        }),
     } as Response);
 
     const { getHomePageData } = await getModule();
@@ -114,7 +122,11 @@ describe('home-data', () => {
 
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ items: [], total: 0 }),
+      json: () =>
+        Promise.resolve({
+          data: [],
+          meta: { pagination: { total: 0 } },
+        }),
     } as Response);
 
     const { getHomePageData } = await getModule();
@@ -140,7 +152,11 @@ describe('home-data', () => {
 
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ items: [], total: 0 }),
+      json: () =>
+        Promise.resolve({
+          data: [],
+          meta: { pagination: { total: 0 } },
+        }),
     } as Response);
 
     const { getHomePageData } = await getModule();
@@ -156,7 +172,7 @@ describe('home-data', () => {
       ok: true,
       json: () =>
         Promise.resolve({
-          items: [
+          data: [
             {
               id: '1',
               token_id: '1',
@@ -169,7 +185,7 @@ describe('home-data', () => {
               created_at: '2025-01-01',
             },
           ],
-          total: 1,
+          meta: { pagination: { total: 1 } },
         }),
     } as Response);
 

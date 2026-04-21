@@ -69,27 +69,41 @@ describe('api', () => {
   });
 
   describe('fetchAgent', () => {
-    it('finds agent by chain:tokenId', async () => {
+    it('fetches agent from detail endpoint', async () => {
       mockFetchResponse({
-        items: [
-          { id: '1', token_id: '42', chain_id: 2741, name: 'TargetAgent' },
-          { id: '2', token_id: '99', chain_id: 2741, name: 'Other' },
-        ],
-        total: 2,
-        limit: 20,
-        offset: 0,
+        success: true,
+        data: {
+          id: '1',
+          token_id: '42',
+          chain_id: 2741,
+          name: 'TargetAgent',
+          total_score: 42.5,
+        },
+        meta: {},
       });
 
       const { fetchAgent } = await getModule();
       const result = await fetchAgent('2741:42');
+
       expect(result.name).toBe('TargetAgent');
+      const url = vi.mocked(global.fetch).mock.calls[0][0] as string;
+      expect(url).toContain('path=agents%2F2741%2F42');
     });
 
-    it('throws when agent not found', async () => {
-      mockFetchResponse({ items: [], total: 0, limit: 20, offset: 0 });
+    it('throws "Agent not found" on 404', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: () => Promise.resolve({ error: 'Not found' }),
+      } as Response);
 
       const { fetchAgent } = await getModule();
       await expect(fetchAgent('2741:999')).rejects.toThrow('Agent not found');
+    });
+
+    it('throws "Invalid agent id" when scanId malformed', async () => {
+      const { fetchAgent } = await getModule();
+      await expect(fetchAgent('nope')).rejects.toThrow('Invalid agent id');
     });
   });
 

@@ -75,7 +75,7 @@ export default function ProfilePage() {
       const match = result.items.find(
         (a) =>
           a.owner_address.toLowerCase() === address.toLowerCase() ||
-          a.creator_address.toLowerCase() === address.toLowerCase()
+          a.creator_address?.toLowerCase() === address.toLowerCase()
       );
       return match || null;
     },

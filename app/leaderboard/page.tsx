@@ -165,7 +165,7 @@ function LeaderboardPage() {
     ...new Set(
       [...(abstractAgentsList || []), ...(allAgentsList || [])]
         .flatMap((a) => [a.owner_address, a.agent_wallet].filter(Boolean))
-        .map((a) => a.toLowerCase())
+        .map((a) => (a as string).toLowerCase())
     ),
   ];
   const { data: streaksData } = useStreaksBulk(allAddresses);

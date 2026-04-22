@@ -13,7 +13,12 @@ export function GET() {
     image: 'https://ack-onchain.dev/icon-512.png',
     agentType: 'reputation',
     category: 'infrastructure,reputation,interoperability,developer-tools',
-    categories: ['infrastructure,reputation,interoperability,developer-tools'],
+    categories: [
+      'infrastructure',
+      'reputation',
+      'interoperability',
+      'developer-tools',
+    ],
     services: [
       {
         name: 'web',
@@ -62,7 +67,7 @@ export function GET() {
       'x402',
       'tipping',
     ],
-    agent_type: 'service',
+
     registrations: [
       {
         agentId: 606,

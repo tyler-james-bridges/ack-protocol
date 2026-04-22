@@ -58,3 +58,7 @@ services/twitter-agent/.env
 video/
 tests/extensions/
 .env*.local
+
+# Service node_modules and logs
+services/*/node_modules/
+services/*/logs/

@@ -1,6 +1,0 @@
-
-> acp-cli@1.0.0 provider
-> tsx provider/main.ts
-
-ACK provider listening for jobs...
-[770] no matching offering for requirement {}

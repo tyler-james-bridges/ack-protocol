@@ -1,6 +1,6 @@
-import type { Command } from "commander";
-import { CliError } from "./errors";
-import pc from "picocolors";
+import type { Command } from 'commander';
+import { CliError } from './errors';
+import pc from 'picocolors';
 
 export function isJson(cmd: Command): boolean {
   return cmd.optsWithGlobals().json === true;
@@ -11,11 +11,11 @@ export function outputResult(
   data: Record<string, unknown>
 ): void {
   if (json) {
-    process.stdout.write(JSON.stringify(data) + "\n");
+    process.stdout.write(JSON.stringify(data) + '\n');
   } else {
     for (const [key, value] of Object.entries(data)) {
       const display =
-        typeof value === "object"
+        typeof value === 'object'
           ? JSON.stringify(value, null, 2)
           : String(value);
       console.log(`${key}: ${display}`);
@@ -23,14 +23,9 @@ export function outputResult(
   }
 }
 
-export function outputError(
-  json: boolean,
-  errOrMessage: string | Error
-): void {
+export function outputError(json: boolean, errOrMessage: string | Error): void {
   const message =
-    typeof errOrMessage === "string"
-      ? errOrMessage
-      : errOrMessage.message;
+    typeof errOrMessage === 'string' ? errOrMessage : errOrMessage.message;
 
   const isCliErr = errOrMessage instanceof CliError;
 
@@ -40,7 +35,7 @@ export function outputError(
       payload.code = errOrMessage.code;
       if (errOrMessage.recovery) payload.recovery = errOrMessage.recovery;
     }
-    process.stdout.write(JSON.stringify(payload) + "\n");
+    process.stdout.write(JSON.stringify(payload) + '\n');
   } else {
     console.error(pc.red(`Error: ${message}`));
     if (isCliErr && errOrMessage.recovery) {
@@ -52,15 +47,15 @@ export function outputError(
 
 export function maskAddress(address: string): string {
   try {
-    return address.slice(0, 6) + "..." + address.slice(-4);
+    return address.slice(0, 6) + '...' + address.slice(-4);
   } catch (err) {
     return address;
   }
 }
 
 export function isTTY(): boolean {
-  if ("NO_COLOR" in process.env) return false;
-  if ("FORCE_COLOR" in process.env) return process.env.FORCE_COLOR !== "0";
-  if (process.env.TERM === "dumb") return false;
+  if ('NO_COLOR' in process.env) return false;
+  if ('FORCE_COLOR' in process.env) return process.env.FORCE_COLOR !== '0';
+  if (process.env.TERM === 'dumb') return false;
   return process.stdout.isTTY === true;
 }

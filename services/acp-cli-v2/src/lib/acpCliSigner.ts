@@ -1,29 +1,29 @@
-import { execFileSync } from "child_process";
-import { fileURLToPath } from "url";
-import { join, dirname } from "path";
-import { platform } from "os";
+import { execFileSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import { join, dirname } from 'path';
+import { platform } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function getBinaryPath(): string {
-  const base = join(__dirname, "../../bin/acp-cli-signer");
+  const base = join(__dirname, '../../bin/acp-cli-signer');
   switch (platform()) {
-    case "darwin":
-      return base + "-macos";
-    case "win32":
-      return base + "-windows.exe";
+    case 'darwin':
+      return base + '-macos';
+    case 'win32':
+      return base + '-windows.exe';
     default:
-      return base + "-linux";
+      return base + '-linux';
   }
 }
 
 const BINARY = getBinaryPath();
 
 // macOS Gatekeeper: strip quarantine attribute so the binary can run without approval
-if (platform() === "darwin") {
+if (platform() === 'darwin') {
   try {
-    execFileSync("xattr", ["-d", "com.apple.quarantine", BINARY], {
-      stdio: "ignore",
+    execFileSync('xattr', ['-d', 'com.apple.quarantine', BINARY], {
+      stdio: 'ignore',
     });
   } catch {
     // Attribute may not exist — that's fine
@@ -53,7 +53,7 @@ interface ErrorResult {
 }
 
 function runBinary(args: string[]): unknown {
-  const output = execFileSync(BINARY, args, { encoding: "utf8" });
+  const output = execFileSync(BINARY, args, { encoding: 'utf8' });
   return JSON.parse(output.trim());
 }
 
@@ -63,8 +63,8 @@ function runBinary(args: string[]): unknown {
  * Returns the base64-encoded public key.
  */
 export function generateKeyPair(): { publicKey: string; backend: string } {
-  const res = runBinary(["generate"]) as GenerateResult | ErrorResult;
-  if ("error" in res) throw new Error(`acp-cli-signer: ${res.error}`);
+  const res = runBinary(['generate']) as GenerateResult | ErrorResult;
+  if ('error' in res) throw new Error(`acp-cli-signer: ${res.error}`);
   return { publicKey: res.publicKey, backend: res.backend };
 }
 
@@ -77,15 +77,15 @@ export function createSignFn(
   publicKeyB64: string
 ): (payload: Uint8Array) => Promise<string> {
   return async (payload: Uint8Array): Promise<string> => {
-    const hex = Buffer.from(payload).toString("hex");
+    const hex = Buffer.from(payload).toString('hex');
     const res = runBinary([
-      "sign",
-      "--public-key",
+      'sign',
+      '--public-key',
       publicKeyB64,
-      "--payload",
+      '--payload',
       hex,
     ]) as SignResult | ErrorResult;
-    if ("error" in res) throw new Error(`acp-cli-signer: ${res.error}`);
+    if ('error' in res) throw new Error(`acp-cli-signer: ${res.error}`);
     return res.signature;
   };
 }
@@ -94,8 +94,8 @@ export function createSignFn(
  * Lists all public keys stored in the platform keystore.
  */
 export function listKeys(): string[] {
-  const res = runBinary(["list"]) as ListResult | ErrorResult;
-  if ("error" in res) throw new Error(`acp-cli-signer: ${res.error}`);
+  const res = runBinary(['list']) as ListResult | ErrorResult;
+  if ('error' in res) throw new Error(`acp-cli-signer: ${res.error}`);
   return res.keys;
 }
 
@@ -103,7 +103,7 @@ export function listKeys(): string[] {
  * Returns info about the active keystore backend.
  */
 export function signerInfo(): { backend: string; platform: string } {
-  const res = runBinary(["info"]) as InfoResult | ErrorResult;
-  if ("error" in res) throw new Error(`acp-cli-signer: ${res.error}`);
+  const res = runBinary(['info']) as InfoResult | ErrorResult;
+  if ('error' in res) throw new Error(`acp-cli-signer: ${res.error}`);
   return { backend: res.backend, platform: res.platform };
 }

@@ -1,0 +1,27 @@
+[seller] Agent: ACK Protocol (dir: ack-protocol)
+[seller] Available offerings: (none)
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[seller] Agent: ACK Protocol (dir: ack-protocol)
+[seller] Available offerings: (none)
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[seller] Agent: ACK Protocol (dir: ack-protocol)
+[seller] Available offerings: agent_discovery, give_kudos, reputation_check
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[seller] Agent: ACK Protocol (dir: ack-protocol)
+[seller] Available offerings: agent_discovery, give_kudos, reputation_check
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room

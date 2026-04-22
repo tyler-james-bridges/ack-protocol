@@ -1,32 +1,32 @@
-import type { Command } from "commander";
-import type { JobSession, JobRoomEntry } from "@virtuals-protocol/acp-node-v2";
+import type { Command } from 'commander';
+import type { JobSession, JobRoomEntry } from '@virtuals-protocol/acp-node-v2';
 import {
   isJson,
   outputResult,
   outputError,
   isTTY,
   maskAddress,
-} from "../lib/output";
-import { c } from "../lib/color";
-import type { AcpAgent } from "@virtuals-protocol/acp-node-v2";
+} from '../lib/output';
+import { c } from '../lib/color';
+import type { AcpAgent } from '@virtuals-protocol/acp-node-v2';
 import {
   createAgentFromConfig,
   createLegacyBuyerAdapter,
-} from "../lib/agentFactory";
-import { formatUnits } from "viem";
-import { isLegacyJob, getLegacyJobChainId } from "../lib/config";
-import { LegacyBuyerAdapter } from "../lib/compat/legacyBuyerAdapter";
-import { AcpJobPhases, AcpJob, AcpMemo } from "@virtuals-protocol/acp-node";
-import { legacyAvailableTools } from "../lib/activeAgent";
+} from '../lib/agentFactory';
+import { formatUnits } from 'viem';
+import { isLegacyJob, getLegacyJobChainId } from '../lib/config';
+import { LegacyBuyerAdapter } from '../lib/compat/legacyBuyerAdapter';
+import { AcpJobPhases, AcpJob, AcpMemo } from '@virtuals-protocol/acp-node';
+import { legacyAvailableTools } from '../lib/activeAgent';
 
 export function registerJobCommands(program: Command): void {
-  const job = program.command("job").description("Job queries and monitoring");
+  const job = program.command('job').description('Job queries and monitoring');
 
   job
-    .command("list")
-    .description("List active jobs (REST, no socket connection needed)")
-    .option("--legacy", "List only legacy jobs")
-    .option("--all", "List both v2 and legacy jobs")
+    .command('list')
+    .description('List active jobs (REST, no socket connection needed)')
+    .option('--legacy', 'List only legacy jobs')
+    .option('--all', 'List both v2 and legacy jobs')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -51,7 +51,7 @@ export function registerJobCommands(program: Command): void {
               evaluatorAddress: j.evaluatorAddress,
               budget: String(j.price),
               jobStatus: LegacyBuyerAdapter.phaseToStatus(j.phase),
-              expiredAt: "",
+              expiredAt: '',
               legacy: true,
             }));
           } catch {
@@ -65,47 +65,47 @@ export function registerJobCommands(program: Command): void {
           outputResult(true, { jobs: allJobs });
         } else {
           if (allJobs.length === 0) {
-            console.log("No active jobs.");
+            console.log('No active jobs.');
           } else if (isTTY()) {
             console.log(`${c.bold(`Active jobs (${allJobs.length}):`)}\n`);
             for (const j of allJobs) {
               console.log(
-                `  ${c.bold("Job ID:")}           ${c.cyan(j.onChainJobId)}${
-                  j.legacy ? c.dim(" [legacy]") : ""
+                `  ${c.bold('Job ID:')}           ${c.cyan(j.onChainJobId)}${
+                  j.legacy ? c.dim(' [legacy]') : ''
                 }`
               );
-              console.log(`  ${c.bold("Chain ID:")}         ${j.chainId}`);
+              console.log(`  ${c.bold('Chain ID:')}         ${j.chainId}`);
               console.log(
-                `  ${c.bold("Client:")}           ${c.dim(j.clientAddress)}`
+                `  ${c.bold('Client:')}           ${c.dim(j.clientAddress)}`
               );
               console.log(
-                `  ${c.bold("Provider:")}         ${c.dim(j.providerAddress)}`
+                `  ${c.bold('Provider:')}         ${c.dim(j.providerAddress)}`
               );
               console.log(
-                `  ${c.bold("Evaluator:")}        ${c.dim(j.evaluatorAddress)}`
+                `  ${c.bold('Evaluator:')}        ${c.dim(j.evaluatorAddress)}`
               );
               if (!j.legacy) {
                 console.log(
-                  `  ${c.bold("Budget:")}           ${
+                  `  ${c.bold('Budget:')}           ${
                     j.budget
                       ? `${formatUnits(BigInt(j.budget), 6)} USDC`
-                      : "N/A"
+                      : 'N/A'
                   }`
                 );
               }
               console.log(
-                `  ${c.bold("Status:")}           ${c.status(j.jobStatus)}`
+                `  ${c.bold('Status:')}           ${c.status(j.jobStatus)}`
               );
               if (j.expiredAt) {
                 console.log(
-                  `  ${c.bold("Expires At:")}       ${c.dim(j.expiredAt)}`
+                  `  ${c.bold('Expires At:')}       ${c.dim(j.expiredAt)}`
                 );
               }
               console.log();
             }
           } else {
             console.log(
-              "JOB_ID\tCHAIN\tCLIENT\tPROVIDER\tBUDGET\tSTATUS\tLEGACY"
+              'JOB_ID\tCHAIN\tCLIENT\tPROVIDER\tBUDGET\tSTATUS\tLEGACY'
             );
             for (const j of allJobs) {
               const budget = !j.legacy
@@ -123,12 +123,12 @@ export function registerJobCommands(program: Command): void {
     });
 
   job
-    .command("history")
+    .command('history')
     .description(
-      "Get full job history including status and all messages (REST, no socket connection needed)"
+      'Get full job history including status and all messages (REST, no socket connection needed)'
     )
-    .requiredOption("--job-id <id>", "On-chain job ID")
-    .requiredOption("--chain-id <id>", "Chain ID")
+    .requiredOption('--job-id <id>', 'On-chain job ID')
+    .requiredOption('--chain-id <id>', 'Chain ID')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -172,10 +172,10 @@ export function registerJobCommands(program: Command): void {
 
           const memoEntries = await Promise.all(
             legacyJob.memos.map(async (m: AcpMemo) => ({
-              kind: "message" as const,
+              kind: 'message' as const,
               from: m.senderAddress,
               content: m.content,
-              contentType: "text",
+              contentType: 'text',
               timestamp: Date.now(),
               ...(m.payableDetails
                 ? {
@@ -217,7 +217,7 @@ export function registerJobCommands(program: Command): void {
             if (deliverable)
               console.log(
                 `Deliverable: ${
-                  typeof deliverable === "string"
+                  typeof deliverable === 'string'
                     ? deliverable
                     : JSON.stringify(deliverable)
                 }`
@@ -247,7 +247,7 @@ export function registerJobCommands(program: Command): void {
           outputResult(true, {
             jobId: opts.jobId,
             chainId: Number(opts.chainId),
-            protocol: "v2",
+            protocol: 'v2',
             status,
             entryCount: entries.length,
             entries,
@@ -261,8 +261,8 @@ export function registerJobCommands(program: Command): void {
           console.log(`Status: ${c.status(status)}`);
           console.log(`Entries: ${entries.length}\n`);
           for (const e of entries) {
-            if (e.kind === "system") {
-              console.log(`  ${c.dim("[system]")} ${c.cyan(e.event.type)}`);
+            if (e.kind === 'system') {
+              console.log(`  ${c.dim('[system]')} ${c.cyan(e.event.type)}`);
             } else {
               console.log(
                 `  ${c.dim(`[${maskAddress(e.from)}]`)} ${e.content}`
@@ -272,7 +272,7 @@ export function registerJobCommands(program: Command): void {
         } else {
           console.log(`${opts.jobId}\t${status}\t${entries.length}`);
           for (const e of entries) {
-            if (e.kind === "system") {
+            if (e.kind === 'system') {
               console.log(`system\t${e.event.type}`);
             } else {
               console.log(`${e.from}\t${e.content}`);
@@ -285,13 +285,13 @@ export function registerJobCommands(program: Command): void {
     });
 
   job
-    .command("watch")
+    .command('watch')
     .description(
-      "Block until the job needs your action, then print the event and exit. " +
-        "This is a blocking command — use it as a background process or subagent task."
+      'Block until the job needs your action, then print the event and exit. ' +
+        'This is a blocking command — use it as a background process or subagent task.'
     )
-    .requiredOption("--job-id <id>", "On-chain job ID")
-    .option("--timeout <seconds>", "Timeout in seconds (default: no timeout)")
+    .requiredOption('--job-id <id>', 'On-chain job ID')
+    .option('--timeout <seconds>', 'Timeout in seconds (default: no timeout)')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -307,14 +307,14 @@ export function registerJobCommands(program: Command): void {
           settled = true;
           if (data) {
             if (json) {
-              process.stdout.write(JSON.stringify(data) + "\n");
+              process.stdout.write(JSON.stringify(data) + '\n');
             } else {
               const status = data.status as string;
               const tools = data.availableTools as string[];
               if (tools && tools.length > 0) {
                 console.log(`\nJob #${jobId} needs your action`);
                 console.log(`  Status: ${status}`);
-                console.log(`  Available: ${tools.join(", ")}`);
+                console.log(`  Available: ${tools.join(', ')}`);
               } else {
                 console.log(
                   `\nJob #${jobId} reached terminal state: ${status}`
@@ -348,7 +348,7 @@ export function registerJobCommands(program: Command): void {
 
               const status = LegacyBuyerAdapter.phaseToStatus(job.phase);
               const tools = legacyAvailableTools(job.phase);
-              const actionable = tools.filter((t) => t !== "wait");
+              const actionable = tools.filter((t) => t !== 'wait');
 
               const deliverable = job.getDeliverable();
               const budget = job.price;
@@ -379,7 +379,7 @@ export function registerJobCommands(program: Command): void {
                 chainId,
                 status,
                 legacy: true,
-                roles: ["client"],
+                roles: ['client'],
                 availableTools: tools,
                 budget,
                 ...(fundRequest ? { fundRequest } : {}),
@@ -387,9 +387,9 @@ export function registerJobCommands(program: Command): void {
                 ...(deliverable ? { deliverable } : {}),
               };
 
-              if (status === "completed") return done(1, eventData);
-              if (status === "rejected") return done(2, eventData);
-              if (status === "expired") return done(3, eventData);
+              if (status === 'completed') return done(1, eventData);
+              if (status === 'rejected') return done(2, eventData);
+              if (status === 'expired') return done(3, eventData);
               if (actionable.length > 0) return done(0, eventData);
             },
           });
@@ -400,13 +400,13 @@ export function registerJobCommands(program: Command): void {
           const agent = await createAgentFromConfig();
 
           agent.on(
-            "entry",
+            'entry',
             async (session: JobSession, _entry: JobRoomEntry) => {
               if (session.jobId !== jobId) return;
 
               const status = session.status;
               const tools = session.availableTools().map((t) => t.name);
-              const actionable = tools.filter((t) => t !== "wait");
+              const actionable = tools.filter((t) => t !== 'wait');
 
               const eventData = {
                 jobId: session.jobId,
@@ -417,9 +417,9 @@ export function registerJobCommands(program: Command): void {
                 entry: _entry,
               };
 
-              if (status === "completed") return done(1, eventData);
-              if (status === "rejected") return done(2, eventData);
-              if (status === "expired") return done(3, eventData);
+              if (status === 'completed') return done(1, eventData);
+              if (status === 'rejected') return done(2, eventData);
+              if (status === 'expired') return done(3, eventData);
               if (actionable.length > 0) return done(0, eventData);
             }
           );
@@ -435,8 +435,8 @@ export function registerJobCommands(program: Command): void {
             process.exit(0);
           }
         };
-        process.on("SIGINT", shutdown);
-        process.on("SIGTERM", shutdown);
+        process.on('SIGINT', shutdown);
+        process.on('SIGTERM', shutdown);
       } catch (err) {
         outputError(json, err instanceof Error ? err.message : String(err));
         process.exit(4);
@@ -460,22 +460,22 @@ async function extractLegacyPayableInfo(
 }
 
 type JobStatus =
-  | "open"
-  | "budget_set"
-  | "funded"
-  | "submitted"
-  | "completed"
-  | "rejected"
-  | "expired";
+  | 'open'
+  | 'budget_set'
+  | 'funded'
+  | 'submitted'
+  | 'completed'
+  | 'rejected'
+  | 'expired';
 
 const EVENT_TO_STATUS: Record<string, JobStatus> = {
-  "job.created": "open",
-  "budget.set": "budget_set",
-  "job.funded": "funded",
-  "job.submitted": "submitted",
-  "job.completed": "completed",
-  "job.rejected": "rejected",
-  "job.expired": "expired",
+  'job.created': 'open',
+  'budget.set': 'budget_set',
+  'job.funded': 'funded',
+  'job.submitted': 'submitted',
+  'job.completed': 'completed',
+  'job.rejected': 'rejected',
+  'job.expired': 'expired',
 };
 
 function deriveStatus(
@@ -483,10 +483,10 @@ function deriveStatus(
 ): JobStatus {
   for (let i = entries.length - 1; i >= 0; i--) {
     const entry = entries[i]!;
-    if (entry.kind === "system" && entry.event) {
+    if (entry.kind === 'system' && entry.event) {
       const mapped = EVENT_TO_STATUS[entry.event.type];
       if (mapped) return mapped;
     }
   }
-  return "open";
+  return 'open';
 }

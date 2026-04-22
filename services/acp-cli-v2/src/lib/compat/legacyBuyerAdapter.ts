@@ -8,14 +8,14 @@ import AcpClientDefault, {
   FareAmount,
   AcpJobPhases,
   PriceType,
-} from "@virtuals-protocol/acp-node";
+} from '@virtuals-protocol/acp-node';
 
 // Handle CJS/ESM interop — default import may be double-wrapped
 const AcpClient = (AcpClientDefault as any).default ?? AcpClientDefault;
-import type { IEvmProviderAdapter } from "@virtuals-protocol/acp-node-v2";
-import { formatChainId } from "../chains";
-import type { Address } from "viem";
-import { LegacyContractBridge } from "./legacyContractBridge";
+import type { IEvmProviderAdapter } from '@virtuals-protocol/acp-node-v2';
+import { formatChainId } from '../chains';
+import type { Address } from 'viem';
+import { LegacyContractBridge } from './legacyContractBridge';
 
 export type LegacyJobEventHandler = (job: AcpJob, memoToSign?: AcpMemo) => void;
 
@@ -82,11 +82,11 @@ export class LegacyBuyerAdapter {
     // V1 sellers expect the first memo content to be JSON with shape:
     //   { name: "<offering name>", requirement: { ... } }
     const serviceRequirement: Record<string, unknown> = {
-      name: params.offeringName ?? "",
+      name: params.offeringName ?? '',
       priceType: params.priceType,
       priceValue: params.priceValue,
       requirement:
-        typeof params.requirement === "string"
+        typeof params.requirement === 'string'
           ? params.requirement
           : params.requirement,
     };
@@ -181,21 +181,21 @@ export class LegacyBuyerAdapter {
   static phaseToStatus(phase: AcpJobPhases): string {
     switch (phase) {
       case AcpJobPhases.REQUEST:
-        return "open";
+        return 'open';
       case AcpJobPhases.NEGOTIATION:
-        return "budget_set";
+        return 'budget_set';
       case AcpJobPhases.TRANSACTION:
-        return "funded";
+        return 'funded';
       case AcpJobPhases.EVALUATION:
-        return "submitted";
+        return 'submitted';
       case AcpJobPhases.COMPLETED:
-        return "completed";
+        return 'completed';
       case AcpJobPhases.REJECTED:
-        return "rejected";
+        return 'rejected';
       case AcpJobPhases.EXPIRED:
-        return "expired";
+        return 'expired';
       default:
-        return "unknown";
+        return 'unknown';
     }
   }
 }
@@ -211,5 +211,7 @@ function resolveLegacyConfig(chainId: number): AcpContractConfig {
     return baseSepoliaAcpConfigV2;
   }
 
-  throw new Error(`Unsupported chain ID: ${formatChainId(chainId)}. Supported: 8453 (Base), 84532 (Base Sepolia)`);
+  throw new Error(
+    `Unsupported chain ID: ${formatChainId(chainId)}. Supported: 8453 (Base), 84532 (Base Sepolia)`
+  );
 }

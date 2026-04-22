@@ -1,0 +1,15 @@
+{
+  "SESSION_TOKEN": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIyNTY5MSwiaWF0IjoxNzc2MzQ0MTMwLCJleHAiOjE3NzYzNDU5MzB9.RQw1EYidsIXgR_WYuewfSaYP0OhNC0KvSG7pUnbJhdM"
+  },
+  "LITE_AGENT_API_KEY": "acp-ba69463ca3cb4e1e9aeb",
+  "agents": [
+    {
+      "id": 42004,
+      "name": "ACK",
+      "walletAddress": "0x6e2f673c5ee77fF6A2788016483240357aFBF1ee",
+      "apiKey": "acp-ba69463ca3cb4e1e9aeb",
+      "active": true
+    }
+  ]
+}

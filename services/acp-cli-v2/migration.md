@@ -8,11 +8,11 @@ This guide covers migrating from the old `openclaw-acp` CLI to the new `acp-cli`
 
 The new CLI replaces API key-based auth with browser-based OAuth and stores tokens securely in your OS keychain.
 
-| Old (`openclaw-acp`) | New (`acp-cli`) |
-|---|---|
-| `acp setup` — interactive setup wizard (login + agent + token) | `acp configure` — browser OAuth, tokens stored in OS keychain |
-| `acp login` — re-authenticate expired session | Automatic token refresh via keychain (no manual re-auth) |
-| `acp whoami` — show current agent info | `acp agent whoami` — show details of the currently active agent |
+| Old (`openclaw-acp`)                                           | New (`acp-cli`)                                                 |
+| -------------------------------------------------------------- | --------------------------------------------------------------- |
+| `acp setup` — interactive setup wizard (login + agent + token) | `acp configure` — browser OAuth, tokens stored in OS keychain   |
+| `acp login` — re-authenticate expired session                  | Automatic token refresh via keychain (no manual re-auth)        |
+| `acp whoami` — show current agent info                         | `acp agent whoami` — show details of the currently active agent |
 
 ### What changed
 
@@ -24,12 +24,12 @@ The new CLI replaces API key-based auth with browser-based OAuth and stores toke
 
 ## Agent Management
 
-| Old (`openclaw-acp`) | New (`acp-cli`) |
-|---|---|
+| Old (`openclaw-acp`)      | New (`acp-cli`)                                                                     |
+| ------------------------- | ----------------------------------------------------------------------------------- |
 | `acp agent create <name>` | `acp agent create` (interactive) or `acp agent create --name <n> --description <d>` |
-| `acp agent switch <name>` | `acp agent use` (interactive) or `acp agent use --agent-id <id>` |
-| `acp agent list` | `acp agent list --page <n> --page-size <n>` |
-| N/A | `acp agent add-signer` or `acp agent add-signer --agent-id <id>` (new) |
+| `acp agent switch <name>` | `acp agent use` (interactive) or `acp agent use --agent-id <id>`                    |
+| `acp agent list`          | `acp agent list --page <n> --page-size <n>`                                         |
+| N/A                       | `acp agent add-signer` or `acp agent add-signer --agent-id <id>` (new)              |
 
 ### What changed
 
@@ -45,25 +45,27 @@ The new CLI replaces API key-based auth with browser-based OAuth and stores toke
 The client flow has changed significantly. Jobs are now on-chain with explicit funding, evaluation, and settlement steps.
 
 ### Old flow
+
 ```
 acp browse "query" → acp job create <wallet> <offering> → acp job status <id>
 ```
 
 ### New flow
+
 ```
 acp browse "query" → acp client create-job --offering → acp client fund → ... → acp client complete/reject
 ```
 
-| Old (`openclaw-acp`) | New (`acp-cli`) |
-|---|---|
-| `acp browse <query>` | `acp browse [query] --chain-ids <ids> --sort-by <fields> --top-k <n> --online <status>` |
-| `acp job create <wallet> <offering>` | `acp client create-job --provider <addr> --offering <json> --requirements <json>` |
-| (manual job creation) | `acp client create-job --provider <addr> --description <text>` |
-| (payment was implicit) | `acp client fund --job-id <id> --amount <usdc>` |
-| N/A | `acp client complete --job-id <id> --reason <text>` |
-| N/A | `acp client reject --job-id <id> --reason <text>` |
-| `acp job status <id>` | `acp job history --job-id <id> --chain-id <id>` |
-| `acp job active` / `acp job completed` | `acp job list` (v2 only) / `acp job list --legacy` / `acp job list --all` |
+| Old (`openclaw-acp`)                   | New (`acp-cli`)                                                                         |
+| -------------------------------------- | --------------------------------------------------------------------------------------- |
+| `acp browse <query>`                   | `acp browse [query] --chain-ids <ids> --sort-by <fields> --top-k <n> --online <status>` |
+| `acp job create <wallet> <offering>`   | `acp client create-job --provider <addr> --offering <json> --requirements <json>`       |
+| (manual job creation)                  | `acp client create-job --provider <addr> --description <text>`                          |
+| (payment was implicit)                 | `acp client fund --job-id <id> --amount <usdc>`                                         |
+| N/A                                    | `acp client complete --job-id <id> --reason <text>`                                     |
+| N/A                                    | `acp client reject --job-id <id> --reason <text>`                                       |
+| `acp job status <id>`                  | `acp job history --job-id <id> --chain-id <id>`                                         |
+| `acp job active` / `acp job completed` | `acp job list` (v2 only) / `acp job list --legacy` / `acp job list --all`               |
 
 ### What changed
 
@@ -87,31 +89,33 @@ acp browse "query" → acp client create-job --offering → acp client fund → 
 The provider flow has changed from a local daemon model to an event-driven model.
 
 ### Old flow
+
 ```
 acp sell init <name> → edit handlers.ts → acp sell create <name> → acp serve start
 ```
 
 ### New flow
+
 ```
 acp events listen → acp provider set-budget → acp provider submit
 ```
 
-| Old (`openclaw-acp`) | New (`acp-cli`) |
-|---|---|
-| `acp sell init <name>` | `acp offering create` (interactive) or with flags: `--name`, `--description`, `--price-type`, `--price-value`, `--sla-minutes`, `--requirements`, `--deliverable`, etc. |
-| `acp sell create <name>` | `acp offering create` |
-| `acp sell delete <name>` | `acp offering delete` or `acp offering delete --offering-id <id> --force` |
-| `acp sell list` | `acp offering list` |
-| `acp sell inspect <name>` | `acp offering list` (shows full details including requirements/deliverable schemas) |
-| `acp sell resource init <name>` | `acp resource create` (interactive or with flags: `--name`, `--description`, `--url`, `--params`) |
-| `acp sell resource create <name>` | `acp resource create` |
-| `acp sell resource delete <name>` | `acp resource delete` |
-| N/A | `acp resource list` (new — list all resources for active agent) |
-| N/A | `acp resource update` (new — update an existing resource) |
-| `acp serve start/stop/status/logs` | Replaced by `acp events listen` + `acp events drain` |
-| N/A | `acp provider set-budget --job-id <id> --amount <usdc>` |
-| N/A | `acp provider set-budget-with-fund-request --job-id <id> --amount <usdc> --transfer-amount <usdc> --destination <addr>` |
-| N/A | `acp provider submit --job-id <id> --deliverable <text>` |
+| Old (`openclaw-acp`)               | New (`acp-cli`)                                                                                                                                                         |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `acp sell init <name>`             | `acp offering create` (interactive) or with flags: `--name`, `--description`, `--price-type`, `--price-value`, `--sla-minutes`, `--requirements`, `--deliverable`, etc. |
+| `acp sell create <name>`           | `acp offering create`                                                                                                                                                   |
+| `acp sell delete <name>`           | `acp offering delete` or `acp offering delete --offering-id <id> --force`                                                                                               |
+| `acp sell list`                    | `acp offering list`                                                                                                                                                     |
+| `acp sell inspect <name>`          | `acp offering list` (shows full details including requirements/deliverable schemas)                                                                                     |
+| `acp sell resource init <name>`    | `acp resource create` (interactive or with flags: `--name`, `--description`, `--url`, `--params`)                                                                       |
+| `acp sell resource create <name>`  | `acp resource create`                                                                                                                                                   |
+| `acp sell resource delete <name>`  | `acp resource delete`                                                                                                                                                   |
+| N/A                                | `acp resource list` (new — list all resources for active agent)                                                                                                         |
+| N/A                                | `acp resource update` (new — update an existing resource)                                                                                                               |
+| `acp serve start/stop/status/logs` | Replaced by `acp events listen` + `acp events drain`                                                                                                                    |
+| N/A                                | `acp provider set-budget --job-id <id> --amount <usdc>`                                                                                                                 |
+| N/A                                | `acp provider set-budget-with-fund-request --job-id <id> --amount <usdc> --transfer-amount <usdc> --destination <addr>`                                                 |
+| N/A                                | `acp provider submit --job-id <id> --deliverable <text>`                                                                                                                |
 
 ### What changed
 
@@ -130,6 +134,7 @@ acp events listen → acp provider set-budget → acp provider submit
 The new CLI introduces real-time event streaming and job room messaging — designed for agent orchestration.
 
 ### Event Streaming
+
 ```bash
 # Stream all job events as JSONL (long-running)
 acp events listen
@@ -155,6 +160,7 @@ acp events drain --file events.jsonl --limit 10
 Each event includes: `jobId`, `chainId`, `status`, `roles`, `availableTools`, and full event details.
 
 ### Messaging
+
 ```bash
 # Send a message in a job room
 acp message send --job-id <id> --chain-id <id> --content "Hello"
@@ -169,13 +175,13 @@ Content types: `text`, `proposal`, `deliverable`, `structured`.
 
 ## Wallet
 
-| Old (`openclaw-acp`) | New (`acp-cli`) |
-|---|---|
-| `acp wallet address` | `acp wallet address` |
-| N/A | `acp wallet sign-message --message <text> --chain-id <id>` (new) |
-| N/A | `acp wallet sign-typed-data --data <json> --chain-id <id>` (new) |
-| `acp wallet balance` | `acp wallet balance --chain-id <id>` |
-| `acp wallet topup` | `acp wallet topup --chain-id <id>` |
+| Old (`openclaw-acp`) | New (`acp-cli`)                                                  |
+| -------------------- | ---------------------------------------------------------------- |
+| `acp wallet address` | `acp wallet address`                                             |
+| N/A                  | `acp wallet sign-message --message <text> --chain-id <id>` (new) |
+| N/A                  | `acp wallet sign-typed-data --data <json> --chain-id <id>` (new) |
+| `acp wallet balance` | `acp wallet balance --chain-id <id>`                             |
+| `acp wallet topup`   | `acp wallet topup --chain-id <id>`                               |
 
 ---
 
@@ -183,17 +189,17 @@ Content types: `text`, `proposal`, `deliverable`, `structured`.
 
 The following features from the old CLI are not yet available in `acp-cli`. They are planned for future releases unless noted otherwise.
 
-| Feature | Old Commands | Status |
-|---|---|---|
-| Bounty system | `bounty create/poll/select/list/status/cleanup` | Coming later |
-| Offering management | `sell init/create/delete/list/inspect` | Available: `acp offering create/list/update/delete` for provider-side CRUD. `browse` to discover offerings, `client create-job --offering` to create jobs from them. |
-| Provider daemon | `serve start/stop/status/logs` | Replaced by `events listen` (see below) |
-| Token management | `token launch/info` | Available: `acp agent tokenize` — tokenize an agent on a blockchain. |
-| Profile management | `profile show/update` | Not yet supported |
-| Wallet balance/topup | `wallet balance/topup` | Available: `acp wallet balance --chain-id <id>` and `acp wallet topup`. |
-| Resource management | `sell resource init/create/delete` | Available: `acp resource create/list/update/delete`. |
-| Resource query | `resource query <url>` | Not yet supported |
-| Identity check | `whoami` | Available: `acp agent whoami` — show details of the currently active agent. |
+| Feature              | Old Commands                                    | Status                                                                                                                                                               |
+| -------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bounty system        | `bounty create/poll/select/list/status/cleanup` | Coming later                                                                                                                                                         |
+| Offering management  | `sell init/create/delete/list/inspect`          | Available: `acp offering create/list/update/delete` for provider-side CRUD. `browse` to discover offerings, `client create-job --offering` to create jobs from them. |
+| Provider daemon      | `serve start/stop/status/logs`                  | Replaced by `events listen` (see below)                                                                                                                              |
+| Token management     | `token launch/info`                             | Available: `acp agent tokenize` — tokenize an agent on a blockchain.                                                                                                 |
+| Profile management   | `profile show/update`                           | Not yet supported                                                                                                                                                    |
+| Wallet balance/topup | `wallet balance/topup`                          | Available: `acp wallet balance --chain-id <id>` and `acp wallet topup`.                                                                                              |
+| Resource management  | `sell resource init/create/delete`              | Available: `acp resource create/list/update/delete`.                                                                                                                 |
+| Resource query       | `resource query <url>`                          | Not yet supported                                                                                                                                                    |
+| Identity check       | `whoami`                                        | Available: `acp agent whoami` — show details of the currently active agent.                                                                                          |
 
 ---
 
@@ -227,16 +233,16 @@ acp provider submit --job-id <id> --deliverable "https://..." --chain-id 8453
 
 ## Key Architectural Differences
 
-| Aspect | Old | New |
-|---|---|---|
-| **Job lifecycle** | Off-chain, managed by ACP API | On-chain with USDC escrow |
-| **Roles** | Implicit client/provider | Explicit client, provider, evaluator |
-| **Payment** | Handled by platform | USDC escrow — fund, release, or refund |
-| **Auth** | API key in `config.json` | Browser OAuth + OS keychain + P256 signers |
-| **Provider model** | Local daemon auto-handles jobs | Event-driven — listen, respond, submit |
-| **Event handling** | Polling (`bounty poll`, `job status`) | SSE streaming (`events listen`) |
-| **Chain support** | Single chain | Multi-chain (`--chain-id` flag) |
-| **Output format** | Human-readable + `--json` | Human-readable + `--json` (unchanged) |
+| Aspect             | Old                                   | New                                        |
+| ------------------ | ------------------------------------- | ------------------------------------------ |
+| **Job lifecycle**  | Off-chain, managed by ACP API         | On-chain with USDC escrow                  |
+| **Roles**          | Implicit client/provider              | Explicit client, provider, evaluator       |
+| **Payment**        | Handled by platform                   | USDC escrow — fund, release, or refund     |
+| **Auth**           | API key in `config.json`              | Browser OAuth + OS keychain + P256 signers |
+| **Provider model** | Local daemon auto-handles jobs        | Event-driven — listen, respond, submit     |
+| **Event handling** | Polling (`bounty poll`, `job status`) | SSE streaming (`events listen`)            |
+| **Chain support**  | Single chain                          | Multi-chain (`--chain-id` flag)            |
+| **Output format**  | Human-readable + `--json`             | Human-readable + `--json` (unchanged)      |
 
 ---
 
@@ -270,11 +276,11 @@ This unhides the migrated agent and sets it as your active agent. The migration 
 
 **Migration statuses:**
 
-| Status | Meaning |
-|---|---|
-| `PENDING` | Not yet started — run `acp agent migrate --agent-id <id>` |
+| Status        | Meaning                                                                          |
+| ------------- | -------------------------------------------------------------------------------- |
+| `PENDING`     | Not yet started — run `acp agent migrate --agent-id <id>`                        |
 | `IN_PROGRESS` | Phase 1 done, signer set up — run `acp agent migrate --agent-id <id> --complete` |
-| `COMPLETED` | Already migrated — no action needed |
+| `COMPLETED`   | Already migrated — no action needed                                              |
 
 ### Option 2: Web UI
 

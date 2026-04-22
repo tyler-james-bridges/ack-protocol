@@ -1,36 +1,37 @@
-import * as readline from "readline";
-import type { Command } from "commander";
-import { isJson, outputResult, outputError, isTTY } from "../lib/output";
-import { c } from "../lib/color";
-import type {  AgentResource,
+import * as readline from 'readline';
+import type { Command } from 'commander';
+import { isJson, outputResult, outputError, isTTY } from '../lib/output';
+import { c } from '../lib/color';
+import type {
+  AgentResource,
   CreateResourceBody,
   UpdateResourceBody,
-} from "../lib/api/agent";
-import { getClient } from "../lib/api/client";
-import { prompt, selectOption, printTable } from "../lib/prompt";
-import { validateJsonSchema } from "../lib/validation";
-import { getActiveAgentId } from "../lib/activeAgent";
+} from '../lib/api/agent';
+import { getClient } from '../lib/api/client';
+import { prompt, selectOption, printTable } from '../lib/prompt';
+import { validateJsonSchema } from '../lib/validation';
+import { getActiveAgentId } from '../lib/activeAgent';
 
 function printResource(resource: AgentResource): void {
   printTable([
-    ["ID", resource.id],
-    ["Name", resource.name],
-    ["Description", resource.description],
-    ["URL", resource.url],
-    ["Params", JSON.stringify(resource.params)],
-    ["Hidden", resource.isHidden ? "Yes" : "No"],
+    ['ID', resource.id],
+    ['Name', resource.name],
+    ['Description', resource.description],
+    ['URL', resource.url],
+    ['Params', JSON.stringify(resource.params)],
+    ['Hidden', resource.isHidden ? 'Yes' : 'No'],
   ]);
 }
 
 export function registerResourceCommands(program: Command): void {
   const resource = program
-    .command("resource")
-    .description("Manage agent resources");
+    .command('resource')
+    .description('Manage agent resources');
 
   // LIST
   resource
-    .command("list")
-    .description("List resources for the active agent")
+    .command('list')
+    .description('List resources for the active agent')
     .action(async (_opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -43,12 +44,12 @@ export function registerResourceCommands(program: Command): void {
         const resources = agent.resources ?? [];
 
         if (json) {
-          process.stdout.write(JSON.stringify(resources) + "\n");
+          process.stdout.write(JSON.stringify(resources) + '\n');
           return;
         }
 
         if (resources.length === 0) {
-          console.log("No resources found.");
+          console.log('No resources found.');
           return;
         }
 
@@ -58,9 +59,11 @@ export function registerResourceCommands(program: Command): void {
             console.log();
           }
         } else {
-          console.log("ID\tNAME\tURL\tHIDDEN");
+          console.log('ID\tNAME\tURL\tHIDDEN');
           for (const r of resources) {
-            console.log(`${r.id}\t${r.name}\t${r.url}\t${r.isHidden ? "yes" : "no"}`);
+            console.log(
+              `${r.id}\t${r.name}\t${r.url}\t${r.isHidden ? 'yes' : 'no'}`
+            );
           }
         }
       } catch (err) {
@@ -75,14 +78,14 @@ export function registerResourceCommands(program: Command): void {
 
   // CREATE
   resource
-    .command("create")
-    .description("Create a new resource for the active agent")
-    .option("--name <name>", "Resource name")
-    .option("--description <text>", "Description")
-    .option("--url <url>", "Resource URL")
-    .option("--params <json>", "Params JSON schema")
-    .option("--hidden", "Hidden resource")
-    .option("--no-hidden", "Visible resource")
+    .command('create')
+    .description('Create a new resource for the active agent')
+    .option('--name <name>', 'Resource name')
+    .option('--description <text>', 'Description')
+    .option('--url <url>', 'Resource URL')
+    .option('--params <json>', 'Params JSON schema')
+    .option('--hidden', 'Hidden resource')
+    .option('--no-hidden', 'Visible resource')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -111,30 +114,50 @@ export function registerResourceCommands(program: Command): void {
         let name: string;
         if (opts.name) {
           name = opts.name.trim();
-          if (!name) { outputError(json, "Name cannot be empty."); return; }
+          if (!name) {
+            outputError(json, 'Name cannot be empty.');
+            return;
+          }
         } else {
-          name = (await prompt(rl!, "Resource name (1-100 chars): ")).trim();
-          if (!name) { outputError(json, "Name cannot be empty."); return; }
+          name = (await prompt(rl!, 'Resource name (1-100 chars): ')).trim();
+          if (!name) {
+            outputError(json, 'Name cannot be empty.');
+            return;
+          }
         }
 
         // Description
         let description: string;
         if (opts.description) {
           description = opts.description.trim();
-          if (!description) { outputError(json, "Description cannot be empty."); return; }
+          if (!description) {
+            outputError(json, 'Description cannot be empty.');
+            return;
+          }
         } else {
-          description = (await prompt(rl!, "Description (10-500 chars): ")).trim();
-          if (!description) { outputError(json, "Description cannot be empty."); return; }
+          description = (
+            await prompt(rl!, 'Description (10-500 chars): ')
+          ).trim();
+          if (!description) {
+            outputError(json, 'Description cannot be empty.');
+            return;
+          }
         }
 
         // URL
         let url: string;
         if (opts.url) {
           url = opts.url.trim();
-          if (!url) { outputError(json, "URL cannot be empty."); return; }
+          if (!url) {
+            outputError(json, 'URL cannot be empty.');
+            return;
+          }
         } else {
-          url = (await prompt(rl!, "Resource URL: ")).trim();
-          if (!url) { outputError(json, "URL cannot be empty."); return; }
+          url = (await prompt(rl!, 'Resource URL: ')).trim();
+          if (!url) {
+            outputError(json, 'URL cannot be empty.');
+            return;
+          }
         }
 
         // Params (JSON schema)
@@ -148,10 +171,10 @@ export function registerResourceCommands(program: Command): void {
           }
         } else {
           const paramsStr = (
-            await prompt(rl!, "Params JSON schema (or {} for empty): ")
+            await prompt(rl!, 'Params JSON schema (or {} for empty): ')
           ).trim();
           if (!paramsStr) {
-            outputError(json, "Params cannot be empty. Use {} for no params.");
+            outputError(json, 'Params cannot be empty. Use {} for no params.');
             return;
           }
           try {
@@ -167,10 +190,10 @@ export function registerResourceCommands(program: Command): void {
         if (opts.hidden !== undefined) {
           hidden = opts.hidden;
         } else {
-          const hiddenStr = (
-            await prompt(rl!, "Hidden? (y/N): ")
-          ).trim().toLowerCase();
-          hidden = hiddenStr === "y";
+          const hiddenStr = (await prompt(rl!, 'Hidden? (y/N): '))
+            .trim()
+            .toLowerCase();
+          hidden = hiddenStr === 'y';
         }
 
         const body: CreateResourceBody = {
@@ -188,7 +211,7 @@ export function registerResourceCommands(program: Command): void {
           return;
         }
 
-        console.log(`\n${c.green("Resource created successfully!")}\n`);
+        console.log(`\n${c.green('Resource created successfully!')}\n`);
         printResource(created);
       } catch (err) {
         outputError(
@@ -204,8 +227,8 @@ export function registerResourceCommands(program: Command): void {
 
   // UPDATE
   resource
-    .command("update")
-    .description("Update an existing resource for the active agent")
+    .command('update')
+    .description('Update an existing resource for the active agent')
     .action(async (_opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -228,12 +251,12 @@ export function registerResourceCommands(program: Command): void {
       }
 
       if (resources.length === 0) {
-        outputError(json, "No resources found to update.");
+        outputError(json, 'No resources found to update.');
         return;
       }
 
       const selected = await selectOption(
-        "Choose a resource to update:",
+        'Choose a resource to update:',
         resources,
         (r) => `${r.name} — ${r.url}`
       );
@@ -244,13 +267,11 @@ export function registerResourceCommands(program: Command): void {
       });
 
       try {
-        console.log("\nPress Enter to keep current value.\n");
+        console.log('\nPress Enter to keep current value.\n');
 
         const updates: UpdateResourceBody = {};
 
-        const name = (
-          await prompt(rl, `Name [${selected.name}]: `)
-        ).trim();
+        const name = (await prompt(rl, `Name [${selected.name}]: `)).trim();
         if (name) updates.name = name;
 
         const description = (
@@ -258,9 +279,7 @@ export function registerResourceCommands(program: Command): void {
         ).trim();
         if (description) updates.description = description;
 
-        const url = (
-          await prompt(rl, `URL [${selected.url}]: `)
-        ).trim();
+        const url = (await prompt(rl, `URL [${selected.url}]: `)).trim();
         if (url) updates.url = url;
 
         const currentParamsDisplay = JSON.stringify(selected.params);
@@ -269,10 +288,12 @@ export function registerResourceCommands(program: Command): void {
             rl,
             `Update params? Current: ${currentParamsDisplay} (y/N): `
           )
-        ).trim().toLowerCase();
-        if (updateParams === "y") {
+        )
+          .trim()
+          .toLowerCase();
+        if (updateParams === 'y') {
           const paramsStr = (
-            await prompt(rl, "New params JSON schema: ")
+            await prompt(rl, 'New params JSON schema: ')
           ).trim();
           try {
             updates.params = validateJsonSchema(paramsStr);
@@ -285,14 +306,16 @@ export function registerResourceCommands(program: Command): void {
         const hiddenStr = (
           await prompt(
             rl,
-            `Hidden [${selected.isHidden ? "Yes" : "No"}] (y/n): `
+            `Hidden [${selected.isHidden ? 'Yes' : 'No'}] (y/n): `
           )
-        ).trim().toLowerCase();
-        if (hiddenStr === "y") updates.hidden = true;
-        else if (hiddenStr === "n") updates.hidden = false;
+        )
+          .trim()
+          .toLowerCase();
+        if (hiddenStr === 'y') updates.hidden = true;
+        else if (hiddenStr === 'n') updates.hidden = false;
 
         if (Object.keys(updates).length === 0) {
-          console.log("No changes made.");
+          console.log('No changes made.');
           return;
         }
 
@@ -307,7 +330,7 @@ export function registerResourceCommands(program: Command): void {
           return;
         }
 
-        console.log(`\n${c.green("Resource updated successfully!")}\n`);
+        console.log(`\n${c.green('Resource updated successfully!')}\n`);
         printResource(updated);
       } catch (err) {
         outputError(
@@ -323,8 +346,8 @@ export function registerResourceCommands(program: Command): void {
 
   // DELETE
   resource
-    .command("delete")
-    .description("Delete a resource from the active agent")
+    .command('delete')
+    .description('Delete a resource from the active agent')
     .action(async (_opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -347,12 +370,12 @@ export function registerResourceCommands(program: Command): void {
       }
 
       if (resources.length === 0) {
-        outputError(json, "No resources found to delete.");
+        outputError(json, 'No resources found to delete.');
         return;
       }
 
       const selected = await selectOption(
-        "Choose a resource to delete:",
+        'Choose a resource to delete:',
         resources,
         (r) => `${r.name} — ${r.url}`
       );
@@ -365,10 +388,12 @@ export function registerResourceCommands(program: Command): void {
       try {
         const confirm = (
           await prompt(rl, `Delete resource '${selected.name}'? (y/N): `)
-        ).trim().toLowerCase();
+        )
+          .trim()
+          .toLowerCase();
 
-        if (confirm !== "y") {
-          console.log("Cancelled.");
+        if (confirm !== 'y') {
+          console.log('Cancelled.');
           return;
         }
 
@@ -380,7 +405,9 @@ export function registerResourceCommands(program: Command): void {
             deletedResource: selected.name,
           });
         } else {
-          console.log(`\n${c.green(`Resource '${selected.name}' deleted successfully.`)}`);
+          console.log(
+            `\n${c.green(`Resource '${selected.name}' deleted successfully.`)}`
+          );
         }
       } catch (err) {
         outputError(

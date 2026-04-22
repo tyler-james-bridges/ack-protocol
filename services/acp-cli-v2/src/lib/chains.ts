@@ -1,4 +1,4 @@
-import { getEvmChainByChainId } from "@virtuals-protocol/acp-node-v2";
+import { getEvmChainByChainId } from '@virtuals-protocol/acp-node-v2';
 
 export function formatChainId(id: number): string {
   const chain = getEvmChainByChainId(id);
@@ -6,5 +6,5 @@ export function formatChainId(id: number): string {
 }
 
 export function formatChainIds(ids: number[]): string {
-  return ids.map(formatChainId).join(", ");
+  return ids.map(formatChainId).join(', ');
 }

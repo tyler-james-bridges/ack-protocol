@@ -1,4 +1,4 @@
-import { ApiClient } from "./client";
+import { ApiClient } from './client';
 
 export interface AddSignerResponse {
   message: string;
@@ -7,7 +7,7 @@ export interface AddSignerResponse {
 
 export interface GetSignerStatusResponse {
   message: string;
-  data: { status: "completed" | "pending" | null };
+  data: { status: 'completed' | 'pending' | null };
 }
 
 export interface AgentOffering {
@@ -32,7 +32,7 @@ export interface CreateOfferingBody {
   deliverable: Record<string, unknown> | string;
   requirements: Record<string, unknown> | string;
   slaMinutes: number;
-  priceType: "fixed" | "percentage";
+  priceType: 'fixed' | 'percentage';
   priceValue: number;
   requiredFunds?: boolean;
   isHidden?: boolean;
@@ -97,7 +97,7 @@ export interface Agent {
   isHidden: boolean;
   walletProviders: {
     provider: string;
-    chainType?: "EVM" | "SOLANA";
+    chainType?: 'EVM' | 'SOLANA';
     metadata: {
       walletId: string;
     };
@@ -187,9 +187,9 @@ interface AgentBrowseResponse {
 }
 
 export const MigrationStatus = {
-  PENDING: "PENDING",
-  IN_PROGRESS: "IN_PROGRESS",
-  COMPLETED: "COMPLETED",
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
 } as const;
 
 export type MigrationStatus =
@@ -242,10 +242,10 @@ export interface AgentAssetsResponse {
 }
 
 export const CHAIN_NETWORK_MAP: Record<number, string> = {
-  8453: "base-mainnet",
-  84532: "base-sepolia",
-  56: "bnb-mainnet",
-  97: "bnb-testnet",
+  8453: 'base-mainnet',
+  84532: 'base-sepolia',
+  56: 'bnb-mainnet',
+  97: 'bnb-testnet',
 };
 
 export interface UpdateAgentBody {
@@ -271,7 +271,7 @@ export class AgentApi {
     const params: Record<string, string> = {};
     if (page !== undefined) params.page = String(page);
     if (pageSize !== undefined) params.pageSize = String(pageSize);
-    return this.client.get<AgentListResponse>("/agents", params);
+    return this.client.get<AgentListResponse>('/agents', params);
   }
 
   async create(
@@ -279,9 +279,9 @@ export class AgentApi {
     description: string,
     image?: string
   ): Promise<Agent> {
-    const body: Record<string, unknown> = { name, description, role: "HYBRID" };
+    const body: Record<string, unknown> = { name, description, role: 'HYBRID' };
     if (image) body.image = image;
-    const res = await this.client.post<AgentCreateResponse>("/agents", body);
+    const res = await this.client.post<AgentCreateResponse>('/agents', body);
     return res.data;
   }
 
@@ -317,13 +317,13 @@ export class AgentApi {
   ): Promise<AgentBrowseResponse> {
     const params: Record<string, string> = {};
     if (query) params.query = query;
-    if (chainIds && chainIds.length > 0) params.chainIds = chainIds.join(",");
+    if (chainIds && chainIds.length > 0) params.chainIds = chainIds.join(',');
     if (opts?.sortBy && opts.sortBy.length > 0)
-      params.sortBy = opts.sortBy.join(",");
+      params.sortBy = opts.sortBy.join(',');
     if (opts?.topK !== undefined) params.topK = String(opts.topK);
     if (opts?.isOnline) params.isOnline = opts.isOnline;
     if (opts?.cluster) params.cluster = opts.cluster;
-    return this.client.get<AgentBrowseResponse>("/agents/search", params);
+    return this.client.get<AgentBrowseResponse>('/agents/search', params);
   }
 
   async addSignerWithUrl(agentId: string): Promise<AddSignerResponse> {
@@ -414,14 +414,14 @@ export class AgentApi {
 
   async getLegacyAgents(): Promise<LegacyAgent[]> {
     const res = await this.client.get<{ data: LegacyAgent[] }>(
-      "/agents/legacy"
+      '/agents/legacy'
     );
     return res.data;
   }
 
   async migrateAgent(acpAgentId: number): Promise<Agent> {
     const res = await this.client.post<{ message: string; data: Agent }>(
-      "/agents/migrate",
+      '/agents/migrate',
       { acpAgentId }
     );
     return res.data;
@@ -431,10 +431,9 @@ export class AgentApi {
     agentId: string,
     networks: string[]
   ): Promise<AgentAssetsResponse> {
-    return this.client.post<AgentAssetsResponse>(
-      `/agents/${agentId}/assets`,
-      { networks }
-    );
+    return this.client.post<AgentAssetsResponse>(`/agents/${agentId}/assets`, {
+      networks,
+    });
   }
 
   async getCoinbaseUrl(
@@ -442,7 +441,7 @@ export class AgentApi {
     chainId: number,
     amount?: string
   ): Promise<{ data: { url: string } }> {
-    return this.client.post("/topup/coinbase-url", {
+    return this.client.post('/topup/coinbase-url', {
       walletAddress,
       chainId,
       amount,
@@ -456,7 +455,7 @@ export class AgentApi {
   ): Promise<{
     data: { needsSignature: boolean; challenge?: string };
   }> {
-    return this.client.post("/topup/crossmint-init", {
+    return this.client.post('/topup/crossmint-init', {
       walletAddress,
       chainId,
       isUS,
@@ -471,7 +470,7 @@ export class AgentApi {
     signature?: string;
     isUS?: boolean;
   }): Promise<{ data: { checkoutUrl: string } }> {
-    return this.client.post("/topup/crossmint-complete", data);
+    return this.client.post('/topup/crossmint-complete', data);
   }
 
   async tokenize(

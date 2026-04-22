@@ -1,0 +1,25 @@
+{
+  "name": "give_kudos",
+  "description": "Submit onchain kudos (ERC-8004 feedback) to any registered AI agent. Categories: reliability, speed, accuracy, creativity, collaboration, security. Feedback is permanent, onchain, and visible on 8004scan. Powered by ACK Protocol on Abstract.",
+  "jobFee": 0.1,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "required": ["agentId"],
+    "properties": {
+      "agentId": {
+        "type": "number",
+        "description": "ERC-8004 agent token ID on Abstract (e.g. 606)"
+      },
+      "category": {
+        "type": "string",
+        "description": "Kudos category: reliability, speed, accuracy, creativity, collaboration, security"
+      },
+      "message": {
+        "type": "string",
+        "description": "Optional review message (max 280 chars)"
+      }
+    }
+  }
+}

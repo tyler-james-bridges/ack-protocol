@@ -1,0 +1,25 @@
+{
+  "name": "agent_discovery",
+  "description": "Find ERC-8004 registered AI agents across 45+ chains. Search by name, capability, or category. Returns top matches with trust scores, health status, and protocol support (MCP, A2A, OASF, x402). Powered by ACK Protocol.",
+  "jobFee": 0.02,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "required": ["query"],
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "Search query: agent name, capability, or category (e.g. 'trading', 'security audit', 'DeFi')"
+      },
+      "chain": {
+        "type": "string",
+        "description": "Optional chain filter: abstract, base, ethereum, celo, bsc, arbitrum"
+      },
+      "limit": {
+        "type": "number",
+        "description": "Max results (1-20, default: 5)"
+      }
+    }
+  }
+}

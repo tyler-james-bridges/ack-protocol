@@ -1,16 +1,16 @@
-import * as readline from "readline";
-import type { Command } from "commander";
-import { isJson, outputResult, outputError, isTTY } from "../lib/output";
-import { c } from "../lib/color";
+import * as readline from 'readline';
+import type { Command } from 'commander';
+import { isJson, outputResult, outputError, isTTY } from '../lib/output';
+import { c } from '../lib/color';
 import type {
   AgentOffering,
   CreateOfferingBody,
   UpdateOfferingBody,
-} from "../lib/api/agent";
-import { getClient } from "../lib/api/client";
-import { prompt, selectOption, printTable } from "../lib/prompt";
-import { validateJsonSchema } from "../lib/validation";
-import { getActiveAgentId } from "../lib/activeAgent";
+} from '../lib/api/agent';
+import { getClient } from '../lib/api/client';
+import { prompt, selectOption, printTable } from '../lib/prompt';
+import { validateJsonSchema } from '../lib/validation';
+import { getActiveAgentId } from '../lib/activeAgent';
 
 function parseSchemaOrString(
   value: string,
@@ -19,7 +19,7 @@ function parseSchemaOrString(
   try {
     const parsed = JSON.parse(value);
     if (
-      typeof parsed === "object" &&
+      typeof parsed === 'object' &&
       parsed !== null &&
       !Array.isArray(parsed)
     ) {
@@ -45,7 +45,7 @@ async function promptSchemaField(
     )
   ).trim();
 
-  if (type === "2") {
+  if (type === '2') {
     const input = (await prompt(rl, `${fieldName} (JSON schema): `)).trim();
     return validateJsonSchema(input);
   }
@@ -57,36 +57,36 @@ async function promptSchemaField(
 
 function printOffering(offering: AgentOffering): void {
   const reqDisplay =
-    typeof offering.requirements === "object"
+    typeof offering.requirements === 'object'
       ? JSON.stringify(offering.requirements)
       : offering.requirements;
   const delDisplay =
-    typeof offering.deliverable === "object"
+    typeof offering.deliverable === 'object'
       ? JSON.stringify(offering.deliverable)
       : offering.deliverable;
 
   printTable([
-    ["ID", offering.id],
-    ["Name", offering.name],
-    ["Description", offering.description],
-    ["Requirements", reqDisplay],
-    ["Deliverable", delDisplay],
-    ["Price", `${offering.priceValue} (${offering.priceType})`],
-    ["SLA", `${offering.slaMinutes} min`],
-    ["Required Funds", offering.requiredFunds ? "Yes" : "No"],
-    ["Hidden", offering.isHidden ? "Yes" : "No"],
+    ['ID', offering.id],
+    ['Name', offering.name],
+    ['Description', offering.description],
+    ['Requirements', reqDisplay],
+    ['Deliverable', delDisplay],
+    ['Price', `${offering.priceValue} (${offering.priceType})`],
+    ['SLA', `${offering.slaMinutes} min`],
+    ['Required Funds', offering.requiredFunds ? 'Yes' : 'No'],
+    ['Hidden', offering.isHidden ? 'Yes' : 'No'],
   ]);
 }
 
 export function registerOfferingCommands(program: Command): void {
   const offering = program
-    .command("offering")
-    .description("Manage agent offerings");
+    .command('offering')
+    .description('Manage agent offerings');
 
   // LIST
   offering
-    .command("list")
-    .description("List offerings for the active agent")
+    .command('list')
+    .description('List offerings for the active agent')
     .action(async (_opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -99,12 +99,12 @@ export function registerOfferingCommands(program: Command): void {
         const offerings = agent.offerings ?? [];
 
         if (json) {
-          process.stdout.write(JSON.stringify(offerings) + "\n");
+          process.stdout.write(JSON.stringify(offerings) + '\n');
           return;
         }
 
         if (offerings.length === 0) {
-          console.log("No offerings found.");
+          console.log('No offerings found.');
           return;
         }
 
@@ -114,7 +114,7 @@ export function registerOfferingCommands(program: Command): void {
             console.log();
           }
         } else {
-          console.log("ID\tNAME\tPRICE\tSLA");
+          console.log('ID\tNAME\tPRICE\tSLA');
           for (const o of offerings) {
             console.log(
               `${o.id}\t${o.name}\t${o.priceValue} (${o.priceType})\t${o.slaMinutes}m`
@@ -133,19 +133,19 @@ export function registerOfferingCommands(program: Command): void {
 
   // CREATE
   offering
-    .command("create")
-    .description("Create a new offering for the active agent")
-    .option("--name <name>", "Offering name")
-    .option("--description <text>", "Description")
-    .option("--price-type <type>", "Price type: fixed or percentage")
-    .option("--price-value <value>", "Price value")
-    .option("--sla-minutes <minutes>", "SLA in minutes")
-    .option("--requirements <value>", "Requirements (string or JSON schema)")
-    .option("--deliverable <value>", "Deliverable (string or JSON schema)")
-    .option("--required-funds", "Require funds")
-    .option("--no-required-funds", "Do not require funds")
-    .option("--hidden", "Hidden offering")
-    .option("--no-hidden", "Visible offering")
+    .command('create')
+    .description('Create a new offering for the active agent')
+    .option('--name <name>', 'Offering name')
+    .option('--description <text>', 'Description')
+    .option('--price-type <type>', 'Price type: fixed or percentage')
+    .option('--price-value <value>', 'Price value')
+    .option('--sla-minutes <minutes>', 'SLA in minutes')
+    .option('--requirements <value>', 'Requirements (string or JSON schema)')
+    .option('--deliverable <value>', 'Deliverable (string or JSON schema)')
+    .option('--required-funds', 'Require funds')
+    .option('--no-required-funds', 'Do not require funds')
+    .option('--hidden', 'Hidden offering')
+    .option('--no-hidden', 'Visible offering')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -179,13 +179,13 @@ export function registerOfferingCommands(program: Command): void {
         if (opts.name) {
           name = opts.name.trim();
           if (!name) {
-            outputError(json, "Name cannot be empty.");
+            outputError(json, 'Name cannot be empty.');
             return;
           }
         } else {
-          name = (await prompt(rl!, "Offering name (3-20 chars): ")).trim();
+          name = (await prompt(rl!, 'Offering name (3-20 chars): ')).trim();
           if (!name) {
-            outputError(json, "Name cannot be empty.");
+            outputError(json, 'Name cannot be empty.');
             return;
           }
         }
@@ -195,24 +195,24 @@ export function registerOfferingCommands(program: Command): void {
         if (opts.description) {
           description = opts.description.trim();
           if (!description) {
-            outputError(json, "Description cannot be empty.");
+            outputError(json, 'Description cannot be empty.');
             return;
           }
         } else {
           description = (
-            await prompt(rl!, "Description (10-500 chars): ")
+            await prompt(rl!, 'Description (10-500 chars): ')
           ).trim();
           if (!description) {
-            outputError(json, "Description cannot be empty.");
+            outputError(json, 'Description cannot be empty.');
             return;
           }
         }
 
         // Price type
-        let priceType: "fixed" | "percentage";
+        let priceType: 'fixed' | 'percentage';
         if (opts.priceType) {
           const pt = opts.priceType.trim().toLowerCase();
-          if (pt !== "fixed" && pt !== "percentage") {
+          if (pt !== 'fixed' && pt !== 'percentage') {
             outputError(json, "Price type must be 'fixed' or 'percentage'.");
             return;
           }
@@ -221,8 +221,8 @@ export function registerOfferingCommands(program: Command): void {
           rl?.close();
           rl = undefined;
           priceType = await selectOption(
-            "Price type:",
-            ["fixed", "percentage"] as const,
+            'Price type:',
+            ['fixed', 'percentage'] as const,
             (t) => t
           );
           rl = readline.createInterface({
@@ -236,14 +236,14 @@ export function registerOfferingCommands(program: Command): void {
         if (opts.priceValue) {
           priceValue = parseFloat(opts.priceValue);
           if (isNaN(priceValue) || priceValue <= 0) {
-            outputError(json, "Price value must be a positive number.");
+            outputError(json, 'Price value must be a positive number.');
             return;
           }
         } else {
-          const priceValueStr = (await prompt(rl!, "Price value: ")).trim();
+          const priceValueStr = (await prompt(rl!, 'Price value: ')).trim();
           priceValue = parseFloat(priceValueStr);
           if (isNaN(priceValue) || priceValue <= 0) {
-            outputError(json, "Price value must be a positive number.");
+            outputError(json, 'Price value must be a positive number.');
             return;
           }
         }
@@ -253,14 +253,14 @@ export function registerOfferingCommands(program: Command): void {
         if (opts.slaMinutes) {
           slaMinutes = parseInt(opts.slaMinutes, 10);
           if (isNaN(slaMinutes) || slaMinutes < 5) {
-            outputError(json, "SLA must be at least 5 minutes.");
+            outputError(json, 'SLA must be at least 5 minutes.');
             return;
           }
         } else {
-          const slaStr = (await prompt(rl!, "SLA in minutes (min 5): ")).trim();
+          const slaStr = (await prompt(rl!, 'SLA in minutes (min 5): ')).trim();
           slaMinutes = parseInt(slaStr, 10);
           if (isNaN(slaMinutes) || slaMinutes < 5) {
-            outputError(json, "SLA must be at least 5 minutes.");
+            outputError(json, 'SLA must be at least 5 minutes.');
             return;
           }
         }
@@ -271,7 +271,7 @@ export function registerOfferingCommands(program: Command): void {
           try {
             requirements = parseSchemaOrString(
               opts.requirements,
-              "Requirements"
+              'Requirements'
             );
           } catch (err) {
             outputError(json, err instanceof Error ? err : String(err));
@@ -279,7 +279,7 @@ export function registerOfferingCommands(program: Command): void {
           }
         } else {
           try {
-            requirements = await promptSchemaField(rl!, "Requirements");
+            requirements = await promptSchemaField(rl!, 'Requirements');
           } catch (err) {
             outputError(json, err instanceof Error ? err : String(err));
             return;
@@ -290,14 +290,14 @@ export function registerOfferingCommands(program: Command): void {
         let deliverable: Record<string, unknown> | string;
         if (opts.deliverable) {
           try {
-            deliverable = parseSchemaOrString(opts.deliverable, "Deliverable");
+            deliverable = parseSchemaOrString(opts.deliverable, 'Deliverable');
           } catch (err) {
             outputError(json, err instanceof Error ? err : String(err));
             return;
           }
         } else {
           try {
-            deliverable = await promptSchemaField(rl!, "Deliverable");
+            deliverable = await promptSchemaField(rl!, 'Deliverable');
           } catch (err) {
             outputError(json, err instanceof Error ? err : String(err));
             return;
@@ -310,21 +310,21 @@ export function registerOfferingCommands(program: Command): void {
           requiredFunds = opts.requiredFunds;
         } else {
           const requiredFundsStr = (
-            await prompt(rl!, "Required funds? (y/N): ")
+            await prompt(rl!, 'Required funds? (y/N): ')
           )
             .trim()
             .toLowerCase();
-          requiredFunds = requiredFundsStr === "y";
+          requiredFunds = requiredFundsStr === 'y';
         }
 
         let isHidden: boolean;
         if (opts.hidden !== undefined) {
           isHidden = opts.hidden;
         } else {
-          const isHiddenStr = (await prompt(rl!, "Hidden? (y/N): "))
+          const isHiddenStr = (await prompt(rl!, 'Hidden? (y/N): '))
             .trim()
             .toLowerCase();
-          isHidden = isHiddenStr === "y";
+          isHidden = isHiddenStr === 'y';
         }
 
         const body: CreateOfferingBody = {
@@ -346,7 +346,7 @@ export function registerOfferingCommands(program: Command): void {
           return;
         }
 
-        console.log(`\n${c.green("Offering created successfully!")}\n`);
+        console.log(`\n${c.green('Offering created successfully!')}\n`);
         printOffering(created);
       } catch (err) {
         outputError(
@@ -362,23 +362,23 @@ export function registerOfferingCommands(program: Command): void {
 
   // UPDATE
   offering
-    .command("update")
-    .description("Update an existing offering for the active agent")
-    .option("--offering-id <id>", "Offering ID to update")
-    .option("--name <name>", "New name")
-    .option("--description <text>", "New description")
-    .option("--price-type <type>", "New price type: fixed or percentage")
-    .option("--price-value <value>", "New price value")
-    .option("--sla-minutes <minutes>", "New SLA in minutes")
+    .command('update')
+    .description('Update an existing offering for the active agent')
+    .option('--offering-id <id>', 'Offering ID to update')
+    .option('--name <name>', 'New name')
+    .option('--description <text>', 'New description')
+    .option('--price-type <type>', 'New price type: fixed or percentage')
+    .option('--price-value <value>', 'New price value')
+    .option('--sla-minutes <minutes>', 'New SLA in minutes')
     .option(
-      "--requirements <value>",
-      "New requirements (string or JSON schema)"
+      '--requirements <value>',
+      'New requirements (string or JSON schema)'
     )
-    .option("--deliverable <value>", "New deliverable (string or JSON schema)")
-    .option("--required-funds", "Set required funds to true")
-    .option("--no-required-funds", "Set required funds to false")
-    .option("--hidden", "Set hidden to true")
-    .option("--no-hidden", "Set hidden to false")
+    .option('--deliverable <value>', 'New deliverable (string or JSON schema)')
+    .option('--required-funds', 'Set required funds to true')
+    .option('--no-required-funds', 'Set required funds to false')
+    .option('--hidden', 'Set hidden to true')
+    .option('--no-hidden', 'Set hidden to false')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -401,7 +401,7 @@ export function registerOfferingCommands(program: Command): void {
       }
 
       if (offerings.length === 0) {
-        outputError(json, "No offerings found to update.");
+        outputError(json, 'No offerings found to update.');
         return;
       }
 
@@ -415,7 +415,7 @@ export function registerOfferingCommands(program: Command): void {
         selected = match;
       } else {
         selected = await selectOption(
-          "Choose an offering to update:",
+          'Choose an offering to update:',
           offerings,
           (o) => `${o.name} — ${o.priceValue} (${o.priceType})`
         );
@@ -432,7 +432,7 @@ export function registerOfferingCommands(program: Command): void {
             input: process.stdin,
             output: process.stdout,
           });
-          console.log("\nPress Enter to keep current value.\n");
+          console.log('\nPress Enter to keep current value.\n');
         }
 
         const updates: UpdateOfferingBody = {};
@@ -459,7 +459,7 @@ export function registerOfferingCommands(program: Command): void {
         if (opts.priceValue) {
           const pv = parseFloat(opts.priceValue);
           if (isNaN(pv) || pv <= 0) {
-            outputError(json, "Price value must be a positive number.");
+            outputError(json, 'Price value must be a positive number.');
             return;
           }
           updates.priceValue = pv;
@@ -470,7 +470,7 @@ export function registerOfferingCommands(program: Command): void {
           if (priceValueStr) {
             const pv = parseFloat(priceValueStr);
             if (isNaN(pv) || pv <= 0) {
-              outputError(json, "Price value must be a positive number.");
+              outputError(json, 'Price value must be a positive number.');
               return;
             }
             updates.priceValue = pv;
@@ -480,7 +480,7 @@ export function registerOfferingCommands(program: Command): void {
         // Price type
         if (opts.priceType) {
           const pt = opts.priceType.trim().toLowerCase();
-          if (pt !== "fixed" && pt !== "percentage") {
+          if (pt !== 'fixed' && pt !== 'percentage') {
             outputError(json, "Price type must be 'fixed' or 'percentage'.");
             return;
           }
@@ -495,7 +495,7 @@ export function registerOfferingCommands(program: Command): void {
             .trim()
             .toLowerCase();
           if (priceTypeStr) {
-            if (priceTypeStr !== "fixed" && priceTypeStr !== "percentage") {
+            if (priceTypeStr !== 'fixed' && priceTypeStr !== 'percentage') {
               outputError(json, "Price type must be 'fixed' or 'percentage'.");
               return;
             }
@@ -507,7 +507,7 @@ export function registerOfferingCommands(program: Command): void {
         if (opts.slaMinutes) {
           const sla = parseInt(opts.slaMinutes, 10);
           if (isNaN(sla) || sla < 5) {
-            outputError(json, "SLA must be at least 5 minutes.");
+            outputError(json, 'SLA must be at least 5 minutes.');
             return;
           }
           updates.slaMinutes = sla;
@@ -518,7 +518,7 @@ export function registerOfferingCommands(program: Command): void {
           if (slaStr) {
             const sla = parseInt(slaStr, 10);
             if (isNaN(sla) || sla < 5) {
-              outputError(json, "SLA must be at least 5 minutes.");
+              outputError(json, 'SLA must be at least 5 minutes.');
               return;
             }
             updates.slaMinutes = sla;
@@ -530,7 +530,7 @@ export function registerOfferingCommands(program: Command): void {
           try {
             updates.requirements = parseSchemaOrString(
               opts.requirements,
-              "Requirements"
+              'Requirements'
             );
           } catch (err) {
             outputError(json, err instanceof Error ? err : String(err));
@@ -538,7 +538,7 @@ export function registerOfferingCommands(program: Command): void {
           }
         } else if (!nonInteractive) {
           const currentReqDisplay =
-            typeof selected.requirements === "object"
+            typeof selected.requirements === 'object'
               ? JSON.stringify(selected.requirements)
               : selected.requirements;
           const updateReq = (
@@ -549,11 +549,11 @@ export function registerOfferingCommands(program: Command): void {
           )
             .trim()
             .toLowerCase();
-          if (updateReq === "y") {
+          if (updateReq === 'y') {
             try {
               updates.requirements = await promptSchemaField(
                 rl!,
-                "Requirements"
+                'Requirements'
               );
             } catch (err) {
               outputError(json, err instanceof Error ? err : String(err));
@@ -567,7 +567,7 @@ export function registerOfferingCommands(program: Command): void {
           try {
             updates.deliverable = parseSchemaOrString(
               opts.deliverable,
-              "Deliverable"
+              'Deliverable'
             );
           } catch (err) {
             outputError(json, err instanceof Error ? err : String(err));
@@ -575,7 +575,7 @@ export function registerOfferingCommands(program: Command): void {
           }
         } else if (!nonInteractive) {
           const currentDelDisplay =
-            typeof selected.deliverable === "object"
+            typeof selected.deliverable === 'object'
               ? JSON.stringify(selected.deliverable)
               : selected.deliverable;
           const updateDel = (
@@ -586,9 +586,9 @@ export function registerOfferingCommands(program: Command): void {
           )
             .trim()
             .toLowerCase();
-          if (updateDel === "y") {
+          if (updateDel === 'y') {
             try {
-              updates.deliverable = await promptSchemaField(rl!, "Deliverable");
+              updates.deliverable = await promptSchemaField(rl!, 'Deliverable');
             } catch (err) {
               outputError(json, err instanceof Error ? err : String(err));
               return;
@@ -604,14 +604,14 @@ export function registerOfferingCommands(program: Command): void {
             await prompt(
               rl!,
               `Required funds [${
-                selected.requiredFunds ? "Yes" : "No"
+                selected.requiredFunds ? 'Yes' : 'No'
               }] (y/n): `
             )
           )
             .trim()
             .toLowerCase();
-          if (reqFundsStr === "y") updates.requiredFunds = true;
-          else if (reqFundsStr === "n") updates.requiredFunds = false;
+          if (reqFundsStr === 'y') updates.requiredFunds = true;
+          else if (reqFundsStr === 'n') updates.requiredFunds = false;
         }
 
         // Hidden
@@ -621,17 +621,17 @@ export function registerOfferingCommands(program: Command): void {
           const hiddenStr = (
             await prompt(
               rl!,
-              `Hidden [${selected.isHidden ? "Yes" : "No"}] (y/n): `
+              `Hidden [${selected.isHidden ? 'Yes' : 'No'}] (y/n): `
             )
           )
             .trim()
             .toLowerCase();
-          if (hiddenStr === "y") updates.isHidden = true;
-          else if (hiddenStr === "n") updates.isHidden = false;
+          if (hiddenStr === 'y') updates.isHidden = true;
+          else if (hiddenStr === 'n') updates.isHidden = false;
         }
 
         if (Object.keys(updates).length === 0) {
-          console.log("No changes made.");
+          console.log('No changes made.');
           return;
         }
 
@@ -646,7 +646,7 @@ export function registerOfferingCommands(program: Command): void {
           return;
         }
 
-        console.log(`\n${c.green("Offering updated successfully!")}\n`);
+        console.log(`\n${c.green('Offering updated successfully!')}\n`);
         printOffering(updated);
       } catch (err) {
         outputError(
@@ -662,10 +662,10 @@ export function registerOfferingCommands(program: Command): void {
 
   // DELETE
   offering
-    .command("delete")
-    .description("Delete an offering from the active agent")
-    .option("--offering-id <id>", "Offering ID to delete")
-    .option("--force", "Skip confirmation prompt")
+    .command('delete')
+    .description('Delete an offering from the active agent')
+    .option('--offering-id <id>', 'Offering ID to delete')
+    .option('--force', 'Skip confirmation prompt')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -688,7 +688,7 @@ export function registerOfferingCommands(program: Command): void {
       }
 
       if (offerings.length === 0) {
-        outputError(json, "No offerings found to delete.");
+        outputError(json, 'No offerings found to delete.');
         return;
       }
 
@@ -702,7 +702,7 @@ export function registerOfferingCommands(program: Command): void {
         selected = match;
       } else {
         selected = await selectOption(
-          "Choose an offering to delete:",
+          'Choose an offering to delete:',
           offerings,
           (o) => `${o.name} — ${o.priceValue} (${o.priceType})`
         );
@@ -721,8 +721,8 @@ export function registerOfferingCommands(program: Command): void {
             .trim()
             .toLowerCase();
 
-          if (confirm !== "y") {
-            console.log("Cancelled.");
+          if (confirm !== 'y') {
+            console.log('Cancelled.');
             return;
           }
         } finally {

@@ -1,21 +1,21 @@
-import type { Command } from "commander";
-import { AssetToken } from "@virtuals-protocol/acp-node-v2";
-import { createAgentFromConfig } from "../lib/agentFactory";
-import { isJson, outputResult, outputError, maskAddress } from "../lib/output";
-import { CliError } from "../lib/errors";
-import { c } from "../lib/color";
+import type { Command } from 'commander';
+import { AssetToken } from '@virtuals-protocol/acp-node-v2';
+import { createAgentFromConfig } from '../lib/agentFactory';
+import { isJson, outputResult, outputError, maskAddress } from '../lib/output';
+import { CliError } from '../lib/errors';
+import { c } from '../lib/color';
 
 export function registerProviderCommands(program: Command): void {
   const provider = program
-    .command("provider")
-    .description("Provider-side commands (set budget, submit deliverable)");
+    .command('provider')
+    .description('Provider-side commands (set budget, submit deliverable)');
 
   provider
-    .command("set-budget")
-    .description("Propose a budget for a job (USDC)")
-    .requiredOption("--job-id <id>", "On-chain job ID")
-    .requiredOption("--amount <usdc>", "USDC amount to propose")
-    .requiredOption("--chain-id <id>", "Chain ID", "8453")
+    .command('set-budget')
+    .description('Propose a budget for a job (USDC)')
+    .requiredOption('--job-id <id>', 'On-chain job ID')
+    .requiredOption('--amount <usdc>', 'USDC amount to propose')
+    .requiredOption('--chain-id <id>', 'Chain ID', '8453')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -26,8 +26,8 @@ export function registerProviderCommands(program: Command): void {
           if (!session) {
             throw new CliError(
               `No session found for job ${opts.jobId}. The job may not exist or you may not be a participant.`,
-              "SESSION_NOT_FOUND",
-              "Run `acp job list` to see your active jobs."
+              'SESSION_NOT_FOUND',
+              'Run `acp job list` to see your active jobs.'
             );
           }
           await session.setBudget(
@@ -36,7 +36,7 @@ export function registerProviderCommands(program: Command): void {
           if (json) {
             outputResult(json, {
               success: true,
-              action: "set-budget",
+              action: 'set-budget',
               jobId: opts.jobId,
               amount: opts.amount,
             });
@@ -56,29 +56,29 @@ export function registerProviderCommands(program: Command): void {
     });
 
   provider
-    .command("set-budget-with-fund-request")
+    .command('set-budget-with-fund-request')
     .description(
-      "Propose a budget and request a fund transfer. The budget (--amount) is " +
-        "your service fee (USDC). The fund transfer (--transfer-amount) is " +
-        "capital the client provides for job execution (e.g., tokens for trades, " +
-        "gas for on-chain ops). These are separate: the budget pays you, the " +
-        "fund transfer gives you working capital."
+      'Propose a budget and request a fund transfer. The budget (--amount) is ' +
+        'your service fee (USDC). The fund transfer (--transfer-amount) is ' +
+        'capital the client provides for job execution (e.g., tokens for trades, ' +
+        'gas for on-chain ops). These are separate: the budget pays you, the ' +
+        'fund transfer gives you working capital.'
     )
-    .requiredOption("--job-id <id>", "On-chain job ID")
-    .requiredOption("--amount <usdc>", "USDC service fee")
+    .requiredOption('--job-id <id>', 'On-chain job ID')
+    .requiredOption('--amount <usdc>', 'USDC service fee')
     .requiredOption(
-      "--transfer-amount <amount>",
-      "Amount of token to request from client"
+      '--transfer-amount <amount>',
+      'Amount of token to request from client'
     )
     .requiredOption(
-      "--destination <address>",
-      "Recipient address for the working capital"
+      '--destination <address>',
+      'Recipient address for the working capital'
     )
     .option(
-      "--transfer-token <address>",
-      "ERC-20 token contract address for the fund transfer (defaults to USDC)"
+      '--transfer-token <address>',
+      'ERC-20 token contract address for the fund transfer (defaults to USDC)'
     )
-    .requiredOption("--chain-id <id>", "Chain ID", "8453")
+    .requiredOption('--chain-id <id>', 'Chain ID', '8453')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -90,8 +90,8 @@ export function registerProviderCommands(program: Command): void {
           if (!session) {
             throw new CliError(
               `No session found for job ${opts.jobId}. The job may not exist or you may not be a participant.`,
-              "SESSION_NOT_FOUND",
-              "Run `acp job list` to see your active jobs."
+              'SESSION_NOT_FOUND',
+              'Run `acp job list` to see your active jobs.'
             );
           }
           const transferToken = opts.transferToken
@@ -109,7 +109,7 @@ export function registerProviderCommands(program: Command): void {
           if (json) {
             outputResult(json, {
               success: true,
-              action: "set-budget-with-fund-request",
+              action: 'set-budget-with-fund-request',
               jobId: opts.jobId,
               amount: opts.amount,
               transferAmount: opts.transferAmount,
@@ -138,18 +138,18 @@ export function registerProviderCommands(program: Command): void {
     });
 
   provider
-    .command("submit")
-    .description("Submit a deliverable for a job")
-    .requiredOption("--job-id <id>", "On-chain job ID")
-    .requiredOption("--deliverable <text>", "Deliverable content or reference")
-    .requiredOption("--chain-id <id>", "Chain ID", "8453")
+    .command('submit')
+    .description('Submit a deliverable for a job')
+    .requiredOption('--job-id <id>', 'On-chain job ID')
+    .requiredOption('--deliverable <text>', 'Deliverable content or reference')
+    .requiredOption('--chain-id <id>', 'Chain ID', '8453')
     .option(
-      "--transfer-amount <amount>",
-      "Amount of token to transfer on submit"
+      '--transfer-amount <amount>',
+      'Amount of token to transfer on submit'
     )
     .option(
-      "--transfer-token <address>",
-      "ERC-20 token contract address for the transfer (defaults to USDC)"
+      '--transfer-token <address>',
+      'ERC-20 token contract address for the transfer (defaults to USDC)'
     )
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
@@ -162,15 +162,15 @@ export function registerProviderCommands(program: Command): void {
           if (!session) {
             throw new CliError(
               `No session found for job ${opts.jobId}. The job may not exist or you may not be a participant.`,
-              "SESSION_NOT_FOUND",
-              "Run `acp job list` to see your active jobs."
+              'SESSION_NOT_FOUND',
+              'Run `acp job list` to see your active jobs.'
             );
           }
           if (opts.transferToken && !opts.transferAmount) {
             throw new CliError(
-              "--transfer-token requires --transfer-amount",
-              "VALIDATION_ERROR",
-              "Provide --transfer-amount along with --transfer-token."
+              '--transfer-token requires --transfer-amount',
+              'VALIDATION_ERROR',
+              'Provide --transfer-amount along with --transfer-token.'
             );
           }
           const transferToken = opts.transferAmount
@@ -186,7 +186,7 @@ export function registerProviderCommands(program: Command): void {
           if (json) {
             outputResult(json, {
               success: true,
-              action: "submit",
+              action: 'submit',
               jobId: opts.jobId,
               deliverable: opts.deliverable,
               ...(transferToken && {

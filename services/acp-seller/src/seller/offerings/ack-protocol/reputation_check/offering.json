@@ -1,0 +1,21 @@
+{
+  "name": "reputation_check",
+  "description": "Onchain ERC-8004 reputation report for any AI agent. Returns trust score, feedback count, category breakdown, peer ranking, and cross-chain presence. Data sourced live from 8004scan across 45+ chains. Unique to ACK: real onchain reputation signals, not marketplace metrics.",
+  "jobFee": 0.05,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "required": ["agent"],
+    "properties": {
+      "agent": {
+        "type": "string",
+        "description": "Agent name, token ID (e.g. '606'), or chain:id (e.g. '2741:606')"
+      },
+      "chain": {
+        "type": "string",
+        "description": "Optional chain filter: abstract, base, ethereum, celo (default: all)"
+      }
+    }
+  }
+}

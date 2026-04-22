@@ -1,14 +1,14 @@
-import * as readline from "readline";
-import type { Command } from "commander";
+import * as readline from 'readline';
+import type { Command } from 'commander';
 import {
   isJson,
   outputResult,
   outputError,
   isTTY,
   maskAddress,
-} from "../lib/output";
-import { CliError } from "../lib/errors";
-import { c } from "../lib/color";
+} from '../lib/output';
+import { CliError } from '../lib/errors';
+import { c } from '../lib/color';
 import {
   AgentApi,
   MigrationStatus,
@@ -16,14 +16,14 @@ import {
   TokenizeStatusResponse,
   type Agent,
   LegacyAgent,
-} from "../lib/api/agent";
-import { getClient } from "../lib/api/client";
+} from '../lib/api/agent';
+import { getClient } from '../lib/api/client';
 import {
   prompt,
   selectFromList,
   selectOption,
   printTable,
-} from "../lib/prompt";
+} from '../lib/prompt';
 import {
   setPublicKey,
   setWalletId,
@@ -31,16 +31,16 @@ import {
   getActiveWallet,
   setAgentId,
   getAgentId,
-} from "../lib/config";
-import { generateKeyPair as generateNativeKeyPair } from "../lib/acpCliSigner";
-import { openBrowser } from "../lib/browser";
-import { createAgentFromConfig } from "../lib/agentFactory";
-import { EvmAcpClient, SUPPORTED_CHAINS } from "@virtuals-protocol/acp-node-v2";
+} from '../lib/config';
+import { generateKeyPair as generateNativeKeyPair } from '../lib/acpCliSigner';
+import { openBrowser } from '../lib/browser';
+import { createAgentFromConfig } from '../lib/agentFactory';
+import { EvmAcpClient, SUPPORTED_CHAINS } from '@virtuals-protocol/acp-node-v2';
 
 function parseLegacyId(raw: string, json: boolean): number | null {
   const id = parseInt(raw, 10);
   if (isNaN(id)) {
-    outputError(json, "Agent ID must be a number.");
+    outputError(json, 'Agent ID must be a number.');
     return null;
   }
   return id;
@@ -133,7 +133,7 @@ async function runAddSignerFlow(
     outputResult(json, {
       signerUrl,
       publicKey,
-      expiresIn: "5 minutes",
+      expiresIn: '5 minutes',
     });
   } else {
     console.log(`\nPublic Key: ${publicKey}`);
@@ -157,13 +157,13 @@ async function runAddSignerFlow(
       const statusRes = await api.getSignerStatus(agent.id, requestId);
 
       if (!statusRes.data.status) {
-        outputError(json, "Signer registration not found. Please try again.");
+        outputError(json, 'Signer registration not found. Please try again.');
         return false;
       }
 
-      if (statusRes.data.status === "completed") {
+      if (statusRes.data.status === 'completed') {
         if (!json) {
-          console.log("Signer registration approved.");
+          console.log('Signer registration approved.');
         }
         break;
       }
@@ -172,18 +172,18 @@ async function runAddSignerFlow(
     }
 
     if (Date.now() - startTime >= TIMEOUT_MS) {
-      outputError(json, "Signer registration timed out. Please try again.");
+      outputError(json, 'Signer registration timed out. Please try again.');
       return false;
     }
   }
 
   // 4. Persist public key reference to config (private key already stored by native binary)
   const evmProvider = agent.walletProviders.find(
-    (wp) => (wp.chainType ?? "EVM") === "EVM"
+    (wp) => (wp.chainType ?? 'EVM') === 'EVM'
   );
 
   if (!evmProvider?.metadata.walletId) {
-    outputError(json, "EVM wallet provider not found for this agent.");
+    outputError(json, 'EVM wallet provider not found for this agent.');
     return false;
   }
 
@@ -202,21 +202,21 @@ async function runAddSignerFlow(
 }
 
 export function registerAgentCommands(program: Command): void {
-  const agent = program.command("agent").description("Manage ACP agents");
+  const agent = program.command('agent').description('Manage ACP agents');
 
   agent
-    .command("create")
-    .description("Create a new agent")
-    .option("--name <name>", "Agent name")
-    .option("--description <text>", "Agent description")
-    .option("--image <url>", "Agent image URL")
-    .option("--signer", "Automatically set up a signer after creation")
+    .command('create')
+    .description('Create a new agent')
+    .option('--name <name>', 'Agent name')
+    .option('--description <text>', 'Agent description')
+    .option('--image <url>', 'Agent image URL')
+    .option('--signer', 'Automatically set up a signer after creation')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
 
-      let name: string = opts.name?.trim() ?? "";
-      let description: string = opts.description?.trim() ?? "";
+      let name: string = opts.name?.trim() ?? '';
+      let description: string = opts.description?.trim() ?? '';
       let image: string | undefined = opts.image?.trim() || undefined;
 
       const needsPrompt = !name || !description || image === undefined;
@@ -231,17 +231,17 @@ export function registerAgentCommands(program: Command): void {
         }
 
         if (!name) {
-          name = (await prompt(rl!, "Agent name: ")).trim();
+          name = (await prompt(rl!, 'Agent name: ')).trim();
           if (!name) {
-            outputError(json, "Agent name cannot be empty.");
+            outputError(json, 'Agent name cannot be empty.');
             return;
           }
         }
 
         if (!description) {
-          description = (await prompt(rl!, "Agent description: ")).trim();
+          description = (await prompt(rl!, 'Agent description: ')).trim();
           if (!description) {
-            outputError(json, "Agent description cannot be empty.");
+            outputError(json, 'Agent description cannot be empty.');
             return;
           }
         }
@@ -251,7 +251,7 @@ export function registerAgentCommands(program: Command): void {
             const imageInput = (
               await prompt(
                 rl,
-                "Agent image URL (optional, press Enter to skip): "
+                'Agent image URL (optional, press Enter to skip): '
               )
             ).trim();
             if (imageInput) {
@@ -295,9 +295,9 @@ export function registerAgentCommands(program: Command): void {
       );
 
       printTable([
-        ["Name", created.name],
-        ["Description", created.description],
-        ["Wallet Address", created.walletAddress ?? "N/A"],
+        ['Name', created.name],
+        ['Description', created.description],
+        ['Wallet Address', created.walletAddress ?? 'N/A'],
       ]);
 
       let setupSigner = opts.signer === true;
@@ -309,12 +309,12 @@ export function registerAgentCommands(program: Command): void {
         });
         const answer = await new Promise<string>((resolve) =>
           signerRl.question(
-            "\nWould you like to set up a signer for this agent? (y/N) ",
+            '\nWould you like to set up a signer for this agent? (y/N) ',
             resolve
           )
         );
         signerRl.close();
-        setupSigner = answer.toLowerCase() === "y";
+        setupSigner = answer.toLowerCase() === 'y';
       }
 
       if (!setupSigner) {
@@ -325,10 +325,10 @@ export function registerAgentCommands(program: Command): void {
     });
 
   agent
-    .command("list")
-    .description("List all agents")
-    .option("--page <number>", "Page number")
-    .option("--page-size <number>", "Number of agents per page")
+    .command('list')
+    .description('List all agents')
+    .option('--page <number>', 'Page number')
+    .option('--page-size <number>', 'Number of agents per page')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -341,12 +341,12 @@ export function registerAgentCommands(program: Command): void {
         const { data, meta } = result;
 
         if (json) {
-          process.stdout.write(JSON.stringify(result) + "\n");
+          process.stdout.write(JSON.stringify(result) + '\n');
           return;
         }
 
         if (data.length === 0) {
-          console.log("No agents found.");
+          console.log('No agents found.');
           return;
         }
 
@@ -356,14 +356,14 @@ export function registerAgentCommands(program: Command): void {
 
         if (isTTY()) {
           for (const a of data) {
-            console.log(`\n  ${c.bold("Name:")}           ${c.cyan(a.name)}`);
-            console.log(`  ${c.bold("ID:")}             ${a.id}`);
-            console.log(`  ${c.bold("Description:")}    ${a.description}`);
-            console.log(`  ${c.bold("Role:")}           ${a.role}`);
+            console.log(`\n  ${c.bold('Name:')}           ${c.cyan(a.name)}`);
+            console.log(`  ${c.bold('ID:')}             ${a.id}`);
+            console.log(`  ${c.bold('Description:')}    ${a.description}`);
+            console.log(`  ${c.bold('Role:')}           ${a.role}`);
             console.log(
-              `  ${c.bold("Wallet:")}         ${c.dim(a.walletAddress)}`
+              `  ${c.bold('Wallet:')}         ${c.dim(a.walletAddress)}`
             );
-            console.log(`  ${c.bold("Created:")}        ${c.dim(a.createdAt)}`);
+            console.log(`  ${c.bold('Created:')}        ${c.dim(a.createdAt)}`);
           }
           console.log(
             `\n${c.dim(
@@ -371,7 +371,7 @@ export function registerAgentCommands(program: Command): void {
             )}`
           );
         } else {
-          console.log("ID\tNAME\tROLE\tWALLET");
+          console.log('ID\tNAME\tROLE\tWALLET');
           for (const a of data) {
             console.log(`${a.id}\t${a.name}\t${a.role}\t${a.walletAddress}`);
           }
@@ -387,9 +387,9 @@ export function registerAgentCommands(program: Command): void {
     });
 
   agent
-    .command("use")
-    .description("Set the active agent for all commands")
-    .option("--agent-id <id>", "Agent ID")
+    .command('use')
+    .description('Set the active agent for all commands')
+    .option('--agent-id <id>', 'Agent ID')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -412,12 +412,12 @@ export function registerAgentCommands(program: Command): void {
         }
 
         if (agents.length === 0) {
-          outputError(json, "No agents found. Run `acp agent create` first.");
+          outputError(json, 'No agents found. Run `acp agent create` first.');
           return;
         }
 
         selected = await selectFromList(
-          "Choose the agent to set as active:",
+          'Choose the agent to set as active:',
           agents
         );
       }
@@ -433,9 +433,9 @@ export function registerAgentCommands(program: Command): void {
     });
 
   agent
-    .command("add-signer")
-    .description("Add a new signer to an agent")
-    .option("--agent-id <id>", "Agent ID")
+    .command('add-signer')
+    .description('Add a new signer to an agent')
+    .option('--agent-id <id>', 'Agent ID')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -458,12 +458,12 @@ export function registerAgentCommands(program: Command): void {
         }
 
         if (agents.length === 0) {
-          outputError(json, "No agents found.");
+          outputError(json, 'No agents found.');
           return;
         }
 
         selected = await selectFromList(
-          "Choose the agent you wish to add a new signer:",
+          'Choose the agent you wish to add a new signer:',
           agents
         );
       }
@@ -474,8 +474,8 @@ export function registerAgentCommands(program: Command): void {
     });
 
   agent
-    .command("whoami")
-    .description("Show details of the currently active agent")
+    .command('whoami')
+    .description('Show details of the currently active agent')
     .action(async (_opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -485,9 +485,9 @@ export function registerAgentCommands(program: Command): void {
         outputError(
           json,
           new CliError(
-            "No active agent set.",
-            "NO_ACTIVE_AGENT",
-            "Run `acp agent use` to set an active agent."
+            'No active agent set.',
+            'NO_ACTIVE_AGENT',
+            'Run `acp agent use` to set an active agent.'
           )
         );
         return;
@@ -498,9 +498,9 @@ export function registerAgentCommands(program: Command): void {
         outputError(
           json,
           new CliError(
-            "Agent ID not found for active wallet.",
-            "NO_ACTIVE_AGENT",
-            "Run `acp agent list` or `acp agent use` to populate it."
+            'Agent ID not found for active wallet.',
+            'NO_ACTIVE_AGENT',
+            'Run `acp agent list` or `acp agent use` to populate it.'
           )
         );
         return;
@@ -526,66 +526,66 @@ export function registerAgentCommands(program: Command): void {
 
       if (isTTY()) {
         const chainRows: [string, string][] = (agentData.chains ?? []).map(
-          (c) => [`Chain ${c.chainId}`, `${c.tokenAddress ?? "Not tokenized"}`]
+          (c) => [`Chain ${c.chainId}`, `${c.tokenAddress ?? 'Not tokenized'}`]
         );
 
-        console.log(`\n${c.bold("Agent Details:")}`);
+        console.log(`\n${c.bold('Agent Details:')}`);
         printTable([
-          ["ID", agentData.id],
-          ["Name", c.cyan(agentData.name)],
-          ["Description", agentData.description],
-          ["Role", agentData.role],
-          ["Wallet Address", agentData.walletAddress ?? "N/A"],
-          ["Hidden", agentData.isHidden ? "Yes" : "No"],
-          ["Image", agentData.imageUrl ?? "N/A"],
-          ["Created", agentData.createdAt],
+          ['ID', agentData.id],
+          ['Name', c.cyan(agentData.name)],
+          ['Description', agentData.description],
+          ['Role', agentData.role],
+          ['Wallet Address', agentData.walletAddress ?? 'N/A'],
+          ['Hidden', agentData.isHidden ? 'Yes' : 'No'],
+          ['Image', agentData.imageUrl ?? 'N/A'],
+          ['Created', agentData.createdAt],
           ...chainRows,
         ]);
 
-        console.log(`\n${c.bold("Offerings:")}`);
+        console.log(`\n${c.bold('Offerings:')}`);
         if (agentData.offerings?.length) {
           for (const o of agentData.offerings) {
             printTable([
-              ["ID", o.id],
-              ["Name", o.name],
-              ["Description", o.description],
-              ["Price", `${o.priceValue} (${o.priceType})`],
-              ["SLA", `${o.slaMinutes} min`],
-              ["Hidden", o.isHidden ? "Yes" : "No"],
+              ['ID', o.id],
+              ['Name', o.name],
+              ['Description', o.description],
+              ['Price', `${o.priceValue} (${o.priceType})`],
+              ['SLA', `${o.slaMinutes} min`],
+              ['Hidden', o.isHidden ? 'Yes' : 'No'],
             ]);
           }
         } else {
-          console.log("  N/A");
+          console.log('  N/A');
         }
 
-        console.log(`\n${c.bold("Resources:")}`);
+        console.log(`\n${c.bold('Resources:')}`);
         if (agentData.resources?.length) {
           for (const r of agentData.resources) {
             printTable([
-              ["ID", r.id],
-              ["Name", r.name],
-              ["Description", r.description],
-              ["URL", r.url],
+              ['ID', r.id],
+              ['Name', r.name],
+              ['Description', r.description],
+              ['URL', r.url],
             ]);
           }
         } else {
-          console.log("  N/A");
+          console.log('  N/A');
         }
       } else {
         console.log(
           `${agentData.name}\t${agentData.role}\t${
-            agentData.walletAddress ?? "N/A"
+            agentData.walletAddress ?? 'N/A'
           }\t${agentData.id}`
         );
       }
     });
 
   agent
-    .command("update")
+    .command('update')
     .description("Update the active agent's name, description, or image")
-    .option("--name <name>", "New agent name")
-    .option("--description <text>", "New agent description")
-    .option("--image <url>", "New agent image URL")
+    .option('--name <name>', 'New agent name')
+    .option('--description <text>', 'New agent description')
+    .option('--image <url>', 'New agent image URL')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -598,7 +598,7 @@ export function registerAgentCommands(program: Command): void {
       if (!name && !description && imageUrl === undefined) {
         outputError(
           json,
-          "Provide at least one of --name, --description, or --image to update."
+          'Provide at least one of --name, --description, or --image to update.'
         );
         return;
       }
@@ -608,9 +608,9 @@ export function registerAgentCommands(program: Command): void {
         outputError(
           json,
           new CliError(
-            "No active agent set.",
-            "NO_ACTIVE_AGENT",
-            "Run `acp agent use` to set an active agent."
+            'No active agent set.',
+            'NO_ACTIVE_AGENT',
+            'Run `acp agent use` to set an active agent.'
           )
         );
         return;
@@ -621,9 +621,9 @@ export function registerAgentCommands(program: Command): void {
         outputError(
           json,
           new CliError(
-            "Agent ID not found for active wallet.",
-            "NO_ACTIVE_AGENT",
-            "Run `acp agent list` or `acp agent use` to populate it."
+            'Agent ID not found for active wallet.',
+            'NO_ACTIVE_AGENT',
+            'Run `acp agent list` or `acp agent use` to populate it.'
           )
         );
         return;
@@ -661,19 +661,19 @@ export function registerAgentCommands(program: Command): void {
         `\n${c.green(`${updated.name} has been updated successfully!`)}\n`
       );
       printTable([
-        ["Name", updated.name],
-        ["Description", updated.description],
-        ["Image", updated.imageUrl ?? "N/A"],
+        ['Name', updated.name],
+        ['Description', updated.description],
+        ['Image', updated.imageUrl ?? 'N/A'],
       ]);
     });
 
   agent
-    .command("tokenize")
-    .description("Tokenize an agent on a blockchain")
-    .option("--wallet-address <address>", "Agent wallet address")
-    .option("--agent-id <id>", "Agent ID")
-    .option("--chain-id <id>", "Chain ID to tokenize on")
-    .option("--symbol <symbol>", "Token symbol")
+    .command('tokenize')
+    .description('Tokenize an agent on a blockchain')
+    .option('--wallet-address <address>', 'Agent wallet address')
+    .option('--agent-id <id>', 'Agent ID')
+    .option('--chain-id <id>', 'Chain ID to tokenize on')
+    .option('--symbol <symbol>', 'Token symbol')
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
       const json = isJson(cmd);
@@ -697,12 +697,12 @@ export function registerAgentCommands(program: Command): void {
         }
 
         if (agents.length === 0) {
-          outputError(json, "No agents found. Run `acp agent create` first.");
+          outputError(json, 'No agents found. Run `acp agent create` first.');
           return;
         }
 
         selected = await selectFromList(
-          "Choose the agent to tokenize:",
+          'Choose the agent to tokenize:',
           agents
         );
       }
@@ -720,14 +720,14 @@ export function registerAgentCommands(program: Command): void {
               opts.chainId
             }. Supported: ${SUPPORTED_CHAINS.map(
               (c) => `${c.name} (${c.id})`
-            ).join(", ")}`
+            ).join(', ')}`
           );
           return;
         }
         selectedChain = match;
       } else {
         selectedChain = await selectOption(
-          "\nChoose a chain to tokenize on:",
+          '\nChoose a chain to tokenize on:',
           SUPPORTED_CHAINS,
           (chain) => chain.name
         );
@@ -760,7 +760,7 @@ export function registerAgentCommands(program: Command): void {
       if (opts.symbol) {
         symbol = opts.symbol.trim().toUpperCase();
         if (!symbol) {
-          outputError(json, "Token symbol cannot be empty.");
+          outputError(json, 'Token symbol cannot be empty.');
           return;
         }
       } else {
@@ -770,11 +770,11 @@ export function registerAgentCommands(program: Command): void {
         });
 
         try {
-          symbol = (await prompt(rl, "\nEnter token symbol: "))
+          symbol = (await prompt(rl, '\nEnter token symbol: '))
             .trim()
             .toUpperCase();
           if (!symbol) {
-            outputError(json, "Token symbol cannot be empty.");
+            outputError(json, 'Token symbol cannot be empty.');
             return;
           }
         } finally {
@@ -783,11 +783,11 @@ export function registerAgentCommands(program: Command): void {
       }
 
       // Step 4: Pay if not already paid
-      let txHash = "";
+      let txHash = '';
 
       if (tokenizeDetails.hasPaid) {
         if (!json)
-          console.log("\nPayment already received, skipping transfer.");
+          console.log('\nPayment already received, skipping transfer.');
       } else {
         const previousWallet = getActiveWallet();
         setActiveWallet(selected.walletAddress);
@@ -801,7 +801,7 @@ export function registerAgentCommands(program: Command): void {
           if (!(client instanceof EvmAcpClient)) {
             outputError(
               json,
-              "Only EVM chains are supported for tokenization."
+              'Only EVM chains are supported for tokenization.'
             );
             return;
           }
@@ -868,11 +868,11 @@ export function registerAgentCommands(program: Command): void {
     });
 
   agent
-    .command("migrate")
-    .option("--agent-id <id>", "Agent ID")
-    .option("--complete", "Complete a migration")
+    .command('migrate')
+    .option('--agent-id <id>', 'Agent ID')
+    .option('--complete', 'Complete a migration')
     .description(
-      "Migrate a legacy agent to ACP SDK 2.0, or complete an in-progress migration"
+      'Migrate a legacy agent to ACP SDK 2.0, or complete an in-progress migration'
     )
     .action(async (opts, cmd) => {
       const { agentApi } = await getClient();
@@ -883,7 +883,7 @@ export function registerAgentCommands(program: Command): void {
         if (!opts.agentId) {
           outputError(
             json,
-            "Please provide the agent ID to complete migration."
+            'Please provide the agent ID to complete migration.'
           );
           return;
         }
@@ -984,13 +984,13 @@ export function registerAgentCommands(program: Command): void {
       }
 
       if (legacyAgents.length === 0) {
-        outputError(json, "No legacy agents to migrate.");
+        outputError(json, 'No legacy agents to migrate.');
         return;
       }
 
       let selected: LegacyAgent;
       const instructions =
-        "Before proceeding, read migration.md and ensure all prerequisites are complete.";
+        'Before proceeding, read migration.md and ensure all prerequisites are complete.';
 
       if (opts.agentId) {
         const numericId = parseLegacyId(opts.agentId, json);
@@ -1006,7 +1006,7 @@ export function registerAgentCommands(program: Command): void {
         selected = found;
       } else {
         selected = await selectOption(
-          "Select an agent to migrate:",
+          'Select an agent to migrate:',
           legacyAgents,
           (a) =>
             `${a.name} ${maskAddress(a.walletAddress)} [${a.migrationStatus}]`
@@ -1056,7 +1056,7 @@ export function registerAgentCommands(program: Command): void {
       }
 
       if (!json) {
-        console.log("Migration initiated. Setting up signer...\n");
+        console.log('Migration initiated. Setting up signer...\n');
       }
 
       const signerOk = await runAddSignerFlow(agentApi, json, migratedAgent);

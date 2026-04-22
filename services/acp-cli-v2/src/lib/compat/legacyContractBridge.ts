@@ -1,15 +1,15 @@
 import {
   BaseAcpContractClient,
   AcpContractConfig,
-} from "@virtuals-protocol/acp-node";
-import type { IEvmProviderAdapter } from "@virtuals-protocol/acp-node-v2";
+} from '@virtuals-protocol/acp-node';
+import type { IEvmProviderAdapter } from '@virtuals-protocol/acp-node-v2';
 import type {
   Address,
   Hex,
   SignTypedDataParameters,
   TransactionRequest,
-} from "viem";
-import { decodeEventLog } from "viem";
+} from 'viem';
+import { decodeEventLog } from 'viem';
 
 // OperationPayload is defined in the base class module
 type OperationPayload = {
@@ -21,45 +21,45 @@ type OperationPayload = {
 // JobCreated event ABI matching the old v2 contract's JobManager
 const JOB_CREATED_ABI = [
   {
-    type: "event",
-    name: "JobCreated",
+    type: 'event',
+    name: 'JobCreated',
     anonymous: false,
     inputs: [
       {
-        name: "jobId",
-        type: "uint256",
+        name: 'jobId',
+        type: 'uint256',
         indexed: true,
-        internalType: "uint256",
+        internalType: 'uint256',
       },
       {
-        name: "accountId",
-        type: "uint256",
+        name: 'accountId',
+        type: 'uint256',
         indexed: true,
-        internalType: "uint256",
+        internalType: 'uint256',
       },
       {
-        name: "client",
-        type: "address",
+        name: 'client',
+        type: 'address',
         indexed: true,
-        internalType: "address",
+        internalType: 'address',
       },
       {
-        name: "provider",
-        type: "address",
+        name: 'provider',
+        type: 'address',
         indexed: false,
-        internalType: "address",
+        internalType: 'address',
       },
       {
-        name: "evaluator",
-        type: "address",
+        name: 'evaluator',
+        type: 'address',
         indexed: false,
-        internalType: "address",
+        internalType: 'address',
       },
       {
-        name: "expiredAt",
-        type: "uint256",
+        name: 'expiredAt',
+        type: 'uint256',
         indexed: false,
-        internalType: "uint256",
+        internalType: 'uint256',
       },
     ],
   },
@@ -117,7 +117,7 @@ export class LegacyContractBridge extends BaseAcpContractClient {
     }
 
     if (!receipt) {
-      throw new Error("Failed to get transaction receipt after retries");
+      throw new Error('Failed to get transaction receipt after retries');
     }
 
     for (const log of receipt.logs) {
@@ -129,7 +129,7 @@ export class LegacyContractBridge extends BaseAcpContractClient {
         });
 
         if (
-          decoded.eventName === "JobCreated" &&
+          decoded.eventName === 'JobCreated' &&
           (decoded.args.client as string).toLowerCase() ===
             clientAddress.toLowerCase() &&
           (decoded.args.provider as string).toLowerCase() ===
@@ -156,15 +156,15 @@ export class LegacyContractBridge extends BaseAcpContractClient {
   }
 
   async sendTransaction(_request: TransactionRequest): Promise<Hex> {
-    throw new Error("sendTransaction not supported via LegacyContractBridge");
+    throw new Error('sendTransaction not supported via LegacyContractBridge');
   }
 
   async getAssetManager(): Promise<Address> {
-    throw new Error("getAssetManager not supported via LegacyContractBridge");
+    throw new Error('getAssetManager not supported via LegacyContractBridge');
   }
 
   getAcpVersion(): string {
-    return "2";
+    return '2';
   }
 
   async getX402PaymentDetails(
@@ -174,14 +174,14 @@ export class LegacyContractBridge extends BaseAcpContractClient {
   }
 
   async updateJobX402Nonce(): Promise<any> {
-    throw new Error("X402 not supported via LegacyContractBridge");
+    throw new Error('X402 not supported via LegacyContractBridge');
   }
 
   async generateX402Payment(): Promise<any> {
-    throw new Error("X402 not supported via LegacyContractBridge");
+    throw new Error('X402 not supported via LegacyContractBridge');
   }
 
   async performX402Request(): Promise<any> {
-    throw new Error("X402 not supported via LegacyContractBridge");
+    throw new Error('X402 not supported via LegacyContractBridge');
   }
 }

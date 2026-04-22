@@ -1,10 +1,10 @@
-import { readFileSync, writeFileSync } from "fs";
-import { resolve } from "path";
-import { getPassword, setPassword } from "cross-keychain";
+import { readFileSync, writeFileSync } from 'fs';
+import { resolve } from 'path';
+import { getPassword, setPassword } from 'cross-keychain';
 
-const AUTH_KEYCHAIN_SERVICE = "acp-auth";
+const AUTH_KEYCHAIN_SERVICE = 'acp-auth';
 
-const CONFIG_PATH = resolve(process.cwd(), "config.json");
+const CONFIG_PATH = resolve(process.cwd(), 'config.json');
 
 interface AgentConfig {
   publicKey: string;
@@ -26,14 +26,14 @@ interface Config {
 
 function loadConfig(): Config {
   try {
-    return JSON.parse(readFileSync(CONFIG_PATH, "utf8")) as Config;
+    return JSON.parse(readFileSync(CONFIG_PATH, 'utf8')) as Config;
   } catch {
     return {};
   }
 }
 
 function saveConfig(config: Config): void {
-  writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + "\n");
+  writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n');
 }
 
 export async function getToken(
@@ -42,7 +42,7 @@ export async function getToken(
   return (
     (await getPassword(
       AUTH_KEYCHAIN_SERVICE,
-      `access-token${walletAddress ? `-${walletAddress.toLowerCase()}` : ""}`
+      `access-token${walletAddress ? `-${walletAddress.toLowerCase()}` : ''}`
     )) ?? undefined
   );
 }
@@ -53,7 +53,7 @@ export async function getRefreshToken(
   return (
     (await getPassword(
       AUTH_KEYCHAIN_SERVICE,
-      `refresh-token${walletAddress ? `-${walletAddress.toLowerCase()}` : ""}`
+      `refresh-token${walletAddress ? `-${walletAddress.toLowerCase()}` : ''}`
     )) ?? undefined
   );
 }
@@ -65,12 +65,12 @@ export async function setTokens(
 ): Promise<void> {
   await setPassword(
     AUTH_KEYCHAIN_SERVICE,
-    `access-token${walletAddress ? `-${walletAddress.toLowerCase()}` : ""}`,
+    `access-token${walletAddress ? `-${walletAddress.toLowerCase()}` : ''}`,
     accessToken
   );
   await setPassword(
     AUTH_KEYCHAIN_SERVICE,
-    `refresh-token${walletAddress ? `-${walletAddress.toLowerCase()}` : ""}`,
+    `refresh-token${walletAddress ? `-${walletAddress.toLowerCase()}` : ''}`,
     refreshToken
   );
 }
@@ -82,7 +82,7 @@ export function getWalletId(walletAddress: string): string | undefined {
 export function setWalletId(walletAddress: string, walletId: string): void {
   const config = loadConfig();
   config.agents ??= {};
-  config.agents[walletAddress] ??= { publicKey: "" };
+  config.agents[walletAddress] ??= { publicKey: '' };
   config.agents[walletAddress].walletId = walletId;
   saveConfig(config);
 }
@@ -94,7 +94,7 @@ export function getPublicKey(agentAddress: string): string | undefined {
 export function setPublicKey(agentAddress: string, publicKey: string): void {
   const config = loadConfig();
   config.agents ??= {};
-  config.agents[agentAddress] ??= { publicKey: "" };
+  config.agents[agentAddress] ??= { publicKey: '' };
   config.agents[agentAddress].publicKey = publicKey;
   saveConfig(config);
 }
@@ -106,7 +106,7 @@ export function getAgentId(walletAddress: string): string | undefined {
 export function setAgentId(walletAddress: string, id: string): void {
   const config = loadConfig();
   config.agents ??= {};
-  config.agents[walletAddress] ??= { publicKey: "" };
+  config.agents[walletAddress] ??= { publicKey: '' };
   config.agents[walletAddress].id = id;
   saveConfig(config);
 }
@@ -160,11 +160,11 @@ export function getLegacyJobChainId(jobId: string): number | undefined {
 export function isTokenExpired(token: string): boolean {
   try {
     const payload = JSON.parse(
-      Buffer.from(token.split(".")[1], "base64url").toString()
+      Buffer.from(token.split('.')[1], 'base64url').toString()
     );
     const bufferMs = 5 * 60 * 1000;
     return (
-      typeof payload.exp === "number" &&
+      typeof payload.exp === 'number' &&
       payload.exp * 1000 < Date.now() + bufferMs
     );
   } catch {

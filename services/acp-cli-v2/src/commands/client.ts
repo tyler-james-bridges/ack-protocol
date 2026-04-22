@@ -1,39 +1,39 @@
-import type { Command } from "commander";
-import type { AcpAgentOffering } from "@virtuals-protocol/acp-node-v2";
-import { AssetToken } from "@virtuals-protocol/acp-node-v2";
+import type { Command } from 'commander';
+import type { AcpAgentOffering } from '@virtuals-protocol/acp-node-v2';
+import { AssetToken } from '@virtuals-protocol/acp-node-v2';
 import {
   createAgentFromConfig,
   createLegacyBuyerAdapter,
-} from "../lib/agentFactory";
-import { isJson, outputResult, outputError, maskAddress } from "../lib/output";
-import { registerJob, isLegacyJob, getLegacyJobChainId } from "../lib/config";
-import { CliError } from "../lib/errors";
-import { c } from "../lib/color";
-import { PriceType } from "@virtuals-protocol/acp-node";
+} from '../lib/agentFactory';
+import { isJson, outputResult, outputError, maskAddress } from '../lib/output';
+import { registerJob, isLegacyJob, getLegacyJobChainId } from '../lib/config';
+import { CliError } from '../lib/errors';
+import { c } from '../lib/color';
+import { PriceType } from '@virtuals-protocol/acp-node';
 
 export function registerClientCommands(program: Command): void {
   const client = program
-    .command("client")
-    .description("Client-side commands (create jobs, fund, complete, reject)");
+    .command('client')
+    .description('Client-side commands (create jobs, fund, complete, reject)');
 
   client
-    .command("create-job")
+    .command('create-job')
     .description(
       "Create a job from a provider's offering (validates requirements, auto-calculates expiry)"
     )
-    .requiredOption("--provider <address>", "Provider wallet address")
-    .requiredOption("--offering-name <name>", "Offering name")
+    .requiredOption('--provider <address>', 'Provider wallet address')
+    .requiredOption('--offering-name <name>', 'Offering name')
     .requiredOption(
-      "--requirements <json>",
-      "Requirements JSON matching the offering schema"
+      '--requirements <json>',
+      'Requirements JSON matching the offering schema'
     )
-    .requiredOption("--chain-id <id>", "Chain ID", "8453")
+    .requiredOption('--chain-id <id>', 'Chain ID', '8453')
     .option(
-      "--evaluator <address>",
-      "Evaluator wallet address (defaults to your own)"
+      '--evaluator <address>',
+      'Evaluator wallet address (defaults to your own)'
     )
-    .option("--legacy", "Target a legacy (openclaw-cli) provider")
-    .option("--hook <address>", "Hook address")
+    .option('--legacy', 'Target a legacy (openclaw-cli) provider')
+    .option('--hook <address>', 'Hook address')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -61,10 +61,10 @@ export function registerClientCommands(program: Command): void {
           if (matches.length === 0) {
             const available = legacyAgent.jobOfferings
               .map((o) => o.name)
-              .join(", ");
+              .join(', ');
             throw new Error(
               `Offering "${opts.offeringName}" not found. Available: ${
-                available || "none"
+                available || 'none'
               }`
             );
           }
@@ -91,8 +91,8 @@ export function registerClientCommands(program: Command): void {
 
           outputResult(json, {
             success: true,
-            action: "create-job-from-offering",
-            protocol: "legacy",
+            action: 'create-job-from-offering',
+            protocol: 'legacy',
             jobId: String(jobId),
             provider: opts.provider,
             offering: legacyOffering.name,
@@ -116,10 +116,10 @@ export function registerClientCommands(program: Command): void {
         if (matches.length === 0) {
           const available = providerAgent.offerings
             .map((o: AcpAgentOffering) => o.name)
-            .join(", ");
+            .join(', ');
           throw new Error(
             `Offering "${opts.offeringName}" not found. Available: ${
-              available || "none"
+              available || 'none'
             }`
           );
         }
@@ -144,8 +144,8 @@ export function registerClientCommands(program: Command): void {
         if (json) {
           outputResult(json, {
             success: true,
-            action: "create-job-from-offering",
-            protocol: "v2",
+            action: 'create-job-from-offering',
+            protocol: 'v2',
             jobId: jobId.toString(),
             provider: opts.provider,
             offering: offering.name,
@@ -165,22 +165,22 @@ export function registerClientCommands(program: Command): void {
     });
 
   client
-    .command("create-custom-job")
-    .description("Create a custom job on-chain with a freeform description")
-    .requiredOption("--provider <address>", "Provider wallet address")
+    .command('create-custom-job')
+    .description('Create a custom job on-chain with a freeform description')
+    .requiredOption('--provider <address>', 'Provider wallet address')
     .option(
-      "--evaluator <address>",
-      "Evaluator wallet address (defaults to your own)"
+      '--evaluator <address>',
+      'Evaluator wallet address (defaults to your own)'
     )
-    .requiredOption("--description <text>", "Job description")
-    .requiredOption("--chain-id <id>", "Chain ID", "8453")
-    .option("--expired-in <seconds>", "Seconds until expiry", "3600")
-    .option("--hook <address>", "Hook address")
+    .requiredOption('--description <text>', 'Job description')
+    .requiredOption('--chain-id <id>', 'Chain ID', '8453')
+    .option('--expired-in <seconds>', 'Seconds until expiry', '3600')
+    .option('--hook <address>', 'Hook address')
     .option(
-      "--fund-transfer",
-      "Use fund transfer hook (defaults to chain hook address)"
+      '--fund-transfer',
+      'Use fund transfer hook (defaults to chain hook address)'
     )
-    .option("--legacy", "Target a legacy (openclaw-cli) provider")
+    .option('--legacy', 'Target a legacy (openclaw-cli) provider')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -201,8 +201,8 @@ export function registerClientCommands(program: Command): void {
 
           outputResult(json, {
             success: true,
-            action: "create-job",
-            protocol: "legacy",
+            action: 'create-job',
+            protocol: 'legacy',
             jobId: String(jobId),
             provider: opts.provider,
           });
@@ -232,13 +232,13 @@ export function registerClientCommands(program: Command): void {
         if (json) {
           outputResult(json, {
             success: true,
-            action: "create-job",
-            protocol: "v2",
+            action: 'create-job',
+            protocol: 'v2',
             jobId: jobId.toString(),
             provider: opts.provider,
             evaluator,
             description: opts.description,
-            hookAddress: opts.hook ?? (opts.fundTransfer ? "default" : "N/A"),
+            hookAddress: opts.hook ?? (opts.fundTransfer ? 'default' : 'N/A'),
           });
         } else {
           console.log(`\n${c.green(`Job #${jobId} created successfully!`)}`);
@@ -253,11 +253,11 @@ export function registerClientCommands(program: Command): void {
     });
 
   client
-    .command("fund")
-    .description("Fund a job with the agreed budget (USDC)")
-    .requiredOption("--job-id <id>", "On-chain job ID")
-    .requiredOption("--chain-id <id>", "Chain ID", "8453")
-    .option("--amount <usdc>", "USDC amount to fund")
+    .command('fund')
+    .description('Fund a job with the agreed budget (USDC)')
+    .requiredOption('--job-id <id>', 'On-chain job ID')
+    .requiredOption('--chain-id <id>', 'Chain ID', '8453')
+    .option('--amount <usdc>', 'USDC amount to fund')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -272,8 +272,8 @@ export function registerClientCommands(program: Command): void {
           );
           outputResult(json, {
             success: true,
-            action: "fund",
-            protocol: "legacy",
+            action: 'fund',
+            protocol: 'legacy',
             jobId: opts.jobId,
             ...(opts.amount ? { amount: opts.amount } : {}),
           });
@@ -288,8 +288,8 @@ export function registerClientCommands(program: Command): void {
           if (!session) {
             throw new CliError(
               `No session found for job ${opts.jobId}. The job may not exist or you may not be a participant.`,
-              "SESSION_NOT_FOUND",
-              "Run `acp job list` to see your active jobs."
+              'SESSION_NOT_FOUND',
+              'Run `acp job list` to see your active jobs.'
             );
           }
 
@@ -302,8 +302,8 @@ export function registerClientCommands(program: Command): void {
           if (json) {
             outputResult(json, {
               success: true,
-              action: "fund",
-              protocol: "v2",
+              action: 'fund',
+              protocol: 'v2',
               jobId: opts.jobId,
               ...(opts.amount ? { amount: opts.amount } : {}),
             });
@@ -325,11 +325,11 @@ export function registerClientCommands(program: Command): void {
     });
 
   client
-    .command("complete")
-    .description("Approve and complete a job (as evaluator)")
-    .requiredOption("--job-id <id>", "On-chain job ID")
-    .requiredOption("--chain-id <id>", "Chain ID", "8453")
-    .option("--reason <text>", "Reason for completion", "Approved")
+    .command('complete')
+    .description('Approve and complete a job (as evaluator)')
+    .requiredOption('--job-id <id>', 'On-chain job ID')
+    .requiredOption('--chain-id <id>', 'Chain ID', '8453')
+    .option('--reason <text>', 'Reason for completion', 'Approved')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -340,7 +340,7 @@ export function registerClientCommands(program: Command): void {
           await adapter.completeJob(Number(opts.jobId), opts.reason);
           outputResult(json, {
             success: true,
-            action: "complete",
+            action: 'complete',
             legacy: true,
             jobId: opts.jobId,
             reason: opts.reason,
@@ -355,16 +355,16 @@ export function registerClientCommands(program: Command): void {
           if (!session) {
             throw new CliError(
               `No session found for job ${opts.jobId}. The job may not exist or you may not be a participant.`,
-              "SESSION_NOT_FOUND",
-              "Run `acp job list` to see your active jobs."
+              'SESSION_NOT_FOUND',
+              'Run `acp job list` to see your active jobs.'
             );
           }
           await session.complete(opts.reason);
           if (json) {
             outputResult(json, {
               success: true,
-              action: "complete",
-              protocol: "v2",
+              action: 'complete',
+              protocol: 'v2',
               jobId: opts.jobId,
               reason: opts.reason,
             });
@@ -384,11 +384,11 @@ export function registerClientCommands(program: Command): void {
     });
 
   client
-    .command("reject")
-    .description("Reject a job or deliverable (as evaluator)")
-    .requiredOption("--job-id <id>", "On-chain job ID")
-    .requiredOption("--chain-id <id>", "Chain ID", "8453")
-    .option("--reason <text>", "Reason for rejection", "Rejected")
+    .command('reject')
+    .description('Reject a job or deliverable (as evaluator)')
+    .requiredOption('--job-id <id>', 'On-chain job ID')
+    .requiredOption('--chain-id <id>', 'Chain ID', '8453')
+    .option('--reason <text>', 'Reason for rejection', 'Rejected')
     .action(async (opts, cmd) => {
       const json = isJson(cmd);
       try {
@@ -399,7 +399,7 @@ export function registerClientCommands(program: Command): void {
           await adapter.rejectJob(Number(opts.jobId), opts.reason);
           outputResult(json, {
             success: true,
-            action: "reject",
+            action: 'reject',
             legacy: true,
             jobId: opts.jobId,
             reason: opts.reason,
@@ -414,16 +414,16 @@ export function registerClientCommands(program: Command): void {
           if (!session) {
             throw new CliError(
               `No session found for job ${opts.jobId}. The job may not exist or you may not be a participant.`,
-              "SESSION_NOT_FOUND",
-              "Run `acp job list` to see your active jobs."
+              'SESSION_NOT_FOUND',
+              'Run `acp job list` to see your active jobs.'
             );
           }
           await session.reject(opts.reason);
           if (json) {
             outputResult(json, {
               success: true,
-              action: "reject",
-              protocol: "v2",
+              action: 'reject',
+              protocol: 'v2',
               jobId: opts.jobId,
               reason: opts.reason,
             });
@@ -433,7 +433,7 @@ export function registerClientCommands(program: Command): void {
                 `Job #${opts.jobId} rejected`
               )} — escrow returned to client`
             );
-            if (opts.reason !== "Rejected") {
+            if (opts.reason !== 'Rejected') {
               console.log(`  Reason: ${opts.reason}`);
             }
           }

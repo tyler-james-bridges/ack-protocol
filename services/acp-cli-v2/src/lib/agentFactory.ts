@@ -10,23 +10,23 @@ import {
   TESTNET_PRIVY_APP_ID,
   SseTransport,
   AcpApiClient,
-} from "@virtuals-protocol/acp-node-v2";
-import type { IEvmProviderAdapter } from "@virtuals-protocol/acp-node-v2";
+} from '@virtuals-protocol/acp-node-v2';
+import type { IEvmProviderAdapter } from '@virtuals-protocol/acp-node-v2';
 import {
   getActiveWallet,
   getPublicKey,
   getWalletId,
   setWalletId,
-} from "./config";
-import { getClient } from "./api/client";
-import { createSignFn } from "./acpCliSigner";
+} from './config';
+import { getClient } from './api/client';
+import { createSignFn } from './acpCliSigner';
 import {
   LegacyBuyerAdapter,
   type LegacyJobEventHandler,
-} from "./compat/legacyBuyerAdapter";
-import { CliError } from "./errors";
-import { Chain } from "viem";
-import { base, baseSepolia } from "viem/chains";
+} from './compat/legacyBuyerAdapter';
+import { CliError } from './errors';
+import { Chain } from 'viem';
+import { base, baseSepolia } from 'viem/chains';
 
 export async function getWalletIdByAddress(
   walletAddress: string
@@ -42,11 +42,13 @@ export async function getWalletIdByAddress(
   }
 
   const evmProvider = agent.walletProviders.find(
-    (wp) => (wp.chainType ?? "EVM") === "EVM"
+    (wp) => (wp.chainType ?? 'EVM') === 'EVM'
   );
 
   if (!evmProvider) {
-    throw new Error(`EVM wallet provider not found for wallet address: ${walletAddress}`);
+    throw new Error(
+      `EVM wallet provider not found for wallet address: ${walletAddress}`
+    );
   }
 
   const walletId = evmProvider.metadata.walletId;
@@ -59,7 +61,7 @@ export async function getWalletIdByAddress(
 }
 
 export async function createAgentFromConfig(): Promise<AcpAgent> {
-  const isTestnet = process.env.IS_TESTNET === "true";
+  const isTestnet = process.env.IS_TESTNET === 'true';
   const chains = isTestnet ? EVM_TESTNET_CHAINS : EVM_MAINNET_CHAINS;
   const serverUrl = isTestnet ? ACP_TESTNET_SERVER_URL : ACP_SERVER_URL;
   const privyAppId = isTestnet ? TESTNET_PRIVY_APP_ID : PRIVY_APP_ID;
@@ -83,18 +85,18 @@ async function createProviderFromConfig(
   const walletAddress = getActiveWallet();
   if (!walletAddress) {
     throw new CliError(
-      "No active agent set.",
-      "NO_ACTIVE_AGENT",
-      "Run `acp agent create` or `acp agent use` to set an active agent."
+      'No active agent set.',
+      'NO_ACTIVE_AGENT',
+      'Run `acp agent create` or `acp agent use` to set an active agent.'
     );
   }
 
   const publicKey = getPublicKey(walletAddress);
   if (!publicKey) {
     throw new CliError(
-      "No signer configured for this agent.",
-      "NO_SIGNER",
-      "Run `acp agent add-signer` to generate and register a signing key."
+      'No signer configured for this agent.',
+      'NO_SIGNER',
+      'Run `acp agent add-signer` to generate and register a signing key.'
     );
   }
 
@@ -121,7 +123,7 @@ async function createProviderFromConfig(
 export async function createLegacyBuyerAdapter(options?: {
   onNewTask?: LegacyJobEventHandler;
 }): Promise<LegacyBuyerAdapter> {
-  const isTestnet = process.env.IS_TESTNET === "true";
+  const isTestnet = process.env.IS_TESTNET === 'true';
   const chain = isTestnet ? baseSepolia : base;
   const serverUrl = isTestnet ? ACP_TESTNET_SERVER_URL : ACP_SERVER_URL;
   const privyAppId = isTestnet ? TESTNET_PRIVY_APP_ID : PRIVY_APP_ID;
@@ -140,7 +142,7 @@ export async function createLegacyBuyerAdapter(options?: {
  * signing / provider operations are needed.
  */
 export async function createProviderAdapter(): Promise<IEvmProviderAdapter> {
-  const isTestnet = process.env.IS_TESTNET === "true";
+  const isTestnet = process.env.IS_TESTNET === 'true';
   const chains = isTestnet ? EVM_TESTNET_CHAINS : EVM_MAINNET_CHAINS;
   const serverUrl = isTestnet ? ACP_TESTNET_SERVER_URL : ACP_SERVER_URL;
   const privyAppId = isTestnet ? TESTNET_PRIVY_APP_ID : PRIVY_APP_ID;
@@ -151,9 +153,9 @@ export function getWalletAddress(): string {
   const addr = getActiveWallet();
   if (!addr) {
     throw new CliError(
-      "No active agent set.",
-      "NO_ACTIVE_AGENT",
-      "Run `acp agent create` or `acp agent use` to set an active agent."
+      'No active agent set.',
+      'NO_ACTIVE_AGENT',
+      'Run `acp agent create` or `acp agent use` to set an active agent.'
     );
   }
   return addr;

@@ -1,10 +1,10 @@
-import type { Command } from "commander";
-import { isJson, outputResult, outputError } from "../lib/output";
-import { CliError } from "../lib/errors";
-import { AuthApi } from "../lib/api/auth";
-import { getClient } from "../lib/api/client";
-import { setCurrentOwnerWallet, setTokens } from "../lib/config";
-import { openBrowser } from "../lib/browser";
+import type { Command } from 'commander';
+import { isJson, outputResult, outputError } from '../lib/output';
+import { CliError } from '../lib/errors';
+import { AuthApi } from '../lib/api/auth';
+import { getClient } from '../lib/api/client';
+import { setCurrentOwnerWallet, setTokens } from '../lib/config';
+import { openBrowser } from '../lib/browser';
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1000;
@@ -28,8 +28,8 @@ async function waitForToken(
 
 export function registerConfigureCommand(program: Command): void {
   program
-    .command("configure")
-    .description("Authenticate the CLI with ACP")
+    .command('configure')
+    .description('Authenticate the CLI with ACP')
     .action(async (_opts, cmd) => {
       const json = isJson(cmd);
       const { authApi } = await getClient(true);
@@ -47,14 +47,14 @@ export function registerConfigureCommand(program: Command): void {
       }
 
       if (json) {
-        process.stdout.write(JSON.stringify({ url }) + "\n");
+        process.stdout.write(JSON.stringify({ url }) + '\n');
       } else {
         console.log(`\nOpen this URL to authenticate:\n\n  ${url}\n`);
       }
       openBrowser(url);
 
       if (!json) {
-        console.log("Waiting for authentication...");
+        console.log('Waiting for authentication...');
       }
 
       const result = await waitForToken(authApi, requestId);
@@ -62,9 +62,9 @@ export function registerConfigureCommand(program: Command): void {
         outputError(
           json,
           new CliError(
-            "Authentication timed out.",
-            "TIMEOUT",
-            "Run `acp configure` again and complete the browser authentication."
+            'Authentication timed out.',
+            'TIMEOUT',
+            'Run `acp configure` again and complete the browser authentication.'
           )
         );
         return;
@@ -75,10 +75,10 @@ export function registerConfigureCommand(program: Command): void {
 
       if (json) {
         outputResult(json, {
-          message: "Successfully authenticated to ACP CLI",
+          message: 'Successfully authenticated to ACP CLI',
         });
       } else {
-        console.log("Successfully authenticated to ACP CLI");
+        console.log('Successfully authenticated to ACP CLI');
       }
     });
 }

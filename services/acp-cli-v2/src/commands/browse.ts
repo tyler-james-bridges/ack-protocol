@@ -1,29 +1,29 @@
-import type { Command } from "commander";
-import type { AcpAgentDetail } from "@virtuals-protocol/acp-node-v2";
-import { isJson, outputError, isTTY } from "../lib/output";
+import type { Command } from 'commander';
+import type { AcpAgentDetail } from '@virtuals-protocol/acp-node-v2';
+import { isJson, outputError, isTTY } from '../lib/output';
 import {
   createAgentFromConfig,
   createLegacyBuyerAdapter,
-} from "../lib/agentFactory";
-import { c } from "../lib/color";
+} from '../lib/agentFactory';
+import { c } from '../lib/color';
 
-type Offering = AcpAgentDetail["offerings"][number];
-type Resource = AcpAgentDetail["resources"][number];
+type Offering = AcpAgentDetail['offerings'][number];
+type Resource = AcpAgentDetail['resources'][number];
 
 function formatPrice(priceType: string, priceValue: number | string): string {
   const value =
-    typeof priceValue === "string" ? parseFloat(priceValue) : priceValue;
-  if (priceType.toUpperCase() === "FIXED") {
+    typeof priceValue === 'string' ? parseFloat(priceValue) : priceValue;
+  if (priceType.toUpperCase() === 'FIXED') {
     return `${value} USDC`;
   }
-  if (priceType.toUpperCase() === "PERCENTAGE") {
+  if (priceType.toUpperCase() === 'PERCENTAGE') {
     return `${parseFloat((value * 100).toFixed(2))}%`;
   }
   return `${value} (${priceType})`;
 }
 
 function formatOneLiner(value: unknown): string {
-  if (typeof value === "string") return value;
+  if (typeof value === 'string') return value;
   return JSON.stringify(value);
 }
 
@@ -34,7 +34,7 @@ function printOffering(o: Offering): void {
   console.log(`      Deliverable:   ${formatOneLiner(o.deliverable)}`);
   console.log(`      Price:         ${formatPrice(o.priceType, o.priceValue)}`);
   console.log(`      SLA:           ${o.slaMinutes} min`);
-  console.log(`      Required Funds: ${o.requiredFunds ? "Yes" : "No"}`);
+  console.log(`      Required Funds: ${o.requiredFunds ? 'Yes' : 'No'}`);
 }
 
 function printResource(r: Resource): void {
@@ -61,38 +61,38 @@ function printLegacyAgent(
       console.log(`    - ${o.name}`);
       if (o.price != null)
         console.log(
-          `      Price:         ${formatPrice(o.priceType ?? "FIXED", o.price)}`
+          `      Price:         ${formatPrice(o.priceType ?? 'FIXED', o.price)}`
         );
       if (o.slaMinutes != null)
         console.log(`      SLA:           ${o.slaMinutes} min`);
       if (o.requiredFunds != null)
-        console.log(`      Required Funds: ${o.requiredFunds ? "Yes" : "No"}`);
+        console.log(`      Required Funds: ${o.requiredFunds ? 'Yes' : 'No'}`);
     }
   } else {
     console.log(`  Offerings:      No offerings`);
   }
-  console.log("");
+  console.log('');
 }
 
 export function registerBrowseCommand(program: Command): void {
   program
-    .command("browse [query]")
-    .description("Browse available agents")
-    .option("--chain-ids <ids>", "Comma-separated chain IDs to filter by")
+    .command('browse [query]')
+    .description('Browse available agents')
+    .option('--chain-ids <ids>', 'Comma-separated chain IDs to filter by')
     .option(
-      "--sort-by <fields>",
-      "Comma-separated sort fields: successfulJobCount, successRate, uniqueBuyerCount, minsFromLastOnlineTime"
+      '--sort-by <fields>',
+      'Comma-separated sort fields: successfulJobCount, successRate, uniqueBuyerCount, minsFromLastOnlineTime'
     )
-    .option("--top-k <n>", "Max number of results", parseInt)
+    .option('--top-k <n>', 'Max number of results', parseInt)
     .option(
-      "--online <status>",
-      "Filter by online status: all, online, offline"
+      '--online <status>',
+      'Filter by online status: all, online, offline'
     )
-    .option("--cluster <name>", "Filter by cluster")
-    .option("--legacy", "Search legacy (openclaw-cli) agents instead of v2")
+    .option('--cluster <name>', 'Filter by cluster')
+    .option('--legacy', 'Search legacy (openclaw-cli) agents instead of v2')
     .action(async (query, opts, cmd) => {
       if (!query) {
-        console.log("Please provide a query to browse agents.");
+        console.log('Please provide a query to browse agents.');
         return;
       }
 
@@ -112,7 +112,7 @@ export function registerBrowseCommand(program: Command): void {
             const data = agents.map((a) => ({
               name: a.name,
               walletAddress: a.walletAddress,
-              description: a.description ?? "",
+              description: a.description ?? '',
               offerings: a.jobOfferings.map((o) => ({
                 name: o.name,
                 priceValue: o.price,
@@ -125,12 +125,12 @@ export function registerBrowseCommand(program: Command): void {
               chainId: adapter.chainId,
               legacy: true,
             }));
-            process.stdout.write(JSON.stringify({ data }) + "\n");
+            process.stdout.write(JSON.stringify({ data }) + '\n');
             return;
           }
 
           if (agents.length === 0) {
-            console.log("No legacy agents found.");
+            console.log('No legacy agents found.');
             return;
           }
 
@@ -140,7 +140,7 @@ export function registerBrowseCommand(program: Command): void {
             }
             console.log(`\n${agents.length} legacy agent(s) found.`);
           } else {
-            console.log("NAME\tWALLET\tOFFERINGS");
+            console.log('NAME\tWALLET\tOFFERINGS');
             for (const a of agents) {
               console.log(
                 `${a.name}\t${a.walletAddress}\t${a.jobOfferings.length}`
@@ -154,7 +154,7 @@ export function registerBrowseCommand(program: Command): void {
         const agent = await createAgentFromConfig();
 
         const sortBy = opts.sortBy
-          ? opts.sortBy.split(",").map((s: string) => s.trim())
+          ? opts.sortBy.split(',').map((s: string) => s.trim())
           : undefined;
 
         const data = await agent.browseAgents(query, {
@@ -165,54 +165,54 @@ export function registerBrowseCommand(program: Command): void {
         });
 
         if (json) {
-          process.stdout.write(JSON.stringify({ data }) + "\n");
+          process.stdout.write(JSON.stringify({ data }) + '\n');
           return;
         }
 
         if (data.length === 0) {
-          console.log("No agents found.");
+          console.log('No agents found.');
           return;
         }
 
         if (isTTY()) {
           for (const a of data) {
-            console.log(`  ${c.bold("Name:")}           ${c.cyan(a.name)}`);
-            console.log(`  ${c.bold("Description:")}    ${a.description}`);
+            console.log(`  ${c.bold('Name:')}           ${c.cyan(a.name)}`);
+            console.log(`  ${c.bold('Description:')}    ${a.description}`);
             console.log(
-              `  ${c.bold("Wallet:")}         ${c.dim(a.walletAddress)}`
+              `  ${c.bold('Wallet:')}         ${c.dim(a.walletAddress)}`
             );
             if (a.chains.length > 0) {
               console.log(
-                `  ${c.bold("Chains:")}         ${a.chains
+                `  ${c.bold('Chains:')}         ${a.chains
                   .map((ch) => ch.chainId)
-                  .join(", ")}`
+                  .join(', ')}`
               );
             }
             if (a.offerings.length > 0) {
-              console.log(`  ${c.bold("Offerings:")}`);
+              console.log(`  ${c.bold('Offerings:')}`);
               for (const o of a.offerings) {
                 printOffering(o);
               }
             } else {
               console.log(
-                `  ${c.bold("Offerings:")}      ${c.dim("No offerings")}`
+                `  ${c.bold('Offerings:')}      ${c.dim('No offerings')}`
               );
             }
             if (a.resources.length > 0) {
-              console.log(`  ${c.bold("Resources:")}`);
+              console.log(`  ${c.bold('Resources:')}`);
               for (const r of a.resources) {
                 printResource(r);
               }
             } else {
               console.log(
-                `  ${c.bold("Resources:")}      ${c.dim("No resources")}`
+                `  ${c.bold('Resources:')}      ${c.dim('No resources')}`
               );
             }
-            console.log("");
+            console.log('');
           }
           console.log(`\n${c.dim(`${data.length} agent(s) found.`)}`);
         } else {
-          console.log("NAME\tWALLET\tOFFERINGS\tRESOURCES");
+          console.log('NAME\tWALLET\tOFFERINGS\tRESOURCES');
           for (const a of data) {
             console.log(
               `${a.name}\t${a.walletAddress}\t${a.offerings.length}\t${a.resources.length}`

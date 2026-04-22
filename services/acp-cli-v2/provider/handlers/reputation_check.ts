@@ -1,4 +1,4 @@
-const API = "https://8004scan.io/api/v1/public";
+const API = 'https://8004scan.io/api/v1/public';
 
 const CHAIN_MAP: Record<string, number> = {
   abstract: 2741,
@@ -12,10 +12,10 @@ const CHAIN_MAP: Record<string, number> = {
 };
 
 const CHAIN_SLUG: Record<number, string> = {
-  2741: "abstract",
-  8453: "base",
-  1: "ethereum",
-  42220: "celo",
+  2741: 'abstract',
+  8453: 'base',
+  1: 'ethereum',
+  42220: 'celo',
 };
 
 export interface ReputationCheckInput {
@@ -41,7 +41,7 @@ async function searchAgent(query: string) {
 }
 
 export async function executeJob(input: ReputationCheckInput): Promise<string> {
-  const agentQuery = String(input.agent ?? input.agentId ?? "");
+  const agentQuery = String(input.agent ?? input.agentId ?? '');
   const chainFilter = input.chain?.toLowerCase();
 
   let agent: any = null;
@@ -72,10 +72,10 @@ export async function executeJob(input: ReputationCheckInput): Promise<string> {
 
   if (!agent) {
     return JSON.stringify({
-      error: "Agent not found",
+      error: 'Agent not found',
       query: agentQuery,
       suggestion:
-        "Try a token ID (e.g. 606), chain:id (e.g. 2741:606), or agent name.",
+        'Try a token ID (e.g. 606), chain:id (e.g. 2741:606), or agent name.',
     });
   }
 
@@ -115,7 +115,7 @@ export async function executeJob(input: ReputationCheckInput): Promise<string> {
     },
     cross_chain: agent.cross_chain_links ?? [],
     link: `https://8004scan.io/agents/${CHAIN_SLUG[agent.chain_id] ?? agent.chain_id}/${agent.token_id}`,
-    powered_by: "ACK Protocol (ERC-8004)",
+    powered_by: 'ACK Protocol (ERC-8004)',
   };
 
   return JSON.stringify(report, null, 2);

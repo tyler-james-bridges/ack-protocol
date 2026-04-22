@@ -1,4 +1,4 @@
-import { ApiClient } from "./client";
+import { ApiClient } from './client';
 
 interface CliUrlResponse {
   data: { url: string; requestId: string };
@@ -12,7 +12,7 @@ export class AuthApi {
   constructor(private readonly client: ApiClient) {}
 
   async getCliUrl(): Promise<{ url: string; requestId: string }> {
-    const res = await this.client.get<CliUrlResponse>("/auth/cli/url");
+    const res = await this.client.get<CliUrlResponse>('/auth/cli/url');
     return res.data;
   }
 
@@ -22,7 +22,7 @@ export class AuthApi {
     walletAddress: string;
   } | null> {
     try {
-      const res = await this.client.get<CliTokenResponse>("/auth/cli/token", {
+      const res = await this.client.get<CliTokenResponse>('/auth/cli/token', {
         requestId,
       });
       if (!res.data.token) return null;
@@ -41,7 +41,7 @@ export class AuthApi {
   ): Promise<{ token: string; refreshToken: string } | null> {
     try {
       const res = await this.client.post<CliTokenResponse>(
-        "/auth/cli/refresh",
+        '/auth/cli/refresh',
         { refreshToken }
       );
       return { token: res.data.token, refreshToken: res.data.refreshToken };

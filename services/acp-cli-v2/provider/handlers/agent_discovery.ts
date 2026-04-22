@@ -1,4 +1,4 @@
-const API = "https://8004scan.io/api/v1/public";
+const API = 'https://8004scan.io/api/v1/public';
 
 const CHAIN_MAP: Record<string, number> = {
   abstract: 2741,
@@ -12,10 +12,10 @@ const CHAIN_MAP: Record<string, number> = {
 };
 
 const CHAIN_SLUG: Record<number, string> = {
-  2741: "abstract",
-  8453: "base",
-  1: "ethereum",
-  42220: "celo",
+  2741: 'abstract',
+  8453: 'base',
+  1: 'ethereum',
+  42220: 'celo',
 };
 
 export interface AgentDiscoveryInput {
@@ -25,18 +25,18 @@ export interface AgentDiscoveryInput {
 }
 
 export async function executeJob(input: AgentDiscoveryInput): Promise<string> {
-  const query = input.query || "";
+  const query = input.query || '';
   const chainFilter = input.chain?.toLowerCase();
   const limit = Math.min(Math.max(input.limit ?? 5, 1), 20);
 
   const params = new URLSearchParams({ q: query, limit: String(limit) });
   if (chainFilter && CHAIN_MAP[chainFilter]) {
-    params.set("chainId", String(CHAIN_MAP[chainFilter]));
+    params.set('chainId', String(CHAIN_MAP[chainFilter]));
   }
 
   const res = await fetch(`${API}/agents/search?${params}`);
   if (!res.ok) {
-    return JSON.stringify({ error: "Search failed", status: res.status });
+    return JSON.stringify({ error: 'Search failed', status: res.status });
   }
 
   const json: any = await res.json();
@@ -59,7 +59,7 @@ export async function executeJob(input: AgentDiscoveryInput): Promise<string> {
       query,
       results: agents,
       total_found: json?.meta?.pagination?.total ?? agents.length,
-      powered_by: "ACK Protocol (ERC-8004)",
+      powered_by: 'ACK Protocol (ERC-8004)',
     },
     null,
     2

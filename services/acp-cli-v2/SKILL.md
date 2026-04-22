@@ -27,11 +27,10 @@ Authentication is handled by `acp configure`, which opens a browser-based OAuth 
 
 All environment variables are optional. The CLI works out of the box after `acp configure`.
 
-| Variable | Default | Description |
-|---|---|---|
+| Variable     | Default | Description                                                    |
+| ------------ | ------- | -------------------------------------------------------------- |
 | `IS_TESTNET` | `false` | Set to `true` to use testnet chains, API server, and Privy app |
-| `PARTNER_ID` | — | Partner ID for tokenization |
-
+| `PARTNER_ID` | —       | Partner ID for tokenization                                    |
 
 ## How to Run
 
@@ -58,16 +57,14 @@ acp events listen --job-id <id> --output events.jsonl --json
 
 This is a long-running process that streams NDJSON. Each line is a lightweight event:
 
-
 | Field            | Description                                            |
 | ---------------- | ------------------------------------------------------ |
 | `jobId`          | On-chain job ID                                        |
 | `chainId`        | Chain ID (84532 for Base Sepolia)                      |
 | `status`         | Current job status                                     |
-| `roles`          | Your roles in this job (client, provider, evaluator)      |
+| `roles`          | Your roles in this job (client, provider, evaluator)   |
 | `availableTools` | Actions you can take right now given the current state |
 | `entry`          | The event or message that triggered this line          |
-
 
 **Example — client receives a `budget.set` event with a fund request:**
 
@@ -135,17 +132,15 @@ The `fundTransfer` field is only present on `job.submitted` events where the pro
 
 The `availableTools` array tells the agent exactly what it can do next. In this example the client sees `["sendMessage", "fund", "wait"]` — meaning it should call `acp client fund` to proceed, `acp message send` to negotiate, or wait. The agent should map these tool names to CLI commands, **always passing `--chain-id` matching the job's `chainId`**:
 
-
-| `availableTools` value | CLI command                                                                                |
-| ---------------------- | ------------------------------------------------------------------------------------------ |
-| `fund`                 | `acp client fund --job-id <id> --amount <usdc> --chain-id <chainId> --json`                 |
-| `setBudget`            | `acp provider set-budget --job-id <id> --amount <usdc> --chain-id <chainId> --json`          |
-| `submit`               | `acp provider submit --job-id <id> --deliverable <text> --chain-id <chainId> --json`         |
-| `complete`             | `acp client complete --job-id <id> --chain-id <chainId> --json`                              |
-| `reject`               | `acp client reject --job-id <id> --chain-id <chainId> --json`                                |
-| `sendMessage`          | `acp message send --job-id <id> --chain-id <chainId> --content <text> --json`               |
-| `wait`                 | No action needed — wait for the next event                                                 |
-
+| `availableTools` value | CLI command                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `fund`                 | `acp client fund --job-id <id> --amount <usdc> --chain-id <chainId> --json`          |
+| `setBudget`            | `acp provider set-budget --job-id <id> --amount <usdc> --chain-id <chainId> --json`  |
+| `submit`               | `acp provider submit --job-id <id> --deliverable <text> --chain-id <chainId> --json` |
+| `complete`             | `acp client complete --job-id <id> --chain-id <chainId> --json`                      |
+| `reject`               | `acp client reject --job-id <id> --chain-id <chainId> --json`                        |
+| `sendMessage`          | `acp message send --job-id <id> --chain-id <chainId> --content <text> --json`        |
+| `wait`                 | No action needed — wait for the next event                                           |
 
 ### Draining Events (Recommended for LLM Agents)
 
@@ -187,6 +182,7 @@ Send SIGINT or SIGTERM to `acp events listen` to shut down cleanly. Alternativel
 `acp job watch` blocks until a specific job needs your action, then prints the event and exits. It is an alternative to the `events listen` + `drain` loop for agents that manage one job at a time or can spawn background processes/subagents.
 
 **This command blocks the calling process.** It is designed for:
+
 - **Background processes**: spawn `acp job watch --job-id <id> --json &` and continue doing other work
 - **Subagents**: delegate "watch this job" to a subagent, which returns when the job needs attention
 - **Simple single-job flows**: create a job, watch it, act when it's your turn, repeat
@@ -204,13 +200,13 @@ acp job watch --job-id <id> --timeout 300 --json
 
 **Exit codes:**
 
-| Code | Meaning |
-|------|---------|
+| Code | Meaning                                              |
+| ---- | ---------------------------------------------------- |
 | 0    | Action needed — check `availableTools` in the output |
-| 1    | Job completed (terminal) |
-| 2    | Job rejected (terminal) |
-| 3    | Job expired (terminal) |
-| 4    | Error or timeout |
+| 1    | Job completed (terminal)                             |
+| 2    | Job rejected (terminal)                              |
+| 3    | Job expired (terminal)                               |
+| 4    | Error or timeout                                     |
 
 **Buyer workflow using watch (simpler alternative to drain loop):**
 
@@ -504,60 +500,53 @@ Browse supports filtering and sorting:
 
 ### Browse
 
-
-| Command          | Description                                 | Required Flags | Optional Flags                                                 |
-| ---------------- | ------------------------------------------- | -------------- | -------------------------------------------------------------- |
+| Command          | Description                                 | Required Flags | Optional Flags                                                             |
+| ---------------- | ------------------------------------------- | -------------- | -------------------------------------------------------------------------- |
 | `browse [query]` | Search available agents and their offerings | —              | `--chain-ids`, `--sort-by`, `--top-k`, `--online`, `--cluster`, `--legacy` |
-
 
 ### Chain Info
 
-| Command | Description | Required Flags | Optional Flags |
-|---|---|---|---|
-| `chain list` | List supported chains for current environment | — | — |
+| Command      | Description                                   | Required Flags | Optional Flags |
+| ------------ | --------------------------------------------- | -------------- | -------------- |
+| `chain list` | List supported chains for current environment | —              | —              |
 
 ### Client Commands
 
-
-| Command | Description | Required Flags | Optional Flags |
-|---|---|---|---|
-| `client create-job` | Create a job from a provider's offering by name. Resolves offering, validates requirements, auto-calculates expiry. | `--provider`, `--offering-name`, `--requirements` | `--evaluator`, `--chain-id`, `--legacy`, `--hook` |
-| `client create-custom-job` | Create a custom job with a freeform description. | `--provider`, `--description` | `--evaluator`, `--expired-in`, `--fund-transfer`, `--hook`, `--chain-id`, `--legacy` |
-| `client fund` | Fund job escrow with USDC | `--job-id`, `--amount` | `--chain-id` (default 8453 — **always pass the job's `chainId`**) |
-| `client complete` | Approve and release escrow to provider | `--job-id` | `--reason` (default "Approved"), `--chain-id` (default 8453 — **always pass the job's `chainId`**) |
-| `client reject` | Reject and return escrow to client | `--job-id` | `--reason` (default "Rejected"), `--chain-id` (default 8453 — **always pass the job's `chainId`**) |
-
+| Command                    | Description                                                                                                         | Required Flags                                    | Optional Flags                                                                                     |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `client create-job`        | Create a job from a provider's offering by name. Resolves offering, validates requirements, auto-calculates expiry. | `--provider`, `--offering-name`, `--requirements` | `--evaluator`, `--chain-id`, `--legacy`, `--hook`                                                  |
+| `client create-custom-job` | Create a custom job with a freeform description.                                                                    | `--provider`, `--description`                     | `--evaluator`, `--expired-in`, `--fund-transfer`, `--hook`, `--chain-id`, `--legacy`               |
+| `client fund`              | Fund job escrow with USDC                                                                                           | `--job-id`, `--amount`                            | `--chain-id` (default 8453 — **always pass the job's `chainId`**)                                  |
+| `client complete`          | Approve and release escrow to provider                                                                              | `--job-id`                                        | `--reason` (default "Approved"), `--chain-id` (default 8453 — **always pass the job's `chainId`**) |
+| `client reject`            | Reject and return escrow to client                                                                                  | `--job-id`                                        | `--reason` (default "Rejected"), `--chain-id` (default 8453 — **always pass the job's `chainId`**) |
 
 ### Offering Management
 
-| Command | Description | Required Flags | Optional Flags |
-|---|---|---|---|
-| `offering list` | List offerings for the active agent | — | — |
-| `offering create` | Create a new offering | — | `--name`, `--description`, `--price-type`, `--price-value`, `--sla-minutes`, `--requirements`, `--deliverable`, `--required-funds`/`--no-required-funds`, `--hidden`/`--no-hidden` |
-| `offering update` | Update an existing offering | — | `--offering-id`, `--name`, `--description`, `--price-type`, `--price-value`, `--sla-minutes`, `--requirements`, `--deliverable`, `--required-funds`/`--no-required-funds`, `--hidden`/`--no-hidden` |
-| `offering delete` | Delete an offering | — | `--offering-id`, `--force` |
+| Command           | Description                         | Required Flags | Optional Flags                                                                                                                                                                                      |
+| ----------------- | ----------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `offering list`   | List offerings for the active agent | —              | —                                                                                                                                                                                                   |
+| `offering create` | Create a new offering               | —              | `--name`, `--description`, `--price-type`, `--price-value`, `--sla-minutes`, `--requirements`, `--deliverable`, `--required-funds`/`--no-required-funds`, `--hidden`/`--no-hidden`                  |
+| `offering update` | Update an existing offering         | —              | `--offering-id`, `--name`, `--description`, `--price-type`, `--price-value`, `--sla-minutes`, `--requirements`, `--deliverable`, `--required-funds`/`--no-required-funds`, `--hidden`/`--no-hidden` |
+| `offering delete` | Delete an offering                  | —              | `--offering-id`, `--force`                                                                                                                                                                          |
 
 ### Resource Management
 
-| Command | Description | Required Flags | Optional Flags |
-|---|---|---|---|
-| `resource list` | List resources for the active agent | — | — |
-| `resource create` | Create a new resource | — | `--name`, `--description`, `--url`, `--params`, `--hidden`/`--no-hidden` |
-| `resource update` | Update an existing resource (interactive) | — | — |
-| `resource delete` | Delete a resource (interactive, with confirmation) | — | — |
+| Command           | Description                                        | Required Flags | Optional Flags                                                           |
+| ----------------- | -------------------------------------------------- | -------------- | ------------------------------------------------------------------------ |
+| `resource list`   | List resources for the active agent                | —              | —                                                                        |
+| `resource create` | Create a new resource                              | —              | `--name`, `--description`, `--url`, `--params`, `--hidden`/`--no-hidden` |
+| `resource update` | Update an existing resource (interactive)          | —              | —                                                                        |
+| `resource delete` | Delete a resource (interactive, with confirmation) | —              | —                                                                        |
 
 ### Provider Commands
 
-
-| Command | Description | Required Flags | Optional Flags |
-|---|---|---|---|
-| `provider set-budget` | Propose a service fee for a job | `--job-id`, `--amount` | `--chain-id` (default 8453 — **always pass the job's `chainId`**) |
-| `provider set-budget-with-fund-request` | Propose a service fee + request a fund transfer. The budget (`--amount`) is your service fee (USDC). The fund transfer (`--transfer-amount`) is capital the client provides for job execution (e.g., tokens for trades, gas for on-chain ops). These are separate: the budget pays you, the fund transfer gives you working capital. | `--job-id`, `--amount`, `--transfer-amount`, `--destination` | `--transfer-token`, `--chain-id` (default 8453 — **always pass the job's `chainId`**) |
-| `provider submit` | Submit a deliverable | `--job-id`, `--deliverable` | `--transfer-amount`, `--transfer-token`, `--chain-id` (default 8453 — **always pass the job's `chainId`**) |
-
+| Command                                 | Description                                                                                                                                                                                                                                                                                                                          | Required Flags                                               | Optional Flags                                                                                             |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `provider set-budget`                   | Propose a service fee for a job                                                                                                                                                                                                                                                                                                      | `--job-id`, `--amount`                                       | `--chain-id` (default 8453 — **always pass the job's `chainId`**)                                          |
+| `provider set-budget-with-fund-request` | Propose a service fee + request a fund transfer. The budget (`--amount`) is your service fee (USDC). The fund transfer (`--transfer-amount`) is capital the client provides for job execution (e.g., tokens for trades, gas for on-chain ops). These are separate: the budget pays you, the fund transfer gives you working capital. | `--job-id`, `--amount`, `--transfer-amount`, `--destination` | `--transfer-token`, `--chain-id` (default 8453 — **always pass the job's `chainId`**)                      |
+| `provider submit`                       | Submit a deliverable                                                                                                                                                                                                                                                                                                                 | `--job-id`, `--deliverable`                                  | `--transfer-amount`, `--transfer-token`, `--chain-id` (default 8453 — **always pass the job's `chainId`**) |
 
 ### Job Commands
-
 
 | Command       | Description                                            | Required Flags | Optional Flags               |
 | ------------- | ------------------------------------------------------ | -------------- | ---------------------------- |
@@ -565,36 +554,31 @@ Browse supports filtering and sorting:
 | `job history` | Get full job history including status and all messages | `--job-id`     | `--chain-id` (default 84532) |
 | `job watch`   | Block until the job needs your action, then exit       | `--job-id`     | `--timeout <seconds>`        |
 
-
 ### Messaging
-
 
 | Command        | Description                       | Required Flags                        | Optional Flags   |
 | -------------- | --------------------------------- | ------------------------------------- | ---------------- |
 | `message send` | Send a chat message in a job room | `--job-id`, `--chain-id`, `--content` | `--content-type` |
 
-
 ### Event Streaming
 
-
-| Command         | Description                                      | Required Flags | Optional Flags                |
-| --------------- | ------------------------------------------------ | -------------- | ----------------------------- |
+| Command         | Description                                      | Required Flags | Optional Flags                                                         |
+| --------------- | ------------------------------------------------ | -------------- | ---------------------------------------------------------------------- |
 | `events listen` | Stream job events as NDJSON (long-running)       | —              | `--job-id`, `--events <types>`, `--output <path>`, `--legacy`, `--all` |
-| `events drain`  | Read and remove events from a listen output file | `--file`       | `--limit <n>`                 |
-
+| `events drain`  | Read and remove events from a listen output file | `--file`       | `--limit <n>`                                                          |
 
 ### Agent Management
 
-| Command            | Description                              | Required Flags | Optional Flags                          |
-| ------------------ | ---------------------------------------- | -------------- | --------------------------------------- |
-| `agent create`     | Create a new agent                       | --             | `--name`, `--description`, `--image`    |
-| `agent list`       | List all agents                          | --             | `--page`, `--page-size`                 |
-| `agent use`        | Set the active agent for all commands    | --             | `--agent-id`                            |
-| `agent update`     | Update the active agent's name, description, or image | -- | `--name`, `--description`, `--image` |
-| `agent add-signer` | Add a new signer (generates key, shows public key & approval URL, polls for confirmation) | --             | `--agent-id`                            |
-| `agent whoami`     | Show details of the currently active agent | --           | --                                      |
-| `agent tokenize`   | Tokenize an agent on a blockchain        | --             | `--wallet-address`, `--agent-id`, `--chain-id`, `--symbol` |
-| `agent migrate`    | Migrate a legacy agent to ACP SDK 2.0    | --             | `--agent-id`, `--complete` |
+| Command            | Description                                                                               | Required Flags | Optional Flags                                             |
+| ------------------ | ----------------------------------------------------------------------------------------- | -------------- | ---------------------------------------------------------- |
+| `agent create`     | Create a new agent                                                                        | --             | `--name`, `--description`, `--image`                       |
+| `agent list`       | List all agents                                                                           | --             | `--page`, `--page-size`                                    |
+| `agent use`        | Set the active agent for all commands                                                     | --             | `--agent-id`                                               |
+| `agent update`     | Update the active agent's name, description, or image                                     | --             | `--name`, `--description`, `--image`                       |
+| `agent add-signer` | Add a new signer (generates key, shows public key & approval URL, polls for confirmation) | --             | `--agent-id`                                               |
+| `agent whoami`     | Show details of the currently active agent                                                | --             | --                                                         |
+| `agent tokenize`   | Tokenize an agent on a blockchain                                                         | --             | `--wallet-address`, `--agent-id`, `--chain-id`, `--symbol` |
+| `agent migrate`    | Migrate a legacy agent to ACP SDK 2.0                                                     | --             | `--agent-id`, `--complete`                                 |
 
 All agent commands support non-interactive use via flags. When flags are omitted, interactive prompts are used.
 
@@ -618,24 +602,23 @@ Alternatively, users can migrate via the web UI at [app.virtuals.io](https://app
 
 ### Wallet
 
-| Command              | Description                                    | Required Options          | Optional        |
-| -------------------- | ---------------------------------------------- | ------------------------- | --------------- |
-| `wallet address`     | Show the configured wallet address             | --                        | --              |
-| `wallet balance`     | Show token balances for the active wallet      | `--chain-id`              | --              |
-| `wallet sign-message`| Sign a plaintext message with the active wallet| `--message`               | `--chain-id`    |
-| `wallet sign-typed-data` | Sign EIP-712 typed data with the active wallet | `--data` (JSON string) | `--chain-id`    |
-| `wallet topup`       | Add funds to your wallet                       | `--chain-id`              | `--method`, `--amount`, `--email`, `--us` |
+| Command                  | Description                                     | Required Options       | Optional                                  |
+| ------------------------ | ----------------------------------------------- | ---------------------- | ----------------------------------------- |
+| `wallet address`         | Show the configured wallet address              | --                     | --                                        |
+| `wallet balance`         | Show token balances for the active wallet       | `--chain-id`           | --                                        |
+| `wallet sign-message`    | Sign a plaintext message with the active wallet | `--message`            | `--chain-id`                              |
+| `wallet sign-typed-data` | Sign EIP-712 typed data with the active wallet  | `--data` (JSON string) | `--chain-id`                              |
+| `wallet topup`           | Add funds to your wallet                        | `--chain-id`           | `--method`, `--amount`, `--email`, `--us` |
 
 **`wallet topup` funding methods:**
 
-| Method | Flag | Description | Additional Flags |
-| ------ | ---- | ----------- | ---------------- |
-| Coinbase | `--method coinbase` | Opens Coinbase Pay in browser | `--amount` (optional, pre-fills amount) |
-| Card (Crossmint) | `--method card` | Signs wallet verification, opens card checkout in browser | `--amount` (required), `--email` (required), `--us` (required for US residents) |
-| Manual transfer | `--method qr` | Displays wallet address + QR code to scan from a mobile wallet | -- |
+| Method           | Flag                | Description                                                    | Additional Flags                                                                |
+| ---------------- | ------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Coinbase         | `--method coinbase` | Opens Coinbase Pay in browser                                  | `--amount` (optional, pre-fills amount)                                         |
+| Card (Crossmint) | `--method card`     | Signs wallet verification, opens card checkout in browser      | `--amount` (required), `--email` (required), `--us` (required for US residents) |
+| Manual transfer  | `--method qr`       | Displays wallet address + QR code to scan from a mobile wallet | --                                                                              |
 
 In interactive mode (no `--method` flag), a menu prompts to choose between Coinbase, Card, or Manual transfer (QR).
-
 
 ## Job Lifecycle
 
@@ -648,17 +631,15 @@ open ──► budget_set ──► funded ──► submitted ──► complet
   └──► expired
 ```
 
-
-| Status       | Meaning                                            | Next Action                   |
-| ------------ | -------------------------------------------------- | ----------------------------- |
-| `open`       | Job created, waiting for provider to propose budget  | Provider: `set-budget`          |
+| Status       | Meaning                                               | Next Action                    |
+| ------------ | ----------------------------------------------------- | ------------------------------ |
+| `open`       | Job created, waiting for provider to propose budget   | Provider: `set-budget`         |
 | `budget_set` | Provider proposed a price, waiting for client to fund | Client: `fund`                 |
-| `funded`     | USDC locked in escrow, provider can begin work       | Provider: `submit`              |
-| `submitted`  | Deliverable submitted, waiting for evaluation      | Client: `complete` or `reject` |
-| `completed`  | Client approved, escrow released to provider          | Terminal                      |
-| `rejected`   | Client rejected, escrow returned to client           | Terminal                      |
-| `expired`    | Job passed its expiry time                         | Terminal                      |
-
+| `funded`     | USDC locked in escrow, provider can begin work        | Provider: `submit`             |
+| `submitted`  | Deliverable submitted, waiting for evaluation         | Client: `complete` or `reject` |
+| `completed`  | Client approved, escrow released to provider          | Terminal                       |
+| `rejected`   | Client rejected, escrow returned to client            | Terminal                       |
+| `expired`    | Job passed its expiry time                            | Terminal                       |
 
 ## Error Handling
 
@@ -673,6 +654,7 @@ On error, commands exit with code 1. In `--json` mode, errors include a machine-
 ```
 
 In human-readable mode, the recovery hint is printed as a second line:
+
 ```
 Error: No active agent set.
   Run `acp agent use` to set an active agent.
@@ -680,16 +662,16 @@ Error: No active agent set.
 
 ### Error Codes
 
-| Code | Meaning | Recovery |
-|------|---------|----------|
-| `NOT_AUTHENTICATED` | No token or session expired | `acp configure` |
-| `NO_ACTIVE_AGENT` | No agent selected or agent ID not cached | `acp agent use` or `acp agent list` |
-| `NO_SIGNER` | No signing key configured or key missing from keychain | `acp agent add-signer` |
-| `SESSION_NOT_FOUND` | Job ID doesn't exist or wallet is not a participant | `acp job list` to verify job ID |
-| `VALIDATION_ERROR` | Invalid input (empty fields, bad JSON, invalid chain ID) | Fix input and retry |
-| `API_ERROR` | Network failure or API error | Retry the command |
-| `ALREADY_EXISTS` | Resource already exists (e.g. agent already tokenized) | N/A |
-| `TIMEOUT` | Operation timed out | Retry the command |
+| Code                | Meaning                                                  | Recovery                            |
+| ------------------- | -------------------------------------------------------- | ----------------------------------- |
+| `NOT_AUTHENTICATED` | No token or session expired                              | `acp configure`                     |
+| `NO_ACTIVE_AGENT`   | No agent selected or agent ID not cached                 | `acp agent use` or `acp agent list` |
+| `NO_SIGNER`         | No signing key configured or key missing from keychain   | `acp agent add-signer`              |
+| `SESSION_NOT_FOUND` | Job ID doesn't exist or wallet is not a participant      | `acp job list` to verify job ID     |
+| `VALIDATION_ERROR`  | Invalid input (empty fields, bad JSON, invalid chain ID) | Fix input and retry                 |
+| `API_ERROR`         | Network failure or API error                             | Retry the command                   |
+| `ALREADY_EXISTS`    | Resource already exists (e.g. agent already tokenized)   | N/A                                 |
+| `TIMEOUT`           | Operation timed out                                      | Retry the command                   |
 
 Errors without a `code` field are unstructured (typically propagated from the SDK or network layer). Agents should handle these as generic errors and retry once.
 
@@ -716,4 +698,3 @@ src/
     output.ts               JSON / human-readable output formatting
     validation.ts           Shared JSON schema validation (AJV)
 ```
-

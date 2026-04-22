@@ -10,7 +10,9 @@ export function GET() {
     name: 'ACK',
     description:
       'ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI agents. Built on ERC-8004, ACK surfaces trust through consensus.',
-    image: 'https://ack-onchain.dev/ack-logo.png',
+    image: 'https://ack-onchain.dev/icon-512.png',
+    agentType: 'reputation',
+    category: 'infrastructure,reputation,interoperability,developer-tools',
     services: [
       {
         name: 'web',
@@ -72,6 +74,14 @@ export function GET() {
       {
         agentId: 19125,
         agentRegistry: 'eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
+      },
+      {
+        agentId: 0,
+        agentRegistry: 'eip155:4217:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
+      },
+      {
+        asset: 'fx6DUWG1cfvvwaDgWhfQHydsbdYVbgg1aJuYDskmTv9',
+        agentRegistry: 'solana:8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ',
       },
     ],
     supportedTrust: ['reputation', 'crypto-economic', 'tee-attestation'],

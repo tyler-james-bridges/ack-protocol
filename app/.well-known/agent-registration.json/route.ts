@@ -13,6 +13,7 @@ export function GET() {
     image: 'https://ack-onchain.dev/icon-512.png',
     agentType: 'reputation',
     category: 'infrastructure,reputation,interoperability,developer-tools',
+    categories: ['infrastructure,reputation,interoperability,developer-tools'],
     services: [
       {
         name: 'web',
@@ -81,7 +82,8 @@ export function GET() {
       },
       {
         asset: 'fx6DUWG1cfvvwaDgWhfQHydsbdYVbgg1aJuYDskmTv9',
-        agentRegistry: 'solana:8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ',
+        agentRegistry:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ',
       },
     ],
     supportedTrust: ['reputation', 'crypto-economic', 'tee-attestation'],

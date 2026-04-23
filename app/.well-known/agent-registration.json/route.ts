@@ -94,6 +94,7 @@ export function GET() {
         agentRegistry: 'eip155:4217:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
       },
       {
+        agentId: 0,
         asset: 'fx6DUWG1cfvvwaDgWhfQHydsbdYVbgg1aJuYDskmTv9',
         agentRegistry:
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ',

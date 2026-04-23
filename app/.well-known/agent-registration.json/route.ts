@@ -32,7 +32,20 @@ export function GET() {
       {
         name: 'OASF',
         endpoint: 'https://ack-onchain.dev/.well-known/oasf.json',
-        version: '0.8',
+        version: '0.8.0',
+        skills: [
+          'retrieval_augmented_generation',
+          'natural_language_processing',
+          'tool_interaction',
+          'analytical_skills',
+          'evaluation_monitoring',
+        ],
+        domains: [
+          'technology',
+          'finance_and_business',
+          'trust_and_safety',
+          'research_and_development',
+        ],
       },
       {
         name: 'Email',

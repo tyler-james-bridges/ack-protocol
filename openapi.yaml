@@ -1,0 +1,1952 @@
+openapi: 3.1.0
+info:
+  title: ACK Protocol API
+  description: Headless-first reputation infrastructure for AI agents on ERC-8004
+  version: 1.1.0
+  contact:
+    name: ACK Protocol
+    url: https://ack-onchain.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://ack-onchain.dev
+    description: Production
+
+security: []
+
+tags:
+  - name: Public
+    description: Unauthenticated public endpoints
+  - name: Authenticated
+    description: Endpoints requiring SIWA/ERC-8128 authentication
+  - name: Protocol
+    description: Machine-to-machine protocol endpoints (MCP, A2A)
+  - name: x402
+    description: x402 payment-gated endpoints
+
+paths:
+  # ──────────────────────────────────────────────
+  #  PUBLIC ENDPOINTS
+  # ──────────────────────────────────────────────
+
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: Health check
+      description: Returns service health status, version, and upstream service availability.
+      tags: [Public]
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/feedback:
+    get:
+      operationId: getFeedback
+      summary: List on-chain feedback events
+      description: >
+        Returns cached on-chain FeedbackGiven events from the ERC-8004 Reputation Registry.
+        Supports filtering by agent, sender, or X handle. Results are sorted newest-first.
+      tags: [Public]
+      parameters:
+        - name: agentId
+          in: query
+          description: Filter by agent token ID
+          schema:
+            type: integer
+        - name: sender
+          in: query
+          description: Filter by sender address (lowercased for matching)
+          schema:
+            type: string
+        - name: handle
+          in: query
+          description: Filter proxy kudos by X/Twitter handle (matches tag1=proxy, tag2=x:<handle>)
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of results (default 200)
+          schema:
+            type: integer
+            default: 200
+        - name: counts
+          in: query
+          description: 'When "true", return only per-agent counts instead of full events'
+          schema:
+            type: string
+            enum: ['true', 'false']
+      responses:
+        '200':
+          description: Feedback events or counts
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/FeedbackEventsResponse'
+                  - $ref: '#/components/schemas/FeedbackCountsResponse'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/reputation/{address}:
+    get:
+      operationId: getReputation
+      summary: Get reputation for an address
+      description: >
+        Aggregates ERC-8004 reputation data for all agents owned by the given address.
+        Includes per-agent scores, total kudos, top category, and category breakdown.
+        Also includes proxy kudos for X handles linked via the HandleRegistry.
+      tags: [Public]
+      parameters:
+        - $ref: '#/components/parameters/EthAddress'
+      responses:
+        '200':
+          description: Reputation data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReputationResponse'
+        '400':
+          description: Invalid Ethereum address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/discover:
+    get:
+      operationId: discoverAgents
+      summary: Discover agents with filtering
+      description: >
+        Browse and filter ERC-8004 registered agents. Enriches 8004scan data with
+        ACK kudos counts and category breakdowns. Supports filtering by category,
+        chain, and minimum score.
+      tags: [Public]
+      parameters:
+        - name: category
+          in: query
+          description: Filter by kudos category
+          schema:
+            $ref: '#/components/schemas/KudosCategory'
+        - name: chain
+          in: query
+          description: Filter by numeric chain ID
+          schema:
+            type: string
+            pattern: '^\d+$'
+        - name: min_score
+          in: query
+          description: Minimum total score threshold (default 0)
+          schema:
+            type: number
+            default: 0
+        - name: limit
+          in: query
+          description: Max results per page (1-50, default 20)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 50
+        - name: offset
+          in: query
+          description: Pagination offset (default 0)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: Paginated agent discovery results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscoverResponse'
+        '400':
+          description: Invalid category or chain parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/agents:
+    get:
+      operationId: proxyAgents
+      summary: Proxy to 8004scan public API
+      description: >
+        CORS-friendly proxy to the 8004scan public API. Forwards query parameters,
+        translating snake_case to camelCase. Only allows whitelisted paths to prevent SSRF.
+      tags: [Public]
+      parameters:
+        - name: path
+          in: query
+          description: >
+            8004scan API sub-path. Allowed patterns: agents, agents/{id}/{sub},
+            agents/search, accounts/0x{addr}/agents, feedbacks, chains, stats.
+          schema:
+            type: string
+            default: agents
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: chain_id
+          in: query
+          schema:
+            type: integer
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: owner_address
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Proxied 8004scan response (schema varies by path)
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid path parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/kudos/{txHash}:
+    get:
+      operationId: getKudosByTxHash
+      summary: Get kudos details by transaction hash
+      description: >
+        Decodes a FeedbackGiven event from an on-chain transaction receipt.
+        Returns the decoded kudos data including agent, sender, category, message, and timestamp.
+      tags: [Public]
+      parameters:
+        - name: txHash
+          in: path
+          required: true
+          description: Transaction hash (0x-prefixed, 66 characters)
+          schema:
+            type: string
+            pattern: '^0x[0-9a-fA-F]{64}$'
+      responses:
+        '200':
+          description: Decoded kudos data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KudosTxResponse'
+        '400':
+          description: Invalid transaction hash
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Transaction failed or no feedback event found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error decoding transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/streaks/{address}:
+    get:
+      operationId: getStreakByAddress
+      summary: Get streak data for an address
+      description: Returns kudos streak information (current streak, longest streak, activity) for a specific address.
+      tags: [Public]
+      parameters:
+        - $ref: '#/components/parameters/EthAddress'
+      responses:
+        '200':
+          description: Streak data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreakData'
+        '400':
+          description: Invalid address format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/streaks:
+    get:
+      operationId: listStreaks
+      summary: List streaks (bulk or top)
+      description: >
+        Bulk lookup of streak data by addresses, or get top streakers.
+        Must provide either `addresses` or `top` query parameter.
+      tags: [Public]
+      parameters:
+        - name: addresses
+          in: query
+          description: Comma-separated list of Ethereum addresses (max 100)
+          schema:
+            type: string
+        - name: top
+          in: query
+          description: Return top N streakers (max 100, default 20)
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Streak data (shape depends on query mode)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/StreaksBulkResponse'
+                  - $ref: '#/components/schemas/StreaksTopResponse'
+        '400':
+          description: Missing required query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  # ──────────────────────────────────────────────
+  #  AUTHENTICATED ENDPOINTS (SIWA / ERC-8128)
+  # ──────────────────────────────────────────────
+
+  /api/kudos:
+    post:
+      operationId: giveKudos
+      summary: Give kudos to an agent
+      description: >
+        Submit on-chain kudos to an ERC-8004 agent. Requires SIWA/ERC-8128 authentication
+        via X-SIWA-Receipt header. Returns encoded transaction data for the caller to sign
+        and broadcast.
+      tags: [Authenticated]
+      security:
+        - siwa: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GiveKudosRequest'
+      responses:
+        '200':
+          description: Kudos approved — encoded transaction data returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiveKudosResponse'
+        '400':
+          description: Invalid agentId or self-kudos attempt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/vouch/{address}:
+    get:
+      operationId: getVouches
+      summary: Get pending vouches for an address
+      description: Returns all pending vouches for an unregistered address. Public endpoint, no auth required.
+      tags: [Public]
+      parameters:
+        - $ref: '#/components/parameters/EthAddress'
+      responses:
+        '200':
+          description: Vouches for the address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VouchesResponse'
+        '400':
+          description: Invalid Ethereum address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      operationId: vouchForAddress
+      summary: Vouch for an unregistered agent
+      description: >
+        Submit a vouch for an address that has not yet registered an ERC-8004 identity.
+        Requires SIWA/ERC-8128 authentication. If the target is already registered,
+        returns a hint to use /api/kudos instead. Max 10 pending vouches per target, 5 vouches/hour per agent.
+      tags: [Authenticated]
+      security:
+        - siwa: []
+      parameters:
+        - $ref: '#/components/parameters/EthAddress'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VouchRequest'
+      responses:
+        '200':
+          description: Vouch recorded or target already registered
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/VouchPendingResponse'
+                  - $ref: '#/components/schemas/VouchRegisteredResponse'
+        '400':
+          description: Invalid input or self-vouch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Max vouches reached for target
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  status:
+                    type: string
+                    enum: [limit_reached]
+                  count:
+                    type: integer
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  # ──────────────────────────────────────────────
+  #  PROTOCOL ENDPOINTS
+  # ──────────────────────────────────────────────
+
+  /api/mcp:
+    get:
+      operationId: mcpInfo
+      summary: MCP server info
+      description: >
+        Returns MCP server capabilities, available tools, prompts, and resources.
+        Used for endpoint discovery and health checks.
+      tags: [Protocol]
+      responses:
+        '200':
+          description: MCP server info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpInfoResponse'
+
+    post:
+      operationId: mcpCall
+      summary: MCP JSON-RPC endpoint
+      description: >
+        Model Context Protocol endpoint implementing the MCP specification.
+        Supports methods: initialize, tools/list, tools/call, prompts/list,
+        resources/list, ping, notifications/initialized.
+        Tools: search_agents, get_agent, get_reputation, get_agent_feedbacks, list_leaderboard.
+      tags: [Protocol]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JsonRpcRequest'
+      responses:
+        '200':
+          description: JSON-RPC response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonRpcResponse'
+
+  /api/a2a:
+    get:
+      operationId: a2aAgentCard
+      summary: A2A agent card
+      description: Returns the A2A agent card describing capabilities, skills, and endpoints.
+      tags: [Protocol]
+      responses:
+        '200':
+          description: Agent card
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/A2AAgentCard'
+
+    post:
+      operationId: a2aCall
+      summary: A2A JSON-RPC endpoint
+      description: >
+        Agent-to-Agent protocol endpoint. Supports JSON-RPC methods:
+        tasks/send, tasks/get, agent/info. Accepts natural language queries
+        about agents and reputation, routes to 8004scan API.
+      tags: [Protocol]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JsonRpcRequest'
+      responses:
+        '200':
+          description: JSON-RPC response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonRpcResponse'
+        '400':
+          description: Invalid JSON
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonRpcError'
+
+  # ──────────────────────────────────────────────
+  #  x402 GATED ENDPOINTS
+  # ──────────────────────────────────────────────
+
+  /api/x402:
+    get:
+      operationId: x402Discovery
+      summary: x402 payment discovery
+      description: >
+        Returns x402 payment requirements for ACK Protocol tip payments,
+        including supported assets, network, pricing, and related endpoints.
+      tags: [x402]
+      responses:
+        '200':
+          description: x402 discovery payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X402DiscoveryResponse'
+
+    post:
+      operationId: x402Resolve
+      summary: Resolve x402 payment requirements for an agent
+      description: >
+        Looks up the payment address for a specific agent. Falls back to the
+        ACK treasury address if no agent-specific address is found.
+      tags: [x402]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agentId:
+                  type: integer
+                  description: Agent token ID to resolve payment address for
+      responses:
+        '402':
+          description: Payment required — includes payment requirements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X402PaymentRequired'
+
+  # ──────────────────────────────────────────────
+  # Assembly
+  # ──────────────────────────────────────────────
+
+  /api/assembly:
+    get:
+      tags: [Public]
+      summary: AI Assembly auction data
+      description: Returns current and recent council seat auction data from the AI Assembly on Abstract.
+      responses:
+        '200':
+          description: Auction data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentDay:
+                    type: integer
+                  currentSlot:
+                    type: integer
+                  seatCount:
+                    type: integer
+                  ethPrice:
+                    type: number
+                  slots:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        day:
+                          type: integer
+                        slot:
+                          type: integer
+                        highestBidder:
+                          type: string
+                        highestBidEth:
+                          type: string
+                        highestBidUsd:
+                          type: string
+                        settled:
+                          type: boolean
+                        timeRemainingSeconds:
+                          type: integer
+                        status:
+                          type: string
+        '500':
+          description: Server error
+
+  # ──────────────────────────────────────────────
+  # Claim (Handle Registry)
+  # ──────────────────────────────────────────────
+
+  /api/claim:
+    get:
+      tags: [Public]
+      summary: Check handle claim status
+      description: Check whether an X handle has been claimed and its linked agent.
+      parameters:
+        - name: platform
+          in: query
+          schema:
+            type: string
+            default: x
+        - name: handle
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Claim status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exists:
+                    type: boolean
+                  handle:
+                    type: string
+                  platform:
+                    type: string
+                  claimedBy:
+                    type: string
+                  linkedAgentId:
+                    type: integer
+        '400':
+          description: Missing handle parameter
+
+    post:
+      tags: [Public]
+      summary: Initiate handle claim challenge
+      description: Creates a challenge for claiming an X handle by posting a verification tweet.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [handle, agentId, address]
+              properties:
+                handle:
+                  type: string
+                agentId:
+                  type: integer
+                address:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+      responses:
+        '200':
+          description: Challenge created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challengeId:
+                    type: string
+                  tweetText:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+        '400':
+          description: Invalid input
+
+  # ──────────────────────────────────────────────
+  # Home
+  # ──────────────────────────────────────────────
+
+  /api/home:
+    get:
+      tags: [Public]
+      summary: Home page aggregated data
+      description: Returns aggregated stats for the ACK homepage (agent counts, feedback totals, leaderboard preview).
+      responses:
+        '200':
+          description: Home page data
+          content:
+            application/json:
+              schema:
+                type: object
+        '502':
+          description: Upstream error
+
+  # ──────────────────────────────────────────────
+  # Onboard
+  # ──────────────────────────────────────────────
+
+  /api/onboard:
+    post:
+      tags: [Authenticated]
+      summary: Agent onboarding
+      description: Agent-first programmatic onboarding. Checks registration status, builds registration tx if needed. Requires SIWA authentication.
+      security:
+        - siwa: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agentId:
+                  type: integer
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Onboarding result with encoded tx data if registration needed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registered:
+                    type: boolean
+                  txData:
+                    type: string
+                    description: Encoded transaction data (if registration needed)
+        '401':
+          description: Authentication required
+        '429':
+          description: Rate limited (30/hour)
+
+  # ──────────────────────────────────────────────
+  # Timestamps
+  # ──────────────────────────────────────────────
+
+  /api/timestamps:
+    get:
+      tags: [Public]
+      summary: Resolve block timestamps
+      description: Returns Unix timestamps for up to 50 Abstract block numbers. Results are cached permanently.
+      parameters:
+        - name: blocks
+          in: query
+          required: true
+          description: Comma-separated block numbers (max 50)
+          schema:
+            type: string
+            example: '1000000,1000001,1000002'
+      responses:
+        '200':
+          description: Block timestamps
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                example:
+                  '1000000': 1700000000
+                  '1000001': 1700000012
+        '400':
+          description: Missing blocks param
+
+  # ──────────────────────────────────────────────
+  # Payments
+  # ──────────────────────────────────────────────
+
+  /api/payments/methods:
+    get:
+      tags: [Public]
+      summary: Payment method discovery
+      description: Returns which payment rails are enabled (x402, MPP, direct) and their metadata.
+      responses:
+        '200':
+          description: Available payment methods
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  methods:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          enum: [x402, mpp, direct]
+                        name:
+                          type: string
+                        enabled:
+                          type: boolean
+                        description:
+                          type: string
+                  defaultMethod:
+                    type: string
+
+  # ──────────────────────────────────────────────
+  # SIWA Authentication
+  # ──────────────────────────────────────────────
+
+  /api/siwa/nonce:
+    post:
+      tags: [Authenticated]
+      summary: Request SIWA nonce
+      description: Request a nonce for Sign-In With Agent (SIWA/ERC-8128) authentication. Verifies onchain registration before issuing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address, agentId, agentRegistry]
+              properties:
+                address:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+                agentId:
+                  type: integer
+                agentRegistry:
+                  type: string
+      responses:
+        '200':
+          description: Nonce issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nonce:
+                    type: string
+        '400':
+          description: Invalid input
+        '403':
+          description: Agent not registered onchain
+
+  /api/siwa/verify:
+    post:
+      tags: [Authenticated]
+      summary: Verify SIWA signature
+      description: Verify a SIWA signature and return a receipt (ERC-8128) for subsequent authenticated requests.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message, signature, nonceToken]
+              properties:
+                message:
+                  type: string
+                signature:
+                  type: string
+                nonceToken:
+                  type: string
+      responses:
+        '200':
+          description: Verification successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receipt:
+                    type: string
+                  address:
+                    type: string
+                  agentId:
+                    type: integer
+        '400':
+          description: Invalid signature or body
+        '500':
+          description: Server misconfigured
+
+  # ──────────────────────────────────────────────
+  # Tips
+  # ──────────────────────────────────────────────
+
+  /api/tips:
+    post:
+      tags: [Public]
+      summary: Create a pending tip
+      description: Create a tip record for a USDC payment to an agent. Returns payment info (address, amount).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [agentId, fromAddress, amountUsd]
+              properties:
+                agentId:
+                  type: integer
+                fromAddress:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+                amountUsd:
+                  type: number
+                  minimum: 0.01
+                  maximum: 100
+                kudosTxHash:
+                  type: string
+      responses:
+        '200':
+          description: Tip created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tipId:
+                    type: string
+                  payTo:
+                    type: string
+                  amountUsd:
+                    type: number
+                  expiresAt:
+                    type: string
+                    format: date-time
+        '400':
+          description: Invalid input
+
+  /api/tips/{tipId}:
+    get:
+      tags: [Public]
+      summary: Get tip status
+      description: Returns the current status of a tip record with agent metadata.
+      parameters:
+        - name: tipId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tip details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tip:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      agentId:
+                        type: integer
+                      agentName:
+                        type: string
+                      amountUsd:
+                        type: number
+                      status:
+                        type: string
+                        enum: [pending, completed, expired]
+                      fromAddress:
+                        type: string
+                      toAddress:
+                        type: string
+        '404':
+          description: Tip not found
+
+  /api/tips/{tipId}/pay:
+    post:
+      tags: [Public]
+      summary: Pay a tip via x402 or MPP
+      description: Process payment for a pending tip using x402 micropayment or MPP credential.
+      parameters:
+        - name: tipId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment accepted
+        '402':
+          description: Payment required
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+        '404':
+          description: Tip not found
+
+  /api/tips/{tipId}/verify:
+    post:
+      tags: [Public]
+      summary: Verify tip payment onchain
+      description: Verify a USDC transfer onchain and mark the tip as completed.
+      parameters:
+        - name: tipId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [txHash]
+              properties:
+                txHash:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{64}$'
+      responses:
+        '200':
+          description: Tip verified and completed
+        '400':
+          description: Invalid tx hash
+        '404':
+          description: Tip not found
+
+  /api/tips/badge/{agentId}:
+    get:
+      tags: [Public]
+      summary: Tip badge SVG
+      description: Returns an embeddable SVG badge for tipping an agent. Use in READMEs or profiles.
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SVG badge
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+
+  /api/tips/by-kudos:
+    post:
+      tags: [Public]
+      summary: Lookup tips by kudos tx hashes
+      description: Given an array of kudos transaction hashes, returns associated tip records.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [txHashes]
+              properties:
+                txHashes:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 50
+      responses:
+        '200':
+          description: Tips map keyed by tx hash
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tips:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        amountUsd:
+                          type: number
+                        fromAddress:
+                          type: string
+
+  /api/tips/feed:
+    get:
+      tags: [Public]
+      summary: Tips feed for an agent
+      description: Returns completed standalone tips (no kudos link) for a specific agent.
+      parameters:
+        - name: agentId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 50
+      responses:
+        '200':
+          description: Tips feed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+        '400':
+          description: Missing agentId
+
+  /api/tips/hashes:
+    get:
+      tags: [Public]
+      summary: Completed tip transaction hashes
+      description: Returns all transaction hashes for completed tips. Used by external explorers.
+      responses:
+        '200':
+          description: Hash list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hashes:
+                    type: array
+                    items:
+                      type: string
+
+  /api/tips/stats:
+    get:
+      tags: [Public]
+      summary: Tip statistics
+      description: Returns tip statistics (received/given) for an agent or wallet.
+      parameters:
+        - name: agentId
+          in: query
+          schema:
+            type: string
+        - name: wallet
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tip stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: array
+                    items:
+                      type: object
+                  given:
+                    type: array
+                    items:
+                      type: object
+                  totalReceived:
+                    type: number
+                  totalGiven:
+                    type: number
+        '400':
+          description: Missing agentId or wallet
+
+components:
+  securitySchemes:
+    siwa:
+      type: apiKey
+      in: header
+      name: X-SIWA-Receipt
+      description: >
+        SIWA (Sign-In With Agent) ERC-8128 authentication. Requires a valid
+        signed receipt in the X-SIWA-Receipt header.
+
+  parameters:
+    EthAddress:
+      name: address
+      in: path
+      required: true
+      description: Ethereum address (0x-prefixed, 40 hex characters)
+      schema:
+        type: string
+        pattern: '^0x[0-9a-fA-F]{40}$'
+
+  responses:
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: string
+        X-RateLimit-Remaining:
+          schema:
+            type: string
+        X-RateLimit-Reset:
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    BadGateway:
+      description: Upstream service error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    KudosCategory:
+      type: string
+      enum:
+        - reliability
+        - speed
+        - accuracy
+        - creativity
+        - collaboration
+        - security
+
+    CategoryCounts:
+      type: object
+      properties:
+        reliability:
+          type: integer
+        speed:
+          type: integer
+        accuracy:
+          type: integer
+        creativity:
+          type: integer
+        collaboration:
+          type: integer
+        security:
+          type: integer
+
+    # ── Health ──
+
+    HealthResponse:
+      type: object
+      required: [status, name, version, timestamp, services]
+      properties:
+        status:
+          type: string
+          enum: [healthy]
+        name:
+          type: string
+          example: ACK Protocol
+        version:
+          type: string
+          example: '1.1.0'
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+          properties:
+            web:
+              type: string
+              enum: [up, down]
+            mcp:
+              type: string
+              enum: [up, down]
+            a2a:
+              type: string
+              enum: [up, down]
+            oasf:
+              type: string
+              enum: [up, down]
+
+    # ── Feedback ──
+
+    FeedbackEvent:
+      type: object
+      properties:
+        sender:
+          type: string
+          description: Sender Ethereum address
+        agentId:
+          type: integer
+          description: Agent token ID
+        feedbackIndex:
+          type: string
+        value:
+          type: string
+        tag1:
+          type: string
+          description: 'Primary tag (e.g. "kudos", "proxy")'
+        tag2:
+          type: string
+          description: 'Secondary tag (e.g. category name or "x:<handle>")'
+        feedbackURI:
+          type: string
+        feedbackHash:
+          type: string
+        blockNumber:
+          type: string
+        txHash:
+          type: string
+
+    FeedbackEventsResponse:
+      type: object
+      required: [events, total]
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedbackEvent'
+        total:
+          type: integer
+
+    FeedbackCountsResponse:
+      type: object
+      required: [counts, total]
+      properties:
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Map of agentId to feedback count
+        total:
+          type: integer
+
+    # ── Reputation ──
+
+    AgentReputation:
+      type: object
+      properties:
+        chainId:
+          type: integer
+        agentId:
+          type: integer
+        name:
+          type: string
+        totalScore:
+          type: number
+
+    ReputationResponse:
+      type: object
+      required:
+        [address, agents, aggregatedScore, totalKudos, topCategory, categories]
+      properties:
+        address:
+          type: string
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReputation'
+        aggregatedScore:
+          type: number
+          description: Average score across all owned agents
+        totalKudos:
+          type: integer
+        topCategory:
+          oneOf:
+            - $ref: '#/components/schemas/KudosCategory'
+            - type: 'null'
+        categories:
+          $ref: '#/components/schemas/CategoryCounts'
+
+    # ── Discover ──
+
+    DiscoverAgent:
+      type: object
+      properties:
+        chainId:
+          type: integer
+        agentId:
+          type: integer
+        name:
+          type: string
+        description:
+          type:
+            - string
+            - 'null'
+        ownerAddress:
+          type: string
+        totalScore:
+          type: number
+        totalFeedbacks:
+          type: integer
+        isVerified:
+          type: boolean
+        imageUrl:
+          type:
+            - string
+            - 'null'
+        tags:
+          type: array
+          items:
+            type: string
+        kudosCount:
+          type: integer
+        topCategory:
+          oneOf:
+            - $ref: '#/components/schemas/KudosCategory'
+            - type: 'null'
+        categories:
+          $ref: '#/components/schemas/CategoryCounts'
+
+    DiscoverResponse:
+      type: object
+      required: [agents, total, limit, offset]
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiscoverAgent'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    # ── Kudos (tx lookup) ──
+
+    KudosTxResponse:
+      type: object
+      properties:
+        txHash:
+          type: string
+        agentId:
+          type: integer
+        agentName:
+          type: string
+        sender:
+          type: string
+          description: Sender address decoded from event logs
+        senderName:
+          type: string
+          description: Human-readable sender name (e.g. @handle)
+        value:
+          type: integer
+        category:
+          type: string
+        message:
+          type: string
+        from:
+          type: string
+          description: Raw "from" field from feedbackURI metadata
+        source:
+          type: string
+        tag1:
+          type: string
+        tag2:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        blockNumber:
+          type: string
+
+    # ── Kudos (give) ──
+
+    GiveKudosRequest:
+      type: object
+      required: [agentId]
+      properties:
+        agentId:
+          type: integer
+          description: Target agent token ID (positive integer)
+          minimum: 0
+        category:
+          $ref: '#/components/schemas/KudosCategory'
+          default: reliability
+        message:
+          type: string
+          description: Optional kudos message
+
+    GiveKudosResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [approved]
+        from:
+          type: object
+          properties:
+            address:
+              type: string
+            agentId:
+              type: integer
+        to:
+          type: object
+          properties:
+            agentId:
+              type: integer
+            category:
+              $ref: '#/components/schemas/KudosCategory'
+        transaction:
+          type: object
+          properties:
+            to:
+              type: string
+              description: Reputation Registry contract address
+            data:
+              type: string
+              description: ABI-encoded giveFeedback call data
+            chainId:
+              type: integer
+              description: Chain ID (2741 for Abstract)
+        feedbackURI:
+          type: string
+        feedbackHash:
+          type: string
+        rateLimit:
+          $ref: '#/components/schemas/RateLimitInfo'
+
+    # ── Streaks ──
+
+    StreakData:
+      type: object
+      properties:
+        currentStreak:
+          type: integer
+          description: Current consecutive-day kudos streak
+        longestStreak:
+          type: integer
+          description: All-time longest streak
+        lastKudosDate:
+          type:
+            - string
+            - 'null'
+          description: ISO date of last kudos activity
+        isActiveToday:
+          type: boolean
+        totalDaysActive:
+          type: integer
+
+    StreaksBulkResponse:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/StreakData'
+      description: Map of lowercase address to streak data
+
+    StreaksTopResponse:
+      type: object
+      properties:
+        streakers:
+          type: array
+          items:
+            type: object
+            properties:
+              address:
+                type: string
+              streak:
+                $ref: '#/components/schemas/StreakData'
+        totalKudos:
+          type: integer
+
+    # ── Vouch ──
+
+    PendingVouch:
+      type: object
+      properties:
+        from:
+          type: string
+          description: Voucher's Ethereum address
+        category:
+          $ref: '#/components/schemas/KudosCategory'
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    VouchesResponse:
+      type: object
+      properties:
+        address:
+          type: string
+        vouches:
+          type: array
+          items:
+            $ref: '#/components/schemas/PendingVouch'
+        count:
+          type: integer
+
+    VouchRequest:
+      type: object
+      required: [targetAddress, message]
+      properties:
+        targetAddress:
+          type: string
+          description: Ethereum address of the agent to vouch for
+        category:
+          $ref: '#/components/schemas/KudosCategory'
+          default: reliability
+        message:
+          type: string
+          description: Vouch message (1-500 characters)
+          minLength: 1
+          maxLength: 500
+
+    VouchPendingResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending]
+        message:
+          type: string
+        targetAddress:
+          type: string
+        category:
+          $ref: '#/components/schemas/KudosCategory'
+        pendingCount:
+          type: integer
+        rateLimit:
+          $ref: '#/components/schemas/RateLimitInfo'
+
+    VouchRegisteredResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [registered]
+        hint:
+          type: string
+          example: Use /api/kudos directly
+        rateLimit:
+          $ref: '#/components/schemas/RateLimitInfo'
+
+    # ── Protocol (MCP) ──
+
+    McpInfoResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: ACK Protocol MCP Server
+        version:
+          type: string
+        protocolVersion:
+          type: string
+        description:
+          type: string
+        transport:
+          type: string
+          enum: [streamable-http]
+        methods:
+          type: array
+          items:
+            type: string
+        capabilities:
+          type: object
+          properties:
+            tools:
+              type: boolean
+            prompts:
+              type: boolean
+            resources:
+              type: boolean
+        tools:
+          type: array
+          items:
+            type: string
+        prompts:
+          type: array
+          items:
+            type: string
+        resources:
+          type: array
+          items:
+            type: string
+
+    # ── Protocol (A2A) ──
+
+    A2AAgentCard:
+      type: object
+      properties:
+        name:
+          type: string
+          example: ACK
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+        provider:
+          type: object
+          properties:
+            organization:
+              type: string
+            url:
+              type: string
+              format: uri
+        version:
+          type: string
+        capabilities:
+          type: object
+          properties:
+            streaming:
+              type: boolean
+            pushNotifications:
+              type: boolean
+            stateTransitionHistory:
+              type: boolean
+        authentication:
+          type: object
+          properties:
+            schemes:
+              type: array
+              items:
+                type: string
+        defaultInputModes:
+          type: array
+          items:
+            type: string
+        defaultOutputModes:
+          type: array
+          items:
+            type: string
+        endpoints:
+          type: object
+          properties:
+            a2a:
+              type: string
+              format: uri
+            mcp:
+              type: string
+              format: uri
+            agentCard:
+              type: string
+              format: uri
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              tags:
+                type: array
+                items:
+                  type: string
+              examples:
+                type: array
+                items:
+                  type: string
+
+    # ── JSON-RPC ──
+
+    JsonRpcRequest:
+      type: object
+      required: [jsonrpc, method]
+      properties:
+        jsonrpc:
+          type: string
+          enum: ['2.0']
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: 'null'
+        method:
+          type: string
+        params:
+          type: object
+
+    JsonRpcResponse:
+      type: object
+      properties:
+        jsonrpc:
+          type: string
+          enum: ['2.0']
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: 'null'
+        result:
+          type: object
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+            data: {}
+
+    JsonRpcError:
+      type: object
+      properties:
+        jsonrpc:
+          type: string
+          enum: ['2.0']
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: 'null'
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+
+    # ── x402 ──
+
+    X402PaymentRequirements:
+      type: object
+      properties:
+        scheme:
+          type: string
+          enum: [exact]
+        network:
+          type: string
+          example: 'eip155:2741'
+        asset:
+          type: string
+          description: USDC contract address
+        amount:
+          type: string
+          example: '1.00'
+        payTo:
+          type: string
+          description: Payment recipient address
+        maxTimeoutSeconds:
+          type: integer
+        extra:
+          type: object
+          properties:
+            name:
+              type: string
+              example: USDC
+            decimals:
+              type: integer
+            facilitatorUrl:
+              type: string
+              format: uri
+
+    X402PaymentRequired:
+      type: object
+      properties:
+        x402Version:
+          type: integer
+          example: 2
+        resource:
+          type: object
+          properties:
+            url:
+              type: string
+            description:
+              type: string
+            mimeType:
+              type: string
+        accepts:
+          type: array
+          items:
+            $ref: '#/components/schemas/X402PaymentRequirements'
+
+    X402DiscoveryResponse:
+      allOf:
+        - $ref: '#/components/schemas/X402PaymentRequired'
+        - type: object
+          properties:
+            agent:
+              type: string
+              example: ACK
+            agentId:
+              type: string
+              example: '606'
+            pricing:
+              type: object
+              properties:
+                tipMin:
+                  type: string
+                  example: '0.01'
+                tipMax:
+                  type: string
+                  example: '100.00'
+                currency:
+                  type: string
+                  example: USD
+            endpoints:
+              type: object
+              properties:
+                createTip:
+                  type: string
+                verifyTip:
+                  type: string
+                tipPage:
+                  type: string
+
+    # ── Shared ──
+
+    RateLimitInfo:
+      type: object
+      properties:
+        remaining:
+          type: integer
+        resetAt:
+          type: number
+          description: Unix timestamp (ms) when the rate limit resets

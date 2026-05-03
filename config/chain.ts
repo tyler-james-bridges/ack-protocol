@@ -18,6 +18,8 @@ export interface ChainConfig {
   rpcUrl: string;
   deployBlock: number;
   explorer: string;
+  /** Max block range per eth_getLogs call (free RPCs have different limits) */
+  maxLogRange: number;
 }
 
 /**
@@ -30,18 +32,21 @@ export const SUPPORTED_8004_CHAINS: Record<number, ChainConfig> = {
     rpcUrl: 'https://api.mainnet.abs.xyz',
     deployBlock: 39_500_000,
     explorer: 'https://abscan.org',
+    maxLogRange: 500_000,
   },
   8453: {
     chain: base,
     rpcUrl: 'https://mainnet.base.org',
-    deployBlock: 41_500_000,
+    deployBlock: 41_664_000,
     explorer: 'https://basescan.org',
+    maxLogRange: 9_999,
   },
   1: {
     chain: mainnet,
     rpcUrl: 'https://eth.drpc.org',
-    deployBlock: 24_300_000,
+    deployBlock: 24_339_880,
     explorer: 'https://etherscan.io',
+    maxLogRange: 9_999,
   },
 } as const;
 

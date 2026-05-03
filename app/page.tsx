@@ -10,7 +10,7 @@ import { TwitterCTA } from '@/components/twitter-cta';
 import { getHomePageData } from '@/lib/home-data';
 import type { ScanAgent } from '@/lib/api';
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const data = await getHomePageData();

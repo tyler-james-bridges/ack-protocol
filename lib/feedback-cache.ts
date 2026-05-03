@@ -140,7 +140,7 @@ async function fetchChainFeedback(chainId: number): Promise<FeedbackEvent[]> {
     method: 'eth_blockNumber',
   })) as Hex;
   const latestBlock = Number(BigInt(latestHex));
-  const CHUNK = 500_000;
+  const CHUNK = (cfg as ChainConfig).maxLogRange;
 
   const rawLogs: RawLog[] = [];
   for (let start = fromBlock; start <= latestBlock; start += CHUNK) {
@@ -199,7 +199,11 @@ export async function getAllFeedbackEventsForChain(
  */
 export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
   const chainIds = Object.keys(SUPPORTED_8004_CHAINS).map(Number);
-  const results = await Promise.all(chainIds.map(fetchChainFeedback));
+  const results = await Promise.all(
+    chainIds.map((cid) =>
+      fetchChainFeedback(cid).catch(() => [] as FeedbackEvent[])
+    )
+  );
   const merged = results.flat();
   // Sort newest first (cross-chain block numbers are not directly comparable
   // but this gives a reasonable approximation)

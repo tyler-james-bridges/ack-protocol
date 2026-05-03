@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useDisconnect } from 'wagmi';
 import { AgentAvatar } from '@/components/agent-avatar';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const NAV_LINKS = [
   { href: '/explore', label: 'EXPLORE' },
@@ -158,11 +159,11 @@ export function Nav() {
           </div>
 
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             <ConnectButton.Custom>
               {({
                 account,
                 chain: connectedChain,
-                openChainModal,
                 openConnectModal,
                 mounted,
               }) => {

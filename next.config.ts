@@ -1,6 +1,14 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  turbopack: {},
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...(config.resolve.alias ?? {}),
+      fsevents: false,
+    };
+    return config;
+  },
   images: {
     remotePatterns: [
       { hostname: '**.8004scan.app' },

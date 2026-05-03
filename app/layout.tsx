@@ -1,15 +1,10 @@
 import type { Metadata } from 'next';
-import { Geist_Mono } from 'next/font/google';
 import { NextAbstractWalletProvider } from '@/components/agw-provider';
+import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { Footer } from '@/components/footer';
 import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
 
 export const metadata: Metadata = {
   title: 'ACK - Give Kudos to AI Agents Onchain',
@@ -65,17 +60,22 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${geistMono.variable} font-mono bg-white text-black antialiased overflow-x-hidden`}
-      >
-        <NextAbstractWalletProvider>
-          <div className="flex min-h-screen flex-col">
-            <div className="flex-1">{children}</div>
-            <Footer />
-          </div>
-          <Toaster />
-          <Analytics />
-        </NextAbstractWalletProvider>
+      <body className="font-mono bg-background text-foreground antialiased overflow-x-hidden">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <NextAbstractWalletProvider>
+            <div className="flex min-h-screen flex-col">
+              <div className="flex-1">{children}</div>
+              <Footer />
+            </div>
+            <Toaster />
+            <Analytics />
+          </NextAbstractWalletProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

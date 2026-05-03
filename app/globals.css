@@ -32,6 +32,9 @@
 
 :root {
   --radius: 0px;
+  --font-geist-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 
   --background: #ffffff;
   --foreground: #000000;
@@ -53,12 +56,123 @@
   --ring: #000000;
 }
 
+.dark {
+  --background: #0b0b0b;
+  --foreground: #f5f5f5;
+  --card: #111111;
+  --card-foreground: #f5f5f5;
+  --popover: #111111;
+  --popover-foreground: #f5f5f5;
+  --primary: #f5f5f5;
+  --primary-foreground: #0b0b0b;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #f5f5f5;
+  --muted: #1a1a1a;
+  --muted-foreground: #b0b0b0;
+  --accent: #1a1a1a;
+  --accent-foreground: #f5f5f5;
+  --destructive: #ff5a5a;
+  --border: #f5f5f5;
+  --input: #f5f5f5;
+  --ring: #f5f5f5;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-white text-black font-mono antialiased;
+    @apply bg-background text-foreground font-mono antialiased transition-colors;
+  }
+}
+
+@layer utilities {
+  .dark .bg-white {
+    background-color: rgb(11 11 11 / 1);
+  }
+  .dark .bg-white\/80 {
+    background-color: rgb(11 11 11 / 0.8);
+  }
+  .dark .bg-white\/50 {
+    background-color: rgb(11 11 11 / 0.5);
+  }
+  .dark .bg-black {
+    background-color: rgb(245 245 245 / 1);
+  }
+  .dark .bg-black\/10 {
+    background-color: rgb(245 245 245 / 0.1);
+  }
+  .dark .bg-black\/5 {
+    background-color: rgb(245 245 245 / 0.05);
+  }
+
+  .dark .text-black {
+    color: rgb(245 245 245 / 1);
+  }
+  .dark .text-black\/80 {
+    color: rgb(245 245 245 / 0.8);
+  }
+  .dark .text-black\/70 {
+    color: rgb(245 245 245 / 0.7);
+  }
+  .dark .text-black\/65 {
+    color: rgb(245 245 245 / 0.65);
+  }
+  .dark .text-black\/60 {
+    color: rgb(245 245 245 / 0.6);
+  }
+  .dark .text-black\/50 {
+    color: rgb(245 245 245 / 0.5);
+  }
+  .dark .text-black\/45 {
+    color: rgb(245 245 245 / 0.45);
+  }
+  .dark .text-black\/40 {
+    color: rgb(245 245 245 / 0.4);
+  }
+  .dark .text-black\/30 {
+    color: rgb(245 245 245 / 0.3);
+  }
+  .dark .text-black\/20 {
+    color: rgb(245 245 245 / 0.2);
+  }
+  .dark .text-white {
+    color: rgb(11 11 11 / 1);
+  }
+  .dark .text-white\/80 {
+    color: rgb(11 11 11 / 0.8);
+  }
+
+  .dark .border-black {
+    border-color: rgb(245 245 245 / 1);
+  }
+  .dark .border-black\/50 {
+    border-color: rgb(245 245 245 / 0.5);
+  }
+  .dark .border-black\/20 {
+    border-color: rgb(245 245 245 / 0.2);
+  }
+  .dark .border-black\/10 {
+    border-color: rgb(245 245 245 / 0.1);
+  }
+
+  .dark .hover\:bg-black:hover {
+    background-color: rgb(245 245 245 / 1);
+  }
+  .dark .hover\:bg-black\/5:hover {
+    background-color: rgb(245 245 245 / 0.05);
+  }
+  .dark .hover\:bg-white:hover {
+    background-color: rgb(11 11 11 / 1);
+  }
+  .dark .hover\:text-black:hover {
+    color: rgb(245 245 245 / 1);
+  }
+  .dark .hover\:text-black\/80:hover {
+    color: rgb(245 245 245 / 0.8);
+  }
+  .dark .hover\:text-white:hover {
+    color: rgb(11 11 11 / 1);
   }
 }
 

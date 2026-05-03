@@ -12,6 +12,7 @@ import {
   KUDOS_CATEGORIES,
   type KudosCategory,
 } from '@/config/contract';
+import { resolveChainId, SUPPORTED_8004_CHAINS } from '@/config/chain';
 
 /**
  * POST /api/kudos
@@ -24,7 +25,18 @@ import {
  */
 export const POST = withSiwa(async (agent, req) => {
   const body = await req.json();
-  const { agentId, message, category: rawCategory } = body;
+  const {
+    agentId,
+    message,
+    category: rawCategory,
+    chain: chainParam,
+    chainId: chainIdParam,
+  } = body;
+
+  // Resolve target chain (default: Abstract)
+  const targetChainId =
+    resolveChainId(chainParam ?? chainIdParam) ?? abstract.id;
+  const chainCfg = SUPPORTED_8004_CHAINS[targetChainId];
   const normalizedMessage = typeof message === 'string' ? message.trim() : '';
 
   // Validate required fields
@@ -107,7 +119,8 @@ export const POST = withSiwa(async (agent, req) => {
     transaction: {
       to: REPUTATION_REGISTRY_ADDRESS,
       data: txData,
-      chainId: abstract.id,
+      chainId: targetChainId,
+      explorer: chainCfg?.explorer,
     },
     feedbackURI,
     feedbackHash,

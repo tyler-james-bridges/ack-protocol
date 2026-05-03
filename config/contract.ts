@@ -1,5 +1,5 @@
 import type { Address } from 'viem';
-import { chain } from './chain';
+import { chain, ABSTRACT_CHAIN_ID } from './chain';
 
 /**
  * ERC-8004 contract addresses on Abstract (Chain ID: 2741)
@@ -25,9 +25,19 @@ export const ABSTRACT_PAYMASTER_ADDRESS: Address =
 export const AGENT_REGISTRY_CAIP10 =
   `eip155:${chain.id}:${IDENTITY_REGISTRY_ADDRESS}` as const;
 
+/**
+ * Build CAIP-10 registry identifier for a given chain.
+ * Defaults to Abstract for backward compatibility.
+ */
+export function getAgentRegistryCAIP10(chainId?: number): string {
+  const cid = chainId ?? ABSTRACT_CHAIN_ID;
+  return `eip155:${cid}:${IDENTITY_REGISTRY_ADDRESS}`;
+}
+
 /** Format an address as CAIP-10 account ID */
-export function toCAIP10Address(address: string): string {
-  return `eip155:${chain.id}:${address}`;
+export function toCAIP10Address(address: string, chainId?: number): string {
+  const cid = chainId ?? chain.id;
+  return `eip155:${cid}:${address}`;
 }
 
 /**

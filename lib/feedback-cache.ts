@@ -1,14 +1,16 @@
 /**
- * Shared feedback cache module.
+ * Shared feedback cache module (multi-chain).
  *
- * Centralizes all on-chain feedback event fetching behind a single in-memory
- * cache so that multiple API routes (feedback, discover, reputation) share
+ * Centralizes all on-chain feedback event fetching behind per-chain in-memory
+ * caches so that multiple API routes (feedback, discover, reputation) share
  * the same data without redundant RPC calls.
  *
- * SERVERLESS CAVEAT: The in-memory cache resets on every cold start in
+ * Supports Abstract, Base, and Ethereum. Each chain maintains its own
+ * independent cache and client instance.
+ *
+ * SERVERLESS CAVEAT: The in-memory caches reset on every cold start in
  * serverless environments. Vercel Pro's function persistence reduces cold
- * starts but does not eliminate them. See the comment block in
- * /app/api/feedback/route.ts for details.
+ * starts but does not eliminate them.
  */
 
 import {
@@ -18,16 +20,15 @@ import {
   decodeAbiParameters,
   type Hex,
   type Address,
+  type PublicClient,
 } from 'viem';
-import { abstract } from 'viem/chains';
+import { SUPPORTED_8004_CHAINS, type ChainConfig } from '@/config/chain';
 
 const REPUTATION_REGISTRY =
   '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63' as const;
 
 const NEW_FEEDBACK_TOPIC =
   '0x6a4a61743519c9d648a14e6493f47dbe3ff1aa29e7785c96c8326a205e58febc' as const;
-
-const client = createPublicClient({ chain: abstract, transport: http() });
 
 export interface FeedbackEvent {
   sender: string;
@@ -40,70 +41,45 @@ export interface FeedbackEvent {
   feedbackHash: string;
   blockNumber: string;
   txHash: string;
+  chainId: number;
 }
 
-let allEventsCache: {
+interface ChainCache {
   events: FeedbackEvent[];
   ts: number;
   toBlock: number;
-} | null = null;
+}
+
 const CACHE_TTL = 120_000; // 2 minutes
 
-// First feedback event on Abstract was at block 39_698_233 (Big Hoss).
-// Start from 39.5M to capture everything with a small safety margin.
-const DEPLOY_BLOCK = 39_500_000;
+// Per-chain clients and caches
+const clients: Record<number, PublicClient> = {};
+const caches: Record<number, ChainCache | null> = {};
 
-/**
- * Fetch all NewFeedback events from the ReputationRegistry contract.
- * Results are cached in memory and incrementally updated.
- */
-export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
-  const now = Date.now();
-  if (allEventsCache && now - allEventsCache.ts < CACHE_TTL) {
-    return allEventsCache.events;
-  }
-
-  const fromBlock = allEventsCache ? allEventsCache.toBlock + 1 : DEPLOY_BLOCK;
-
-  // Fetch latest block number to chunk requests (max 500k blocks per call)
-  const latestHex = (await client.request({
-    method: 'eth_blockNumber',
-  })) as Hex;
-  const latestBlock = Number(BigInt(latestHex));
-  const CHUNK = 500_000;
-
-  type RawLog = {
-    topics: Hex[];
-    data: Hex;
-    blockNumber: Hex;
-    transactionHash: Hex;
-  };
-  const rawLogs: RawLog[] = [];
-
-  for (let start = fromBlock; start <= latestBlock; start += CHUNK) {
-    const end = Math.min(start + CHUNK - 1, latestBlock);
-    const logs = await client.request({
-      method: 'eth_getLogs',
-      params: [
-        {
-          address: REPUTATION_REGISTRY,
-          topics: [NEW_FEEDBACK_TOPIC],
-          fromBlock: numberToHex(BigInt(start)),
-          toBlock: numberToHex(BigInt(end)),
-        },
-      ],
+function getClient(chainId: number): PublicClient {
+  if (!clients[chainId]) {
+    const cfg = SUPPORTED_8004_CHAINS[chainId];
+    if (!cfg) throw new Error(`Unsupported chain: ${chainId}`);
+    clients[chainId] = createPublicClient({
+      chain: (cfg as ChainConfig).chain,
+      transport: http((cfg as ChainConfig).rpcUrl),
     });
-    rawLogs.push(...(logs as RawLog[]));
   }
+  return clients[chainId];
+}
 
-  const newEvents: FeedbackEvent[] = [];
-  let maxBlock = fromBlock;
+type RawLog = {
+  topics: Hex[];
+  data: Hex;
+  blockNumber: Hex;
+  transactionHash: Hex;
+};
 
+function parseLogs(rawLogs: RawLog[], chainId: number): FeedbackEvent[] {
+  const events: FeedbackEvent[] = [];
   for (const log of rawLogs) {
-    const blockNum = Number(BigInt(log.blockNumber));
-    if (blockNum > maxBlock) maxBlock = blockNum;
-
     try {
+      const blockNum = Number(BigInt(log.blockNumber));
       const agentId = Number(BigInt(log.topics[1]));
       const sender = ('0x' + log.topics[2].slice(26)) as Address;
 
@@ -121,7 +97,7 @@ export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
         log.data
       );
 
-      newEvents.push({
+      events.push({
         sender: sender.toLowerCase(),
         agentId,
         feedbackIndex: decoded[0].toString(),
@@ -132,36 +108,114 @@ export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
         feedbackHash: decoded[7] as string,
         blockNumber: blockNum.toString(),
         txHash: log.transactionHash,
+        chainId,
       });
     } catch {
       // skip malformed events
     }
   }
+  return events;
+}
+
+/**
+ * Fetch all NewFeedback events from a single chain.
+ * Results are cached in memory and incrementally updated per chain.
+ */
+async function fetchChainFeedback(chainId: number): Promise<FeedbackEvent[]> {
+  const now = Date.now();
+  const cached = caches[chainId];
+  if (cached && now - cached.ts < CACHE_TTL) {
+    return cached.events;
+  }
+
+  const cfg = SUPPORTED_8004_CHAINS[chainId];
+  if (!cfg) return [];
+
+  const client = getClient(chainId);
+  const fromBlock = cached
+    ? cached.toBlock + 1
+    : (cfg as ChainConfig).deployBlock;
+
+  const latestHex = (await client.request({
+    method: 'eth_blockNumber',
+  })) as Hex;
+  const latestBlock = Number(BigInt(latestHex));
+  const CHUNK = 500_000;
+
+  const rawLogs: RawLog[] = [];
+  for (let start = fromBlock; start <= latestBlock; start += CHUNK) {
+    const end = Math.min(start + CHUNK - 1, latestBlock);
+    const logs = await client.request({
+      method: 'eth_getLogs',
+      params: [
+        {
+          address: REPUTATION_REGISTRY,
+          topics: [NEW_FEEDBACK_TOPIC],
+          fromBlock: numberToHex(BigInt(start)),
+          toBlock: numberToHex(BigInt(end)),
+        },
+      ],
+    });
+    rawLogs.push(...(logs as RawLog[]));
+  }
+
+  const newEvents = parseLogs(rawLogs, chainId);
+  let maxBlock = fromBlock;
+  for (const log of rawLogs) {
+    const bn = Number(BigInt(log.blockNumber));
+    if (bn > maxBlock) maxBlock = bn;
+  }
 
   let merged: FeedbackEvent[];
-  if (allEventsCache && newEvents.length > 0) {
-    // Deduplicate by txHash + feedbackIndex to prevent incremental merge dupes
+  if (cached && newEvents.length > 0) {
     const seen = new Set(
-      allEventsCache.events.map((e) => `${e.txHash}:${e.feedbackIndex}`)
+      cached.events.map((e) => `${e.txHash}:${e.feedbackIndex}`)
     );
     const unique = newEvents.filter(
       (e) => !seen.has(`${e.txHash}:${e.feedbackIndex}`)
     );
-    merged = [...allEventsCache.events, ...unique];
+    merged = [...cached.events, ...unique];
   } else {
-    merged = allEventsCache ? allEventsCache.events : newEvents;
+    merged = cached ? cached.events : newEvents;
   }
 
-  allEventsCache = { events: merged, ts: now, toBlock: maxBlock };
+  caches[chainId] = { events: merged, ts: now, toBlock: maxBlock };
   return merged;
 }
 
 /**
- * Fire-and-forget cache warmup — call at module scope to pre-populate
+ * Fetch feedback events for a specific chain.
+ */
+export async function getAllFeedbackEventsForChain(
+  chainId: number
+): Promise<FeedbackEvent[]> {
+  return fetchChainFeedback(chainId);
+}
+
+/**
+ * Fetch all NewFeedback events across all supported chains.
+ * Results are merged and sorted by block number (descending, cross-chain
+ * ordering is approximate).
+ */
+export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
+  const chainIds = Object.keys(SUPPORTED_8004_CHAINS).map(Number);
+  const results = await Promise.all(chainIds.map(fetchChainFeedback));
+  const merged = results.flat();
+  // Sort newest first (cross-chain block numbers are not directly comparable
+  // but this gives a reasonable approximation)
+  merged.sort((a, b) => parseInt(b.blockNumber) - parseInt(a.blockNumber));
+  return merged;
+}
+
+/**
+ * Fire-and-forget cache warmup -- call at module scope to pre-populate
  * the feedback cache on cold start without blocking the request.
  */
 export function warmupFeedbackCache(): void {
-  getAllFeedbackEvents().catch(() => {});
+  const chainIds = Object.keys(SUPPORTED_8004_CHAINS).map(Number);
+  for (const cid of chainIds) {
+    fetchChainFeedback(cid).catch(() => {});
+  }
 }
 
 /**

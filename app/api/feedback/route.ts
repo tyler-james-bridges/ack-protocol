@@ -19,7 +19,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllFeedbackEvents } from '@/lib/feedback-cache';
+import {
+  getAllFeedbackEvents,
+  getAllFeedbackEventsForChain,
+} from '@/lib/feedback-cache';
+import { resolveChainId } from '@/config/chain';
 
 /**
  * GET /api/feedback
@@ -40,9 +44,13 @@ export async function GET(request: NextRequest) {
   const handleParam = searchParams.get('handle');
   const countsOnly = searchParams.get('counts') === 'true';
   const limitParam = parseInt(searchParams.get('limit') || '200', 10);
+  const chainIdParam = searchParams.get('chainId');
 
   try {
-    const all = await getAllFeedbackEvents();
+    const targetChain = resolveChainId(chainIdParam ?? undefined);
+    const all = targetChain
+      ? await getAllFeedbackEventsForChain(targetChain)
+      : await getAllFeedbackEvents();
 
     if (countsOnly) {
       const counts: Record<number, number> = {};

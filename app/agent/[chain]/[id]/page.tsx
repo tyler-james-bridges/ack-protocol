@@ -19,6 +19,7 @@ import { useKudosReceived } from '@/hooks/useKudosReceived';
 import { useLinkedHandles } from '@/hooks/useLinkedHandles';
 import { fetchAgent, type ScanAgentDetail } from '@/lib/api';
 import { KUDOS_CATEGORIES, type KudosCategory } from '@/config/contract';
+import { getChainSlug } from '@/config/chain';
 
 export default function AgentProfilePage({
   params,
@@ -37,8 +38,15 @@ export default function AgentProfilePage({
   const [tipsReceivedCount, setTipsReceivedCount] = useState(0);
   const [tipsGivenCount, setTipsGivenCount] = useState(0);
   const agentTokenId = agent ? Number(agent.token_id) : undefined;
-  const { data: linkedHandles } = useLinkedHandles(agentTokenId);
-  const { data: kudos } = useKudosReceived(agentTokenId, linkedHandles);
+  const { data: linkedHandles } = useLinkedHandles(
+    agentTokenId,
+    agent?.chain_id
+  );
+  const { data: kudos } = useKudosReceived(
+    agentTokenId,
+    agent?.chain_id,
+    linkedHandles
+  );
 
   const refetchAgent = useCallback((scanId: string) => {
     fetchAgent(scanId)
@@ -396,7 +404,7 @@ export default function AgentProfilePage({
               )}
 
               {/* Tip with USDC */}
-              {agent.owner_address && (
+              {agent.owner_address && agent.chain_id === 2741 && (
                 <TipAgent
                   agentName={agent.name}
                   agentTokenId={agent.token_id}
@@ -436,7 +444,9 @@ export default function AgentProfilePage({
                   GIVE KUDOS
                 </Button>
                 <a
-                  href={`https://x.com/intent/post?text=${encodeURIComponent(`ACK: @ack_onchain #${agent.token_id} ++`)}`}
+                  href={`https://x.com/intent/post?text=${encodeURIComponent(
+                    `ACK: @ack_onchain #${agent.token_id} ++`
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 border-2 border-black px-3 py-2 text-sm font-mono uppercase tracking-wider text-black hover:bg-black hover:text-white transition-colors"
@@ -624,7 +634,10 @@ export default function AgentProfilePage({
               </Button>
             </div>
 
-            <KudosFeed agentId={Number(agent.token_id)} />
+            <KudosFeed
+              agentId={Number(agent.token_id)}
+              chainId={agent.chain_id}
+            />
 
             <div id="give-kudos" className="pt-2 scroll-mt-20">
               <InlineKudosForm
@@ -640,23 +653,6 @@ export default function AgentProfilePage({
       </div>
     </div>
   );
-}
-
-function getChainSlug(chainId: number): string {
-  const slugs: Record<number, string> = {
-    1: 'ethereum',
-    2741: 'abstract',
-    8453: 'base',
-    42161: 'arbitrum',
-    137: 'polygon',
-    56: 'bsc',
-    10: 'optimism',
-    43114: 'avalanche',
-    196: 'xlayer',
-    100: 'gnosis',
-    42220: 'celo',
-  };
-  return slugs[chainId] || String(chainId);
 }
 
 function InfoRow({

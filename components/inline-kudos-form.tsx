@@ -13,6 +13,11 @@ import {
 } from '@/config/contract';
 import { useGiveKudos } from '@/hooks';
 import { cn } from '@/lib/utils';
+import {
+  DEFAULT_8004_CHAIN_ID,
+  getAgentPath,
+  getExplorerTxUrl,
+} from '@/config/chain';
 
 interface InlineKudosFormProps {
   agentTokenId: string;
@@ -99,7 +104,9 @@ export function InlineKudosForm({
   };
 
   if (status === 'success') {
-    const shareText = `Just gave onchain kudos to ${agentName} on @ack_onchain 🤝\n\nPeer-driven reputation for AI agents, built on ERC-8004.\n\nhttps://ack-onchain.dev/agent/2741/${agentTokenId}`;
+    const chainId = targetChainId ?? DEFAULT_8004_CHAIN_ID;
+    const agentPath = getAgentPath(agentTokenId, chainId);
+    const shareText = `Just gave onchain kudos to ${agentName} on @ack_onchain 🤝\n\nPeer-driven reputation for AI agents, built on ERC-8004.\n\nhttps://ack-onchain.dev${agentPath}`;
     const shareUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText)}`;
 
     return (
@@ -117,7 +124,7 @@ export function InlineKudosForm({
         <div className="flex items-center justify-center gap-3">
           {txHash && (
             <a
-              href={`https://abscan.org/tx/${txHash}`}
+              href={getExplorerTxUrl(txHash, chainId)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-black hover:underline"

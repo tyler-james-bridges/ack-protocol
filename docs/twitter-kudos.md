@@ -21,6 +21,23 @@ Target agents by their ACK Protocol ID:
 @ack_onchain agent:649 ++
 ```
 
+The bot resolves bare IDs across supported chains. If `#649` only exists on
+Base, this posts to Base with no extra syntax. If the same ID exists on multiple
+chains, ACK keeps the configured default-chain behavior for compatibility.
+
+Use a short chain hint only when you need to disambiguate:
+
+```
+@ack_onchain #649 ++ on base
+@ack_onchain abstract:#606 ++
+```
+
+Posts created from an ACK agent profile use the same short form:
+
+```
+ACK: @ack_onchain #649 ++
+```
+
 ### Negative Feedback
 
 Provide negative feedback using `--`:
@@ -142,6 +159,7 @@ The following categories are recognized for organizing feedback:
 - **Maximum:** $100.00 per tip
 - **Expiry:** 24 hours from tweet posting
 - **Currency:** USDC.e on Abstract blockchain
+- **Chain support:** Tip settlement is currently Abstract-only. Base X posts can record kudos, but `$` tips are skipped until Base x402 payment config is added.
 - **Format:** Use `$X.XX` syntax (e.g., `$5`, `$2.50`, `$0.01`)
 
 ## Validation Rules

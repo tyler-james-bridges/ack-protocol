@@ -4,7 +4,10 @@ import {
   ensureHandleRegistered,
   submitClaim,
   resolveAgentId,
+  resolveAgentTarget,
   resolveHandleToAgentId,
+  resolveHandleTarget,
+  resolveTwitterChainId,
   getAgentName,
   type KudosSubmission,
 } from '../onchain';
@@ -17,7 +20,7 @@ vi.mock('viem', async () => {
     createPublicClient: vi.fn(),
     createWalletClient: vi.fn(),
     http: vi.fn(),
-    defineChain: vi.fn(() => ({ id: 2741 })),
+    defineChain: vi.fn((chain) => chain),
     keccak256: vi.fn(
       () => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
     ),
@@ -49,7 +52,15 @@ const mockWalletClient = {
 };
 
 beforeEach(async () => {
+  vi.unstubAllGlobals();
   vi.clearAllMocks();
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ data: [] }),
+    }))
+  );
 
   const { createPublicClient, createWalletClient } = vi.mocked(
     await import('viem')
@@ -98,6 +109,22 @@ describe('submitKudos', () => {
       to: '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63',
       data: '0xencoded',
     });
+  });
+
+  it('should submit kudos on the requested chain', async () => {
+    process.env.AGENT_PRIVATE_KEY = '0x' + 'a'.repeat(64);
+
+    mockSendTransaction.mockResolvedValue('0xtxhash');
+    mockWaitForTransactionReceipt.mockResolvedValue({ status: 'success' });
+
+    await submitKudos({ ...baseSubmission, chainId: 8453 });
+
+    const { createWalletClient } = vi.mocked(await import('viem'));
+    expect(createWalletClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chain: expect.objectContaining({ id: 8453, name: 'Base' }),
+      })
+    );
   });
 
   it('should use negative value for negative sentiment', async () => {
@@ -200,6 +227,15 @@ describe('submitKudos', () => {
       success: false,
       error: 'Transaction failed',
     });
+  });
+});
+
+describe('resolveTwitterChainId', () => {
+  it('resolves supported chain names and ids', () => {
+    expect(resolveTwitterChainId('abstract')).toBe(2741);
+    expect(resolveTwitterChainId('base')).toBe(8453);
+    expect(resolveTwitterChainId(8453)).toBe(8453);
+    expect(resolveTwitterChainId('unknown')).toBeUndefined();
   });
 });
 
@@ -351,6 +387,49 @@ describe('resolveAgentId', () => {
   });
 });
 
+describe('resolveAgentTarget', () => {
+  it('resolves a bare agent id to Base when only Base has that id', async () => {
+    mockReadContract
+      .mockRejectedValueOnce(new Error('ERC721: invalid token ID'))
+      .mockResolvedValueOnce('0xowner');
+
+    const result = await resolveAgentTarget(8453001);
+
+    expect(result).toEqual({
+      agentId: 8453001,
+      chainId: 8453,
+      chainName: 'Base',
+    });
+    expect(mockReadContract).toHaveBeenCalledTimes(2);
+  });
+
+  it('preserves the default chain when a bare agent id is ambiguous', async () => {
+    mockReadContract.mockResolvedValue('0xowner');
+
+    const result = await resolveAgentTarget(8453002);
+
+    expect(result).toEqual({
+      agentId: 8453002,
+      chainId: 2741,
+      chainName: 'Abstract',
+    });
+    expect(mockReadContract).toHaveBeenCalledTimes(2);
+  });
+
+  it('validates only the hinted chain when a chain hint is present', async () => {
+    mockReadContract.mockResolvedValue('0xowner');
+
+    const result = await resolveAgentTarget(8453003, 8453);
+
+    expect(result).toEqual({
+      agentId: 8453003,
+      chainId: 8453,
+      chainName: 'Base',
+    });
+    expect(mockReadContract).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('resolveHandleToAgentId', () => {
   it('should return linked agent id when handle is linked', async () => {
     mockReadContract
@@ -406,6 +485,48 @@ describe('resolveHandleToAgentId', () => {
     const result = await resolveHandleToAgentId('ACK_ONCHAIN');
 
     expect(result).toBe(606); // From hardcoded map, case insensitive
+  });
+});
+
+describe('resolveHandleTarget', () => {
+  it('resolves a bare X handle to Base through 8004scan metadata', async () => {
+    mockReadContract.mockResolvedValueOnce('0xhash123').mockResolvedValueOnce({
+      platform: 'x',
+      handle: 'baseagent',
+      claimedBy: '0xowner',
+      linkedAgentId: BigInt(0),
+      createdAt: BigInt(123456),
+      claimedAt: BigInt(123457),
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: string | URL | Request) => {
+        const url = String(input);
+        return {
+          ok: true,
+          json: async () =>
+            url.includes('chainId=8453')
+              ? {
+                  data: [
+                    {
+                      chain_id: 8453,
+                      token_id: 8453004,
+                      description: 'Find us at https://x.com/baseagent',
+                    },
+                  ],
+                }
+              : { data: [] },
+        };
+      })
+    );
+
+    const result = await resolveHandleTarget('baseagent');
+
+    expect(result).toEqual({
+      agentId: 8453004,
+      chainId: 8453,
+      chainName: 'Base',
+    });
   });
 });
 

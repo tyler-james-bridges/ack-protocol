@@ -23,6 +23,9 @@ vi.mock('viem', () => ({
 
 vi.mock('viem/chains', () => ({
   abstract: { id: 2741, name: 'Abstract' },
+  abstractTestnet: { id: 11124, name: 'Abstract Testnet' },
+  base: { id: 8453, name: 'Base' },
+  mainnet: { id: 1, name: 'Ethereum' },
 }));
 
 // Mock global fetch

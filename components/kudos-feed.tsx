@@ -15,6 +15,11 @@ import { useTipsForKudos } from '@/hooks/useTipsForKudos';
 import { useTipsFeed, type StandaloneTip } from '@/hooks/useTipsFeed';
 import { TipCard } from '@/components/tip-card';
 import type { ScanAgent } from '@/lib/api';
+import {
+  DEFAULT_8004_CHAIN_ID,
+  getAgentPath,
+  getExplorerTxUrl,
+} from '@/config/chain';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -58,6 +63,7 @@ import { TipBadge, TipAttribution } from '@/components/tip-badge';
 function KudosCard({
   kudos,
   agentId,
+  chainId,
   receiverAgent,
   senderAgent,
   timestamp,
@@ -68,6 +74,7 @@ function KudosCard({
 }: {
   kudos: KudosEvent;
   agentId: number;
+  chainId: number;
   receiverAgent?: ScanAgent;
   senderAgent?: ScanAgent;
   timestamp?: number;
@@ -148,7 +155,7 @@ function KudosCard({
               }
             />
             <span>gave</span>
-            <Link href={`/agent/2741/${agentId}`} className="shrink-0">
+            <Link href={getAgentPath(agentId, chainId)} className="shrink-0">
               <AgentAvatar
                 name={receiverName}
                 imageUrl={receiverAgent?.image_url}
@@ -156,7 +163,7 @@ function KudosCard({
               />
             </Link>
             <Link
-              href={`/agent/2741/${agentId}`}
+              href={getAgentPath(agentId, chainId)}
               className="font-semibold text-black hover:text-black transition-colors"
             >
               {receiverName}
@@ -174,11 +181,11 @@ function KudosCard({
               <TipBadge amountUsd={tipAmountUsd} />
             )}
             <a
-              href={`https://abscan.org/tx/${kudos.txHash}`}
+              href={getExplorerTxUrl(kudos.txHash, chainId)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] text-black/50/50 hover:text-black transition-colors"
-              title="View transaction on Abscan"
+              title="View transaction"
             >
               {timestamp ? formatRelativeTime(timestamp) : 'tx'} ↗
             </a>
@@ -216,21 +223,29 @@ function KudosCard({
   );
 }
 
-export function KudosFeed({ agentId }: { agentId: number }) {
-  const { data: kudos, isLoading, error } = useKudosReceived(agentId);
+export function KudosFeed({
+  agentId,
+  chainId = DEFAULT_8004_CHAIN_ID,
+}: {
+  agentId: number;
+  chainId?: number;
+}) {
+  const { data: kudos, isLoading, error } = useKudosReceived(agentId, chainId);
   const { data: agents } = useLeaderboard({
     limit: 50,
-    chainId: 2741,
+    chainId,
     sortBy: 'total_score',
   });
 
   const blockNumbers = kudos?.map((k) => k.blockNumber) || [];
   const senders = kudos?.map((k) => k.sender) || [];
   const txHashes = kudos?.map((k) => k.txHash) || [];
-  const { data: timestamps } = useBlockTimestamps(blockNumbers);
+  const { data: timestamps } = useBlockTimestamps(blockNumbers, chainId);
   const { data: agentSet } = useIsAgent(senders);
   const tipMap = useTipsForKudos(txHashes);
-  const { data: standaloneTips } = useTipsFeed(agentId);
+  const { data: standaloneTips } = useTipsFeed(
+    chainId === DEFAULT_8004_CHAIN_ID ? agentId : undefined
+  );
 
   // Build lookups
   const agentMap = new Map<number, ScanAgent>();
@@ -308,6 +323,7 @@ export function KudosFeed({ agentId }: { agentId: number }) {
             key={`${k.txHash}-${i}`}
             kudos={k}
             agentId={agentId}
+            chainId={chainId}
             receiverAgent={agentMap.get(agentId)}
             senderAgent={senderMap.get(k.sender.toLowerCase())}
             timestamp={timestamps?.get(k.blockNumber.toString())}

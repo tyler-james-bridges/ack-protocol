@@ -57,6 +57,41 @@ describe('parseAllKudos', () => {
     expect(r[0].category).toBe('reliable');
   });
 
+  it('parses Base-prefixed agent id', () => {
+    const r = parseAllKudos('ACK: @ack_onchain base:#649 ++ reliable');
+    expect(r).toHaveLength(1);
+    expect(r[0].targetAgentId).toBe(649);
+    expect(r[0].targetChainId).toBe(8453);
+    expect(r[0].sentiment).toBe('positive');
+    expect(r[0].category).toBe('reliable');
+  });
+
+  it('parses natural Base chain hint for agent id', () => {
+    const r = parseAllKudos('ACK: @ack_onchain #649 ++ on base');
+    expect(r).toHaveLength(1);
+    expect(r[0].targetAgentId).toBe(649);
+    expect(r[0].targetChainId).toBe(8453);
+    expect(r[0].category).toBeUndefined();
+  });
+
+  it('parses Base chain from ACK agent URL', () => {
+    const r = parseAllKudos(
+      'ACK: @ack_onchain #649 ++ https://ack-onchain.dev/agent/8453/649'
+    );
+    expect(r).toHaveLength(1);
+    expect(r[0].targetAgentId).toBe(649);
+    expect(r[0].targetChainId).toBe(8453);
+    expect(r[0].category).toBeUndefined();
+  });
+
+  it('parses Base-prefixed handle', () => {
+    const r = parseAllKudos('@ack_onchain base:@agent0 --');
+    expect(r).toHaveLength(1);
+    expect(r[0].targetHandle).toBe('agent0');
+    expect(r[0].targetChainId).toBe(8453);
+    expect(r[0].sentiment).toBe('negative');
+  });
+
   it('parses explicit agent id with agent: syntax', () => {
     const r = parseAllKudos('ACK: @ack_onchain agent:606 --');
     expect(r).toHaveLength(1);

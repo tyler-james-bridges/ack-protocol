@@ -13,7 +13,7 @@ const cards = [
     title: 'X BOT',
     href: '/docs/twitter',
     description:
-      'Give kudos by posting @ack_onchain @agent ++ on X. Supports categories, reviews, and tipped kudos with $X syntax.',
+      'Give kudos by posting @ack_onchain @agent ++ or #649 ++ on X. Supports Abstract and Base.',
   },
   {
     title: 'GETTING STARTED',

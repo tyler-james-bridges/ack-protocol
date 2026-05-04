@@ -41,9 +41,15 @@ function mapEvent(e: {
 
 async function fetchKudos(
   agentId: number,
+  chainId?: number,
   linkedHandles?: string[]
 ): Promise<KudosEvent[]> {
-  const res = await fetch(`/api/feedback?agentId=${agentId}&limit=500`);
+  const params = new URLSearchParams({
+    agentId: String(agentId),
+    limit: '500',
+  });
+  if (chainId !== undefined) params.set('chainId', String(chainId));
+  const res = await fetch(`/api/feedback?${params.toString()}`);
   if (!res.ok) throw new Error(`Failed to fetch kudos: ${res.status}`);
   const data = await res.json();
 
@@ -54,7 +60,9 @@ async function fetchKudos(
     const proxyResults = await Promise.all(
       linkedHandles.map(async (handle) => {
         const r = await fetch(
-          `/api/feedback?handle=${encodeURIComponent(handle)}&limit=500`
+          `/api/feedback?handle=${encodeURIComponent(handle)}&limit=500${
+            chainId !== undefined ? `&chainId=${chainId}` : ''
+          }`
         );
         if (!r.ok) return [];
         const d = await r.json();
@@ -82,11 +90,12 @@ async function fetchKudos(
 
 export function useKudosReceived(
   agentId: number | undefined,
+  chainId?: number,
   linkedHandles?: string[]
 ) {
   return useQuery({
-    queryKey: ['kudos-received', agentId, linkedHandles],
-    queryFn: () => fetchKudos(agentId!, linkedHandles),
+    queryKey: ['kudos-received', agentId, chainId, linkedHandles],
+    queryFn: () => fetchKudos(agentId!, chainId, linkedHandles),
     enabled: agentId !== undefined,
     staleTime: 60_000,
     gcTime: 300_000,

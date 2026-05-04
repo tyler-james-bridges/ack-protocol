@@ -14,10 +14,15 @@ import { parseAllKudos, isValidKudos, parseClaimCode } from './parser.js';
 import {
   submitKudos,
   submitClaim,
-  resolveHandleToAgentId,
-  resolveAgentId,
+  resolveAgentTarget,
+  resolveHandleTarget,
   getAgentName,
   ensureHandleRegistered,
+  getActiveChainLabel,
+  getDefaultChainId,
+  getExplorerTxUrl,
+  getProxyAgentId,
+  getTwitterChainConfig,
 } from './onchain.js';
 import { postReply, fetchMentions, type Tweet } from './twitter.js';
 
@@ -26,6 +31,18 @@ import { join, dirname } from 'path';
 
 const POLL_INTERVAL = parseInt(process.env.TWITTER_POLL_INTERVAL || '120', 10);
 const DRY_RUN = process.env.TWITTER_DRY_RUN === 'true';
+
+interface ProcessResult {
+  success: boolean;
+  agentName: string;
+  sentiment: 'positive' | 'negative';
+  amount: number;
+  from?: string;
+  permalink?: string;
+  txHash?: string;
+  tipUrl?: string;
+  chainId?: number;
+}
 
 const STATE_FILE = join(
   process.env.HOME || '/tmp',
@@ -83,10 +100,12 @@ async function processMention(tweet: Tweet): Promise<void> {
         data.walletAddress &&
         data.agentId
       ) {
+        const targetChainId = getDefaultChainId();
         const result = await submitClaim(
           tweet.authorUsername,
           data.walletAddress,
-          data.agentId
+          data.agentId,
+          targetChainId
         );
 
         if (result.success) {
@@ -104,7 +123,7 @@ async function processMention(tweet: Tweet): Promise<void> {
           );
           await postReply(
             tweet.id,
-            `Claimed! @${tweet.authorUsername} is now linked to agent #${data.agentId}\n\nabscan.org/tx/${result.txHash}`,
+            `Claimed! @${tweet.authorUsername} is now linked to agent #${data.agentId}\n\n${getExplorerTxUrl(result.txHash || '', targetChainId)}`,
             DRY_RUN
           );
         } else {
@@ -135,9 +154,12 @@ async function processMention(tweet: Tweet): Promise<void> {
     return;
   }
 
-  const results: string[] = [];
+  const results: ProcessResult[] = [];
 
   for (const kudos of validKudos) {
+    let targetChainId = kudos.targetChainId ?? getDefaultChainId();
+    let targetChain = getTwitterChainConfig(targetChainId);
+
     // Block self-kudos for handle-targeted posts
     if (
       kudos.targetHandle &&
@@ -161,9 +183,17 @@ async function processMention(tweet: Tweet): Promise<void> {
     // Resolve target in priority order: explicit agentId, then handle
     let agentId: number | null = null;
     if (typeof kudos.targetAgentId === 'number') {
-      agentId = await resolveAgentId(kudos.targetAgentId);
-      if (!agentId) {
-        console.log(`[skip] Agent #${kudos.targetAgentId} not found on 8004`);
+      const resolved = await resolveAgentTarget(
+        kudos.targetAgentId,
+        kudos.targetChainId
+      );
+      if (!resolved) {
+        const chainScope = kudos.targetChainId
+          ? ` on ${targetChain.name}`
+          : ' on supported chains';
+        console.log(
+          `[skip] Agent #${kudos.targetAgentId} not found${chainScope}`
+        );
         results.push({
           success: false,
           agentName: `Agent #${kudos.targetAgentId}`,
@@ -172,8 +202,19 @@ async function processMention(tweet: Tweet): Promise<void> {
         });
         continue;
       }
+      agentId = resolved.agentId;
+      targetChainId = resolved.chainId;
+      targetChain = getTwitterChainConfig(targetChainId);
     } else if (kudos.targetHandle) {
-      agentId = await resolveHandleToAgentId(kudos.targetHandle);
+      const resolved = await resolveHandleTarget(
+        kudos.targetHandle,
+        kudos.targetChainId
+      );
+      if (resolved) {
+        agentId = resolved.agentId;
+        targetChainId = resolved.chainId;
+        targetChain = getTwitterChainConfig(targetChainId);
+      }
     }
 
     if (!agentId && kudos.targetHandle) {
@@ -182,22 +223,40 @@ async function processMention(tweet: Tweet): Promise<void> {
         `[handle] @${kudos.targetHandle} not an 8004 agent, registering in HandleRegistry`
       );
 
-      const handleResult = await ensureHandleRegistered(kudos.targetHandle);
+      const handleResult = await ensureHandleRegistered(
+        kudos.targetHandle,
+        targetChainId
+      );
       if (handleResult.registered) {
         console.log(
           `[handle] Registered @${kudos.targetHandle} (tx: ${handleResult.txHash})`
         );
       }
 
-      // Submit kudos against ACK (606) as proxy, with handle in tag2
+      // Submit kudos against configured ACK proxy agent, with handle in tag2
+      const proxyAgentId = getProxyAgentId(targetChainId);
+      if (!proxyAgentId) {
+        console.log(
+          `[skip] No proxy agent configured for ${targetChain.name}; cannot proxy @${kudos.targetHandle}`
+        );
+        results.push({
+          success: false,
+          agentName: `@${kudos.targetHandle}`,
+          sentiment: kudos.sentiment,
+          amount: kudos.amount,
+        });
+        continue;
+      }
+
       const proxyResult = await submitKudos({
-        agentId: 606,
+        agentId: proxyAgentId,
         category: kudos.category || 'kudos',
         message: kudos.message || '',
         from: tweet.authorUsername,
         sentiment: kudos.sentiment,
         amount: kudos.amount,
         proxyHandle: kudos.targetHandle,
+        chainId: targetChainId,
       });
 
       if (proxyResult.success) {
@@ -213,6 +272,7 @@ async function processMention(tweet: Tweet): Promise<void> {
           from: tweet.authorUsername,
           permalink,
           txHash: proxyResult.txHash,
+          chainId: targetChainId,
         });
       } else {
         console.error(`[error] Proxy kudos failed: ${proxyResult.error}`);
@@ -226,7 +286,8 @@ async function processMention(tweet: Tweet): Promise<void> {
       continue;
     }
 
-    const agentName = (await getAgentName(agentId)) || `Agent #${agentId}`;
+    const agentName =
+      (await getAgentName(agentId, targetChainId)) || `Agent #${agentId}`;
 
     if (DRY_RUN) {
       console.log(
@@ -240,12 +301,15 @@ async function processMention(tweet: Tweet): Promise<void> {
         from: tweet.authorUsername,
         permalink: `https://ack-onchain.dev/kudos/dry-run`,
         txHash: 'dry-run',
+        chainId: targetChainId,
       });
       continue;
     }
 
     // Submit onchain
-    console.log(`[submit] Sending kudos onchain for agent #${agentId}...`);
+    console.log(
+      `[submit] Sending kudos on ${targetChain.name} for agent #${agentId}...`
+    );
     const result = await submitKudos({
       agentId,
       category: kudos.category || 'kudos',
@@ -253,6 +317,7 @@ async function processMention(tweet: Tweet): Promise<void> {
       from: tweet.authorUsername,
       sentiment: kudos.sentiment,
       amount: kudos.amount,
+      chainId: targetChainId,
     });
 
     if (result.success) {
@@ -261,7 +326,11 @@ async function processMention(tweet: Tweet): Promise<void> {
 
       // Create tip if $X amount was included
       let tipUrl: string | undefined;
-      if (kudos.tipAmountUsd && kudos.tipAmountUsd > 0) {
+      if (
+        kudos.tipAmountUsd &&
+        kudos.tipAmountUsd > 0 &&
+        targetChainId === 2741
+      ) {
         try {
           const appUrl = process.env.APP_URL || 'https://ack-onchain.dev';
           const tipRes = await fetch(`${appUrl}/api/tips`, {
@@ -272,6 +341,7 @@ async function processMention(tweet: Tweet): Promise<void> {
               fromAddress: '0x0000000000000000000000000000000000000000',
               amountUsd: kudos.tipAmountUsd,
               kudosTxHash: result.txHash,
+              chainId: targetChainId,
             }),
           });
           if (tipRes.ok) {
@@ -284,6 +354,10 @@ async function processMention(tweet: Tweet): Promise<void> {
         } catch (tipErr) {
           console.error(`[tip] Error creating tip:`, tipErr);
         }
+      } else if (kudos.tipAmountUsd && kudos.tipAmountUsd > 0) {
+        console.log(
+          `[tip] Skipping $${kudos.tipAmountUsd} tip on ${targetChain.name}; x402 tips are configured for Abstract only`
+        );
       }
 
       results.push({
@@ -295,6 +369,7 @@ async function processMention(tweet: Tweet): Promise<void> {
         permalink,
         txHash: result.txHash,
         tipUrl,
+        chainId: targetChainId,
       });
     } else {
       console.error(`[error] Onchain submission failed: ${result.error}`);
@@ -309,28 +384,29 @@ async function processMention(tweet: Tweet): Promise<void> {
 
   // Send a single consolidated reply
   if (results.length > 0) {
-    const successes = results.filter((r: any) => r.success);
-    const failures = results.filter((r: any) => !r.success);
+    const successes = results.filter((r) => r.success);
+    const failures = results.filter((r) => !r.success);
 
     let replyText = '';
 
     if (successes.length > 0) {
-      const lines = successes.map((r: any) => {
+      const lines = successes.map((r) => {
         const sign = r.sentiment === 'negative' ? '-' : '+';
         return `${sign}${r.amount} ${r.agentName}`;
       });
       // Find the original kudos message if any
-      const originalKudos = allKudos.find((k: any) => k.message);
+      const originalKudos = allKudos.find((k) => k.message);
       const msgLine =
         originalKudos && originalKudos.message
           ? `\n\n"${originalKudos.message.slice(0, 120)}"`
           : '';
       const txLine = successes
-        .map((r: any) => `abscan.org/tx/${r.txHash}`)
+        .filter((r) => r.txHash)
+        .map((r) => getExplorerTxUrl(r.txHash as string, r.chainId))
         .join('\n');
       const tipLine = successes
-        .filter((r: any) => r.tipUrl)
-        .map((r: any) => `tip: ${r.tipUrl}`)
+        .filter((r) => r.tipUrl)
+        .map((r) => `tip: ${r.tipUrl}`)
         .join('\n');
       replyText = `${lines.join('\n')}${msgLine}\n\n${txLine}${tipLine ? '\n' + tipLine : ''}`;
     }
@@ -384,6 +460,7 @@ async function main(): Promise<void> {
   console.log('='.repeat(50));
   console.log(`Poll interval: ${POLL_INTERVAL}s`);
   console.log(`Dry run: ${DRY_RUN}`);
+  console.log(`Default chain: ${getActiveChainLabel()}`);
   console.log('='.repeat(50));
 
   // Sequential polling loop — waits for each poll to finish before sleeping.

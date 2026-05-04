@@ -50,6 +50,8 @@ export const SUPPORTED_8004_CHAINS: Record<number, ChainConfig> = {
   },
 } as const;
 
+export const DEFAULT_8004_CHAIN_ID = ABSTRACT_CHAIN_ID;
+
 /** Resolve a chain name or ID to the numeric chain ID. Returns undefined if unsupported. */
 export function resolveChainId(
   input: string | number | undefined
@@ -69,4 +71,40 @@ export function resolveChainId(
   const id = nameMap[lower] ?? Number(lower);
   if (isNaN(id)) return undefined;
   return SUPPORTED_8004_CHAINS[id] ? id : undefined;
+}
+
+/** Resolve a chain ID to config, falling back to Abstract for legacy callers. */
+export function getChainConfig(chainId?: number): ChainConfig {
+  return (
+    (chainId !== undefined ? SUPPORTED_8004_CHAINS[chainId] : undefined) ??
+    SUPPORTED_8004_CHAINS[DEFAULT_8004_CHAIN_ID]
+  );
+}
+
+export function getExplorerTxUrl(txHash: string, chainId?: number): string {
+  return `${getChainConfig(chainId).explorer}/tx/${txHash}`;
+}
+
+export function getAgentPath(
+  agentId: string | number,
+  chainId?: number
+): string {
+  return `/agent/${chainId ?? DEFAULT_8004_CHAIN_ID}/${agentId}`;
+}
+
+export function getChainSlug(chainId: number): string {
+  const slugs: Record<number, string> = {
+    1: 'ethereum',
+    2741: 'abstract',
+    8453: 'base',
+    42161: 'arbitrum',
+    137: 'polygon',
+    56: 'bsc',
+    10: 'optimism',
+    43114: 'avalanche',
+    196: 'xlayer',
+    100: 'gnosis',
+    42220: 'celo',
+  };
+  return slugs[chainId] || String(chainId);
 }

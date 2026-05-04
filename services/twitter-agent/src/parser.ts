@@ -9,6 +9,8 @@
  *   @ack_onchain @BigHoss -- unreliable "missed deadlines"
  *   @ack_onchain @pudgypenguins ++ @abstract ++    (multiple agents)
  *   @ack_onchain @pudgypenguins ++ @BigHoss --     (mixed positive/negative)
+ *   @ack_onchain #649 ++ on base                      (explicit chain)
+ *   @ack_onchain #649 ++ https://ack-onchain.dev/agent/8453/649
  *   @ack_onchain shoutout to @BigHoss for being reliable (natural language fallback)
  */
 
@@ -28,8 +30,59 @@ export interface KudosCommand {
   message?: string;
   amount: number; // default 1, or explicit (e.g. ++ 5)
   tipAmountUsd?: number; // parsed from $X.XX syntax
+  targetChainId?: number; // parsed from URL context or an explicit chain hint
   isExplicit: boolean; // true if ++ or -- was used
   sentiment: 'positive' | 'negative';
+}
+
+function parseChainPrefix(raw: string | undefined): number | undefined {
+  if (!raw) return undefined;
+  const chain = raw.toLowerCase();
+  if (chain === 'abstract' || chain === 'abs') return 2741;
+  if (chain === 'base') return 8453;
+  return undefined;
+}
+
+function parseChainName(raw: string | undefined): number | undefined {
+  const named = parseChainPrefix(raw);
+  if (named !== undefined) return named;
+  const id = Number(raw);
+  return id === 2741 || id === 8453 ? id : undefined;
+}
+
+function parseGlobalChainHint(text: string): number | undefined {
+  const match =
+    text.match(/\b(?:on|via)\s+(abstract|abs|base)\b/i) ||
+    text.match(/\b(abstract|abs|base)\s+chain\b/i);
+  return parseChainName(match?.[1]);
+}
+
+function parseAgentUrlChainHint(
+  text: string,
+  agentId?: number
+): number | undefined {
+  const patterns = [
+    /ack-onchain\.dev\/agent\/(abstract|abs|base|\d+)\/(\d+)/gi,
+    /8004scan\.io\/agents\/(abstract|abs|base|\d+)\/(\d+)/gi,
+  ];
+
+  for (const pattern of patterns) {
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(text)) !== null) {
+      const id = Number(match[2]);
+      if (agentId !== undefined && id !== agentId) continue;
+      return parseChainName(match[1]);
+    }
+  }
+  return undefined;
+}
+
+function stripUrlsAndChainHints(text: string): string {
+  return text
+    .replace(/https?:\/\/\S+/gi, '')
+    .replace(/\b(?:on|via)\s+(?:abstract|abs|base)\b/gi, '')
+    .replace(/\b(?:abstract|abs|base)\s+chain\b/gi, '')
+    .trim();
 }
 
 /** Clamp a parsed tip to $0.01-$100.00, returning undefined if out of range. */
@@ -45,25 +98,29 @@ function parseTipAmount(raw: string | undefined): number | undefined {
  * Returns empty array if no kudos intent detected.
  */
 export function parseAllKudos(text: string): KudosCommand[] {
-  const cleaned = text.replace(/@ack_onchain/i, '').trim();
+  const chainHint = parseGlobalChainHint(text);
+  const cleaned = stripUrlsAndChainHints(
+    text.replace(/@ack_onchain/i, '').trim()
+  );
   const results: KudosCommand[] = [];
 
   // Pattern 1: All explicit @handle ++/-- [$tip] [number] [category] ["message"] matches
   // The $ prefix distinguishes tips from kudos amounts: ++ 5 = 5 kudos, ++ $5 = $5 tip
   const explicitRegex =
-    /@(\w+)\s*(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(\w+)?\s*(?:"([^"]*)")?/g;
+    /(?:(abstract|abs|base):)?@(\w+)\s*(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(\w+)?\s*(?:"([^"]*)")?/gi;
   let match: RegExpExecArray | null;
 
   while ((match = explicitRegex.exec(cleaned)) !== null) {
-    const rawAmount = match[4] ? parseInt(match[4], 10) : 1;
+    const rawAmount = match[5] ? parseInt(match[5], 10) : 1;
     const amount = Math.min(Math.max(rawAmount, 1), 100); // clamp 1-100
     results.push({
-      targetHandle: match[1],
-      sentiment: match[2] === '++' ? 'positive' : 'negative',
+      targetHandle: match[2],
+      targetChainId: parseChainPrefix(match[1]) ?? chainHint,
+      sentiment: match[3] === '++' ? 'positive' : 'negative',
       amount,
-      tipAmountUsd: parseTipAmount(match[3]),
-      category: match[5] || undefined,
-      message: match[6] || undefined,
+      tipAmountUsd: parseTipAmount(match[4]),
+      category: match[6] || undefined,
+      message: match[7] || undefined,
       isExplicit: true,
     });
   }
@@ -75,19 +132,23 @@ export function parseAllKudos(text: string): KudosCommand[] {
 
   // Pattern 1a: explicit agent id targeting (#649 or agent:649)
   const byIdRegex =
-    /(?:#|agent:)(\d+)\s*(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(\w+)?\s*(?:"([^"]*)")?/gi;
+    /(?:(abstract|abs|base):)?(?:#|agent:)(\d+)\s*(\+\+|--)\s*(?:\$(\d+(?:\.\d{1,2})?)\s*)?(\d+)?\s*(\w+)?\s*(?:"([^"]*)")?/gi;
   while ((match = byIdRegex.exec(cleaned)) !== null) {
-    const rawId = parseInt(match[1], 10);
+    const rawId = parseInt(match[2], 10);
     if (!Number.isFinite(rawId) || rawId <= 0) continue;
-    const rawAmount = match[4] ? parseInt(match[4], 10) : 1;
+    const rawAmount = match[5] ? parseInt(match[5], 10) : 1;
     const amount = Math.min(Math.max(rawAmount, 1), 100);
     results.push({
       targetAgentId: rawId,
-      sentiment: match[2] === '++' ? 'positive' : 'negative',
+      targetChainId:
+        parseChainPrefix(match[1]) ??
+        parseAgentUrlChainHint(text, rawId) ??
+        chainHint,
+      sentiment: match[3] === '++' ? 'positive' : 'negative',
       amount,
-      tipAmountUsd: parseTipAmount(match[3]),
-      category: match[5] || undefined,
-      message: match[6] || undefined,
+      tipAmountUsd: parseTipAmount(match[4]),
+      category: match[6] || undefined,
+      message: match[7] || undefined,
       isExplicit: true,
     });
   }

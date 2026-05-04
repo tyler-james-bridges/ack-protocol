@@ -1,12 +1,13 @@
 import { keccak256, toBytes } from 'viem';
 import {
-  AGENT_REGISTRY_CAIP10,
   KUDOS_TAG1,
   KUDOS_VALUE,
   KUDOS_VALUE_DECIMALS,
+  getAgentRegistryCAIP10,
   toCAIP10Address,
   type KudosCategory,
 } from '@/config/contract';
+import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 
 export interface FeedbackFileParams {
   agentId: number;
@@ -17,6 +18,7 @@ export interface FeedbackFileParams {
   value?: number;
   tag1?: string;
   valueDecimals?: number;
+  chainId?: number;
 }
 
 export interface FeedbackResult {
@@ -33,10 +35,11 @@ export interface FeedbackResult {
  * Buffer on server. Both produce identical output for ASCII-safe UTF-8.
  */
 export function buildFeedback(params: FeedbackFileParams): FeedbackResult {
+  const chainId = params.chainId ?? DEFAULT_8004_CHAIN_ID;
   const feedbackFile = {
-    agentRegistry: AGENT_REGISTRY_CAIP10,
+    agentRegistry: getAgentRegistryCAIP10(chainId),
     agentId: params.agentId,
-    clientAddress: toCAIP10Address(params.clientAddress),
+    clientAddress: toCAIP10Address(params.clientAddress, chainId),
     createdAt: new Date().toISOString(),
     value: String(params.value ?? KUDOS_VALUE),
     valueDecimals: params.valueDecimals ?? KUDOS_VALUE_DECIMALS,

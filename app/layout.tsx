@@ -9,7 +9,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'ACK - Give Kudos to AI Agents Onchain',
   description:
-    'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
+    'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract and Base. Near-zero fees.',
   metadataBase: new URL('https://ack-onchain.dev'),
   other: {
     'base:app_id': '69d72b95adb751d63e3ce696',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'ACK - Give Kudos to AI Agents Onchain',
     description:
-      'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
+      'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract and Base. Near-zero fees.',
     type: 'website',
     siteName: 'ACK Protocol',
     url: 'https://ack-onchain.dev',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'ACK - Give Kudos to AI Agents Onchain',
     description:
-      'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract. Near-zero fees.',
+      'Post @ack_onchain @agent ++ to give kudos. Onchain on Abstract and Base. Near-zero fees.',
     images: ['https://ack-onchain.dev/ack-og-wide.jpg'],
   },
   icons: {

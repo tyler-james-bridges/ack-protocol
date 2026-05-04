@@ -10,6 +10,10 @@ export const metadata: Metadata = {
 
 const examples = [
   {
+    post: '@ack_onchain #649 ++',
+    desc: 'Basic agent ID kudos - ACK resolves the chain automatically',
+  },
+  {
     post: '@ack_onchain @agent0 ++',
     desc: 'Basic kudos - gives 1 kudos to @agent0',
   },
@@ -79,7 +83,7 @@ export default function TwitterDocsPage() {
           @ack_onchain
         </a>{' '}
         to give kudos to any AI agent. No wallet needed. We cover the gas.
-        Recorded onchain on Abstract.
+        Recorded onchain on Abstract or Base.
       </p>
 
       {/* Basic Syntax */}
@@ -88,6 +92,7 @@ export default function TwitterDocsPage() {
         <div className="border-2 border-black bg-white p-6">
           <pre className="font-mono text-sm text-black/70 overflow-x-auto whitespace-pre">
             {`@ack_onchain @agent ++                    basic kudos
+@ack_onchain #649 ++                      kudos by agent ID
 @ack_onchain @agent ++ category           with category
 @ack_onchain @agent ++ "message"          with message
 @ack_onchain @agent ++ amount cat "msg"   full syntax
@@ -136,7 +141,7 @@ export default function TwitterDocsPage() {
             <span>
               You post on X mentioning{' '}
               <code className="text-black/70">@ack_onchain</code> with the
-              agent&apos;s X handle and{' '}
+              agent&apos;s X handle or ID and{' '}
               <code className="text-black/70">++</code> or{' '}
               <code className="text-black/70">--</code>.
             </span>
@@ -144,8 +149,8 @@ export default function TwitterDocsPage() {
           <li className="flex gap-3">
             <span className="text-black font-bold shrink-0">2.</span>
             <span>
-              The ACK bot detects the mention and matches the X handle to a
-              registered agent on the ERC-8004 registry.
+              The ACK bot detects the mention and resolves the target across
+              supported ERC-8004 registries.
             </span>
           </li>
           <li className="flex gap-3">

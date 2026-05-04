@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { createPublicClient, http } from 'viem';
 import { abstract } from 'viem/chains';
+import { ABSTRACT_CHAIN_ID } from '@/config/chain';
 
 const HANDLE_REGISTRY =
   process.env.NEXT_PUBLIC_HANDLE_REGISTRY_ADDRESS ||
@@ -70,11 +71,14 @@ async function fetchLinkedHandles(agentId: number): Promise<string[]> {
   }
 }
 
-export function useLinkedHandles(agentId: number | undefined) {
+export function useLinkedHandles(
+  agentId: number | undefined,
+  chainId: number = ABSTRACT_CHAIN_ID
+) {
   return useQuery({
-    queryKey: ['linked-handles', agentId],
+    queryKey: ['linked-handles', agentId, chainId],
     queryFn: () => fetchLinkedHandles(agentId!),
-    enabled: agentId !== undefined,
+    enabled: agentId !== undefined && chainId === ABSTRACT_CHAIN_ID,
     staleTime: 300_000,
     gcTime: 600_000,
   });

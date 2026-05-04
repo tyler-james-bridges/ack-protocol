@@ -91,6 +91,7 @@ export function useGiveKudos() {
           value,
           tag1,
           valueDecimals: decimals,
+          chainId,
         });
 
         writeContract(

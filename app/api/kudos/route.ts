@@ -94,6 +94,7 @@ export const POST = withSiwa(async (agent, req) => {
     category,
     message: normalizedMessage,
     fromAgentId: agent.agentId,
+    chainId: targetChainId,
   });
 
   // Encode giveFeedback transaction

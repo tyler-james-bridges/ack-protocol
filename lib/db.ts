@@ -30,6 +30,7 @@ export async function ensureMigrations(): Promise<void> {
     CREATE TABLE IF NOT EXISTS tips (
       id TEXT PRIMARY KEY,
       kudos_tx_hash TEXT NOT NULL DEFAULT '',
+      chain_id INTEGER NOT NULL DEFAULT 2741,
       agent_id INTEGER NOT NULL,
       from_address TEXT NOT NULL,
       to_address TEXT NOT NULL,
@@ -41,7 +42,9 @@ export async function ensureMigrations(): Promise<void> {
       payment_tx_hash TEXT
     )
   `;
+  await sql`ALTER TABLE tips ADD COLUMN IF NOT EXISTS chain_id INTEGER NOT NULL DEFAULT 2741`;
   await sql`CREATE INDEX IF NOT EXISTS idx_tips_kudos_tx ON tips (kudos_tx_hash)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_tips_status ON tips (status)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_tips_agent_chain ON tips (agent_id, chain_id)`;
   _migrated = true;
 }

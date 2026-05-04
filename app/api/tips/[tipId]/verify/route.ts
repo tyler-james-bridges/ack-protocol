@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createPublicClient, http, type Hex } from 'viem';
-import { abstract } from 'viem/chains';
 import { getTip, completeTip, tipToJSON } from '@/lib/tip-store';
-import { USDC_ADDRESS } from '@/config/tokens';
-
-const client = createPublicClient({ chain: abstract, transport: http() });
+import { getUsdcAddress } from '@/config/tokens';
+import { getChainConfig } from '@/config/chain';
 
 /**
  * POST /api/tips/[tipId]/verify
@@ -52,7 +50,13 @@ export async function POST(
     );
   }
 
-  // Fetch the transaction receipt from Abstract
+  const chainCfg = getChainConfig(tip.chainId);
+  const client = createPublicClient({
+    chain: chainCfg.chain,
+    transport: http(chainCfg.rpcUrl),
+  });
+
+  // Fetch the transaction receipt from the tip chain
   let receipt;
   try {
     receipt = await client.getTransactionReceipt({ hash: txHash as Hex });
@@ -73,9 +77,10 @@ export async function POST(
   // Look for a USDC Transfer event matching our expected recipient and amount
   const expectedTo = tip.toAddress.toLowerCase();
   const expectedAmount = tip.amountRaw;
+  const usdcAddress = getUsdcAddress(tip.chainId).toLowerCase();
 
   const matchingLog = receipt.logs.find((log) => {
-    if (log.address.toLowerCase() !== USDC_ADDRESS.toLowerCase()) return false;
+    if (log.address.toLowerCase() !== usdcAddress) return false;
 
     // ERC-20 Transfer: topic[0] = event sig, topic[1] = from, topic[2] = to
     if (

@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { PaymentRequired, PaymentRequirements } from '@x402/next';
+import { getX402ChainConfig } from '@/lib/x402';
 import { resolvePaymentAddress } from '@/lib/tip-store';
 import {
-  USDC_ADDRESS,
   USDC_DECIMALS,
   ACK_TREASURY_ADDRESS,
+  getUsdcAddress,
 } from '@/config/tokens';
+import { DEFAULT_8004_CHAIN_ID, resolveChainId } from '@/config/chain';
 
 const AGENT_OWNER_ADDRESS =
   process.env.AGENT_WALLET_ADDRESS ?? ACK_TREASURY_ADDRESS;
-
-const ABSTRACT_FACILITATOR_URL = 'https://facilitator.x402.abs.xyz';
 
 const x402Headers = {
   'Content-Type': 'application/json',
@@ -19,23 +19,30 @@ const x402Headers = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-function buildPaymentRequirements(payTo: string): PaymentRequirements {
+function buildPaymentRequirements(
+  payTo: string,
+  chainId: number = DEFAULT_8004_CHAIN_ID
+): PaymentRequirements {
+  const cfg = getX402ChainConfig(chainId);
   return {
     scheme: 'exact',
-    network: 'eip155:2741',
-    asset: USDC_ADDRESS,
+    network: cfg.network,
+    asset: getUsdcAddress(cfg.chainId),
     amount: '1.00',
     payTo,
     maxTimeoutSeconds: 3600,
     extra: {
       name: 'USDC',
       decimals: USDC_DECIMALS,
-      facilitatorUrl: ABSTRACT_FACILITATOR_URL,
+      facilitatorUrl: cfg.facilitatorUrl,
     },
   };
 }
 
-function buildDiscoveryPayload(payTo: string): PaymentRequired {
+function buildDiscoveryPayload(
+  payTo: string,
+  chainId: number = DEFAULT_8004_CHAIN_ID
+): PaymentRequired {
   return {
     x402Version: 2,
     resource: {
@@ -43,7 +50,7 @@ function buildDiscoveryPayload(payTo: string): PaymentRequired {
       description: 'ACK Protocol tip payments via x402',
       mimeType: 'application/json',
     },
-    accepts: [buildPaymentRequirements(payTo)],
+    accepts: [buildPaymentRequirements(payTo, chainId)],
   };
 }
 
@@ -53,10 +60,16 @@ function buildDiscoveryPayload(payTo: string): PaymentRequired {
  * x402 discovery endpoint. Returns payment requirements including
  * supported assets, network, and pay-to address for the ACK agent.
  */
-export async function GET() {
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const chainId =
+    resolveChainId(url.searchParams.get('chain') ?? undefined) ??
+    resolveChainId(url.searchParams.get('chainId') ?? undefined) ??
+    DEFAULT_8004_CHAIN_ID;
+
   return NextResponse.json(
     {
-      ...buildDiscoveryPayload(AGENT_OWNER_ADDRESS),
+      ...buildDiscoveryPayload(AGENT_OWNER_ADDRESS, chainId),
       agent: 'ACK',
       agentId: '606',
       pricing: {
@@ -64,8 +77,9 @@ export async function GET() {
         tipMax: '100.00',
         currency: 'USD',
       },
+      chainId,
       endpoints: {
-        createTip: '/api/tips',
+        createTip: `/api/tips?chainId=${chainId}`,
         verifyTip: '/api/tips/{tipId}/verify',
         tipPage: '/tip/{tipId}',
       },
@@ -97,13 +111,17 @@ export async function POST(req: Request) {
   }
 
   const agentId = typeof body.agentId === 'number' ? body.agentId : null;
+  const chainId =
+    resolveChainId(body.chainId as number | string | undefined) ??
+    resolveChainId(body.chain as number | string | undefined) ??
+    DEFAULT_8004_CHAIN_ID;
 
   let payTo = AGENT_OWNER_ADDRESS;
   if (agentId !== null) {
-    payTo = await resolvePaymentAddress(agentId);
+    payTo = await resolvePaymentAddress(agentId, chainId);
   }
 
-  return NextResponse.json(buildDiscoveryPayload(payTo), {
+  return NextResponse.json(buildDiscoveryPayload(payTo, chainId), {
     status: 402,
     headers: x402Headers,
   });

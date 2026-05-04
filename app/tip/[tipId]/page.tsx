@@ -10,22 +10,23 @@ import {
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import Link from 'next/link';
 import { parseUnits, type Hex, publicActions } from 'viem';
-import { abstract } from 'viem/chains';
 import { Nav } from '@/components/nav';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { PaymentMethodSelector } from '@/components/payment-method-selector';
 import {
-  USDC_ADDRESS,
   ERC20_TRANSFER_ABI,
   USDC_DECIMALS,
+  getUsdcAddress,
 } from '@/config/tokens';
+import { DEFAULT_8004_CHAIN_ID, getExplorerTxUrl } from '@/config/chain';
 import {
   fetchPaymentMethods,
   type PaymentMethod,
   type PaymentMethodId,
 } from '@/lib/payments/discovery';
+import { getChainName } from '@/hooks';
 import {
   trackPaymentEvent,
   createPaymentTimer,
@@ -162,8 +163,6 @@ export default function TipPage({
   const { data: walletClient } = useWalletClient();
   const { openConnectModal } = useConnectModal();
 
-  const isWrongChain = isConnected && activeChainId !== abstract.id;
-
   const [tip, setTip] = useState<TipData | null>(null);
   const [pageStatus, setPageStatus] = useState<PageStatus>('loading');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -174,10 +173,13 @@ export default function TipPage({
   >(undefined);
 
   const { writeContract, data: txHash, reset: resetWrite } = useWriteContract();
+  const targetChainId = tip?.agentChainId ?? DEFAULT_8004_CHAIN_ID;
+  const targetChainName = getChainName(targetChainId);
+  const isWrongChain = isConnected && activeChainId !== targetChainId;
 
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
-    chainId: abstract.id,
+    chainId: targetChainId,
   });
 
   // Fetch tip data + payment methods on mount
@@ -247,7 +249,12 @@ export default function TipPage({
         }
         return res.json();
       })
-      .then(() => {
+      .then((data: { tip?: Partial<TipData> }) => {
+        if (data.tip) {
+          setTip((current) =>
+            current ? ({ ...current, ...data.tip } as TipData) : current
+          );
+        }
         trackPaymentEvent('payment_succeeded', {
           method: 'direct',
           tipId,
@@ -294,11 +301,11 @@ export default function TipPage({
 
     writeContract(
       {
-        address: USDC_ADDRESS,
+        address: getUsdcAddress(targetChainId),
         abi: ERC20_TRANSFER_ABI,
         functionName: 'transfer',
         args: [tip.toAddress as Hex, rawAmount],
-        chainId: abstract.id,
+        chainId: targetChainId,
       },
       {
         onError: (err) => {
@@ -373,11 +380,24 @@ export default function TipPage({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const scheme = new ExactEvmScheme(signer as any);
       const paidFetch = wrapFetchWithPaymentFromConfig(fetch, {
-        schemes: [{ network: 'eip155:2741', client: scheme }],
+        schemes: [
+          {
+            network: `eip155:${targetChainId}` as `${string}:${string}`,
+            client: scheme,
+          },
+        ],
       });
       const res = await paidFetch(`/api/tips/${tipId}/pay`);
 
       if (res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          tip?: Partial<TipData>;
+        };
+        if (data.tip) {
+          setTip((current) =>
+            current ? ({ ...current, ...data.tip } as TipData) : current
+          );
+        }
         trackPaymentEvent('payment_succeeded', {
           method: 'x402',
           tipId,
@@ -431,6 +451,14 @@ export default function TipPage({
       const res = await mppx.fetch(`/api/tips/${tipId}/pay`);
 
       if (res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          tip?: Partial<TipData>;
+        };
+        if (data.tip) {
+          setTip((current) =>
+            current ? ({ ...current, ...data.tip } as TipData) : current
+          );
+        }
         trackPaymentEvent('payment_succeeded', {
           method: 'mpp',
           tipId,
@@ -460,12 +488,12 @@ export default function TipPage({
   }
 
   async function handlePay() {
-    // Auto-switch to Abstract if on wrong chain (x402 and direct need it)
+    // Auto-switch to the tip chain if needed (x402 and direct need it)
     if (isWrongChain && selectedMethod !== 'mpp' && walletClient) {
       try {
-        await walletClient.switchChain({ id: abstract.id });
+        await walletClient.switchChain({ id: targetChainId });
       } catch {
-        setErrorMsg('Please switch your wallet to Abstract network to pay.');
+        setErrorMsg(`Please switch your wallet to ${targetChainName} to pay.`);
         return;
       }
     }
@@ -494,7 +522,7 @@ export default function TipPage({
   const buttonLabel = isProcessing
     ? statusLabel[pageStatus]
     : isWrongChain && selectedMethod !== 'mpp'
-      ? 'Switch to Abstract & Pay'
+      ? `Switch to ${targetChainName} & Pay`
       : `Pay ${tip ? `$${tip.amountUsd.toFixed(2)}` : ''} via ${selectedMethod === 'x402' ? 'x402' : selectedMethod === 'mpp' ? 'MPP' : 'Direct Transfer'}`;
 
   const formattedAmount = tip ? `$${tip.amountUsd.toFixed(2)}` : '';
@@ -623,17 +651,34 @@ export default function TipPage({
                   )}
                   {tip.paymentTxHash?.startsWith('x402:0x') && (
                     <a
-                      href={`https://abscan.org/tx/${tip.paymentTxHash.slice(5)}`}
+                      href={getExplorerTxUrl(
+                        tip.paymentTxHash.slice(5),
+                        tip.agentChainId
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-black hover:underline inline-block"
                     >
-                      View on Abstract Explorer &rarr;
+                      View on {getChainName(tip.agentChainId)} Explorer &rarr;
+                    </a>
+                  )}
+                  {tip.paymentTxHash?.startsWith('0x') && (
+                    <a
+                      href={getExplorerTxUrl(
+                        tip.paymentTxHash,
+                        tip.agentChainId
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-black hover:underline inline-block"
+                    >
+                      View on {getChainName(tip.agentChainId)} Explorer &rarr;
                     </a>
                   )}
                   {tip.paymentTxHash === 'x402-facilitator-settlement' && (
                     <p className="text-xs text-black/40 mt-1">
-                      Settled via x402 facilitator on Abstract
+                      Settled via x402 facilitator on{' '}
+                      {getChainName(tip.agentChainId)}
                     </p>
                   )}
                   <a
@@ -728,7 +773,7 @@ export default function TipPage({
                   <span className="text-black font-medium">
                     direct USDC transfer
                   </span>{' '}
-                  on Abstract.
+                  on {targetChainName}.
                 </p>
               </div>
             )}

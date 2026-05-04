@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, ensureMigrations, hasDb } from '@/lib/db';
+import { DEFAULT_8004_CHAIN_ID, resolveChainId } from '@/config/chain';
 
 export async function GET(request: NextRequest) {
   if (!hasDb()) {
@@ -8,6 +9,9 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = request.nextUrl;
   const agentId = searchParams.get('agentId');
+  const chainId =
+    resolveChainId(searchParams.get('chainId') ?? undefined) ??
+    DEFAULT_8004_CHAIN_ID;
   const limit = Math.min(Number(searchParams.get('limit') || 20), 50);
 
   if (!agentId) {
@@ -20,10 +24,11 @@ export async function GET(request: NextRequest) {
   try {
     // Return completed standalone tips (no kudos link) for this agent
     const rows = await sql`
-      SELECT id, agent_id, amount_usd, from_address, to_address,
+      SELECT id, chain_id, agent_id, amount_usd, from_address, to_address,
              payment_tx_hash, completed_at, kudos_tx_hash
       FROM tips
       WHERE agent_id = ${Number(agentId)}
+        AND chain_id = ${chainId}
         AND status = 'completed'
         AND (kudos_tx_hash IS NULL OR kudos_tx_hash = '')
       ORDER BY completed_at DESC
@@ -48,7 +53,7 @@ export async function GET(request: NextRequest) {
                 owner_address?: string;
                 agent_wallet?: string;
               }) =>
-                a.chain_id === 2741 &&
+                Number(a.chain_id) === chainId &&
                 (a.owner_address?.toLowerCase() === fromAddress.toLowerCase() ||
                   a.agent_wallet?.toLowerCase() === fromAddress.toLowerCase())
             );
@@ -69,6 +74,7 @@ export async function GET(request: NextRequest) {
           type: 'tip' as const,
           tipId: row.id,
           agentId: row.agent_id,
+          chainId: row.chain_id,
           amountUsd: row.amount_usd,
           fromAddress,
           fromAgent,

@@ -1,4 +1,5 @@
 import type { Address } from 'viem';
+import { DEFAULT_8004_CHAIN_ID } from './chain';
 
 /**
  * USDC.e token on Abstract (chain ID 2741)
@@ -6,7 +7,46 @@ import type { Address } from 'viem';
 export const USDC_ADDRESS: Address =
   '0x84a71ccd554cc1b02749b35d22f684cc8ec987e1';
 
+/**
+ * Native USDC token on Base (chain ID 8453)
+ */
+export const BASE_USDC_ADDRESS: Address =
+  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+
 export const USDC_DECIMALS = 6;
+
+export interface UsdcTokenConfig {
+  address: Address;
+  decimals: number;
+  symbol: 'USDC';
+  chainId: number;
+}
+
+export const USDC_BY_CHAIN: Record<number, UsdcTokenConfig> = {
+  2741: {
+    address: USDC_ADDRESS,
+    decimals: USDC_DECIMALS,
+    symbol: 'USDC',
+    chainId: 2741,
+  },
+  8453: {
+    address: BASE_USDC_ADDRESS,
+    decimals: USDC_DECIMALS,
+    symbol: 'USDC',
+    chainId: 8453,
+  },
+};
+
+export function getUsdcTokenConfig(chainId?: number): UsdcTokenConfig {
+  return (
+    USDC_BY_CHAIN[chainId ?? DEFAULT_8004_CHAIN_ID] ??
+    USDC_BY_CHAIN[DEFAULT_8004_CHAIN_ID]
+  );
+}
+
+export function getUsdcAddress(chainId?: number): Address {
+  return getUsdcTokenConfig(chainId).address;
+}
 
 /**
  * Standard ERC-20 transfer ABI fragment used for USDC transfers.

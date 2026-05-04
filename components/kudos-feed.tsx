@@ -243,9 +243,7 @@ export function KudosFeed({
   const { data: timestamps } = useBlockTimestamps(blockNumbers, chainId);
   const { data: agentSet } = useIsAgent(senders);
   const tipMap = useTipsForKudos(txHashes);
-  const { data: standaloneTips } = useTipsFeed(
-    chainId === DEFAULT_8004_CHAIN_ID ? agentId : undefined
-  );
+  const { data: standaloneTips } = useTipsFeed(agentId, chainId);
 
   // Build lookups
   const agentMap = new Map<number, ScanAgent>();

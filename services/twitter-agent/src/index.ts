@@ -326,11 +326,7 @@ async function processMention(tweet: Tweet): Promise<void> {
 
       // Create tip if $X amount was included
       let tipUrl: string | undefined;
-      if (
-        kudos.tipAmountUsd &&
-        kudos.tipAmountUsd > 0 &&
-        targetChainId === 2741
-      ) {
+      if (kudos.tipAmountUsd && kudos.tipAmountUsd > 0) {
         try {
           const appUrl = process.env.APP_URL || 'https://ack-onchain.dev';
           const tipRes = await fetch(`${appUrl}/api/tips`, {
@@ -347,17 +343,18 @@ async function processMention(tweet: Tweet): Promise<void> {
           if (tipRes.ok) {
             const tipData = await tipRes.json();
             tipUrl = `https://ack-onchain.dev/tip/${tipData.tipId}`;
-            console.log(`[tip] Created $${kudos.tipAmountUsd} tip: ${tipUrl}`);
+            console.log(
+              `[tip] Created $${kudos.tipAmountUsd} tip on ${targetChain.name}: ${tipUrl}`
+            );
           } else {
-            console.error(`[tip] Failed to create tip: ${tipRes.status}`);
+            const err = await tipRes.text().catch(() => '');
+            console.error(
+              `[tip] Failed to create tip on ${targetChain.name}: ${tipRes.status}${err ? ` ${err.slice(0, 200)}` : ''}`
+            );
           }
         } catch (tipErr) {
           console.error(`[tip] Error creating tip:`, tipErr);
         }
-      } else if (kudos.tipAmountUsd && kudos.tipAmountUsd > 0) {
-        console.log(
-          `[tip] Skipping $${kudos.tipAmountUsd} tip on ${targetChain.name}; x402 tips are configured for Abstract only`
-        );
       }
 
       results.push({

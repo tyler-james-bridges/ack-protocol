@@ -59,6 +59,7 @@ describe('tip-store', () => {
       const tip = {
         id: 'test-id',
         kudosTxHash: '0xabc',
+        chainId: 2741,
         agentId: 123,
         fromAddress: '0xfrom',
         toAddress: '0xto',
@@ -280,6 +281,7 @@ describe('tip-store', () => {
       expect(result).toEqual({
         id: 'test-id-123',
         kudosTxHash: '0xkudos123',
+        chainId: 2741,
         agentId: 456,
         fromAddress: '0xfrom',
         toAddress: '0xto',
@@ -296,10 +298,11 @@ describe('tip-store', () => {
       const insertCall = mockSql.mock.calls[1];
       expect(insertCall[1]).toBe('test-id-123');
       expect(insertCall[2]).toBe('0xkudos123');
-      expect(insertCall[3]).toBe(456);
-      expect(insertCall[4]).toBe('0xfrom');
-      expect(insertCall[5]).toBe('0xto');
-      expect(insertCall[6]).toBe(15.75);
+      expect(insertCall[3]).toBe(2741);
+      expect(insertCall[4]).toBe(456);
+      expect(insertCall[5]).toBe('0xfrom');
+      expect(insertCall[6]).toBe('0xto');
+      expect(insertCall[7]).toBe(15.75);
     });
 
     it('normalizes addresses to lowercase', async () => {
@@ -317,8 +320,25 @@ describe('tip-store', () => {
       expect(mockSql).toHaveBeenCalledTimes(2);
       // Verify the INSERT call contains normalized addresses
       const insertCall = mockSql.mock.calls[1];
-      expect(insertCall[4]).toBe('0xfrom');
-      expect(insertCall[5]).toBe('0xto');
+      expect(insertCall[5]).toBe('0xfrom');
+      expect(insertCall[6]).toBe('0xto');
+    });
+
+    it('stores the provided chain ID', async () => {
+      const { createTip } = await getModule();
+
+      const result = await createTip({
+        kudosTxHash: '0xbase',
+        chainId: 8453,
+        agentId: 321,
+        fromAddress: '0xFROM',
+        toAddress: '0xTO',
+        amountUsd: 2.5,
+      });
+
+      expect(result.chainId).toBe(8453);
+      const insertCall = mockSql.mock.calls[1];
+      expect(insertCall[3]).toBe(8453);
     });
   });
 
@@ -347,6 +367,7 @@ describe('tip-store', () => {
       expect(result).toEqual({
         id: 'tip-456',
         kudosTxHash: '0xkudos',
+        chainId: 2741,
         agentId: 789,
         fromAddress: '0xfrom',
         toAddress: '0xto',
@@ -417,6 +438,7 @@ describe('tip-store', () => {
       expect(result).toEqual({
         id: 'tip-123',
         kudosTxHash: '0xKUDOS',
+        chainId: 2741,
         agentId: 456,
         fromAddress: '0xfrom',
         toAddress: '0xto',
@@ -506,6 +528,52 @@ describe('tip-store', () => {
       expect(result?.fromAgentId).toBe(999);
     });
 
+    it('uses the tip chain when resolving payer agents', async () => {
+      const { getTipByKudosTxHash } = await getModule();
+      const mockRow = {
+        id: 'tip-base',
+        kudos_tx_hash: '0xbasekudos',
+        chain_id: 8453,
+        agent_id: 456,
+        from_address: '0xfrom',
+        to_address: '0xto',
+        amount_usd: 5,
+        status: 'completed',
+        payment_tx_hash: null,
+        created_at: 1111111111,
+        completed_at: 2222222222,
+        expires_at: 3333333333,
+      };
+
+      mockSql.mockResolvedValueOnce([]).mockResolvedValueOnce([mockRow]);
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            items: [
+              {
+                chain_id: 2741,
+                token_id: '111',
+                owner_address: '0xfrom',
+                agent_wallet: null,
+              },
+              {
+                chain_id: 8453,
+                token_id: '222',
+                owner_address: '0xfrom',
+                agent_wallet: null,
+              },
+            ],
+          }),
+      });
+
+      const result = await getTipByKudosTxHash('0xbasekudos');
+
+      expect(result?.chainId).toBe(8453);
+      expect(result?.fromAgentId).toBe(222);
+    });
+
     it('returns undefined when no tip found', async () => {
       const { getTipByKudosTxHash } = await getModule();
 
@@ -545,6 +613,7 @@ describe('tip-store', () => {
       expect(result).toEqual({
         id: 'tip-complete',
         kudosTxHash: '0xkudos',
+        chainId: 2741,
         agentId: 123,
         fromAddress: '0xfrom',
         toAddress: '0xto',

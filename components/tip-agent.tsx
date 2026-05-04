@@ -9,7 +9,6 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { parseUnits, type Hex, publicActions } from 'viem';
-import { abstract } from 'viem/chains';
 import { Button } from '@/components/ui/button';
 import {
   USDC_ADDRESS,
@@ -18,6 +17,11 @@ import {
   PENGU_ADDRESS,
   PENGU_DECIMALS,
 } from '@/config/tokens';
+import {
+  DEFAULT_8004_CHAIN_ID,
+  getAgentPath,
+  getExplorerTxUrl,
+} from '@/config/chain';
 import { cn } from '@/lib/utils';
 import { checkMppPreflight } from '@/lib/payments/mpp-preflight';
 import { mapMppErrorToUiMessage } from '@/lib/payments/mpp-errors';
@@ -39,6 +43,7 @@ interface TipAgentProps {
   agentName: string;
   agentTokenId: string;
   ownerAddress: string;
+  chainId?: number;
   className?: string;
 }
 
@@ -46,6 +51,7 @@ export function TipAgent({
   agentName,
   agentTokenId,
   ownerAddress,
+  chainId = DEFAULT_8004_CHAIN_ID,
   className,
 }: TipAgentProps) {
   const { openConnectModal } = useConnectModal();
@@ -58,7 +64,6 @@ export function TipAgent({
     'idle' | 'sending' | 'success' | 'error'
   >('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
   const [mppViable, setMppViable] = useState<boolean | null>(null);
   const [mppReason, setMppReason] = useState<string | null>(null);
 
@@ -86,9 +91,14 @@ export function TipAgent({
     address.toLowerCase() === ownerAddress.toLowerCase();
 
   const { writeContract, data: txHash, reset } = useWriteContract();
+  const targetChainId = chainId;
+  const isAbstractTip = targetChainId === DEFAULT_8004_CHAIN_ID;
+  const tokenOptions: TipToken[] = isAbstractTip ? ['USDC', 'PENGU'] : ['USDC'];
+  const usdcNetwork = `eip155:${targetChainId}` as `${string}:${string}`;
+
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
-    chainId: abstract.id,
+    chainId: targetChainId,
   });
 
   useEffect(() => {
@@ -115,6 +125,7 @@ export function TipAgent({
             agentId: Number(agentTokenId),
             fromAddress: signerAddress,
             amountUsd: amount,
+            chainId: targetChainId,
           }),
         });
         if (!tipRes.ok) {
@@ -144,7 +155,7 @@ export function TipAgent({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const scheme = new ExactEvmScheme(signer as any);
         const paidFetch = wrapFetchWithPaymentFromConfig(fetch, {
-          schemes: [{ network: 'eip155:2741', client: scheme }],
+          schemes: [{ network: usdcNetwork, client: scheme }],
         });
 
         const res = await paidFetch(`/api/tips/${tipId}/pay`);
@@ -173,7 +184,7 @@ export function TipAgent({
         abi: ERC20_TRANSFER_ABI,
         functionName: 'transfer',
         args: [ownerAddress as Hex, rawAmount],
-        chainId: abstract.id,
+        chainId: targetChainId,
       },
       {
         onError: (err) => {
@@ -193,12 +204,11 @@ export function TipAgent({
     setToken('USDC');
     setStatus('idle');
     setErrorMsg(null);
-    setCompletedTxHash(null);
   }
 
   if (status === 'success') {
     const amountLabel = token === 'USDC' ? `$${amount}` : `${amount} PENGU`;
-    const shareText = `Just tipped ${agentName} ${amountLabel} ${token} on @ack_onchain\n\nhttps://ack-onchain.dev/agent/2741/${agentTokenId}`;
+    const shareText = `Just tipped ${agentName} ${amountLabel} ${token} on @ack_onchain\n\nhttps://ack-onchain.dev${getAgentPath(agentTokenId, targetChainId)}`;
     const shareUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText)}`;
 
     return (
@@ -215,7 +225,7 @@ export function TipAgent({
         <div className="flex items-center justify-center gap-3">
           {txHash && (
             <a
-              href={`https://abscan.org/tx/${txHash}`}
+              href={getExplorerTxUrl(txHash, targetChainId)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-black hover:underline"
@@ -290,7 +300,7 @@ export function TipAgent({
 
       {/* Token toggle */}
       <div className="flex gap-1 rounded-none bg-black/5 p-1 w-fit">
-        {(['USDC', 'PENGU'] as const).map((t) => (
+        {tokenOptions.map((t) => (
           <button
             key={t}
             type="button"

@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createPublicClient, http } from 'viem';
-import { abstract } from 'viem/chains';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { createTip, tipToJSON } from '@/lib/tip-store';
+import {
+  DEFAULT_8004_CHAIN_ID,
+  getChainConfig,
+  resolveChainId,
+} from '@/config/chain';
+import { getUsdcAddress } from '@/config/tokens';
 
 const TIP_MIN = 0.01;
 const TIP_MAX = 100;
-
-const client = createPublicClient({ chain: abstract, transport: http() });
 
 /**
  * POST /api/tips
@@ -25,12 +28,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { agentId, fromAddress, amountUsd, kudosTxHash } = body as {
-    agentId?: number;
-    fromAddress?: string;
-    amountUsd?: number;
-    kudosTxHash?: string;
-  };
+  const { agentId, fromAddress, amountUsd, kudosTxHash, chainId, chain } =
+    body as {
+      agentId?: number;
+      fromAddress?: string;
+      amountUsd?: number;
+      kudosTxHash?: string;
+      chainId?: number | string;
+      chain?: number | string;
+    };
+  const targetChainId =
+    resolveChainId(chainId) ?? resolveChainId(chain) ?? DEFAULT_8004_CHAIN_ID;
+  const chainCfg = getChainConfig(targetChainId);
+  const client = createPublicClient({
+    chain: chainCfg.chain,
+    transport: http(chainCfg.rpcUrl),
+  });
 
   // Validate required fields
   if (
@@ -83,6 +96,7 @@ export async function POST(req: Request) {
 
   const tip = await createTip({
     kudosTxHash: kudosTxHash ?? '',
+    chainId: targetChainId,
     agentId,
     fromAddress,
     toAddress: ownerAddress,
@@ -94,7 +108,9 @@ export async function POST(req: Request) {
     paymentAddress: tip.toAddress,
     amount: tip.amountUsd,
     token: 'USDC',
-    chainId: 2741,
+    tokenAddress: getUsdcAddress(targetChainId),
+    chainId: targetChainId,
+    explorer: chainCfg.explorer,
     tip: tipToJSON(tip),
   });
 }

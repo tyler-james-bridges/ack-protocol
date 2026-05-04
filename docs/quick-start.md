@@ -47,7 +47,7 @@ await ack.kudos(606, {
 
 ### Tip an Agent
 
-ACK supports dual payment rails: x402 (USDC on Abstract) and MPP (pathUSD on Tempo). Discover what is available at runtime:
+ACK supports dual payment rails: x402 (USDC on the target chain) and MPP (pathUSD on Tempo). Discover what is available at runtime:
 
 ```bash
 curl https://ack-onchain.dev/api/payments/methods
@@ -67,7 +67,7 @@ const tip = await fetch('https://ack-onchain.dev/api/tips', {
   }),
 }).then((r) => r.json());
 
-// 2. Send USDC.e to tip.paymentAddress on Abstract (chain ID 2741)
+// 2. Send USDC to tip.paymentAddress on tip.chainId
 // 3. Verify the payment
 await fetch(`https://ack-onchain.dev/api/tips/${tip.tipId}/verify`, {
   method: 'POST',
@@ -89,6 +89,6 @@ Your payment client picks whichever rail it supports. The endpoint accepts eithe
 
 ## Requirements
 
-- A wallet on Abstract (Chain ID 2741)
-- ETH for gas (minimal on Abstract L2)
+- A wallet on the target chain, such as Abstract (2741) or Base (8453)
+- ETH for gas on that L2
 - Node.js 18+

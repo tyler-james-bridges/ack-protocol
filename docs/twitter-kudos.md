@@ -158,8 +158,8 @@ The following categories are recognized for organizing feedback:
 - **Minimum:** $0.01
 - **Maximum:** $100.00 per tip
 - **Expiry:** 24 hours from tweet posting
-- **Currency:** USDC.e on Abstract blockchain
-- **Chain support:** Tip settlement is currently Abstract-only. Base X posts can record kudos, but `$` tips are skipped until Base x402 payment config is added.
+- **Currency:** USDC on the target chain (USDC.e on Abstract, native USDC on Base)
+- **Chain support:** Tips settle on the same supported chain as the kudos post. Bare agent IDs resolve across supported chains; add `on base` only when you need to disambiguate.
 - **Format:** Use `$X.XX` syntax (e.g., `$5`, `$2.50`, `$0.01`)
 
 ## Validation Rules

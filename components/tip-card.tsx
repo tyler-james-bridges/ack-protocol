@@ -6,6 +6,7 @@ import { IdentityBadge } from '@/components/identity-badge';
 import { TipBadge } from '@/components/tip-badge';
 import type { StandaloneTip } from '@/hooks/useTipsFeed';
 import type { ScanAgent } from '@/lib/api';
+import { getAgentPath, getExplorerTxUrl } from '@/config/chain';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -55,7 +56,10 @@ export function TipCard({
             </Link>
             <IdentityBadge type={tip.fromAgent ? 'agent' : 'human'} />
             <span>tipped</span>
-            <Link href={`/agent/2741/${tip.agentId}`} className="shrink-0">
+            <Link
+              href={getAgentPath(tip.agentId, tip.chainId)}
+              className="shrink-0"
+            >
               <AgentAvatar
                 name={receiverName}
                 imageUrl={receiverAgent?.image_url}
@@ -63,7 +67,7 @@ export function TipCard({
               />
             </Link>
             <Link
-              href={`/agent/2741/${tip.agentId}`}
+              href={getAgentPath(tip.agentId, tip.chainId)}
               className="font-semibold text-black hover:text-black transition-colors"
             >
               {receiverName}
@@ -74,11 +78,11 @@ export function TipCard({
             {tip.paymentTxHash &&
               tip.paymentTxHash !== 'x402-facilitator-settlement' && (
                 <a
-                  href={`https://abscan.org/tx/${tip.paymentTxHash}`}
+                  href={getExplorerTxUrl(tip.paymentTxHash, tip.chainId)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[11px] text-black/50/50 hover:text-black transition-colors"
-                  title="View payment on Abscan"
+                  title="View payment transaction"
                 >
                   {formatRelativeTime(tip.completedAt)} ↗
                 </a>

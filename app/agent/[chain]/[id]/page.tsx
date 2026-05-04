@@ -404,11 +404,12 @@ export default function AgentProfilePage({
               )}
 
               {/* Tip with USDC */}
-              {agent.owner_address && agent.chain_id === 2741 && (
+              {agent.owner_address && (
                 <TipAgent
                   agentName={agent.name}
                   agentTokenId={agent.token_id}
                   ownerAddress={agent.owner_address}
+                  chainId={agent.chain_id}
                 />
               )}
 

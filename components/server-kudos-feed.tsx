@@ -188,7 +188,9 @@ export async function ServerKudosFeed({
               if (!tipFromAgent && tip?.fromAgentId) {
                 try {
                   const { fetchAgent } = await import('@/lib/api');
-                  tipFromAgent = await fetchAgent(`2741:${tip.fromAgentId}`);
+                  tipFromAgent = await fetchAgent(
+                    `${tip.chainId}:${tip.fromAgentId}`
+                  );
                 } catch {
                   // Agent not found, leave undefined
                 }

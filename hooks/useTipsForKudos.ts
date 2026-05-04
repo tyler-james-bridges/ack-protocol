@@ -11,6 +11,7 @@ export interface TipFromAgent {
 
 export interface TipInfo {
   amountUsd: number;
+  chainId: number;
   fromAddress: string;
   fromAgentId?: number;
   fromAgent?: TipFromAgent;

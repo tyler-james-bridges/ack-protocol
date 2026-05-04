@@ -10,6 +10,7 @@ interface TipFromAgent {
 
 interface TipResult {
   amountUsd: number;
+  chainId: number;
   fromAddress: string;
   fromAgentId?: number;
   fromAgent?: TipFromAgent;
@@ -35,6 +36,7 @@ export async function POST(req: Request) {
           const json = tipToJSON(tip);
           const result: TipResult = {
             amountUsd: json.amountUsd,
+            chainId: json.chainId,
             fromAddress: json.fromAddress,
             fromAgentId: json.fromAgentId,
           };
@@ -43,14 +45,14 @@ export async function POST(req: Request) {
           if (json.fromAgentId) {
             try {
               const scanRes = await fetch(
-                `https://www.8004scan.io/api/v1/agents?search=${json.fromAgentId}&chain_id=2741&limit=5`
+                `https://www.8004scan.io/api/v1/agents?search=${json.fromAgentId}&chain_id=${json.chainId}&limit=5`
               );
               if (scanRes.ok) {
                 const scanData = await scanRes.json();
                 const match = (scanData.items || []).find(
                   (a: { token_id: string; chain_id: number }) =>
                     a.token_id === String(json.fromAgentId) &&
-                    a.chain_id === 2741
+                    Number(a.chain_id) === json.chainId
                 );
                 if (match) {
                   result.fromAgent = {

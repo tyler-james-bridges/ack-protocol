@@ -7,15 +7,16 @@
 
 import { nanoid } from 'nanoid';
 import { createPublicClient, http, type Address } from 'viem';
-import { abstract } from 'viem/chains';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { ACK_TREASURY_ADDRESS } from '@/config/tokens';
+import { DEFAULT_8004_CHAIN_ID, getChainConfig } from '@/config/chain';
 import { getDb, ensureMigrations, hasDb } from './db';
 
 export interface TipRecord {
   id: string;
   kudosTxHash: string;
+  chainId: number;
   agentId: number;
   fromAddress: string;
   fromAgentId?: number;
@@ -33,6 +34,7 @@ export interface TipRecord {
 export interface TipRecordJSON {
   id: string;
   kudosTxHash: string;
+  chainId: number;
   agentId: number;
   fromAddress: string;
   fromAgentId?: number;
@@ -46,7 +48,19 @@ export interface TipRecordJSON {
   expiresAt: number;
 }
 
-const viemClient = createPublicClient({ chain: abstract, transport: http() });
+const clients = new Map<number, ReturnType<typeof createPublicClient>>();
+
+function getClient(chainId: number = DEFAULT_8004_CHAIN_ID) {
+  const cfg = getChainConfig(chainId);
+  const existing = clients.get(cfg.chain.id);
+  if (existing) return existing;
+  const client = createPublicClient({
+    chain: cfg.chain,
+    transport: http(cfg.rpcUrl),
+  });
+  clients.set(cfg.chain.id, client);
+  return client;
+}
 
 /** Cached wallet-to-agentId mapping with 5-minute TTL */
 const walletAgentCache = new Map<
@@ -61,9 +75,11 @@ const WALLET_CACHE_TTL_MS = 5 * 60 * 1000;
  * Results are cached per-address for 5 minutes.
  */
 export async function resolveAgentByWallet(
-  address: string
+  address: string,
+  chainId: number = DEFAULT_8004_CHAIN_ID
 ): Promise<number | null> {
-  const key = address.toLowerCase();
+  const key = `${chainId}:${address.toLowerCase()}`;
+  const addressKey = address.toLowerCase();
   const cached = walletAgentCache.get(key);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.agentId;
@@ -72,7 +88,7 @@ export async function resolveAgentByWallet(
   try {
     // Search 8004scan for agents matching this wallet
     const baseUrl = 'https://www.8004scan.io/api/v1';
-    const res = await fetch(`${baseUrl}/agents?search=${key}&limit=50`);
+    const res = await fetch(`${baseUrl}/agents?search=${addressKey}&limit=50`);
     if (!res.ok) {
       walletAgentCache.set(key, {
         agentId: null,
@@ -85,9 +101,9 @@ export async function resolveAgentByWallet(
 
     for (const agent of items) {
       if (
-        agent.chain_id === 2741 &&
-        (agent.owner_address?.toLowerCase() === key ||
-          agent.agent_wallet?.toLowerCase() === key)
+        Number(agent.chain_id) === chainId &&
+        (agent.owner_address?.toLowerCase() === addressKey ||
+          agent.agent_wallet?.toLowerCase() === addressKey)
       ) {
         const agentId = Number(agent.token_id);
         walletAgentCache.set(key, {
@@ -112,9 +128,12 @@ export async function resolveAgentByWallet(
  * Resolve the payment address for an agent. Tries ownerOf from
  * the identity registry first, falls back to ACK_TREASURY_ADDRESS.
  */
-export async function resolvePaymentAddress(agentId: number): Promise<Address> {
+export async function resolvePaymentAddress(
+  agentId: number,
+  chainId: number = DEFAULT_8004_CHAIN_ID
+): Promise<Address> {
   try {
-    const owner = await viemClient.readContract({
+    const owner = await getClient(chainId).readContract({
       address: IDENTITY_REGISTRY_ADDRESS,
       abi: IDENTITY_REGISTRY_ABI,
       functionName: 'ownerOf',
@@ -134,6 +153,7 @@ function rowToTip(row: Record<string, unknown>): TipRecord {
   return {
     id: row.id as string,
     kudosTxHash: row.kudos_tx_hash as string,
+    chainId: (row.chain_id as number | undefined) ?? DEFAULT_8004_CHAIN_ID,
     agentId: row.agent_id as number,
     fromAddress: row.from_address as string,
     toAddress: row.to_address as string,
@@ -174,6 +194,7 @@ async function pruneExpired(): Promise<void> {
 /** Create a new pending tip record. */
 export async function createTip(params: {
   kudosTxHash: string;
+  chainId?: number;
   agentId: number;
   fromAddress: string;
   toAddress: string;
@@ -184,15 +205,17 @@ export async function createTip(params: {
 
   const now = Date.now();
   const id = nanoid();
+  const chainId = params.chainId ?? DEFAULT_8004_CHAIN_ID;
 
   await sql`
-    INSERT INTO tips (id, kudos_tx_hash, agent_id, from_address, to_address, amount_usd, status, created_at, expires_at)
-    VALUES (${id}, ${params.kudosTxHash}, ${params.agentId}, ${params.fromAddress.toLowerCase()}, ${params.toAddress.toLowerCase()}, ${params.amountUsd}, 'pending', ${now}, ${now + TIP_TTL_MS})
+    INSERT INTO tips (id, kudos_tx_hash, chain_id, agent_id, from_address, to_address, amount_usd, status, created_at, expires_at)
+    VALUES (${id}, ${params.kudosTxHash}, ${chainId}, ${params.agentId}, ${params.fromAddress.toLowerCase()}, ${params.toAddress.toLowerCase()}, ${params.amountUsd}, 'pending', ${now}, ${now + TIP_TTL_MS})
   `;
 
   return {
     id,
     kudosTxHash: params.kudosTxHash,
+    chainId,
     agentId: params.agentId,
     fromAddress: params.fromAddress.toLowerCase(),
     toAddress: params.toAddress.toLowerCase(),
@@ -224,7 +247,7 @@ export async function getTipByKudosTxHash(
 
   if (rows.length === 0) return undefined;
   const tip = rowToTip(rows[0]);
-  const fromAgentId = await resolveAgentByWallet(tip.fromAddress);
+  const fromAgentId = await resolveAgentByWallet(tip.fromAddress, tip.chainId);
   if (fromAgentId !== null) tip.fromAgentId = fromAgentId;
   return tip;
 }

@@ -291,14 +291,15 @@ export async function GET(
     _pendingX402TxHash = proofId;
   }
 
-  const payTo = await resolvePaymentAddress(tip.agentId);
+  const payTo = await resolvePaymentAddress(tip.agentId, tip.chainId);
   const price = tip.amountUsd.toFixed(2);
 
   const gatedHandler = withPayment(
     handler,
     price,
     `Tip $${price} to Agent #${tip.agentId} via x402`,
-    payTo
+    payTo,
+    tip.chainId
   );
 
   return gatedHandler(request);

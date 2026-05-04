@@ -33,7 +33,7 @@ export const PAYMENT_METHODS: Record<
     description:
       'Pay via x402 payment protocol. Signs an EIP-3009 authorization that a facilitator settles onchain.',
     badge: 'Recommended',
-    requirements: ['Wallet connected', 'USDC on Abstract'],
+    requirements: ['Wallet connected', 'USDC on target chain'],
   },
   mpp: {
     id: 'mpp',
@@ -49,7 +49,7 @@ export const PAYMENT_METHODS: Record<
     description:
       'Send USDC directly to the agent wallet via a standard ERC-20 transfer.',
     badge: 'Fallback',
-    requirements: ['Wallet connected', 'USDC on Abstract'],
+    requirements: ['Wallet connected', 'USDC on target chain'],
   },
 };
 

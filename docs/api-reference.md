@@ -36,13 +36,14 @@ All endpoints are on `ack-onchain.dev`.
 
 ## Contract Addresses
 
-Abstract Mainnet (Chain ID 2741). Same deterministic addresses on all ERC-8004 chains.
+ERC-8004 registry addresses are deterministic across supported chains. Token addresses are chain-specific.
 
 | Contract            | Address                                      |
 | ------------------- | -------------------------------------------- |
 | Identity Registry   | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
 | Reputation Registry | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` |
-| USDC.e              | `0x84a71ccd554cc1b02749b35d22f684cc8ec987e1` |
+| Abstract USDC.e     | `0x84a71ccd554cc1b02749b35d22f684cc8ec987e1` |
+| Base USDC           | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
 | ACK Treasury        | `0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c` |
 
 ## API Versioning
@@ -122,20 +123,21 @@ Requires `X-SIWA-Receipt` header from authentication flow.
 
 ### POST /api/tips
 
-Create a pending tip. Returns payment info so the caller can send a USDC.e transfer.
+Create a pending tip. Returns payment info so the caller can send a USDC transfer on the selected chain.
 
 Request:
 
 ```json
 {
   "agentId": 606,
+  "chainId": 8453,
   "fromAddress": "0x...",
   "amountUsd": 5.0,
   "kudosTxHash": "0x..."
 }
 ```
 
-`kudosTxHash` is optional. Links the tip to an existing onchain kudos transaction.
+`chainId` defaults to Abstract (`2741`). Use `8453` for Base. `kudosTxHash` is optional and links the tip to an existing onchain kudos transaction.
 
 Response:
 
@@ -145,7 +147,7 @@ Response:
   "paymentAddress": "0x...",
   "amount": 5.0,
   "token": "USDC",
-  "chainId": 2741,
+  "chainId": 8453,
   "tip": { "id": "tip_abc123", "status": "pending", "...": "..." }
 }
 ```
@@ -158,7 +160,7 @@ Returns the current status of a tip (`pending`, `paid`, or `expired`).
 
 ### POST /api/tips/{tipId}/verify
 
-Verify that a USDC.e payment was made onchain.
+Verify that a USDC payment was made on the tip's chain.
 
 Request:
 
@@ -184,14 +186,14 @@ Response:
   "accepts": [
     {
       "scheme": "exact",
-      "network": "abstract:2741",
-      "asset": "0x84a7...87e1",
+      "network": "eip155:8453",
+      "asset": "0x8335...2913",
       "...": "..."
     }
   ],
   "pricing": { "tipMin": "0.01", "tipMax": "100.00", "currency": "USD" },
   "endpoints": {
-    "createTip": "/api/tips",
+    "createTip": "/api/tips?chainId=8453",
     "verifyTip": "/api/tips/{tipId}/verify"
   }
 }
@@ -205,7 +207,8 @@ Request:
 
 ```json
 {
-  "agentId": 606
+  "agentId": 606,
+  "chainId": 8453
 }
 ```
 
@@ -224,7 +227,7 @@ Response:
       "description": "Pay via x402 payment protocol...",
       "badge": "Recommended",
       "enabled": true,
-      "requirements": ["Wallet connected", "USDC on Abstract"]
+      "requirements": ["Wallet connected", "USDC on target chain"]
     },
     {
       "id": "mpp",
@@ -240,7 +243,7 @@ Response:
       "description": "Send USDC directly...",
       "badge": "Fallback",
       "enabled": true,
-      "requirements": ["Wallet connected", "USDC on Abstract"]
+      "requirements": ["Wallet connected", "USDC on target chain"]
     }
   ],
   "defaultMethod": "x402"
@@ -261,7 +264,7 @@ x402 + MPP gated tip payment endpoint. Returns a `402 Payment Required` response
     "message": "Payment required. Accepts x402 (X-Payment proof) or MPP (Authorization: Payment).",
     "x402": {
       "scheme": "exact",
-      "network": "eip155:2741",
+      "network": "eip155:8453",
       "payTo": "0x...",
       "price": "5.00"
     },

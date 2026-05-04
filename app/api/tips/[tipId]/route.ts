@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createPublicClient, http } from 'viem';
-import { abstract } from 'viem/chains';
 import { getTip, tipToJSON } from '@/lib/tip-store';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
-
-const client = createPublicClient({ chain: abstract, transport: http() });
+import { getChainConfig } from '@/config/chain';
 
 /**
  * GET /api/tips/[tipId]
@@ -21,6 +19,12 @@ export async function GET(
   if (!tip) {
     return NextResponse.json({ error: 'Tip not found' }, { status: 404 });
   }
+
+  const chainCfg = getChainConfig(tip.chainId);
+  const client = createPublicClient({
+    chain: chainCfg.chain,
+    transport: http(chainCfg.rpcUrl),
+  });
 
   // Try to resolve agent name from the registry
   let agentName = `Agent #${tip.agentId}`;
@@ -46,7 +50,7 @@ export async function GET(
       agentName,
       agentImageUrl: null,
       agentTokenId: String(tip.agentId),
-      agentChainId: 2741,
+      agentChainId: tip.chainId,
       message: null,
     },
   });

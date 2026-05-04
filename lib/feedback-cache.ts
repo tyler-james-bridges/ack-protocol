@@ -198,7 +198,10 @@ export async function getAllFeedbackEventsForChain(
  * ordering is approximate).
  */
 export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
-  const chainIds = Object.keys(SUPPORTED_8004_CHAINS).map(Number);
+  // Default to Abstract-only for performance on serverless. Base/ETH have 10k
+  // block log limits causing hundreds of sequential RPC calls on cold start.
+  // Other chains available via getAllFeedbackEventsForChain() or chainId param.
+  const chainIds = [2741];
   const results = await Promise.all(
     chainIds.map((cid) =>
       fetchChainFeedback(cid).catch(() => [] as FeedbackEvent[])

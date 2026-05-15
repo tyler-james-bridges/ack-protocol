@@ -1,0 +1,54 @@
+name: 8004scan ACK Discovery
+
+on:
+  schedule:
+    - cron: '15 8,20 * * *' # Twice daily: 8:15 and 20:15 UTC (1:15am / 1:15pm MST)
+  workflow_dispatch:
+
+jobs:
+  discovery-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Run 8004scan discovery tests
+        run: npx playwright test tests/8004scan-discovery.spec.ts --config=playwright.external.config.ts
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 8004scan-discovery-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## 8004scan ACK Discovery Check"
+            echo ""
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "All checks passed - ACK is searchable and viewable on 8004scan"
+              echo ""
+              echo "- Search: ACK appears in results"
+              echo "- Abstract (#606): Agent page loads"
+              echo "- Base (#19125): Agent page loads"
+              echo "- Ethereum (#26424): Agent page loads"
+              echo "- Navigation: Search → agent page works"
+            else
+              echo "One or more discovery checks failed"
+              echo ""
+              echo "Check the uploaded artifacts for screenshots and traces."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

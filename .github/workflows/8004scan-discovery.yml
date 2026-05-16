@@ -5,6 +5,11 @@ on:
     - cron: '15 8,20 * * *' # Twice daily: 8:15 and 20:15 UTC (1:15am / 1:15pm MST)
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   discovery-check:
     runs-on: ubuntu-latest
@@ -26,7 +31,7 @@ jobs:
       - name: Run 8004scan discovery tests
         run: npx playwright test tests/8004scan-discovery.spec.ts --config=playwright.external.config.ts --reporter=list,html
 
-      - name: Upload test report
+      - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -36,6 +41,12 @@ jobs:
             playwright-report/
           retention-days: 14
 
+      - name: Upload report to GitHub Pages
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: playwright-report/
+
       - name: Job summary
         if: always()
         run: |
@@ -43,16 +54,34 @@ jobs:
             echo "## 8004scan ACK Discovery Check"
             echo ""
             if [ "${{ job.status }}" = "success" ]; then
-              echo "All checks passed - ACK is searchable and viewable on 8004scan"
-              echo ""
-              echo "- Search: ACK appears in results"
-              echo "- Abstract (#606): Agent page loads"
-              echo "- Base (#19125): Agent page loads"
-              echo "- Ethereum (#26424): Agent page loads"
-              echo "- Navigation: Search → agent page works"
+              echo "✅ All checks passed - ACK is searchable and viewable on 8004scan"
             else
-              echo "One or more discovery checks failed"
-              echo ""
-              echo "Check the uploaded artifacts for screenshots and traces."
+              echo "❌ One or more discovery checks failed"
             fi
+            echo ""
+            echo "### Test Results"
+            echo ""
+            echo "| Test | Status |"
+            echo "|------|--------|"
+            echo "| Search results (all chains) | ${{ job.status == 'success' && '✅' || '❌' }} |"
+            echo "| Agent page - Abstract (#606) | ${{ job.status == 'success' && '✅' || '❌' }} |"
+            echo "| Agent page - Base (#19125) | ${{ job.status == 'success' && '✅' || '❌' }} |"
+            echo "| Agent page - Ethereum (#26424) | ${{ job.status == 'success' && '✅' || '❌' }} |"
+            echo "| Search → agent navigation | ${{ job.status == 'success' && '✅' || '❌' }} |"
+            echo ""
+            echo "📊 [View Full HTML Report](https://tyler-james-bridges.github.io/ack-protocol/)"
+            echo ""
+            echo "📎 Screenshots and traces available in the uploaded artifacts"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-report:
+    needs: discovery-check
+    if: always()
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

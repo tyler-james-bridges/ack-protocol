@@ -9,8 +9,9 @@ export default defineConfig({
   timeout: 60_000,
   retries: 1,
   use: {
-    screenshot: 'only-on-failure',
-    trace: 'on-first-retry',
+    screenshot: 'on',
+    trace: 'on',
+    video: 'on-first-retry',
   },
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
 });

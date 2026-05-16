@@ -24,17 +24,17 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run 8004scan discovery tests
-        run: npx playwright test tests/8004scan-discovery.spec.ts --config=playwright.external.config.ts
+        run: npx playwright test tests/8004scan-discovery.spec.ts --config=playwright.external.config.ts --reporter=list,html
 
-      - name: Upload test artifacts
-        if: failure()
+      - name: Upload test report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: 8004scan-discovery-results
+          name: 8004scan-discovery-report
           path: |
             test-results/
             playwright-report/
-          retention-days: 7
+          retention-days: 14
 
       - name: Job summary
         if: always()

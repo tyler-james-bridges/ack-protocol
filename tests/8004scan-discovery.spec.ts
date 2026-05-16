@@ -20,15 +20,12 @@ test.describe('8004scan ACK Discovery', () => {
     await searchInput.fill('ACK');
     await searchInput.press('Enter');
 
-    // Should navigate to the registry page with search results
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
-
     // Verify ACK agents appear in the results table for each chain
     for (const agent of AGENTS) {
       const agentRow = page.getByRole('row', {
         name: new RegExp(`ACK.*${agent.label}`, 'i'),
       });
-      await expect(agentRow).toBeVisible({ timeout: 15_000 });
+      await expect(agentRow).toBeVisible({ timeout: 20_000 });
     }
   });
 
@@ -55,9 +52,6 @@ test.describe('8004scan ACK Discovery', () => {
     await expect(searchInput).toBeVisible({ timeout: 15_000 });
     await searchInput.fill('ACK');
     await searchInput.press('Enter');
-
-    // Wait for results table
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
 
     // Click the Abstract ACK agent (primary chain, #606)
     const ackLink = page.getByRole('link', { name: /ACK.*#606/i });

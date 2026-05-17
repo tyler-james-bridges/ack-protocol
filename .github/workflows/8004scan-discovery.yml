@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   discovery-check:
@@ -172,6 +173,131 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 14
+
+      - name: Handle failure - create or update issue
+        if: steps.tests.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo;
+            const label = 'monitor-alert';
+            const title = '8004scan Discovery Check Failing';
+
+            // Parse test report for failure details
+            const fs = require('fs');
+            let failedTests = [];
+            try {
+              const report = JSON.parse(fs.readFileSync('test-report.json', 'utf8'));
+              const extractFailures = (suites) => {
+                for (const suite of suites) {
+                  for (const spec of suite.specs || []) {
+                    if (!spec.ok) failedTests.push(spec.title);
+                  }
+                  if (suite.suites) extractFailures(suite.suites);
+                }
+              };
+              extractFailures(report.suites || []);
+            } catch (e) {
+              failedTests.push('(could not parse test report)');
+            }
+
+            // Build screenshot URLs
+            const testResultsDir = 'test-results';
+            let screenshots = '';
+            if (fs.existsSync(testResultsDir)) {
+              const dirs = fs.readdirSync(testResultsDir, { withFileTypes: true })
+                .filter(d => d.isDirectory()).map(d => d.name);
+              for (const dir of dirs) {
+                const pngs = fs.readdirSync(`${testResultsDir}/${dir}`).filter(f => f.endsWith('.png'));
+                for (const png of pngs) {
+                  const flatName = `${dir}--${png}`;
+                  const url = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/test-screenshots/${flatName}`;
+                  const name = dir.replace(/^8004scan-ACK-Discovery-/i, '').replace(/-chromium$/, '').replace(/-/g, ' ');
+                  screenshots += `### ${name}\n![${name}](${url})\n\n`;
+                }
+              }
+            }
+
+            const body = [
+              `## Discovery check failed`,
+              ``,
+              `**Run:** [#${context.runNumber}](https://github.com/${repo.owner}/${repo.repo}/actions/runs/${context.runId})`,
+              `**Time:** ${new Date().toISOString()}`,
+              ``,
+              `### Failed Tests`,
+              failedTests.map(t => `- \`${t}\``).join('\n'),
+              ``,
+              screenshots ? `### Screenshots\n\n${screenshots}` : '',
+            ].join('\n');
+
+            // Check for existing open issue
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...repo,
+              labels: label,
+              state: 'open',
+              per_page: 1,
+            });
+
+            if (issues.length > 0) {
+              // Comment on existing issue
+              await github.rest.issues.createComment({
+                ...repo,
+                issue_number: issues[0].number,
+                body: `## Still failing\n\n${body}`,
+              });
+              console.log(`Commented on existing issue #${issues[0].number}`);
+            } else {
+              // Create new issue
+              // Ensure label exists
+              try {
+                await github.rest.issues.createLabel({
+                  ...repo,
+                  name: label,
+                  color: 'e11d48',
+                  description: '8004scan monitor alert',
+                });
+              } catch (e) {
+                // Label already exists, fine
+              }
+
+              const { data: issue } = await github.rest.issues.create({
+                ...repo,
+                title,
+                body,
+                labels: [label],
+              });
+              console.log(`Created issue #${issue.number}`);
+            }
+
+      - name: Handle recovery - close issue
+        if: steps.tests.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo;
+            const label = 'monitor-alert';
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...repo,
+              labels: label,
+              state: 'open',
+              per_page: 1,
+            });
+
+            if (issues.length > 0) {
+              await github.rest.issues.createComment({
+                ...repo,
+                issue_number: issues[0].number,
+                body: `## \u2705 Recovered\n\nAll tests passing again as of [run #${context.runNumber}](https://github.com/${repo.owner}/${repo.repo}/actions/runs/${context.runId}).\n\nClosing automatically.`,
+              });
+              await github.rest.issues.update({
+                ...repo,
+                issue_number: issues[0].number,
+                state: 'closed',
+                state_reason: 'completed',
+              });
+              console.log(`Closed issue #${issues[0].number} - tests recovered`);
+            }
 
       - name: Fail job if tests failed
         if: steps.tests.outcome == 'failure'

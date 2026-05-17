@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   discovery-check:
@@ -29,7 +27,121 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run 8004scan discovery tests
-        run: npx playwright test tests/8004scan-discovery.spec.ts --config=playwright.external.config.ts --reporter=list,html
+        id: tests
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-report.json
+        run: npx playwright test tests/8004scan-discovery.spec.ts --config=playwright.external.config.ts --reporter=list,json
+
+      - name: Generate visual job summary
+        if: always()
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+          const testResultsDir = 'test-results';
+          const testOutcome = '${{ steps.tests.outcome }}';
+
+          let summary = '';
+
+          // Header
+          if (testOutcome === 'success') {
+            summary += '## ✅ 8004scan ACK Discovery - All Checks Passed\n\n';
+          } else {
+            summary += '## ❌ 8004scan ACK Discovery - Failures Detected\n\n';
+          }
+
+          summary += `**Run:** ${new Date().toISOString().replace('T', ' ').slice(0, 19)} UTC\n\n`;
+
+          // Parse JSON results for per-test status
+          let testStatuses = new Map();
+          try {
+            const report = JSON.parse(fs.readFileSync('test-report.json', 'utf8'));
+            for (const suite of report.suites || []) {
+              for (const spec of suite.specs || []) {
+                const status = spec.ok ? '✅' : '❌';
+                testStatuses.set(spec.title, status);
+              }
+              // Handle nested suites
+              for (const inner of suite.suites || []) {
+                for (const spec of inner.specs || []) {
+                  const status = spec.ok ? '✅' : '❌';
+                  testStatuses.set(spec.title, status);
+                }
+              }
+            }
+          } catch (e) {
+            console.log('Could not parse JSON report:', e.message);
+          }
+
+          // Find and embed screenshots
+          summary += '### Screenshots\n\n';
+
+          if (fs.existsSync(testResultsDir)) {
+            const dirs = fs.readdirSync(testResultsDir, { withFileTypes: true })
+              .filter(d => d.isDirectory())
+              .map(d => d.name)
+              .sort();
+
+            for (const dir of dirs) {
+              const dirPath = path.join(testResultsDir, dir);
+              const pngs = fs.readdirSync(dirPath).filter(f => f.endsWith('.png'));
+
+              for (const png of pngs) {
+                const imgPath = path.join(dirPath, png);
+                const stats = fs.statSync(imgPath);
+
+                // GitHub supports up to 1MB embedded images in summaries
+                if (stats.size > 1_000_000) {
+                  summary += `> ⚠️ Screenshot too large to embed: \`${dir}/${png}\` (${(stats.size / 1024).toFixed(0)}KB)\n\n`;
+                  continue;
+                }
+
+                const imgData = fs.readFileSync(imgPath);
+                const base64 = imgData.toString('base64');
+
+                // Clean up test name from directory
+                const testName = dir
+                  .replace(/^8004scan-ACK-Discovery-/i, '')
+                  .replace(/-chromium$/, '')
+                  .replace(/-/g, ' ');
+
+                const status = testOutcome === 'success' ? '✅' : '❓';
+
+                summary += `<details>\n<summary>${status} ${testName}</summary>\n\n`;
+                summary += `![${testName}](data:image/png;base64,${base64})\n\n`;
+                summary += `</details>\n\n`;
+              }
+            }
+          } else {
+            summary += '_No screenshots captured._\n\n';
+          }
+
+          // Test matrix table
+          summary += '### Results\n\n';
+          summary += '| Test | Status |\n';
+          summary += '|------|--------|\n';
+
+          const tests = [
+            ['ACK appears in search results for all chains', 'Search results (all chains)'],
+            ['ACK agent page loads on Abstract (abstract/606)', 'Agent page - Abstract (#606)'],
+            ['ACK agent page loads on Base (base/19125)', 'Agent page - Base (#19125)'],
+            ['ACK agent page loads on Ethereum (ethereum/26424)', 'Agent page - Ethereum (#26424)'],
+            ['ACK is selectable from search results', 'Search → agent navigation'],
+          ];
+
+          for (const [specTitle, displayName] of tests) {
+            const icon = testStatuses.get(specTitle) || (testOutcome === 'success' ? '✅' : '❌');
+            summary += `| ${displayName} | ${icon} |\n`;
+          }
+
+          summary += '\n📎 Full traces and video available in artifacts below\n';
+
+          fs.appendFileSync(summaryFile, summary);
+          console.log(`Summary written (${(summary.length / 1024).toFixed(1)}KB)`);
+          EOF
 
       - name: Upload test artifacts
         if: always()
@@ -41,47 +153,6 @@ jobs:
             playwright-report/
           retention-days: 14
 
-      - name: Upload report to GitHub Pages
-        if: always()
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: playwright-report/
-
-      - name: Job summary
-        if: always()
-        run: |
-          {
-            echo "## 8004scan ACK Discovery Check"
-            echo ""
-            if [ "${{ job.status }}" = "success" ]; then
-              echo "✅ All checks passed - ACK is searchable and viewable on 8004scan"
-            else
-              echo "❌ One or more discovery checks failed"
-            fi
-            echo ""
-            echo "### Test Results"
-            echo ""
-            echo "| Test | Status |"
-            echo "|------|--------|"
-            echo "| Search results (all chains) | ${{ job.status == 'success' && '✅' || '❌' }} |"
-            echo "| Agent page - Abstract (#606) | ${{ job.status == 'success' && '✅' || '❌' }} |"
-            echo "| Agent page - Base (#19125) | ${{ job.status == 'success' && '✅' || '❌' }} |"
-            echo "| Agent page - Ethereum (#26424) | ${{ job.status == 'success' && '✅' || '❌' }} |"
-            echo "| Search → agent navigation | ${{ job.status == 'success' && '✅' || '❌' }} |"
-            echo ""
-            echo "📊 [View Full HTML Report](https://tyler-james-bridges.github.io/ack-protocol/)"
-            echo ""
-            echo "📎 Screenshots and traces available in the uploaded artifacts"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  deploy-report:
-    needs: discovery-check
-    if: always()
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
+      - name: Fail job if tests failed
+        if: steps.tests.outcome == 'failure'
+        run: exit 1

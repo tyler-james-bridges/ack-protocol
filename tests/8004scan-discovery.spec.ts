@@ -44,13 +44,6 @@ test.describe('8004scan ACK Discovery', () => {
     });
   }
 
-  test('Intentional failure - testing issue automation', async ({ page }) => {
-    await page.goto(BASE_URL);
-    // This will fail - no element with this text exists
-    const fake = page.getByText('THIS_ELEMENT_DOES_NOT_EXIST_12345');
-    await expect(fake).toBeVisible({ timeout: 5_000 });
-  });
-
   test('ACK is selectable from search results', async ({ page }) => {
     await page.goto(BASE_URL);
 

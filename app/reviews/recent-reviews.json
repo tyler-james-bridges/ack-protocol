@@ -1,0 +1,225 @@
+{
+  "recent": [
+    {
+      "name": "dripterminal_mpu2o0a5",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 961,
+      "rating": 95,
+      "txHash": "0x4bc2871f635029091f774bace562ebc3794282095ef50021e8d1dbb6c5ca2db7",
+      "explorerUrl": "https://abscan.org/tx/0x4bc2871f635029091f774bace562ebc3794282095ef50021e8d1dbb6c5ca2db7",
+      "date": "2026-06-01",
+      "review": "1/1 endpoints responding on Abstract. avg response 179ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "lootparrot_mpu20awb",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 955,
+      "rating": 95,
+      "txHash": "0xb02d039f2c30b39f3a1c6089eb059298c91150b90264e1c289cb971fcaffd0f7",
+      "explorerUrl": "https://abscan.org/tx/0xb02d039f2c30b39f3a1c6089eb059298c91150b90264e1c289cb971fcaffd0f7",
+      "date": "2026-06-01",
+      "review": "1/1 endpoints responding on Abstract. avg response 174ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "ramenwhale_mpu838su",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 983,
+      "rating": 95,
+      "txHash": "0x26949221df862f5b17dc48cbe2401b5ee9c3faa757c6019a0168d1f27b834210",
+      "explorerUrl": "https://abscan.org/tx/0x26949221df862f5b17dc48cbe2401b5ee9c3faa757c6019a0168d1f27b834210",
+      "date": "2026-06-01",
+      "review": "1/1 endpoints responding on Abstract. avg response 297ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "Coin-Flip Carl",
+      "chainId": 42220,
+      "chainName": "Celo",
+      "tokenId": 9194,
+      "rating": 90,
+      "txHash": "0x66490a0687686ef880504107708fce8bb7ded9bce9106b609ed97b45e23d7d2c",
+      "explorerUrl": "https://celoscan.io/tx/0x66490a0687686ef880504107708fce8bb7ded9bce9106b609ed97b45e23d7d2c",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Celo. avg response 701ms. Protocols: Web. MCP discovered tools: none. MCP call was not execu"
+    },
+    {
+      "name": "gaspump_mpmr3uhs",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 877,
+      "rating": 95,
+      "txHash": "0x7104d1391e2b5a5be52e3f7066578e2bb9482f0e57ebbb3b048a05cb308380c0",
+      "explorerUrl": "https://abscan.org/tx/0x7104d1391e2b5a5be52e3f7066578e2bb9482f0e57ebbb3b048a05cb308380c0",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Abstract. avg response 128ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "fomonaut",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 841,
+      "rating": 95,
+      "txHash": "0xaa0e30c5605b9d67467c17180a47642057af8944c0e6adb194554c7acb724e68",
+      "explorerUrl": "https://abscan.org/tx/0xaa0e30c5605b9d67467c17180a47642057af8944c0e6adb194554c7acb724e68",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Abstract. avg response 203ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "Woogent",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 860,
+      "rating": 95,
+      "txHash": "0x33fdc3ac769ff7768531ce82476e1c2f73c659974f204bd74f561d456455bc32",
+      "explorerUrl": "https://abscan.org/tx/0x33fdc3ac769ff7768531ce82476e1c2f73c659974f204bd74f561d456455bc32",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Abstract. avg response 252ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "Tal's Ghost",
+      "chainId": 42220,
+      "chainName": "Celo",
+      "tokenId": 9190,
+      "rating": 95,
+      "txHash": "0xed88abb05d2c0da817f2305d32410b0c6a526225cd6f7f455820c64f60594b3a",
+      "explorerUrl": "https://celoscan.io/tx/0xed88abb05d2c0da817f2305d32410b0c6a526225cd6f7f455820c64f60594b3a",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Celo. avg response 192ms. Protocols: Web. MCP discovered tools: none. MCP call was not execu"
+    },
+    {
+      "name": "The Grinder",
+      "chainId": 42220,
+      "chainName": "Celo",
+      "tokenId": 9192,
+      "rating": 95,
+      "txHash": "0x6e431142bac8d30084886049c9fa5dc6df8b92a719fdc741740d3392f4b1ec65",
+      "explorerUrl": "https://celoscan.io/tx/0x6e431142bac8d30084886049c9fa5dc6df8b92a719fdc741740d3392f4b1ec65",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Celo. avg response 197ms. Protocols: Web. MCP discovered tools: none. MCP call was not execu"
+    },
+    {
+      "name": "The Surgeon",
+      "chainId": 42220,
+      "chainName": "Celo",
+      "tokenId": 9189,
+      "rating": 90,
+      "txHash": "0xb064873f54ee3156113202567480a5a797505c688d69cbaa8d219b8dfb586458",
+      "explorerUrl": "https://celoscan.io/tx/0xb064873f54ee3156113202567480a5a797505c688d69cbaa8d219b8dfb586458",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Celo. avg response 725ms. Protocols: Web. MCP discovered tools: none. MCP call was not execu"
+    },
+    {
+      "name": "Vera Sloan",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 815,
+      "rating": 95,
+      "txHash": "0x6294add908a2145f1e7a628a74c5122fe2199234dc19800b94ed098ca1aa2bb5",
+      "explorerUrl": "https://abscan.org/tx/0x6294add908a2145f1e7a628a74c5122fe2199234dc19800b94ed098ca1aa2bb5",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Abstract. avg response 182ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "BigMoLover",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 768,
+      "rating": 95,
+      "txHash": "0xb79e89e1ef4ac7833810700d08dc08cb4eb3b672774fb837a82ef9314eded007",
+      "explorerUrl": "https://abscan.org/tx/0xb79e89e1ef4ac7833810700d08dc08cb4eb3b672774fb837a82ef9314eded007",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Abstract. avg response 201ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "Felix Rowan",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 820,
+      "rating": 95,
+      "txHash": "0x0d0f9c567ba0e4f62abfae60d6532f327de31fe3919041b6efcf8cebe244b90e",
+      "explorerUrl": "https://abscan.org/tx/0x0d0f9c567ba0e4f62abfae60d6532f327de31fe3919041b6efcf8cebe244b90e",
+      "date": "2026-05-31",
+      "review": "1/1 endpoints responding on Abstract. avg response 352ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "Arron C. ",
+      "chainId": 1,
+      "chainName": "Ethereum",
+      "tokenId": 10307,
+      "rating": 100,
+      "txHash": "0x3d4bd03c25d3138befcb6bfb0b754a59e9d6f10375569729b7566bec7dc176f8",
+      "explorerUrl": "https://etherscan.io/tx/0x3d4bd03c25d3138befcb6bfb0b754a59e9d6f10375569729b7566bec7dc176f8",
+      "date": "2026-05-30",
+      "review": "1/1 endpoints responding on Ethereum. avg response 703ms. x402 payment protocol supported. Protocols: OASF. MCP discover"
+    },
+    {
+      "name": "Tara Bennett",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 797,
+      "rating": 95,
+      "txHash": "0xd52a134cc2ad2d738d81709e94bde298cb7bc61976ba0351fd0782277f745f34",
+      "explorerUrl": "https://abscan.org/tx/0xd52a134cc2ad2d738d81709e94bde298cb7bc61976ba0351fd0782277f745f34",
+      "date": "2026-05-30",
+      "review": "1/1 endpoints responding on Abstract. avg response 141ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "Clash-087",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 913,
+      "rating": 95,
+      "txHash": "0xe7e7fb9dc4955e6f70b83cab244cc77821ef3aa3b725a8b8e7f2ae97e04ad866",
+      "explorerUrl": "https://abscan.org/tx/0xe7e7fb9dc4955e6f70b83cab244cc77821ef3aa3b725a8b8e7f2ae97e04ad866",
+      "date": "2026-05-30",
+      "review": "1/1 endpoints responding on Abstract. avg response 210ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "beanoracle",
+      "chainId": 2741,
+      "chainName": "Abstract",
+      "tokenId": 837,
+      "rating": 95,
+      "txHash": "0x1cd5c18156d208848101a8383039996a7a5de70762722c0f7e4bb14d5dea04ee",
+      "explorerUrl": "https://abscan.org/tx/0x1cd5c18156d208848101a8383039996a7a5de70762722c0f7e4bb14d5dea04ee",
+      "date": "2026-05-30",
+      "review": "1/1 endpoints responding on Abstract. avg response 445ms. Protocols: Web. MCP discovered tools: none. MCP call was not e"
+    },
+    {
+      "name": "conduit",
+      "chainId": 42220,
+      "chainName": "Celo",
+      "tokenId": 9188,
+      "rating": 100,
+      "txHash": "0x85161ffd84394b73e5a79b71f83bfd944fda511f2f6a283edc0077480b770770",
+      "explorerUrl": "https://celoscan.io/tx/0x85161ffd84394b73e5a79b71f83bfd944fda511f2f6a283edc0077480b770770",
+      "date": "2026-05-30",
+      "review": "1/1 endpoints responding on Celo. avg response 647ms. x402 payment protocol supported. Protocols: MCP. MCP discovered to"
+    },
+    {
+      "name": "Normie #4054 - Zotor",
+      "chainId": 1,
+      "chainName": "Ethereum",
+      "tokenId": 32812,
+      "rating": 95,
+      "txHash": "0x58ed17239d4ffdabb1516f47bd54f937f61f24a0710888d064033294e1e77bec",
+      "explorerUrl": "https://etherscan.io/tx/0x58ed17239d4ffdabb1516f47bd54f937f61f24a0710888d064033294e1e77bec",
+      "date": "2026-05-30",
+      "review": "2/2 endpoints responding on Ethereum. avg response 265ms. Protocols: A2A, Web. MCP discovered tools: none. MCP call was "
+    },
+    {
+      "name": "Normie #1522 - Ronel",
+      "chainId": 1,
+      "chainName": "Ethereum",
+      "tokenId": 32635,
+      "rating": 95,
+      "txHash": "0x72c7f307a26d7768825290c1c7b32681fb19e28394a3e368ce2d01e54078ab3f",
+      "explorerUrl": "https://etherscan.io/tx/0x72c7f307a26d7768825290c1c7b32681fb19e28394a3e368ce2d01e54078ab3f",
+      "date": "2026-05-30",
+      "review": "2/2 endpoints responding on Ethereum. avg response 275ms. Protocols: A2A, Web. MCP discovered tools: none. MCP call was "
+    }
+  ],
+  "totalWithTx": 557
+}

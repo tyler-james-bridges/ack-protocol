@@ -70,7 +70,12 @@ export const wagmiConfig = createConfig({
     [scroll.id]: http(),
     [avalanche.id]: http(),
     [linea.id]: http(),
-    [mainnet.id]: http(),
+    // viem's default mainnet RPC (eth.merkle.io) rate-limits browsers with
+    // opaque 429s that surface as CORS errors. Use a CORS-friendly endpoint.
+    [mainnet.id]: http(
+      process.env.NEXT_PUBLIC_ETH_RPC_URL ||
+        'https://ethereum-rpc.publicnode.com'
+    ),
   },
   ssr: true,
 });

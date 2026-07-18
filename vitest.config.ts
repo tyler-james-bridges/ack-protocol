@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     include: [
+      'app/**/*.test.ts',
       'lib/**/*.test.ts',
       'config/**/*.test.ts',
       'services/**/*.test.ts',

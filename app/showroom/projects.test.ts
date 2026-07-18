@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { CHAPTERS, EXHIBITS, STATUS_TONE } from './projects';
 
 describe('showroom exhibits', () => {
-  it('has 15 exhibits totaling 1,008 commits', () => {
-    expect(EXHIBITS).toHaveLength(15);
+  it('has 13 exhibits totaling 998 commits', () => {
+    expect(EXHIBITS).toHaveLength(13);
     const total = EXHIBITS.reduce((sum, e) => sum + e.commits, 0);
-    expect(total).toBe(1008);
+    expect(total).toBe(998);
   });
 
   it('maps every status to a tone', () => {

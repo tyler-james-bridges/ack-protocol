@@ -1,11 +1,9 @@
 // Real project history compiled 2026-07-17 from local git logs in ~/code.
-// Commit counts exclude upstream x402scan history. Live URLs verified same day.
+// Live URLs verified same day.
 
 export type ExhibitStatus =
   | 'live'
-  | 'upstreamed'
   | 'shipped'
-  | 'contributed'
   | 'concluded'
   | 'superseded'
   | 'one-shot'
@@ -16,9 +14,7 @@ export type ExhibitStatus =
 // alive = emerald, done = neutral, fell = amber
 export const STATUS_TONE: Record<ExhibitStatus, 'alive' | 'done' | 'fell'> = {
   live: 'alive',
-  upstreamed: 'alive',
   shipped: 'alive',
-  contributed: 'done',
   concluded: 'done',
   superseded: 'done',
   'one-shot': 'done',
@@ -39,7 +35,7 @@ export interface Exhibit {
 
 export const CHAPTERS = [
   'THE REPUTATION THREAD',
-  'ONE WEEK, TWO WINS',
+  'THE RHYTHM GAME',
   'THE SPREE',
   'GAMES WITH PAYMENTS',
   'INFRASTRUCTURE',
@@ -72,23 +68,13 @@ export const EXHIBITS: Exhibit[] = [
     chapter: 'THE REPUTATION THREAD',
   },
   {
-    name: 'ABSTRACT-SKILLS',
-    dates: 'FEB 26-27 2026',
-    commits: 9,
-    status: 'upstreamed',
-    blurb:
-      'Claude Code plugin. Two days of work, now in the Abstract-Foundation org.',
-    url: 'https://github.com/Abstract-Foundation/abstract-skills',
-    chapter: 'ONE WEEK, TWO WINS',
-  },
-  {
     name: 'ABSTRACK',
     dates: 'FEB 27 - MAR 3 2026',
     commits: 44,
     status: 'live',
     blurb: 'Every block is a song. Gas sets tempo, the hash seeds the scale.',
     url: 'https://www.abstrack.live',
-    chapter: 'ONE WEEK, TWO WINS',
+    chapter: 'THE RHYTHM GAME',
   },
   {
     name: 'ETCH',
@@ -122,14 +108,6 @@ export const EXHIBITS: Exhibit[] = [
     commits: 16,
     status: 'concluded',
     blurb: 'Two agents, one USDC prize. Four battles, hashes verified onchain.',
-    chapter: 'THE SPREE',
-  },
-  {
-    name: 'X402SCAN PR',
-    dates: 'MAR 19 2026',
-    commits: 1,
-    status: 'contributed',
-    blurb: 'Abstract chain scaffolding (2741) contributed upstream.',
     chapter: 'THE SPREE',
   },
   {

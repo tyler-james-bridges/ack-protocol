@@ -188,7 +188,7 @@ function CenterPiece() {
         color="#5c6a60"
         anchorX="center"
       >
-        AUG 2025 - JUL 2026 / 1,008 COMMITS
+        AUG 2025 - JUL 2026 / 998 COMMITS
       </Text>
     </group>
   );

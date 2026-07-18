@@ -6,7 +6,7 @@ import { EXHIBITS, STATUS_TONE } from './projects';
 export const metadata: Metadata = {
   title: 'Showroom — Built on Abstract',
   description:
-    '14 projects vibe-coded on Abstract in 11 months. Wins, stalls, and everything between, in one 3D room.',
+    '13 projects vibe-coded on Abstract in 11 months. Wins, stalls, and everything between, in one 3D room.',
 };
 
 const TONE_TEXT = {
@@ -73,9 +73,8 @@ export default function ShowroomPage() {
             ))}
           </ul>
           <p className="mt-8 text-xs text-muted-foreground font-mono">
-            Compiled 2026-07-17 from local git history. The x402scan entry
-            counts only the contributed commit, not upstream history. Live
-            status verified same day.
+            Compiled 2026-07-17 from local git history. Live status verified
+            same day.
           </p>
         </section>
       </main>

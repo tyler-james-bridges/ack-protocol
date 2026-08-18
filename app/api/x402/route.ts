@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { PaymentRequired, PaymentRequirements } from '@x402/next';
+import {
+  BUILDER_CODE,
+  declareBuilderCodeExtension,
+} from '@x402/extensions/builder-code';
+import { BASE_BUILDER_CODE } from '@/config/builder-code';
 import { getX402ChainConfig } from '@/lib/x402';
 import { resolvePaymentAddress } from '@/lib/tip-store';
 import {
@@ -51,6 +56,13 @@ function buildDiscoveryPayload(
       mimeType: 'application/json',
     },
     accepts: [buildPaymentRequirements(payTo, chainId)],
+    ...(chainId === 8453
+      ? {
+          extensions: {
+            [BUILDER_CODE]: declareBuilderCodeExtension(BASE_BUILDER_CODE),
+          },
+        }
+      : {}),
   };
 }
 

@@ -1,6 +1,11 @@
 import { withX402, x402ResourceServer } from '@x402/next';
 import { HTTPFacilitatorClient } from '@x402/core/server';
 import { ExactEvmScheme } from '@x402/evm/exact/server';
+import {
+  BUILDER_CODE,
+  builderCodeResourceServerExtension,
+  declareBuilderCodeExtension,
+} from '@x402/extensions/builder-code';
 import type { Network } from '@x402/core/types';
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -9,6 +14,7 @@ import {
   USDC_DECIMALS,
 } from '@/config/tokens';
 import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
+import { BASE_BUILDER_CODE } from '@/config/builder-code';
 
 export const ABSTRACT_FACILITATOR_URL = 'https://facilitator.x402.abs.xyz';
 export const BASE_FACILITATOR_URL =
@@ -92,6 +98,9 @@ function getServer(
       'eip155:*' as Network,
       scheme
     );
+    if (cfg.chainId === 8453) {
+      server.registerExtension(builderCodeResourceServerExtension);
+    }
     servers.set(cfg.chainId, server);
     return server;
   }
@@ -121,6 +130,13 @@ export function withPayment<T = unknown>(
       ],
       description,
       mimeType: 'application/json',
+      ...(cfg.chainId === 8453
+        ? {
+            extensions: {
+              [BUILDER_CODE]: declareBuilderCodeExtension(BASE_BUILDER_CODE),
+            },
+          }
+        : {}),
     },
     getServer(cfg.chainId)
   );

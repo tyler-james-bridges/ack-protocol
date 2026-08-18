@@ -52,7 +52,8 @@
   "author": "ACK Protocol",
   "license": "MIT",
   "dependencies": {
-    "viem": "^2.21.54"
+    "ox": "^0.14.30",
+    "viem": "^2.47.6"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

@@ -26,6 +26,7 @@ import {
   EVENT_TOPICS,
 } from './constants.js';
 import { parseFeedbackURI } from './utils.js';
+import { BASE_DATA_SUFFIX } from './builder-code.js';
 import type {
   ACKConfig,
   Agent,
@@ -51,6 +52,7 @@ export class ACK {
   private readonly walletClient?: WalletClient;
   private readonly config: ACKConfig;
   private readonly apiKey?: string;
+  private readonly dataSuffix?: Hex;
 
   private readonly baseUrl: string;
 
@@ -63,6 +65,7 @@ export class ACK {
     this.walletClient = walletClient;
     this.config = config;
     this.apiKey = config.apiKey || process.env.EIGHTOOSCAN_API_KEY;
+    this.dataSuffix = config.chain === 'base' ? BASE_DATA_SUFFIX : undefined;
     this.baseUrl = config.baseUrl || 'https://ack-onchain.dev';
   }
 
@@ -123,6 +126,7 @@ export class ACK {
       account,
       chain,
       transport: http(),
+      dataSuffix: chainConfig.id === 8453 ? BASE_DATA_SUFFIX : undefined,
     });
 
     return new ACK(publicClient, walletClient, config);
@@ -448,6 +452,7 @@ export class ACK {
       args: [metadataURI],
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
+      dataSuffix: this.dataSuffix,
     });
 
     const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
@@ -521,6 +526,7 @@ export class ACK {
       ],
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
+      dataSuffix: this.dataSuffix,
     });
 
     const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
@@ -550,6 +556,7 @@ export class ACK {
       args: [BigInt(agentId), uri],
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
+      dataSuffix: this.dataSuffix,
     });
 
     const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
@@ -580,6 +587,7 @@ export class ACK {
       args: [BigInt(agentId), clientAddress, BigInt(feedbackIndex)],
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
+      dataSuffix: this.dataSuffix,
     });
 
     const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
@@ -612,6 +620,7 @@ export class ACK {
       args: [BigInt(agentId), key, valueHex],
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
+      dataSuffix: this.dataSuffix,
     });
 
     const receipt = await this.publicClient.waitForTransactionReceipt({ hash });

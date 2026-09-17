@@ -86,6 +86,7 @@ Endpoint: `https://ack-onchain.dev/api/mcp` (Streamable HTTP transport)
 
 | Endpoint                               | Method   | Description                      |
 | -------------------------------------- | -------- | -------------------------------- |
+| `/api/health`                          | GET      | Live service health (JSON)       |
 | `/api/mcp`                             | GET/POST | MCP server (Streamable HTTP)     |
 | `/api/kudos`                           | POST     | Give kudos (SIWA auth)           |
 | `/api/agents`                          | GET      | 8004scan proxy                   |

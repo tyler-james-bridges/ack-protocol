@@ -113,6 +113,24 @@ Create GitHub Release
 - Creates semantic version tags
 - Prevents accidental releases
 
+### 4. qai check (`.github/workflows/qai-check.yml`)
+
+**Trigger:** Push to `main`, every 6 hours, and `workflow_dispatch`
+
+**Job:** LLM-free live health gate. Installs `qai-cli@3.4.0` (falls back to `github:tyler-james-bridges/qai-cli#main` until that version is on npm), then runs:
+
+```bash
+qai check https://ack-onchain.dev/api/health
+```
+
+Exit `0` (PASS) is required. Exit `1` (FAIL) and exit `2` (REVIEW) both fail the job. No secrets, no Playwright, no checkout. Separate from `health-check.yml`, which is the onchain agent checker.
+
+To run manually:
+
+```bash
+gh workflow run qai-check.yml
+```
+
 ## Running Workflows Manually
 
 ### Trigger CI on Pull Request

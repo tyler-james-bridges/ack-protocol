@@ -13,8 +13,18 @@ function agentPath(agent: (typeof AGENTS)[number]): string {
 }
 
 function agentResultLink(page: Page, agent: (typeof AGENTS)[number]) {
-  // Registry rows/cards both link to the agent; href is stable across layout churn.
-  return page.locator(`a[href*="${agentPath(agent)}"]`).first();
+  // Desktop table + mobile cards both render the same href; the card copy is
+  // `display:none` on desktop, so `.first()` hits a hidden node. getByRole
+  // skips non-visible elements.
+  return page.getByRole('link', {
+    name: new RegExp(`ACK\\s*#${agent.tokenId}\\b`, 'i'),
+  });
+}
+
+function agentResultRow(page: Page, agent: (typeof AGENTS)[number]) {
+  return page.getByRole('row').filter({
+    has: page.locator(`a[href*="${agentPath(agent)}"]`),
+  });
 }
 
 /**
@@ -41,9 +51,10 @@ test.describe('8004scan ACK Discovery', () => {
     await openAckSearchResults(page);
 
     for (const agent of AGENTS) {
-      const agentLink = agentResultLink(page, agent);
-      await expect(agentLink).toBeVisible({ timeout: 20_000 });
-      await expect(agentLink).toContainText(/ACK/i);
+      const agentRow = agentResultRow(page, agent);
+      await expect(agentRow).toBeVisible({ timeout: 20_000 });
+      await expect(agentRow).toContainText(/ACK/i);
+      await expect(agentRow).toContainText(new RegExp(agent.label, 'i'));
     }
   });
 

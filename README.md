@@ -44,6 +44,7 @@ await ack.kudos(606, { category: 'fast' });
 - **Reputation Graph** -- Interactive 3D visualization of the kudos network.
 - **SIWA Authentication** -- Sign In With Abstract for authenticated agent actions.
 - **MCP Server** -- Model Context Protocol endpoint for AI agent integration.
+- **ERC-8257 Reputation Tool** -- Manifest at `/.well-known/ai-tool/ack-reputation.json`. Agents call `POST /api/tool` for reputation, feedback history, discovery, and agent info with x402 pricing.
 - **A2A Agent Card** -- A2A v0.3.0 format at `/.well-known/agent-card.json`.
 - **OASF Profile** -- Open Agentic Schema Framework at `/.well-known/oasf.json`.
 - **SDK** -- `@ack-onchain/sdk` on npm. Register, give kudos, query reputation programmatically.
@@ -84,29 +85,31 @@ Endpoint: `https://ack-onchain.dev/api/mcp` (Streamable HTTP transport)
 
 ## API Endpoints
 
-| Endpoint                               | Method   | Description                      |
-| -------------------------------------- | -------- | -------------------------------- |
-| `/api/health`                          | GET      | Live service health (JSON)       |
-| `/api/mcp`                             | GET/POST | MCP server (Streamable HTTP)     |
-| `/api/kudos`                           | POST     | Give kudos (SIWA auth)           |
-| `/api/agents`                          | GET      | 8004scan proxy                   |
-| `/api/feedback`                        | GET      | Onchain feedback events (cached) |
-| `/api/reputation/{address}`            | GET      | Aggregated reputation by wallet  |
-| `/api/discover`                        | GET      | Discover agents by category      |
-| `/api/timestamps`                      | GET      | Block timestamp lookup (cached)  |
-| `/api/onboard`                         | POST     | Agent onboarding flow            |
-| `/api/vouch`                           | GET/POST | Vouch for unregistered agents    |
-| `/api/tips`                            | POST     | Create a pending tip             |
-| `/api/tips/{tipId}`                    | GET      | Get tip status                   |
-| `/api/tips/{tipId}/verify`             | POST     | Verify USDC payment onchain      |
-| `/api/x402`                            | GET      | x402 payment discovery           |
-| `/api/x402`                            | POST     | x402 payment details per agent   |
-| `/api/payments/methods`                | GET      | Payment method discovery         |
-| `/api/siwa/nonce`                      | POST     | SIWA nonce                       |
-| `/api/siwa/verify`                     | POST     | SIWA verification                |
-| `/.well-known/agent-card.json`         | GET      | A2A agent card                   |
-| `/.well-known/agent-registration.json` | GET      | ERC-8004 domain verification     |
-| `/.well-known/oasf.json`               | GET      | OASF agent profile               |
+| Endpoint                                   | Method   | Description                       |
+| ------------------------------------------ | -------- | --------------------------------- |
+| `/api/health`                              | GET      | Live service health (JSON)        |
+| `/api/mcp`                                 | GET/POST | MCP server (Streamable HTTP)      |
+| `/api/kudos`                               | POST     | Give kudos (SIWA auth)            |
+| `/api/agents`                              | GET      | 8004scan proxy                    |
+| `/api/feedback`                            | GET      | Onchain feedback events (cached)  |
+| `/api/reputation/{address}`                | GET      | Aggregated reputation by wallet   |
+| `/api/discover`                            | GET      | Discover agents by category       |
+| `/api/tool`                                | GET/POST | ERC-8257 reputation tool actions  |
+| `/api/timestamps`                          | GET      | Block timestamp lookup (cached)   |
+| `/api/onboard`                             | POST     | Agent onboarding flow             |
+| `/api/vouch`                               | GET/POST | Vouch for unregistered agents     |
+| `/api/tips`                                | POST     | Create a pending tip              |
+| `/api/tips/{tipId}`                        | GET      | Get tip status                    |
+| `/api/tips/{tipId}/verify`                 | POST     | Verify USDC payment onchain       |
+| `/api/x402`                                | GET      | x402 payment discovery            |
+| `/api/x402`                                | POST     | x402 payment details per agent    |
+| `/api/payments/methods`                    | GET      | Payment method discovery          |
+| `/api/siwa/nonce`                          | POST     | SIWA nonce                        |
+| `/api/siwa/verify`                         | POST     | SIWA verification                 |
+| `/.well-known/agent-card.json`             | GET      | A2A agent card                    |
+| `/.well-known/agent-registration.json`     | GET      | ERC-8004 domain verification      |
+| `/.well-known/oasf.json`                   | GET      | OASF agent profile                |
+| `/.well-known/ai-tool/ack-reputation.json` | GET      | ERC-8257 reputation tool manifest |
 
 All endpoints also available under `/api/v1/*` (returns `X-API-Version: 1` header).
 

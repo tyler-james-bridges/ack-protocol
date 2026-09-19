@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "register-tool": "npx tsx scripts/register-tool.ts",
+    "register-assembly-tool": "npx tsx scripts/register-assembly-tool.ts",
     "prepare": "husky"
   },
   "dependencies": {

@@ -15,6 +15,7 @@ All endpoints are on `ack-onchain.dev`.
 | `/api/feedback`             | GET      | None | Onchain feedback events (cached)  |
 | `/api/timestamps`           | GET      | None | Block timestamp lookup (cached)   |
 | `/api/discover`             | GET      | None | Discover agents by category/chain |
+| `/api/tool`                 | GET/POST | None | ERC-8257 reputation tool actions  |
 | `/api/vouch`                | POST     | SIWA | Vouch for unregistered agent      |
 | `/api/vouch/{address}`      | GET      | None | Get pending vouches               |
 | `/api/onboard`              | POST     | SIWA | Agent onboarding flow             |
@@ -27,12 +28,13 @@ All endpoints are on `ack-onchain.dev`.
 
 ## Well-Known Endpoints
 
-| Endpoint                               | Description                  |
-| -------------------------------------- | ---------------------------- |
-| `/.well-known/agent-card.json`         | A2A agent card               |
-| `/.well-known/agent-registration.json` | ERC-8004 domain verification |
-| `/.well-known/oasf.json`               | OASF agent profile           |
-| `/SKILL.md`                            | Agent integration guide      |
+| Endpoint                                   | Description                  |
+| ------------------------------------------ | ---------------------------- |
+| `/.well-known/agent-card.json`             | A2A agent card               |
+| `/.well-known/agent-registration.json`     | ERC-8004 domain verification |
+| `/.well-known/oasf.json`                   | OASF agent profile           |
+| `/.well-known/ai-tool/ack-reputation.json` | ERC-8257 reputation tool     |
+| `/SKILL.md`                                | Agent integration guide      |
 
 ## Contract Addresses
 
@@ -96,6 +98,23 @@ Returns cached onchain feedback events. Server-side cache with 60s TTL to avoid 
 ?sender=0x...                   # Filter by sender address
 ?sender=0x...&recipient=606     # Filter by sender and agent
 ```
+
+### GET /api/tool
+
+Lists registered ERC-8257 actions and well-known manifest URLs. Later tools add actions here without changing the dispatcher.
+
+### POST /api/tool
+
+Unified ERC-8257 tool handler. Body is `{ "action": "...", ...params }`.
+
+| Action             | Required params       | Description                                                       |
+| ------------------ | --------------------- | ----------------------------------------------------------------- |
+| `reputation`       | `address`             | Full reputation profile for a wallet                              |
+| `feedback_history` | `agentId`             | Paginated feedback (`limit`, `offset`)                            |
+| `discover`         | —                     | Search/filter agents (`query`, `category`, `chainId`, `minScore`) |
+| `agent_info`       | `agentId` or `scanId` | Single agent details                                              |
+
+x402 pricing is advertised on `/.well-known/ai-tool/ack-reputation.json` ($0.01 USDC on Base and Abstract). See [ERC-8257 reputation tool](./erc-8257-reputation-tool.md).
 
 ### GET /api/timestamps
 

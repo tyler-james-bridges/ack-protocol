@@ -87,4 +87,22 @@ npx @opensea/tool-sdk validate /tmp/ack-assembly.json
 
 # After HTTPS deploy (localhost http is rejected by the CLI path check)
 npx @opensea/tool-sdk verify https://ack-onchain.dev/.well-known/ai-tool/ack-assembly.json
+
+# After onchain registration (needs a tool ID)
+npx @opensea/tool-sdk inspect --tool-id <id> --network base
 ```
+
+### What this PR already ran
+
+- Unit tests: 30 assembly + 338 total
+- `npx tsc --noEmit`
+- `npx tsx scripts/register-assembly-tool.ts --dry-run --local`
+- `npx @opensea/tool-sdk validate` on the local well-known JSON — **Manifest is valid**
+- Local `GET /.well-known/ai-tool/ack-assembly.json` (200), `GET/OPTIONS /api/tool/assembly`, unpaid `POST` **402** with amount `20000`
+- Handler smoke against live Abstract RPC: `governance_stats`, `proposals` (11 real AIPs), `members` (indexer 404 → Registered events, 64 identities)
+
+Not run here (needs secrets or a registered ID):
+
+- Live `register-assembly-tool.ts` (no `PRIVATE_KEY`)
+- `npx @opensea/tool-sdk inspect --tool-id <id>`
+- `npx @opensea/tool-sdk verify` against production HTTPS (CLI requires `https://<origin>/.well-known/ai-tool/<slug>.json`; localhost http fails the path check)

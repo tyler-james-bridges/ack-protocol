@@ -13,6 +13,7 @@ import {
   encodeFunctionData,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { BASE_DATA_SUFFIX } from './builder-code.js';
 
 interface TwitterChainConfig {
   id: number;
@@ -295,6 +296,7 @@ function createWalletClients(
       account,
       chain: cfg.chain,
       transport,
+      dataSuffix: cfg.id === 8453 ? BASE_DATA_SUFFIX : undefined,
     }),
   };
 }

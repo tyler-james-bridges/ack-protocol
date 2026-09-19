@@ -25,6 +25,7 @@ import {
   REPUTATION_REGISTRY_ADDRESS,
   REPUTATION_REGISTRY_ABI,
 } from './constants';
+import { withBaseBuilderCode } from './builder-code';
 
 /**
  * AckActionProvider lets AgentKit agents interact with ACK Protocol (ERC-8004).
@@ -290,7 +291,7 @@ Common tags: reliability, speed, accuracy, creativity, collaboration, security, 
 
       const hash = await walletProvider.sendTransaction({
         to: REPUTATION_REGISTRY_ADDRESS as `0x${string}`,
-        data,
+        data: withBaseBuilderCode(data),
       });
 
       await walletProvider.waitForTransactionReceipt(hash);
@@ -328,7 +329,7 @@ Returns the transaction hash on success.
 
       const hash = await walletProvider.sendTransaction({
         to: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-        data,
+        data: withBaseBuilderCode(data),
       });
 
       await walletProvider.waitForTransactionReceipt(hash);
@@ -365,7 +366,7 @@ The wallet's connected chain will be used.
 
       const hash = await walletProvider.sendTransaction({
         to: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-        data,
+        data: withBaseBuilderCode(data),
       });
 
       await walletProvider.waitForTransactionReceipt(hash);

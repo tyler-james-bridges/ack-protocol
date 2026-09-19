@@ -18,7 +18,8 @@ export interface ParsedToolRequest {
 }
 
 export type ParseToolRequestResult =
-  { ok: true; request: ParsedToolRequest } | { ok: false; error: string };
+  | { ok: true; request: ParsedToolRequest }
+  | { ok: false; error: string };
 
 export function parseToolRequest(body: unknown): ParseToolRequestResult {
   if (!body || typeof body !== 'object') {

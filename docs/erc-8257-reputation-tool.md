@@ -73,9 +73,25 @@ npx vitest run lib/__tests__/tool-queries.test.ts lib/__tests__/tool-manifest.te
 # Manifest dry-run (no secrets)
 npx tsx scripts/register-tool.ts --dry-run --local
 
-# After deploy (needs network)
+# Schema-validate a served or exported manifest
+npx @opensea/tool-sdk validate /tmp/ack-reputation.json
+
+# After HTTPS deploy (localhost http is rejected by the CLI path check)
 npx @opensea/tool-sdk verify https://ack-onchain.dev/.well-known/ai-tool/ack-reputation.json
+
+# After onchain registration (needs a tool ID)
 npx @opensea/tool-sdk inspect --tool-id <id> --network base
 ```
 
-`npx @opensea/tool-sdk inspect` is not run in CI here: it needs a registered tool ID and the live well-known URL.
+### What this PR already ran
+
+- Unit tests: 28 passed
+- `npx tsx scripts/register-tool.ts --dry-run --local`
+- `npx @opensea/tool-sdk validate` on the local well-known JSON — **Manifest is valid**
+- Local `POST /api/tool` against live 8004scan: `reputation`, `feedback_history`, `discover`, `agent_info` happy paths + invalid-action 400
+
+Not run here (needs secrets or a registered ID):
+
+- Live `register-tool.ts` (no `PRIVATE_KEY`)
+- `npx @opensea/tool-sdk inspect --tool-id <id>`
+- `npx @opensea/tool-sdk verify` against production HTTPS (CLI requires `https://<origin>/.well-known/ai-tool/<slug>.json`; localhost http fails the path check)

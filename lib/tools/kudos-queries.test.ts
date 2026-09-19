@@ -157,10 +157,10 @@ describe('kudos-queries', () => {
     it('returns 404 when the receipt has no feedback event', async () => {
       mockGetTransactionReceipt.mockResolvedValue({
         status: 'success',
-        blockNumber: 1n,
+        blockNumber: BigInt(1),
         logs: [],
       });
-      mockGetBlock.mockResolvedValue({ timestamp: 1_700_000_000n });
+      mockGetBlock.mockResolvedValue({ timestamp: BigInt(1_700_000_000) });
 
       const { queryKudosDetail } = await load();
       const result = await queryKudosDetail(
@@ -202,7 +202,7 @@ describe('kudos-queries', () => {
         fromAddress: '0xfrom',
         toAddress: '0xto',
         amountUsd: 1.5,
-        amountRaw: 1500000n,
+        amountRaw: BigInt(1_500_000),
         status: 'completed',
         createdAt: 1,
         completedAt: 2,

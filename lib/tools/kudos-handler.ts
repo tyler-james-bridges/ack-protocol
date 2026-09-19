@@ -144,7 +144,7 @@ export async function handleKudosToolAction(
       if (!result.ok) {
         return { status: result.status, body: { error: result.error } };
       }
-      return { status: 200, body: result.stats };
+      return { status: 200, body: { ...result.stats } };
     }
 
     case 'streaks': {

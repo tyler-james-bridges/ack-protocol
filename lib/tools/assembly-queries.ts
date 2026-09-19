@@ -658,18 +658,19 @@ export async function queryProposals(
   }
 
   const sliced = proposals.slice(0, limit);
+  const showingRecentFallback =
+    sliced.length > 0 &&
+    !sliced.some((p) => IN_FLIGHT_PROPOSAL_STATUSES.has(p.status)) &&
+    (!statusFilter || statusFilter === 'active');
   return {
     proposals: sliced,
     count: sliced.length,
     total,
     available: true,
     source: ASSEMBLY_SOURCE,
-    note:
-      statusFilter === 'active' &&
-      sliced.length > 0 &&
-      !sliced.some((p) => IN_FLIGHT_PROPOSAL_STATUSES.has(p.status))
-        ? 'No in-flight proposals; returning most recent by id.'
-        : undefined,
+    note: showingRecentFallback
+      ? 'No in-flight proposals; returning most recent by id.'
+      : undefined,
   };
 }
 

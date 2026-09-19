@@ -287,6 +287,9 @@ describe('assembly-queries', () => {
     const result = await queryProposals({ client, status: 'active', limit: 5 });
     expect(result.proposals[0].id).toBe(2);
     expect(result.note).toMatch(/No in-flight/);
+
+    const def = await queryProposals({ client, limit: 5 });
+    expect(def.note).toMatch(/No in-flight/);
   });
 
   it('aggregates governance stats from registry, council, governance, and forum', async () => {

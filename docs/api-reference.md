@@ -16,6 +16,7 @@ All endpoints are on `ack-onchain.dev`.
 | `/api/timestamps`           | GET      | None | Block timestamp lookup (cached)   |
 | `/api/discover`             | GET      | None | Discover agents by category/chain |
 | `/api/tool`                 | GET/POST | None | ERC-8257 reputation tool actions  |
+| `/api/tool/kudos`           | POST     | x402 | ERC-8257 kudos and tips tool      |
 | `/api/tool/assembly`        | GET/POST | x402 | ERC-8257 Assembly governance tool |
 | `/api/assembly`             | GET      | None | AI Assembly council auction data  |
 | `/api/vouch`                | POST     | SIWA | Vouch for unregistered agent      |
@@ -36,6 +37,7 @@ All endpoints are on `ack-onchain.dev`.
 | `/.well-known/agent-registration.json`     | ERC-8004 domain verification |
 | `/.well-known/oasf.json`                   | OASF agent profile           |
 | `/.well-known/ai-tool/ack-reputation.json` | ERC-8257 reputation tool     |
+| `/.well-known/ai-tool/ack-kudos.json`      | ERC-8257 kudos tool          |
 | `/.well-known/ai-tool/ack-assembly.json`   | ERC-8257 Assembly tool       |
 | `/SKILL.md`                                | Agent integration guide      |
 
@@ -118,6 +120,10 @@ Unified ERC-8257 tool handler. Body is `{ "action": "...", ...params }`.
 | `agent_info`       | `agentId` or `scanId` | Single agent details                                              |
 
 x402 pricing is advertised on `/.well-known/ai-tool/ack-reputation.json` ($0.01 USDC on Base and Abstract). See [ERC-8257 reputation tool](./erc-8257-reputation-tool.md).
+
+### POST /api/tool/kudos
+
+x402-gated ERC-8257 kudos and tips handler ($0.01 USDC). Separate from `/api/tool`. Manifest: `/.well-known/ai-tool/ack-kudos.json`.
 
 ### GET /api/tool/assembly
 

@@ -12,6 +12,8 @@ import {
 } from '@/config/contract';
 import { buildFeedback } from '@/lib/feedback';
 import { RateLimiter } from '@/lib/rate-limit';
+import { DEFAULT_8004_CHAIN_ID, resolveChainId } from '@/config/chain';
+import { appendBuilderCodeCalldata } from '@/config/builder-code';
 
 /**
  * POST /api/feedback/agent
@@ -65,13 +67,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { targetAgentId, value, category, reasoning, callerAddress } = body as {
+  const {
+    targetAgentId,
+    value,
+    category,
+    reasoning,
+    callerAddress,
+    chain,
+    chainId,
+  } = body as {
     targetAgentId?: number;
     value?: number;
     category?: string;
     reasoning?: string;
     callerAddress?: string;
+    chain?: string | number;
+    chainId?: string | number;
   };
+
+  const targetChainId =
+    resolveChainId(chainId ?? chain) ?? DEFAULT_8004_CHAIN_ID;
 
   // Validate targetAgentId
   if (
@@ -128,23 +143,26 @@ export async function POST(request: NextRequest) {
     value,
     tag1: REVIEW_TAG1,
     valueDecimals: REVIEW_VALUE_DECIMALS,
+    chainId: targetChainId,
   });
 
-  // Encode giveFeedback transaction
-  const txData = encodeFunctionData({
-    abi: REPUTATION_REGISTRY_ABI,
-    functionName: 'giveFeedback',
-    args: [
-      BigInt(targetAgentId),
-      BigInt(value),
-      REVIEW_VALUE_DECIMALS,
-      REVIEW_TAG1,
-      resolvedCategory,
-      '',
-      feedbackURI,
-      feedbackHash,
-    ],
-  });
+  const txData = appendBuilderCodeCalldata(
+    encodeFunctionData({
+      abi: REPUTATION_REGISTRY_ABI,
+      functionName: 'giveFeedback',
+      args: [
+        BigInt(targetAgentId),
+        BigInt(value),
+        REVIEW_VALUE_DECIMALS,
+        REVIEW_TAG1,
+        resolvedCategory,
+        '',
+        feedbackURI,
+        feedbackHash,
+      ],
+    }),
+    targetChainId
+  );
 
   return NextResponse.json(
     {
@@ -155,7 +173,7 @@ export async function POST(request: NextRequest) {
       transaction: {
         to: REPUTATION_REGISTRY_ADDRESS,
         data: txData,
-        chainId: 2741,
+        chainId: targetChainId,
         value: '0',
       },
       feedbackURI,

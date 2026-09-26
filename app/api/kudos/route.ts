@@ -1,5 +1,4 @@
 import { encodeFunctionData } from 'viem';
-import { abstract } from 'viem/chains';
 import { withSiwa, siwaOptions } from '@buildersgarden/siwa/next';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { buildFeedback } from '@/lib/feedback';
@@ -12,7 +11,12 @@ import {
   KUDOS_CATEGORIES,
   type KudosCategory,
 } from '@/config/contract';
-import { resolveChainId, SUPPORTED_8004_CHAINS } from '@/config/chain';
+import {
+  DEFAULT_8004_CHAIN_ID,
+  resolveChainId,
+  SUPPORTED_8004_CHAINS,
+} from '@/config/chain';
+import { appendBuilderCodeCalldata } from '@/config/builder-code';
 
 /**
  * POST /api/kudos
@@ -33,9 +37,9 @@ export const POST = withSiwa(async (agent, req) => {
     chainId: chainIdParam,
   } = body;
 
-  // Resolve target chain (default: Abstract)
+  // Resolve target chain (default: Base)
   const targetChainId =
-    resolveChainId(chainParam ?? chainIdParam) ?? abstract.id;
+    resolveChainId(chainParam ?? chainIdParam) ?? DEFAULT_8004_CHAIN_ID;
   const chainCfg = SUPPORTED_8004_CHAINS[targetChainId];
   const normalizedMessage = typeof message === 'string' ? message.trim() : '';
 
@@ -98,20 +102,23 @@ export const POST = withSiwa(async (agent, req) => {
   });
 
   // Encode giveFeedback transaction
-  const txData = encodeFunctionData({
-    abi: REPUTATION_REGISTRY_ABI,
-    functionName: 'giveFeedback',
-    args: [
-      BigInt(agentId),
-      BigInt(KUDOS_VALUE),
-      KUDOS_VALUE_DECIMALS,
-      KUDOS_TAG1,
-      category,
-      '',
-      feedbackURI,
-      feedbackHash,
-    ],
-  });
+  const txData = appendBuilderCodeCalldata(
+    encodeFunctionData({
+      abi: REPUTATION_REGISTRY_ABI,
+      functionName: 'giveFeedback',
+      args: [
+        BigInt(agentId),
+        BigInt(KUDOS_VALUE),
+        KUDOS_VALUE_DECIMALS,
+        KUDOS_TAG1,
+        category,
+        '',
+        feedbackURI,
+        feedbackHash,
+      ],
+    }),
+    targetChainId
+  );
 
   return {
     status: 'approved',

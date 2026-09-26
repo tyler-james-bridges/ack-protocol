@@ -20,6 +20,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 
 const API_BASE = 'https://www.8004scan.io/api/v1';
 const API_KEY = process.env.EIGHTOOSCAN_API_KEY;
@@ -356,9 +357,8 @@ export async function POST(request: NextRequest) {
                 properties: {
                   chain_id: {
                     type: 'number',
-                    description:
-                      'Optional chain ID (default: 2741 for Abstract)',
-                    default: 2741,
+                    description: 'Optional chain ID (default: 8453 for Base)',
+                    default: DEFAULT_8004_CHAIN_ID,
                   },
                   sort_by: {
                     type: 'string',
@@ -529,7 +529,7 @@ export async function POST(request: NextRequest) {
 
         case 'list_leaderboard': {
           const {
-            chain_id = 2741,
+            chain_id = DEFAULT_8004_CHAIN_ID,
             sort_by = 'quality_score',
             limit = 20,
           } = args as {

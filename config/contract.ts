@@ -1,5 +1,5 @@
 import type { Address } from 'viem';
-import { chain, ABSTRACT_CHAIN_ID } from './chain';
+import { chain, DEFAULT_8004_CHAIN_ID } from './chain';
 
 /**
  * ERC-8004 contract addresses on Abstract (Chain ID: 2741)
@@ -27,10 +27,10 @@ export const AGENT_REGISTRY_CAIP10 =
 
 /**
  * Build CAIP-10 registry identifier for a given chain.
- * Defaults to Abstract for backward compatibility.
+ * Defaults to the app's default ERC-8004 chain (Base).
  */
 export function getAgentRegistryCAIP10(chainId?: number): string {
-  const cid = chainId ?? ABSTRACT_CHAIN_ID;
+  const cid = chainId ?? DEFAULT_8004_CHAIN_ID;
   return `eip155:${cid}:${IDENTITY_REGISTRY_ADDRESS}`;
 }
 

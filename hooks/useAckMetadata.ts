@@ -10,6 +10,7 @@ import { toHex, fromHex, type Hex } from 'viem';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { chain } from '@/config/chain';
+import { dataSuffixForChainId } from '@/config/builder-code';
 
 /**
  * ACK metadata keys stored onchain via ERC-8004 setMetadata / getMetadata.
@@ -145,6 +146,7 @@ export function useAckMetadata(agentId: number | undefined) {
             functionName: 'setMetadata',
             args: [agentIdBigInt, metadataKey, metadataValue],
             chainId: chain.id,
+            dataSuffix: dataSuffixForChainId(chain.id),
           },
           {
             onSuccess: () => setWriteStatus('waiting'),

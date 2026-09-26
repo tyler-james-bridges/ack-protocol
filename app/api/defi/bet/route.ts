@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { placeBet, validateBetParams } from '@/lib/defi';
 import { withPayment } from '@/lib/x402';
+import { ABSTRACT_CHAIN_ID } from '@/config/chain';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,5 +41,7 @@ async function handler(req: NextRequest): Promise<NextResponse> {
 export const POST = withPayment(
   handler,
   '0.05',
-  'Place a Myriad prediction market bet on Abstract'
+  'Place a Myriad prediction market bet on Abstract',
+  undefined,
+  ABSTRACT_CHAIN_ID
 );

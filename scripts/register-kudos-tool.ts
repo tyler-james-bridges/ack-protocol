@@ -29,6 +29,7 @@ import {
   ACK_KUDOS_METADATA_URI,
   ackKudosManifest,
 } from '../lib/tools/kudos-manifest';
+import { dataSuffixForChainId } from '../config/builder-code';
 
 async function loadSdk() {
   try {
@@ -162,6 +163,7 @@ async function main() {
     account,
     chain: base,
     transport: http(rpcUrl),
+    dataSuffix: dataSuffixForChainId(base.id),
   });
 
   const registry = new sdk.ToolRegistryClient({

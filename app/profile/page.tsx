@@ -17,6 +17,7 @@ import { ChainIcon } from '@/components/chain-icon';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { chain } from '@/config/chain';
+import { dataSuffixForChainId } from '@/config/builder-code';
 import { fetchAgents, type ScanAgent } from '@/lib/api';
 import { getChainName, useKudosGiven, useStreak } from '@/hooks';
 import { useKudosReceived } from '@/hooks/useKudosReceived';
@@ -531,6 +532,7 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
       functionName: 'setAgentURI',
       args: [BigInt(agent.token_id), newURI.trim()],
       chainId: chain.id,
+      dataSuffix: dataSuffixForChainId(chain.id),
     });
   }
 

@@ -21,6 +21,7 @@ import {
   getUsdcAddress,
 } from '@/config/tokens';
 import { DEFAULT_8004_CHAIN_ID, getExplorerTxUrl } from '@/config/chain';
+import { dataSuffixForChainId } from '@/config/builder-code';
 import {
   fetchPaymentMethods,
   type PaymentMethod,
@@ -306,6 +307,7 @@ export default function TipPage({
         functionName: 'transfer',
         args: [tip.toAddress as Hex, rawAmount],
         chainId: targetChainId,
+        dataSuffix: dataSuffixForChainId(targetChainId),
       },
       {
         onError: (err) => {

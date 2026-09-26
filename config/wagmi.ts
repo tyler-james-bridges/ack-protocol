@@ -19,7 +19,6 @@ import {
   linea,
   mainnet,
 } from 'viem/chains';
-import { BASE_DATA_SUFFIX } from './builder-code';
 
 const projectId =
   process.env.NEXT_PUBLIC_WC_PROJECT_ID || '00000000000000000000000000000000';
@@ -48,11 +47,11 @@ const connectors = connectorsForWallets(
 );
 
 const chains = [
+  base,
   abstract,
   arbitrum,
   optimism,
   polygon,
-  base,
   scroll,
   avalanche,
   linea,
@@ -62,7 +61,6 @@ const chains = [
 export const wagmiConfig = createConfig({
   connectors,
   chains,
-  dataSuffix: BASE_DATA_SUFFIX,
   transports: {
     [abstract.id]: http(),
     [arbitrum.id]: http(),

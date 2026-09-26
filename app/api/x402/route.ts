@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { PaymentRequired, PaymentRequirements } from '@x402/next';
-import {
-  BUILDER_CODE,
-  declareBuilderCodeExtension,
-} from '@x402/extensions/builder-code';
-import { BASE_BUILDER_CODE } from '@/config/builder-code';
-import { getX402ChainConfig } from '@/lib/x402';
+import { getX402ChainConfig, paymentExtensionsForChain } from '@/lib/x402';
 import { resolvePaymentAddress } from '@/lib/tip-store';
 import {
   USDC_DECIMALS,
@@ -48,6 +43,7 @@ function buildDiscoveryPayload(
   payTo: string,
   chainId: number = DEFAULT_8004_CHAIN_ID
 ): PaymentRequired {
+  const extensions = paymentExtensionsForChain(chainId);
   return {
     x402Version: 2,
     resource: {
@@ -56,13 +52,7 @@ function buildDiscoveryPayload(
       mimeType: 'application/json',
     },
     accepts: [buildPaymentRequirements(payTo, chainId)],
-    ...(chainId === 8453
-      ? {
-          extensions: {
-            [BUILDER_CODE]: declareBuilderCodeExtension(BASE_BUILDER_CODE),
-          },
-        }
-      : {}),
+    ...(extensions ? { extensions } : {}),
   };
 }
 

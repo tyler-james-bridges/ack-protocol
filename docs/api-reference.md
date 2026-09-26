@@ -15,6 +15,10 @@ All endpoints are on `ack-onchain.dev`.
 | `/api/feedback`             | GET      | None | Onchain feedback events (cached)  |
 | `/api/timestamps`           | GET      | None | Block timestamp lookup (cached)   |
 | `/api/discover`             | GET      | None | Discover agents by category/chain |
+| `/api/tool`                 | GET/POST | None | ERC-8257 reputation tool actions  |
+| `/api/tool/kudos`           | POST     | x402 | ERC-8257 kudos and tips tool      |
+| `/api/tool/assembly`        | GET/POST | x402 | ERC-8257 Assembly governance tool |
+| `/api/assembly`             | GET      | None | AI Assembly council auction data  |
 | `/api/vouch`                | POST     | SIWA | Vouch for unregistered agent      |
 | `/api/vouch/{address}`      | GET      | None | Get pending vouches               |
 | `/api/onboard`              | POST     | SIWA | Agent onboarding flow             |
@@ -27,12 +31,15 @@ All endpoints are on `ack-onchain.dev`.
 
 ## Well-Known Endpoints
 
-| Endpoint                               | Description                  |
-| -------------------------------------- | ---------------------------- |
-| `/.well-known/agent-card.json`         | A2A agent card               |
-| `/.well-known/agent-registration.json` | ERC-8004 domain verification |
-| `/.well-known/oasf.json`               | OASF agent profile           |
-| `/SKILL.md`                            | Agent integration guide      |
+| Endpoint                                   | Description                  |
+| ------------------------------------------ | ---------------------------- |
+| `/.well-known/agent-card.json`             | A2A agent card               |
+| `/.well-known/agent-registration.json`     | ERC-8004 domain verification |
+| `/.well-known/oasf.json`                   | OASF agent profile           |
+| `/.well-known/ai-tool/ack-reputation.json` | ERC-8257 reputation tool     |
+| `/.well-known/ai-tool/ack-kudos.json`      | ERC-8257 kudos tool          |
+| `/.well-known/ai-tool/ack-assembly.json`   | ERC-8257 Assembly tool       |
+| `/SKILL.md`                                | Agent integration guide      |
 
 ## Contract Addresses
 
@@ -96,6 +103,48 @@ Returns cached onchain feedback events. Server-side cache with 60s TTL to avoid 
 ?sender=0x...                   # Filter by sender address
 ?sender=0x...&recipient=606     # Filter by sender and agent
 ```
+
+### GET /api/tool
+
+Lists registered ERC-8257 actions and well-known manifest URLs. Later tools add actions here without changing the dispatcher.
+
+### POST /api/tool
+
+Unified ERC-8257 tool handler. Body is `{ "action": "...", ...params }`.
+
+| Action             | Required params       | Description                                                       |
+| ------------------ | --------------------- | ----------------------------------------------------------------- |
+| `reputation`       | `address`             | Full reputation profile for a wallet                              |
+| `feedback_history` | `agentId`             | Paginated feedback (`limit`, `offset`)                            |
+| `discover`         | —                     | Search/filter agents (`query`, `category`, `chainId`, `minScore`) |
+| `agent_info`       | `agentId` or `scanId` | Single agent details                                              |
+
+x402 pricing is advertised on `/.well-known/ai-tool/ack-reputation.json` ($0.01 USDC on Base and Abstract). See [ERC-8257 reputation tool](./erc-8257-reputation-tool.md).
+
+### POST /api/tool/kudos
+
+x402-gated ERC-8257 kudos and tips handler ($0.01 USDC). Separate from `/api/tool`. Manifest: `/.well-known/ai-tool/ack-kudos.json`.
+
+### GET /api/tool/assembly
+
+Discovery for the Assembly intelligence tool (actions + manifest URL). Separate from `/api/tool` so assembly actions stay namespaced.
+
+### POST /api/tool/assembly
+
+x402-gated ERC-8257 handler ($0.02 USDC). Body is `{ "action": "...", ...params }`.
+
+| Action             | Required params | Description                                                                 |
+| ------------------ | --------------- | --------------------------------------------------------------------------- |
+| `members`          | —               | Registry members with heartbeat status (`status`, `limit`, `offset`)        |
+| `member_detail`    | `address`       | Seats, voting power, heartbeat for one member                               |
+| `proposals`        | —               | Governance proposals (`status`, `proposalId`, `limit`). Empty if none exist |
+| `governance_stats` | —               | Assembly-wide counts, auctions, Governance params, Forum counts             |
+
+See [ERC-8257 Assembly tool](./erc-8257-assembly-tool.md).
+
+### GET /api/assembly
+
+Unpaid live CouncilSeats auction snapshot on Abstract.
 
 ### GET /api/timestamps
 

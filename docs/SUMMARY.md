@@ -10,3 +10,5 @@
 - [Handle Resolution](handle-resolution-spec.md)
 - [Tipping](giving-kudos.md#tipped-kudos)
 - [API Reference](api-reference.md)
+- [ERC-8257 Reputation Tool](erc-8257-reputation-tool.md)
+- [ERC-8257 Assembly Tool](erc-8257-assembly-tool.md)

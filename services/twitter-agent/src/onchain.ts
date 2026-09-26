@@ -13,6 +13,7 @@ import {
   encodeFunctionData,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { BASE_DATA_SUFFIX } from './builder-code.js';
 
 interface TwitterChainConfig {
   id: number;
@@ -102,12 +103,12 @@ export function getDefaultChainId(): number {
   return (
     resolveTwitterChainId(process.env.ACK_CHAIN_ID) ??
     resolveTwitterChainId(process.env.ACK_CHAIN) ??
-    2741
+    8453
   );
 }
 
 export function getTwitterChainConfig(chainId?: number): TwitterChainConfig {
-  return CHAIN_CONFIGS[chainId ?? getDefaultChainId()] ?? CHAIN_CONFIGS[2741];
+  return CHAIN_CONFIGS[chainId ?? getDefaultChainId()] ?? CHAIN_CONFIGS[8453];
 }
 
 export function getExplorerTxUrl(txHash: string, chainId?: number): string {
@@ -194,7 +195,6 @@ function chooseResolvedTarget(
   if (matches.length === 0) return null;
   if (matches.length === 1) return matches[0];
 
-  // Preserve the slick Abstract behavior for ambiguous bare #ids.
   return matches.find((m) => m.chainId === defaultChainId) ?? null;
 }
 
@@ -295,6 +295,7 @@ function createWalletClients(
       account,
       chain: cfg.chain,
       transport,
+      dataSuffix: cfg.id === 8453 ? BASE_DATA_SUFFIX : undefined,
     }),
   };
 }

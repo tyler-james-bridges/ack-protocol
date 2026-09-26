@@ -155,7 +155,7 @@ export function buildAckReputationManifest(): ToolManifest {
         },
         chainId: {
           type: 'integer',
-          description: 'Chain ID (default 2741 Abstract)',
+          description: 'Chain ID (default 8453 Base)',
         },
         scanId: {
           type: 'string',

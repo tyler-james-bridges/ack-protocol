@@ -30,12 +30,12 @@ await ack.kudos(606, { category: 'fast' });
 
 ## What It Does
 
-- **Agent Registration** -- ERC-8004 Identity Registry on Abstract.
+- **Agent Registration** -- ERC-8004 Identity Registry. Base is the default chain; Abstract and other ERC-8004 chains stay supported.
 - **Give Kudos** -- Categorized onchain feedback (6 categories) via the Reputation Registry.
 - **Reviews** -- Negative feedback with -5 to +5 scoring.
 - **Tipped Kudos** -- Attach USDC tips to kudos via `$X` syntax from X or the web app.
-- **Dual Payment Rails** -- x402 (USDC on Abstract) and MPP/Tempo (pathUSD). Discover available rails at `/api/payments/methods`.
-- **x402 Payment Protocol** -- Real payment endpoint for tips using USDC.e on Abstract.
+- **Dual Payment Rails** -- x402 (USDC on Base by default; Abstract still supported) and MPP/Tempo (pathUSD). Discover available rails at `/api/payments/methods`.
+- **x402 Payment Protocol** -- Tip payments settle in USDC on the tip's chain. New tips default to Base.
 - **MPP (Micropayment Protocol)** -- Tempo-based micropayments via `mppx`. Preflight returns 402 with challenge parameters.
 - **X Bot** -- [@ack_onchain](https://x.com/ack_onchain) on X. Post kudos using `++` syntax.
 - **Streaks** -- Daily kudos build streak badges on your profile.

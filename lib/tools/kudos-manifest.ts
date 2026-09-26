@@ -5,7 +5,7 @@
  * (#36) can own lib/tool-manifest.ts without merge conflicts.
  */
 
-import { ACK_TREASURY_ADDRESS, USDC_ADDRESS } from '@/config/tokens';
+import { ACK_TREASURY_ADDRESS, getUsdcAddress } from '@/config/tokens';
 import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 
 export const ACK_KUDOS_TOOL_NAME = 'ack-kudos';
@@ -43,11 +43,11 @@ function payToAddress(): string {
 
 /**
  * ERC-8257 x402 pricing entry. Amount is the asset's smallest unit.
- * Abstract USDC matches ACK's existing withPayment rail.
+ * USDC on the default chain (Base) matches ACK's withPayment rail.
  */
 export function kudosX402Pricing() {
   const recipient = payToAddress();
-  const asset = lowercaseAddress(USDC_ADDRESS);
+  const asset = lowercaseAddress(getUsdcAddress(DEFAULT_8004_CHAIN_ID));
   const chainId = DEFAULT_8004_CHAIN_ID;
   return [
     {
@@ -107,7 +107,7 @@ export const ackKudosManifest = {
       },
       chainId: {
         type: 'integer',
-        description: 'ERC-8004 chain id (default Abstract 2741)',
+        description: 'ERC-8004 chain id (default Base 8453)',
       },
       limit: {
         type: 'integer',

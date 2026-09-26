@@ -1,6 +1,11 @@
 import { withX402, x402ResourceServer } from '@x402/next';
 import { HTTPFacilitatorClient } from '@x402/core/server';
 import { ExactEvmScheme } from '@x402/evm/exact/server';
+import {
+  BUILDER_CODE,
+  builderCodeResourceServerExtension,
+  declareBuilderCodeExtension,
+} from '@x402/extensions/builder-code';
 import type { Network } from '@x402/core/types';
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -9,14 +14,53 @@ import {
   USDC_DECIMALS,
 } from '@/config/tokens';
 import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
+import { BASE_BUILDER_CODE } from '@/config/builder-code';
 
 export const ABSTRACT_FACILITATOR_URL = 'https://facilitator.x402.abs.xyz';
+/** Settles Base mainnet. `/supported` extensions are `["discovery"]` only. */
+export const OPENX402_BASE_FACILITATOR_URL = 'https://facilitator.openx402.ai';
+/**
+ * CDP facilitator documents builder-code on Base (`eip155:8453`).
+ * `GET /supported` returns 401 without CDP API credentials, and this app does
+ * not attach those credentials. Do not point the default URL here.
+ */
+export const CDP_X402_FACILITATOR_URL =
+  'https://api.cdp.coinbase.com/platform/v2/x402';
+
 export const BASE_FACILITATOR_URL =
   process.env.BASE_X402_FACILITATOR_URL ||
   process.env.X402_BASE_FACILITATOR_URL ||
-  'https://facilitator.openx402.ai';
+  OPENX402_BASE_FACILITATOR_URL;
 
-export const NETWORK: Network = 'eip155:2741';
+export const NETWORK: Network = 'eip155:8453';
+
+/**
+ * Advertise ERC-8021 builder-code on Base payment requirements only when the
+ * configured facilitator is expected to honor it.
+ *
+ * Checked 2026-09-26:
+ * - openx402 (default) settles eip155:8453 and does not list `builder-code`
+ * - https://x402.org/facilitator lists `builder-code` but not eip155:8453
+ * - CDP lists both, and requires authenticated settle calls
+ *
+ * Leaving the extension off by default keeps openx402 settlement working.
+ * Set BASE_X402_BUILDER_CODE=1 after the facilitator both settles Base and
+ * advertises builder-code.
+ */
+export function facilitatorSupportsBuilderCode(): boolean {
+  const flag = process.env.BASE_X402_BUILDER_CODE?.toLowerCase();
+  return flag === '1' || flag === 'true' || flag === 'on';
+}
+
+export function paymentExtensionsForChain(
+  chainId: number
+): Record<string, ReturnType<typeof declareBuilderCodeExtension>> | undefined {
+  if (chainId !== 8453) return undefined;
+  if (!facilitatorSupportsBuilderCode()) return undefined;
+  return {
+    [BUILDER_CODE]: declareBuilderCodeExtension(BASE_BUILDER_CODE),
+  };
+}
 
 const DEFAULT_PAY_TO =
   process.env.AGENT_WALLET_ADDRESS ||
@@ -92,6 +136,9 @@ function getServer(
       'eip155:*' as Network,
       scheme
     );
+    if (cfg.chainId === 8453 && facilitatorSupportsBuilderCode()) {
+      server.registerExtension(builderCodeResourceServerExtension);
+    }
     servers.set(cfg.chainId, server);
     return server;
   }
@@ -108,6 +155,7 @@ export function withPayment<T = unknown>(
   chainId: number = DEFAULT_8004_CHAIN_ID
 ) {
   const cfg = getX402ChainConfig(chainId);
+  const extensions = paymentExtensionsForChain(cfg.chainId);
   return withX402(
     handler,
     {
@@ -121,6 +169,7 @@ export function withPayment<T = unknown>(
       ],
       description,
       mimeType: 'application/json',
+      ...(extensions ? { extensions } : {}),
     },
     getServer(cfg.chainId)
   );

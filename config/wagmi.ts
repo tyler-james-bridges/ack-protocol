@@ -47,11 +47,11 @@ const connectors = connectorsForWallets(
 );
 
 const chains = [
+  base,
   abstract,
   arbitrum,
   optimism,
   polygon,
-  base,
   scroll,
   avalanche,
   linea,

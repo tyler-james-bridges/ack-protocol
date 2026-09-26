@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeLend, validateLendParams } from '@/lib/defi';
 import { withPayment } from '@/lib/x402';
+import { ABSTRACT_CHAIN_ID } from '@/config/chain';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,5 +36,7 @@ async function handler(req: NextRequest): Promise<NextResponse> {
 export const POST = withPayment(
   handler,
   '0.05',
-  'Morpho Blue lending operation on Abstract'
+  'Morpho Blue lending operation on Abstract',
+  undefined,
+  ABSTRACT_CHAIN_ID
 );

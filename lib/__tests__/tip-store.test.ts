@@ -102,7 +102,7 @@ describe('tip-store', () => {
           Promise.resolve({
             items: [
               {
-                chain_id: 2741,
+                chain_id: 8453,
                 token_id: '456',
                 owner_address: '0xtest123',
                 agent_wallet: null,
@@ -139,7 +139,7 @@ describe('tip-store', () => {
           Promise.resolve({
             items: [
               {
-                chain_id: 2741,
+                chain_id: 8453,
                 token_id: '123',
                 owner_address: '0xowner',
                 agent_wallet: null,
@@ -161,7 +161,7 @@ describe('tip-store', () => {
           Promise.resolve({
             items: [
               {
-                chain_id: 2741,
+                chain_id: 8453,
                 token_id: '789',
                 owner_address: '0xowner',
                 agent_wallet: '0xwallet',
@@ -281,7 +281,7 @@ describe('tip-store', () => {
       expect(result).toEqual({
         id: 'test-id-123',
         kudosTxHash: '0xkudos123',
-        chainId: 2741,
+        chainId: 8453,
         agentId: 456,
         fromAddress: '0xfrom',
         toAddress: '0xto',
@@ -298,7 +298,7 @@ describe('tip-store', () => {
       const insertCall = mockSql.mock.calls[1];
       expect(insertCall[1]).toBe('test-id-123');
       expect(insertCall[2]).toBe('0xkudos123');
-      expect(insertCall[3]).toBe(2741);
+      expect(insertCall[3]).toBe(8453);
       expect(insertCall[4]).toBe(456);
       expect(insertCall[5]).toBe('0xfrom');
       expect(insertCall[6]).toBe('0xto');
@@ -367,7 +367,7 @@ describe('tip-store', () => {
       expect(result).toEqual({
         id: 'tip-456',
         kudosTxHash: '0xkudos',
-        chainId: 2741,
+        chainId: 8453,
         agentId: 789,
         fromAddress: '0xfrom',
         toAddress: '0xto',
@@ -438,7 +438,7 @@ describe('tip-store', () => {
       expect(result).toEqual({
         id: 'tip-123',
         kudosTxHash: '0xKUDOS',
-        chainId: 2741,
+        chainId: 8453,
         agentId: 456,
         fromAddress: '0xfrom',
         toAddress: '0xto',
@@ -514,7 +514,7 @@ describe('tip-store', () => {
           Promise.resolve({
             items: [
               {
-                chain_id: 2741,
+                chain_id: 8453,
                 token_id: '999',
                 owner_address: '0xfrom',
                 agent_wallet: null,
@@ -613,7 +613,7 @@ describe('tip-store', () => {
       expect(result).toEqual({
         id: 'tip-complete',
         kudosTxHash: '0xkudos',
-        chainId: 2741,
+        chainId: 8453,
         agentId: 123,
         fromAddress: '0xfrom',
         toAddress: '0xto',

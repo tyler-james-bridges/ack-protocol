@@ -8,7 +8,7 @@ import {
   KUDOS_TOOL_ACTIONS,
   ackKudosManifest,
 } from './kudos-manifest';
-import { ACK_TREASURY_ADDRESS, USDC_ADDRESS } from '@/config/tokens';
+import { ACK_TREASURY_ADDRESS, BASE_USDC_ADDRESS } from '@/config/tokens';
 
 describe('ackKudosManifest', () => {
   it('uses the ERC-8257 v1 type and origin-bound well-known path', () => {
@@ -44,16 +44,18 @@ describe('ackKudosManifest', () => {
     ]);
   });
 
-  it('prices each call at $0.01 USDC on Abstract via x402', () => {
+  it('prices each call at $0.01 USDC on Base via x402', () => {
     expect(ACK_KUDOS_PRICE_USDC).toBe('0.01');
     expect(ackKudosManifest.pricing).toHaveLength(1);
     const [entry] = ackKudosManifest.pricing;
     expect(entry.amount).toBe(ACK_KUDOS_PRICE_ATOMIC);
     expect(entry.amount).toBe('10000');
     expect(entry.protocol).toBe('x402');
-    expect(entry.asset).toBe(`eip155:2741/erc20:${USDC_ADDRESS.toLowerCase()}`);
+    expect(entry.asset).toBe(
+      `eip155:8453/erc20:${BASE_USDC_ADDRESS.toLowerCase()}`
+    );
     expect(entry.recipient).toBe(
-      `eip155:2741:${ACK_TREASURY_ADDRESS.toLowerCase()}`
+      `eip155:8453:${ACK_TREASURY_ADDRESS.toLowerCase()}`
     );
   });
 

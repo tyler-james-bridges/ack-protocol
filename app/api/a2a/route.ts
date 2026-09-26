@@ -12,6 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 
 const API_BASE = 'https://www.8004scan.io/api/v1';
 const API_KEY = process.env.EIGHTOOSCAN_API_KEY;
@@ -73,9 +74,16 @@ async function processTaskMessage(text: string): Promise<any> {
   const idMatch = lower.match(/(?:agent|token|#)\s*(\d+)/);
   const tokenId = idMatch ? parseInt(idMatch[1], 10) : null;
 
-  // Extract chain ID if specified, default to 2741 (Abstract)
+  // Extract chain ID if specified. Default is Base.
   const chainMatch = lower.match(/(?:chain|chainid|chain_id)\s*(\d+)/);
-  const chainId = chainMatch ? parseInt(chainMatch[1], 10) : 2741;
+  let chainId = chainMatch
+    ? parseInt(chainMatch[1], 10)
+    : DEFAULT_8004_CHAIN_ID;
+  if (!chainMatch) {
+    if (/\b(?:abstract|abs)\b/.test(lower)) chainId = 2741;
+    else if (/\bbase\b/.test(lower)) chainId = 8453;
+    else if (/\b(?:ethereum|mainnet)\b/.test(lower)) chainId = 1;
+  }
 
   // Route: feedback/kudos queries
   if (

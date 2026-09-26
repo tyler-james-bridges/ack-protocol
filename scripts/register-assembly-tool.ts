@@ -32,6 +32,7 @@ import {
   ASSEMBLY_TOOL_PRICE_USDC,
   buildAckAssemblyManifest,
 } from '../lib/tools/assembly-manifest';
+import { dataSuffixForChainId } from '../config/builder-code';
 
 const LIVE_METADATA_URI = ACK_ASSEMBLY_METADATA_URI;
 
@@ -194,6 +195,7 @@ async function main() {
     account,
     chain,
     transport: http(rpcUrl),
+    dataSuffix: dataSuffixForChainId(chain.id),
   });
 
   const registry = new sdk.ToolRegistryClient({

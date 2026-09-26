@@ -34,8 +34,8 @@ describe('buildFeedback', () => {
     expect(parsed.agentId).toBe(42);
     expect(parsed.reasoning).toBe('Excellent agent!');
     expect(parsed.tag2).toBe('reliability');
-    expect(parsed.agentRegistry).toContain('eip155:2741:');
-    expect(parsed.clientAddress).toContain('eip155:2741:');
+    expect(parsed.agentRegistry).toContain('eip155:8453:');
+    expect(parsed.clientAddress).toContain('eip155:8453:');
   });
 
   it('uses requested chain ID in CAIP-10 fields', () => {

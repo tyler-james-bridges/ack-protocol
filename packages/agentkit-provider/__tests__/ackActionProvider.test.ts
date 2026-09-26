@@ -7,6 +7,8 @@ import {
   REPUTATION_REGISTRY_ADDRESS,
 } from '../src/constants';
 
+const ERC_8021_MARKER = '8021'.repeat(8);
+
 // Mock wallet provider
 const mockWalletProvider = {
   getAddress: vi.fn().mockReturnValue('0xTestAddress'),
@@ -275,9 +277,31 @@ describe('AckActionProvider', () => {
           to: REPUTATION_REGISTRY_ADDRESS,
         })
       );
+      const sentData = mockWalletProvider.sendTransaction.mock.calls[0][0]
+        .data as string;
+      expect(sentData.toLowerCase().endsWith(ERC_8021_MARKER)).toBe(false);
       expect(mockWalletProvider.waitForTransactionReceipt).toHaveBeenCalledWith(
         '0xMockTxHash'
       );
+    });
+
+    it('appends the ERC-8021 suffix when the wallet is on Base', async () => {
+      mockWalletProvider.getNetwork.mockResolvedValueOnce({
+        protocolFamily: 'evm',
+        chainId: 8453,
+      });
+
+      await provider.giveKudos(mockWalletProvider, {
+        agentId: 606,
+        value: 85,
+        tag1: 'reliability',
+        tag2: '',
+      });
+
+      const sentData = mockWalletProvider.sendTransaction.mock.calls[0][0]
+        .data as string;
+      expect(sentData.toLowerCase().endsWith(ERC_8021_MARKER)).toBe(true);
+      expect(sentData.toLowerCase().split(ERC_8021_MARKER).length - 1).toBe(1);
     });
 
     it('handles transaction failure', async () => {

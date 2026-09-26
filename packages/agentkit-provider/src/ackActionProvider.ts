@@ -25,6 +25,7 @@ import {
   REPUTATION_REGISTRY_ADDRESS,
   REPUTATION_REGISTRY_ABI,
 } from './constants';
+import { withBaseBuilderCode } from './builder-code';
 
 /**
  * AckActionProvider lets AgentKit agents interact with ACK Protocol (ERC-8004).
@@ -290,7 +291,10 @@ Common tags: reliability, speed, accuracy, creativity, collaboration, security, 
 
       const hash = await walletProvider.sendTransaction({
         to: REPUTATION_REGISTRY_ADDRESS as `0x${string}`,
-        data,
+        data: withBaseBuilderCode(
+          data,
+          (await walletProvider.getNetwork()).chainId
+        ),
       });
 
       await walletProvider.waitForTransactionReceipt(hash);
@@ -328,7 +332,10 @@ Returns the transaction hash on success.
 
       const hash = await walletProvider.sendTransaction({
         to: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-        data,
+        data: withBaseBuilderCode(
+          data,
+          (await walletProvider.getNetwork()).chainId
+        ),
       });
 
       await walletProvider.waitForTransactionReceipt(hash);
@@ -365,7 +372,10 @@ The wallet's connected chain will be used.
 
       const hash = await walletProvider.sendTransaction({
         to: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-        data,
+        data: withBaseBuilderCode(
+          data,
+          (await walletProvider.getNetwork()).chainId
+        ),
       });
 
       await walletProvider.waitForTransactionReceipt(hash);
@@ -466,7 +476,7 @@ Use these categories when giving kudos to agents to classify the type of feedbac
     name: 'get_leaderboard',
     description: `
 Get the top ERC-8004 agents by star count on a given chain from 8004scan.
-Defaults to Abstract (chain 2741) and top 10 agents.
+Defaults to Base (chain 8453) and top 10 agents.
 `,
     schema: GetLeaderboardSchema,
   })
@@ -475,7 +485,7 @@ Defaults to Abstract (chain 2741) and top 10 agents.
     args: z.infer<typeof GetLeaderboardSchema>
   ): Promise<string> {
     try {
-      const chainId = args.chainId ?? 2741;
+      const chainId = args.chainId ?? 8453;
       const limit = args.limit ?? 10;
 
       const params = new URLSearchParams({

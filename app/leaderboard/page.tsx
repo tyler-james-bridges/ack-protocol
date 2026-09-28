@@ -3,9 +3,11 @@
 import { Suspense, useCallback, useState } from 'react';
 import {
   useLeaderboard,
-  useAbstractFeedbackCounts,
+  useChainFeedbackCounts,
   getChainName,
+  useStreaksBulk,
 } from '@/hooks';
+import type { ChainFeedbackCounts } from '@/hooks';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { Nav } from '@/components/nav';
@@ -13,8 +15,24 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ScanAgent } from '@/lib/api';
 import { StreakBadge } from '@/components/streak-badge';
-import { useStreaksBulk } from '@/hooks';
-import { DEFAULT_8004_CHAIN_ID, isKudosIndexed } from '@/config/chain';
+import { ABSTRACT_CHAIN_ID, DEFAULT_8004_CHAIN_ID } from '@/config/chain';
+
+const BASE_CHAIN_ID = 8453;
+
+type KudosPaint =
+  | { kind: 'loading' }
+  | { kind: 'absent' }
+  | { kind: 'unindexed' }
+  | { kind: 'partial'; count: number }
+  | { kind: 'complete'; count: number };
+
+type EnrichedAgent = ScanAgent & { kudos: number; kudosPaint: KudosPaint };
+
+type CountQuery = {
+  isPending: boolean;
+  isError: boolean;
+  data?: ChainFeedbackCounts;
+};
 
 type SortKey =
   | 'created_at'
@@ -79,7 +97,8 @@ function LeaderboardPage() {
     limit: 100,
     sortBy,
   });
-  const { data: abstractCounts } = useAbstractFeedbackCounts();
+  const baseCounts = useChainFeedbackCounts(BASE_CHAIN_ID);
+  const abstractCounts = useChainFeedbackCounts(ABSTRACT_CHAIN_ID);
 
   const [expandedChains, setExpandedChains] = useState<Set<number>>(
     new Set([DEFAULT_8004_CHAIN_ID])
@@ -94,19 +113,24 @@ function LeaderboardPage() {
     });
   };
 
-  // Enrich with ACK kudos
-  type EnrichedAgent = ScanAgent & { kudos: number };
   const enrich = (agents: ScanAgent[]): EnrichedAgent[] =>
-    agents.map((agent) => ({
-      ...agent,
-      kudos:
-        isKudosIndexed(agent.chain_id) && abstractCounts
-          ? abstractCounts.get(Number(agent.token_id)) || 0
-          : 0,
-    }));
+    agents.map((agent) => {
+      const kudosPaint = paintForAgent(
+        agent.chain_id,
+        Number(agent.token_id),
+        baseCounts,
+        abstractCounts
+      );
+      return {
+        ...agent,
+        kudos: kudosCount(kudosPaint),
+        kudosPaint,
+      };
+    });
 
   const enrichedAll = enrich(allAgentsList || []);
   const enrichedFeatured = enrich(featuredAgentsList || []);
+  const kudosGiven = baseKudosTotal(baseCounts);
 
   // Sort helper — always re-sort client-side to factor in kudos
   const doSort = (list: EnrichedAgent[]): EnrichedAgent[] => {
@@ -137,12 +161,16 @@ function LeaderboardPage() {
           (a, b) => b.star_count - a.star_count || b.total_score - a.total_score
         );
         break;
-      default: // created_at
+      case 'created_at':
         s.sort(
           (a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         break;
+      default: {
+        const unreachable: never = sortBy;
+        return unreachable;
+      }
     }
     return s;
   };
@@ -229,12 +257,10 @@ function LeaderboardPage() {
                     )
                     .toLocaleString()}
                 />
-                {isKudosIndexed(DEFAULT_8004_CHAIN_ID) && (
+                {kudosGiven !== null && (
                   <StatCard
                     label="Kudos Given"
-                    value={featuredAgents
-                      .reduce((sum, agent) => sum + agent.kudos, 0)
-                      .toLocaleString()}
+                    value={kudosGiven.toLocaleString()}
                   />
                 )}
               </div>
@@ -387,8 +413,6 @@ function LeaderboardPage() {
     </div>
   );
 }
-
-type EnrichedAgent = ScanAgent & { kudos: number };
 
 function AgentRow({
   agent,
@@ -548,12 +572,7 @@ function getPrimary(
 ): { value: string; label: string; accent?: boolean } {
   switch (sortBy) {
     case 'kudos':
-      if (!isKudosIndexed(agent.chain_id)) {
-        return { value: '—', label: 'not indexed' };
-      }
-      return agent.kudos > 0
-        ? { value: String(agent.kudos), label: 'kudos', accent: true }
-        : { value: '0', label: 'kudos' };
+      return kudosPrimary(agent.kudosPaint);
     case 'total_feedbacks':
       return agent.total_feedbacks > 0
         ? { value: String(agent.total_feedbacks), label: 'feedback' }
@@ -564,8 +583,12 @@ function getPrimary(
       return agent.star_count > 0
         ? { value: String(agent.star_count), label: 'stars' }
         : { value: '-', label: 'stars' };
-    default:
+    case 'created_at':
       return { value: agent.total_score.toFixed(1), label: 'score' };
+    default: {
+      const unreachable: never = sortBy;
+      return unreachable;
+    }
   }
 }
 
@@ -584,7 +607,101 @@ function getSecondary(
         : null;
     case 'star_count':
       return { value: agent.total_score.toFixed(1), label: 'score' };
-    default:
+    case 'created_at':
       return null;
+    default: {
+      const unreachable: never = sortBy;
+      return unreachable;
+    }
+  }
+}
+
+function paintForAgent(
+  chainId: number,
+  tokenId: number,
+  base: CountQuery,
+  abstract: CountQuery
+): KudosPaint {
+  if (chainId === BASE_CHAIN_ID) return paintChain(base, tokenId);
+  if (chainId === ABSTRACT_CHAIN_ID) return paintChain(abstract, tokenId);
+  return { kind: 'unindexed' };
+}
+
+function paintChain(query: CountQuery, tokenId: number): KudosPaint {
+  if (query.isPending) return { kind: 'loading' };
+  if (query.isError || !query.data) return { kind: 'absent' };
+  const count = query.data.counts.get(tokenId) ?? 0;
+  switch (query.data.coverage.status) {
+    case 'absent':
+      return { kind: 'absent' };
+    case 'partial':
+      return { kind: 'partial', count };
+    case 'complete':
+      return { kind: 'complete', count };
+    default: {
+      const unreachable: never = query.data.coverage.status;
+      return unreachable;
+    }
+  }
+}
+
+function baseKudosTotal(query: CountQuery): number | null {
+  if (query.isPending || query.isError || !query.data) return null;
+  switch (query.data.coverage.status) {
+    case 'partial':
+    case 'complete':
+      return query.data.total;
+    case 'absent':
+      return null;
+    default: {
+      const unreachable: never = query.data.coverage.status;
+      return unreachable;
+    }
+  }
+}
+
+function kudosCount(paint: KudosPaint): number {
+  switch (paint.kind) {
+    case 'partial':
+    case 'complete':
+      return paint.count;
+    case 'loading':
+    case 'absent':
+    case 'unindexed':
+      return 0;
+    default: {
+      const unreachable: never = paint;
+      return unreachable;
+    }
+  }
+}
+
+function kudosPrimary(paint: KudosPaint): {
+  value: string;
+  label: string;
+  accent?: boolean;
+} {
+  switch (paint.kind) {
+    case 'loading':
+      return { value: '—', label: '' };
+    case 'absent':
+    case 'unindexed':
+      return { value: '—', label: 'not indexed' };
+    case 'partial':
+      return {
+        value: String(paint.count),
+        label: 'indexing',
+        accent: paint.count > 0,
+      };
+    case 'complete':
+      return {
+        value: String(paint.count),
+        label: 'kudos',
+        accent: paint.count > 0,
+      };
+    default: {
+      const unreachable: never = paint;
+      return unreachable;
+    }
   }
 }

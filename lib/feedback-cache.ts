@@ -5,8 +5,8 @@
  * caches so that multiple API routes (feedback, discover, reputation) share
  * the same data without redundant RPC calls.
  *
- * The default reader scans Base and Abstract. Each chain maintains its own
- * independent cache and client instance.
+ * The default reader scans Abstract. Base feedback is read from the archive.
+ * Each live chain maintains its own cache and client instance.
  *
  * SERVERLESS CAVEAT: The in-memory caches reset on every cold start in
  * serverless environments. Vercel Pro's function persistence reduces cold
@@ -27,6 +27,7 @@ import {
   SUPPORTED_8004_CHAINS,
   type ChainConfig,
 } from '@/config/chain';
+import { readBaseCounts, readBaseHistory } from '@/lib/base-feedback-store';
 
 const REPUTATION_REGISTRY =
   '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63' as const;
@@ -126,6 +127,7 @@ function parseLogs(rawLogs: RawLog[], chainId: number): FeedbackEvent[] {
  * Results are cached in memory and incrementally updated per chain.
  */
 async function fetchChainFeedback(chainId: number): Promise<FeedbackEvent[]> {
+  if (chainId === 8453) return [];
   const now = Date.now();
   const cached = caches[chainId];
   if (cached && now - cached.ts < CACHE_TTL) {
@@ -202,11 +204,13 @@ export async function getAllFeedbackEventsForChain(
 
 /**
  * Fetch NewFeedback events for the default chains.
- * Pass chainId to scan one chain. The default set is Base, then Abstract.
+ * Pass chainId to scan one chain. Chain 8453 returns no live events.
+ * The default set is Abstract.
  */
 export async function getAllFeedbackEvents(
   chainId?: number
 ): Promise<FeedbackEvent[]> {
+  if (chainId === 8453) return [];
   const chainIds =
     chainId !== undefined ? [chainId] : [...DEFAULT_FEEDBACK_CHAIN_IDS];
   const results = await Promise.all(
@@ -228,6 +232,7 @@ export async function getAllFeedbackEvents(
 export function warmupFeedbackCache(): void {
   const chainIds = Object.keys(SUPPORTED_8004_CHAINS).map(Number);
   for (const cid of chainIds) {
+    if (cid === 8453) continue;
     fetchChainFeedback(cid).catch(() => {});
   }
 }
@@ -239,6 +244,10 @@ export async function getFeedbackByAgentId(
   agentId: number,
   chainId?: number
 ): Promise<FeedbackEvent[]> {
+  if (chainId === 8453) {
+    const { events } = await readBaseHistory({ agentId, limit: 500 });
+    return events;
+  }
   const all =
     chainId !== undefined
       ? await getAllFeedbackEventsForChain(chainId)
@@ -252,6 +261,12 @@ export async function getFeedbackByAgentId(
 export async function getFeedbackCounts(
   chainId?: number
 ): Promise<Record<number, number>> {
+  if (chainId === 8453) {
+    const { counts } = await readBaseCounts();
+    const record: Record<number, number> = {};
+    for (const [agentId, count] of counts) record[agentId] = count;
+    return record;
+  }
   const all = await getAllFeedbackEvents(chainId);
   const counts: Record<number, number> = {};
   for (const e of all) {

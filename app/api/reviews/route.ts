@@ -15,6 +15,7 @@ import {
   getAllFeedbackEventsForChain,
   type FeedbackEvent,
 } from '@/lib/feedback-cache';
+import { readBaseCounts, readBaseRecent } from '@/lib/base-feedback-store';
 import { SUPPORTED_8004_CHAINS } from '@/config/chain';
 
 export const maxDuration = 30;
@@ -83,27 +84,43 @@ export async function GET(request: NextRequest) {
     const chainResults = await Promise.allSettled(
       REVIEW_CHAIN_IDS.filter((cid) => SUPPORTED_8004_CHAINS[cid]) // only chains we can actually query
         .map(async (cid) => {
+          if (cid === 8453) {
+            const recentCap = Number.isFinite(recentLimit)
+              ? Math.min(Math.max(recentLimit, 0), 50)
+              : 20;
+            const [countsResult, events] = await Promise.all([
+              readBaseCounts(),
+              readBaseRecent(recentCap),
+            ]);
+            let total = 0;
+            for (const count of countsResult.counts.values()) total += count;
+            return {
+              chainId: cid,
+              events,
+              total,
+              uniqueSenders: countsResult.uniqueSenders,
+            };
+          }
           const events = await getAllFeedbackEventsForChain(cid);
-          return { chainId: cid, events };
+          return {
+            chainId: cid,
+            events,
+            total: events.length,
+            uniqueSenders: new Set(events.map((event) => event.sender)).size,
+          };
         })
     );
 
     // Merge all events
     const allEvents: FeedbackEvent[] = [];
-    const chainStats: Record<number, { count: number; senders: Set<string> }> =
+    const chainStats: Record<number, { count: number; uniqueSenders: number }> =
       {};
 
     for (const result of chainResults) {
       if (result.status === 'fulfilled') {
-        const { chainId, events } = result.value;
+        const { chainId, events, total, uniqueSenders } = result.value;
         allEvents.push(...events);
-        if (!chainStats[chainId]) {
-          chainStats[chainId] = { count: 0, senders: new Set() };
-        }
-        chainStats[chainId].count += events.length;
-        for (const e of events) {
-          chainStats[chainId].senders.add(e.sender);
-        }
+        chainStats[chainId] = { count: total, uniqueSenders };
       }
     }
 
@@ -115,7 +132,7 @@ export async function GET(request: NextRequest) {
       name: CHAIN_META[cid]?.name ?? `Chain ${cid}`,
       color: CHAIN_META[cid]?.color ?? '#888888',
       count: chainStats[cid].count,
-      uniqueAgents: chainStats[cid].senders.size,
+      uniqueAgents: chainStats[cid].uniqueSenders,
     }));
 
     const total = chains.reduce((s, c) => s + c.count, 0);

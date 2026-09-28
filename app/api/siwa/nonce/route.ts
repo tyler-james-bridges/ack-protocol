@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isAddress, createPublicClient, http } from 'viem';
-import { abstract } from 'viem/chains';
+import { isAddress } from 'viem';
 import { createSIWANonce } from '@buildersgarden/siwa';
+import { publicClientForRegistry } from '@/lib/siwa-client';
 
 const SIWA_NONCE_SECRET = process.env.SIWA_NONCE_SECRET;
 
 if (!SIWA_NONCE_SECRET) {
   console.error('SIWA_NONCE_SECRET must be set');
 }
-
-const client = createPublicClient({
-  chain: abstract,
-  transport: http(),
-});
 
 /**
  * POST /api/siwa/nonce
@@ -46,7 +41,15 @@ export async function POST(request: NextRequest) {
 
     if (!agentRegistry || typeof agentRegistry !== 'string') {
       return NextResponse.json(
-        { error: 'agentRegistry required (e.g. eip155:2741:0x8004A169...)' },
+        { error: 'agentRegistry required (e.g. eip155:8453:0x8004A169...)' },
+        { status: 400 }
+      );
+    }
+
+    const client = publicClientForRegistry(agentRegistry);
+    if (!client) {
+      return NextResponse.json(
+        { error: 'agentRegistry chain is not supported' },
         { status: 400 }
       );
     }

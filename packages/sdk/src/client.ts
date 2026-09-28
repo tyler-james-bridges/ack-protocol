@@ -4,6 +4,7 @@ import {
   http,
   numberToHex,
   decodeAbiParameters,
+  decodeEventLog,
   toHex,
   keccak256,
   type WalletClient,
@@ -204,25 +205,27 @@ export class ACK {
    * Get reputation data for an agent
    */
   public async reputation(agentId: number): Promise<Reputation | null> {
-    try {
-      if (this.apiKey) {
+    if (this.apiKey) {
+      try {
         const chainConfig = getChainConfig(this.config.chain);
         const data = await this.apiCall(`/agents/${chainConfig.id}/${agentId}`);
         const scores = data.scores || {};
         return {
           agentId,
-          qualityScore: scores.quality || data.quality_score || 0,
+          qualityScore: Number(
+            scores.quality || data.quality_score || data.total_score || 0
+          ),
           totalFeedbacks: data.total_feedbacks || 0,
           averageRating: data.average_score || 0,
           categories: [],
         };
+      } catch (error) {
+        console.warn(`Failed to get reputation for agent ${agentId}:`, error);
+        return null;
       }
-
-      return await this.getReputationFromContract(agentId);
-    } catch (error) {
-      console.warn(`Failed to get reputation for agent ${agentId}:`, error);
-      return null;
     }
+
+    return this.getReputationFromContract(agentId);
   }
 
   /**
@@ -474,15 +477,17 @@ export class ACK {
       hash,
       blockNumber: receipt.blockNumber,
       gasUsed: receipt.gasUsed,
+      agentId: agentIdFromRegisterReceipt(receipt.logs),
     };
   }
 
   /**
    * Give kudos/feedback to an agent.
+   * Params are optional. A kudos that is not a review always sends value 5.
    */
   public async kudos(
     agentId: number,
-    params: KudosParams
+    params: KudosParams = {}
   ): Promise<TransactionResult> {
     if (!this.walletClient) {
       throw new Error('Giving kudos requires a wallet client');
@@ -681,7 +686,10 @@ export class ACK {
     const res = await fetch(`${this.baseUrl}/api/tips`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        ...params,
+        chainId: params.chainId ?? 8453,
+      }),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -707,7 +715,7 @@ export class ACK {
 
   /**
    * Verify a USDC payment for a tip.
-   * Call this after sending the USDC transfer on Abstract.
+   * Call this after sending the USDC transfer on the tip's chain.
    * The server checks the transaction receipt for a matching Transfer event.
    */
   public async verifyTip(
@@ -802,141 +810,163 @@ export class ACK {
 
   /**
    * Get reputation by scanning NewFeedback events on-chain.
-   * Falls back to a zero-reputation result on error.
+   * An empty log is a real zero. A failed log query throws.
    */
   private async getReputationFromContract(
     agentId: number
   ): Promise<Reputation | null> {
-    try {
-      const feedbacks = await this.getFeedbacksFromEvents(agentId);
-      if (feedbacks.length === 0) {
-        return {
-          agentId,
-          qualityScore: 0,
-          totalFeedbacks: 0,
-          averageRating: 0,
-          categories: [],
-        };
-      }
-
-      const totalFeedbacks = feedbacks.length;
-      const sumScores = feedbacks.reduce((sum, f) => sum + f.score, 0);
-      const averageRating = sumScores / totalFeedbacks;
-
-      // Build category breakdown
-      const catMap = new Map<
-        FeedbackCategory,
-        { total: number; count: number }
-      >();
-      for (const f of feedbacks) {
-        const existing = catMap.get(f.category);
-        if (existing) {
-          existing.total += f.score;
-          existing.count += 1;
-        } else {
-          catMap.set(f.category, { total: f.score, count: 1 });
-        }
-      }
-
-      const categories: ReputationCategory[] = [];
-      for (const [category, { total, count }] of catMap) {
-        categories.push({
-          category,
-          averageScore: total / count,
-          count,
-        });
-      }
-
+    const feedbacks = await this.getFeedbacksFromEvents(agentId);
+    if (feedbacks.length === 0) {
       return {
         agentId,
-        qualityScore: averageRating * 20, // Scale to 0-100
-        totalFeedbacks,
-        averageRating,
-        categories,
+        qualityScore: 0,
+        totalFeedbacks: 0,
+        averageRating: 0,
+        categories: [],
       };
-    } catch {
-      return null;
     }
+
+    const totalFeedbacks = feedbacks.length;
+    const sumScores = feedbacks.reduce((sum, f) => sum + f.score, 0);
+    const averageRating = sumScores / totalFeedbacks;
+
+    // Build category breakdown
+    const catMap = new Map<
+      FeedbackCategory,
+      { total: number; count: number }
+    >();
+    for (const f of feedbacks) {
+      const existing = catMap.get(f.category);
+      if (existing) {
+        existing.total += f.score;
+        existing.count += 1;
+      } else {
+        catMap.set(f.category, { total: f.score, count: 1 });
+      }
+    }
+
+    const categories: ReputationCategory[] = [];
+    for (const [category, { total, count }] of catMap) {
+      categories.push({
+        category,
+        averageScore: total / count,
+        count,
+      });
+    }
+
+    return {
+      agentId,
+      qualityScore: averageRating * 20, // Scale to 0-100
+      totalFeedbacks,
+      averageRating,
+      categories,
+    };
   }
 
   /**
    * Fetch feedbacks by scanning NewFeedback events from the ReputationRegistry.
    */
   private async getFeedbacksFromEvents(agentId: number): Promise<Feedback[]> {
-    try {
-      const chainConfig = getChainConfig(this.config.chain);
-      const deployBlock = DEPLOYMENT_BLOCKS[chainConfig.id] ?? BigInt(0);
+    const chainConfig = getChainConfig(this.config.chain);
+    const deployBlock = DEPLOYMENT_BLOCKS[chainConfig.id] ?? BigInt(0);
 
-      // Topic[1] is the indexed agentId
-      const agentIdHex =
-        `0x${BigInt(agentId).toString(16).padStart(64, '0')}` as Hex;
+    // Topic[1] is the indexed agentId
+    const agentIdHex =
+      `0x${BigInt(agentId).toString(16).padStart(64, '0')}` as Hex;
 
-      const rawLogs = (await this.publicClient.request({
-        method: 'eth_getLogs',
-        params: [
-          {
-            address: CONTRACT_ADDRESSES.REPUTATION_REGISTRY,
-            topics: [EVENT_TOPICS.NEW_FEEDBACK, agentIdHex],
-            fromBlock: numberToHex(deployBlock),
-            toBlock: 'latest',
-          },
-        ],
-      })) as Array<{
-        topics: Hex[];
-        data: Hex;
-        blockNumber: Hex;
-        transactionHash: Hex;
-      }>;
+    const rawLogs = (await this.publicClient.request({
+      method: 'eth_getLogs',
+      params: [
+        {
+          address: CONTRACT_ADDRESSES.REPUTATION_REGISTRY,
+          topics: [EVENT_TOPICS.NEW_FEEDBACK, agentIdHex],
+          fromBlock: numberToHex(deployBlock),
+          toBlock: 'latest',
+        },
+      ],
+    })) as Array<{
+      topics: Hex[];
+      data: Hex;
+      blockNumber: Hex;
+      transactionHash: Hex;
+    }>;
 
-      const feedbacks: Feedback[] = [];
+    const feedbacks: Feedback[] = [];
 
-      for (const log of rawLogs) {
-        try {
-          const sender = ('0x' + log.topics[2]!.slice(26)) as Address;
+    for (const log of rawLogs) {
+      try {
+        const sender = ('0x' + log.topics[2]!.slice(26)) as Address;
 
-          const decoded = decodeAbiParameters(
-            [
-              { name: 'feedbackIndex', type: 'uint64' },
-              { name: 'value', type: 'int128' },
-              { name: 'valueDecimals', type: 'uint8' },
-              { name: 'tag1', type: 'string' },
-              { name: 'tag2', type: 'string' },
-              { name: 'endpoint', type: 'string' },
-              { name: 'feedbackURI', type: 'string' },
-              { name: 'feedbackHash', type: 'bytes32' },
-            ],
-            log.data
-          );
+        const decoded = decodeAbiParameters(
+          [
+            { name: 'feedbackIndex', type: 'uint64' },
+            { name: 'value', type: 'int128' },
+            { name: 'valueDecimals', type: 'uint8' },
+            { name: 'tag1', type: 'string' },
+            { name: 'tag2', type: 'string' },
+            { name: 'endpoint', type: 'string' },
+            { name: 'feedbackURI', type: 'string' },
+            { name: 'feedbackHash', type: 'bytes32' },
+          ],
+          log.data
+        );
 
-          const feedbackIndex = decoded[0];
-          const value = decoded[1];
-          const tag2 = decoded[4];
-          const feedbackURIStr = decoded[6];
+        const feedbackIndex = decoded[0];
+        const value = decoded[1];
+        const tag2 = decoded[4];
+        const feedbackURIStr = decoded[6];
 
-          let message = '';
-          const parsed = parseFeedbackURI(feedbackURIStr);
-          if (parsed) {
-            message = String(parsed.reasoning || parsed.message || '');
-          }
-
-          feedbacks.push({
-            id: `${agentId}-${feedbackIndex}`,
-            agentId,
-            from: sender,
-            category: (tag2 || 'reliability') as FeedbackCategory,
-            score: Number(value),
-            message,
-            timestamp: Number(BigInt(log.blockNumber)),
-            transactionHash: log.transactionHash as Hash,
-          });
-        } catch {
-          // skip malformed events
+        let message = '';
+        const parsed = parseFeedbackURI(feedbackURIStr);
+        if (parsed) {
+          message = String(parsed.reasoning || parsed.message || '');
         }
-      }
 
-      return feedbacks.reverse();
+        feedbacks.push({
+          id: `${agentId}-${feedbackIndex}`,
+          agentId,
+          from: sender,
+          category: (tag2 || 'reliability') as FeedbackCategory,
+          score: Number(value),
+          message,
+          timestamp: Number(BigInt(log.blockNumber)),
+          transactionHash: log.transactionHash as Hash,
+        });
+      } catch {
+        // skip malformed events
+      }
+    }
+
+    return feedbacks.reverse();
+  }
+}
+
+function agentIdFromRegisterReceipt(
+  logs: ReadonlyArray<{
+    address: Address;
+    data: Hex;
+    topics: readonly Hex[] | Hex[];
+  }>
+): number | undefined {
+  for (const log of logs) {
+    if (
+      log.address.toLowerCase() !==
+      CONTRACT_ADDRESSES.IDENTITY_REGISTRY.toLowerCase()
+    ) {
+      continue;
+    }
+    try {
+      const decoded = decodeEventLog({
+        abi: IDENTITY_REGISTRY_ABI,
+        data: log.data,
+        topics: log.topics as [Hex, ...Hex[]],
+      });
+      if (decoded.eventName === 'Registered') {
+        return Number(decoded.args.agentId);
+      }
     } catch {
-      return [];
+      continue;
     }
   }
+  return undefined;
 }

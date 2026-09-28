@@ -5,6 +5,7 @@ import {
   getAllStreaks,
 } from '@/lib/streaks';
 import { getAllFeedbackEvents } from '@/lib/feedback-cache';
+import { resolveChainId } from '@/config/chain';
 
 const ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
 
@@ -12,6 +13,11 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const addressesParam = searchParams.get('addresses');
   const topParam = searchParams.get('top');
+  const chainParam = searchParams.get('chainId');
+  const chainId = resolveChainId(chainParam ?? undefined);
+  if (chainParam && chainId === undefined) {
+    return NextResponse.json({ error: 'Unsupported chainId' }, { status: 400 });
+  }
 
   try {
     // Bulk lookup: ?addresses=0x...,0x...
@@ -21,7 +27,7 @@ export async function GET(req: NextRequest) {
         .filter((a) => ADDRESS_RE.test(a))
         .slice(0, 100);
 
-      const all = await getAllStreaks();
+      const all = await getAllStreaks(chainId);
       const result: Record<string, ReturnType<typeof Object>> = {};
       for (const addr of addresses) {
         const streak = all.get(addr.toLowerCase());
@@ -41,8 +47,8 @@ export async function GET(req: NextRequest) {
     if (topParam !== null) {
       const limit = Math.min(parseInt(topParam, 10) || 20, 100);
       const [top, events] = await Promise.all([
-        limit > 0 ? getTopStreakers(limit) : Promise.resolve([]),
-        getAllFeedbackEvents(),
+        limit > 0 ? getTopStreakers(limit, chainId) : Promise.resolve([]),
+        getAllFeedbackEvents(chainId),
       ]);
       return NextResponse.json(
         { streakers: top, totalKudos: events.length },

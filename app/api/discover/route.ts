@@ -141,8 +141,8 @@ export async function GET(request: NextRequest) {
       const candidateAgents = agents.slice(0, 50);
       const withFeedback = await Promise.all(
         candidateAgents.map((agent) =>
-          getFeedbackByAgentId(Number(agent.token_id)).then((feedbacks) =>
-            enrichAgent(agent, feedbacks)
+          getFeedbackByAgentId(Number(agent.token_id), agent.chain_id).then(
+            (feedbacks) => enrichAgent(agent, feedbacks)
           )
         )
       );
@@ -159,8 +159,8 @@ export async function GET(request: NextRequest) {
       agents = agents.slice(offset, offset + limit);
       const withFeedback = await Promise.all(
         agents.map((agent) =>
-          getFeedbackByAgentId(Number(agent.token_id)).then((feedbacks) =>
-            enrichAgent(agent, feedbacks)
+          getFeedbackByAgentId(Number(agent.token_id), agent.chain_id).then(
+            (feedbacks) => enrichAgent(agent, feedbacks)
           )
         )
       );

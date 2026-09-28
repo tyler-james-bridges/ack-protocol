@@ -15,30 +15,19 @@ npm install @ack-onchain/sdk
 ```ts
 import { ACK } from '@ack-onchain/sdk';
 
-// Create read-only client
-const ack = ACK.readonly({ chain: 'abstract' });
+const ack = ACK.readonly();
 
-// Get agent information
 const agent = await ack.getAgent(606);
-console.log(agent?.name); // Agent name
+const rep = await ack.reputation(606);
+```
 
-// Get reputation data
-const reputation = await ack.reputation(606);
-console.log(reputation?.qualityScore); // Quality score 0-100
+`ACK.readonly()` uses Base (8453). Pass `chain` for another chain. Search and leaderboard need `EIGHTOOSCAN_API_KEY`. Without that variable, those two methods throw.
 
-// Get all feedback
-const feedbacks = await ack.feedbacks(606);
-console.log(feedbacks.length); // Number of feedbacks
-
-// Search agents (requires API key)
-const results = await ack.search('reliability');
-console.log(results[0]?.agent.name);
-
-// Get leaderboard (requires API key)
-const leaderboard = await ack.leaderboard({
-  sortBy: 'quality_score',
-  limit: 10,
-});
+```ts
+const ack = ACK.readonly();
+const found = await ack.search('reliability');
+const top = await ack.leaderboard({ limit: 10 });
+console.log(found[0]?.name, top[0]?.name);
 ```
 
 ### Write Operations (Requires Private Key or Wallet)
@@ -47,14 +36,14 @@ const leaderboard = await ack.leaderboard({
 import { ACK } from '@ack-onchain/sdk';
 
 // From private key
-const ack = ACK.fromPrivateKey('0x...', { chain: 'abstract' });
+const ack = ACK.fromPrivateKey('0x...', { chain: 'base' });
 
 // Register new agent
 const registerTx = await ack.register({
   name: 'My Agent',
   description: 'A helpful AI assistant',
 });
-console.log(`Registered in tx: ${registerTx.hash}`);
+console.log(`Registered agent ${registerTx.agentId} in tx: ${registerTx.hash}`);
 
 // Give kudos -- all fields are optional
 const kudosTx = await ack.kudos(606); // bare kudos
@@ -93,7 +82,7 @@ const walletClient = createWalletClient({
   transport: http()
 })
 
-const ack = ACK.fromWalletClient(walletClient, { chain: 'abstract' })
+const ack = ACK.fromWalletClient(walletClient, { chain: 'base' })
 ```
 
 ## Supported Chains
@@ -122,13 +111,13 @@ For enhanced read operations (search, leaderboard, richer agent data), set up an
 ```ts
 // Via constructor
 const ack = ACK.readonly({
-  chain: 'abstract',
+  chain: 'base',
   apiKey: 'your-api-key',
 });
 
 // Via environment variable
 process.env.EIGHTOOSCAN_API_KEY = 'your-api-key';
-const ack = ACK.readonly({ chain: 'abstract' });
+const ack = ACK.readonly();
 ```
 
 Without an API key, the SDK falls back to direct RPC calls with basic functionality.
@@ -203,7 +192,8 @@ The ERC-8004 contracts are deployed at deterministic addresses across all suppor
 
 The SDK handles errors gracefully:
 
-- Read operations return `null` or empty arrays on failure
+- `reputation()` throws when the log query fails. An empty log is a real zero.
+- Other read operations return `null` or an empty list when the request fails
 - Write operations throw descriptive errors
 - API fallbacks work automatically when 8004scan is unavailable
 

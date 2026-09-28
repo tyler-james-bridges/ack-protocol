@@ -186,7 +186,7 @@ Request:
 }
 ```
 
-`chainId` defaults to Abstract (`2741`). Use `8453` for Base. `kudosTxHash` is optional and links the tip to an existing onchain kudos transaction.
+`chainId` defaults to Base (`8453`). `kudosTxHash` is optional and links the tip to an existing onchain kudos transaction.
 
 Response:
 
@@ -205,7 +205,7 @@ Response:
 
 ### GET /api/tips/{tipId}
 
-Returns the current status of a tip (`pending`, `paid`, or `expired`).
+Returns the current status of a tip (`pending`, `completed`, or `expired`).
 
 ### POST /api/tips/{tipId}/verify
 

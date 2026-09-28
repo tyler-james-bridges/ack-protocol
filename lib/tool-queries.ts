@@ -233,10 +233,12 @@ export async function getReputationByAddress(
 
   const feedbackResults = await Promise.all(
     agentsOwned.map((agent) =>
-      getFeedbackByAgentId(Number(agent.token_id)).then((feedbacks) => ({
-        agent,
-        feedbacks,
-      }))
+      getFeedbackByAgentId(Number(agent.token_id), agent.chain_id).then(
+        (feedbacks) => ({
+          agent,
+          feedbacks,
+        })
+      )
     )
   );
 
@@ -341,8 +343,8 @@ export async function discoverAgents(
     const candidateAgents = agents.slice(0, 50);
     const withFeedback = await Promise.all(
       candidateAgents.map((agent) =>
-        getFeedbackByAgentId(Number(agent.token_id)).then((feedbacks) =>
-          enrichAgent(agent, feedbacks)
+        getFeedbackByAgentId(Number(agent.token_id), agent.chain_id).then(
+          (feedbacks) => enrichAgent(agent, feedbacks)
         )
       )
     );
@@ -355,8 +357,8 @@ export async function discoverAgents(
     agents = agents.slice(offset, offset + limit);
     const withFeedback = await Promise.all(
       agents.map((agent) =>
-        getFeedbackByAgentId(Number(agent.token_id)).then((feedbacks) =>
-          enrichAgent(agent, feedbacks)
+        getFeedbackByAgentId(Number(agent.token_id), agent.chain_id).then(
+          (feedbacks) => enrichAgent(agent, feedbacks)
         )
       )
     );
@@ -377,6 +379,7 @@ export async function discoverAgents(
 
 export async function getFeedbackHistory(options: {
   agentId: number;
+  chainId?: number;
   limit?: number;
   offset?: number;
 }): Promise<FeedbackHistoryResult> {
@@ -385,7 +388,7 @@ export async function getFeedbackHistory(options: {
     MAX_FEEDBACK_LIMIT
   );
   const offset = Math.max(0, options.offset ?? 0);
-  const all = await getFeedbackByAgentId(options.agentId);
+  const all = await getFeedbackByAgentId(options.agentId, options.chainId);
   const sorted = [...all].sort(
     (a, b) => parseInt(b.blockNumber, 10) - parseInt(a.blockNumber, 10)
   );

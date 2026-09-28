@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { decodeFunctionData } from 'viem';
 import { AckActionProvider } from '../src/ackActionProvider';
 import {
   ACK_API_BASE_URL,
   IDENTITY_REGISTRY_ADDRESS,
   REPUTATION_REGISTRY_ADDRESS,
+  REPUTATION_REGISTRY_ABI,
 } from '../src/constants';
 
 const ERC_8021_MARKER = '8021'.repeat(8);
@@ -264,21 +266,28 @@ describe('AckActionProvider', () => {
     it('sends kudos transaction', async () => {
       const result = await provider.giveKudos(mockWalletProvider, {
         agentId: 606,
-        value: 85,
-        tag1: 'reliability',
-        tag2: '',
+        category: 'reliability',
       });
 
-      expect(result).toContain('Successfully gave 85 kudos to agent 606');
+      expect(result).toContain('Successfully gave kudos to agent 606');
+      expect(result).toContain('reliability');
       expect(result).toContain('on the connected chain');
       expect(result).toContain('0xMockTxHash');
+      const sentData = mockWalletProvider.sendTransaction.mock.calls[0][0]
+        .data as `0x${string}`;
+      const decoded = decodeFunctionData({
+        abi: REPUTATION_REGISTRY_ABI,
+        data: sentData,
+      });
+      expect(decoded.functionName).toBe('giveFeedback');
+      expect(decoded.args[1]).toBe(5n);
+      expect(decoded.args[3]).toBe('kudos');
+      expect(decoded.args[4]).toBe('reliability');
       expect(mockWalletProvider.sendTransaction).toHaveBeenCalledWith(
         expect.objectContaining({
           to: REPUTATION_REGISTRY_ADDRESS,
         })
       );
-      const sentData = mockWalletProvider.sendTransaction.mock.calls[0][0]
-        .data as string;
       expect(sentData.toLowerCase().endsWith(ERC_8021_MARKER)).toBe(false);
       expect(mockWalletProvider.waitForTransactionReceipt).toHaveBeenCalledWith(
         '0xMockTxHash'
@@ -293,9 +302,7 @@ describe('AckActionProvider', () => {
 
       await provider.giveKudos(mockWalletProvider, {
         agentId: 606,
-        value: 85,
-        tag1: 'reliability',
-        tag2: '',
+        category: 'reliability',
       });
 
       const sentData = mockWalletProvider.sendTransaction.mock.calls[0][0]
@@ -311,9 +318,7 @@ describe('AckActionProvider', () => {
 
       const result = await provider.giveKudos(mockWalletProvider, {
         agentId: 606,
-        value: 50,
-        tag1: '',
-        tag2: '',
+        category: '',
       });
 
       expect(result).toContain('Error giving kudos');
@@ -389,7 +394,8 @@ describe('AckActionProvider', () => {
         ok: true,
         json: async () => ({
           tipId: 'tip_abc123',
-          paymentUrl: 'https://ack-onchain.dev/tips/tip_abc123',
+          paymentAddress: '0x1111111111111111111111111111111111111111',
+          tokenAddress: '0x2222222222222222222222222222222222222222',
         }),
       });
 
@@ -403,11 +409,23 @@ describe('AckActionProvider', () => {
       expect(result).toContain('Successfully created tip of $1.5 USDC');
       expect(result).toContain('tip_abc123');
       expect(result).toContain('Great work!');
+      expect(result).toContain(
+        'Payment address: 0x1111111111111111111111111111111111111111'
+      );
+      expect(result).toContain(
+        'Token address: 0x2222222222222222222222222222222222222222'
+      );
       expect(globalThis.fetch).toHaveBeenCalledWith(
         `${ACK_API_BASE_URL}/api/tips`,
         expect.objectContaining({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentId: 606,
+            chainId: 2741,
+            fromAddress: '0xTestAddress',
+            amountUsd: 1.5,
+          }),
         })
       );
     });

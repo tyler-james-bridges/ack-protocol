@@ -113,10 +113,12 @@ export async function GET(
     // Fetch feedback for each agent from shared cache
     const feedbackResults = await Promise.all(
       agentsOwned.map((agent) =>
-        getFeedbackByAgentId(Number(agent.token_id)).then((feedbacks) => ({
-          agent,
-          feedbacks,
-        }))
+        getFeedbackByAgentId(Number(agent.token_id), agent.chain_id).then(
+          (feedbacks) => ({
+            agent,
+            feedbacks,
+          })
+        )
       )
     );
 

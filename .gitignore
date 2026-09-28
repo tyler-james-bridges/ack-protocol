@@ -62,3 +62,6 @@ tests/extensions/
 # Service node_modules and logs
 services/*/node_modules/
 services/*/logs/
+
+# Base feedback archive written by the backfill
+data/base-feedback/

@@ -5,7 +5,6 @@
  * caches so that multiple API routes (feedback, discover, reputation) share
  * the same data without redundant RPC calls.
  *
- * The default reader scans Abstract. Base feedback is read from the archive.
  * Each live chain maintains its own cache and client instance.
  *
  * SERVERLESS CAVEAT: The in-memory caches reset on every cold start in
@@ -204,8 +203,7 @@ export async function getAllFeedbackEventsForChain(
 
 /**
  * Fetch NewFeedback events for the default chains.
- * Pass chainId to scan one chain. Chain 8453 returns no live events.
- * The default set is Abstract.
+ * Pass chainId to scan one chain.
  */
 export async function getAllFeedbackEvents(
   chainId?: number

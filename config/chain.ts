@@ -61,7 +61,6 @@ export const DEFAULT_8004_CHAIN_ID = SUPPORTED_8004_CHAINS[chain.id]
   ? chain.id
   : base.id;
 
-/** Unscoped live feedback reads. Base kudos come from the archive. */
 export const DEFAULT_FEEDBACK_CHAIN_IDS = [2741] as const;
 
 /** Resolve a chain name or ID to the numeric chain ID. Returns undefined if unsupported. */

@@ -2,7 +2,7 @@ name: Base feedback index
 
 on:
   schedule:
-    - cron: '15 * * * *' # hourly at :15
+    - cron: '15 * * * *'
   workflow_dispatch:
 
 concurrency:

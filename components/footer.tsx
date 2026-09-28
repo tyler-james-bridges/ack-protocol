@@ -66,16 +66,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t-2 border-black pt-4 flex flex-col gap-2 text-xs text-black/50 font-mono uppercase tracking-wider sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 border-t-2 border-black pt-4 text-xs text-black/50 font-mono uppercase tracking-wider">
           <p>Powered by ERC-8004</p>
-          <a
-            href="https://abs.xyz"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-black transition-colors"
-          >
-            Built on Abstract
-          </a>
         </div>
       </div>
     </footer>

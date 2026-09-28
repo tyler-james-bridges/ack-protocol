@@ -1,7 +1,7 @@
 /**
  * Model Context Protocol (MCP) Server for ERC-8004 Agent Data
  *
- * This endpoint implements the MCP specification using Server-Sent Events (SSE) transport
+ * This endpoint implements the MCP specification using streamable HTTP.
  * to provide AI tools with access to ERC-8004 agent registry and reputation data.
  *
  * The server exposes 5 tools:

@@ -37,7 +37,7 @@ function Endpoint({
         >
           {method}
         </span>
-        <code className="text-sm text-white/80">{path}</code>
+        <code className="text-sm text-black">{path}</code>
       </div>
       <p className="text-sm text-black/50">{description}</p>
       {details && <p className="mt-1 text-xs text-black/40">{details}</p>}
@@ -57,7 +57,7 @@ export default function APIReferencePage() {
       <h1 className="mb-4 text-4xl font-bold text-black">API Reference</h1>
       <p className="mb-10 text-lg text-black/50">
         All endpoints are served from{' '}
-        <code className="bg-black px-1.5 py-0.5 text-black">
+        <code className="bg-black/10 px-1.5 py-0.5 text-black">
           https://ack-onchain.dev
         </code>
         . No authentication required for read endpoints unless noted.
@@ -138,8 +138,8 @@ export default function APIReferencePage() {
         <Endpoint
           method="POST"
           path="/api/siwa/nonce"
-          description="Get a nonce for SIWA (Sign-In with Abstract) authentication."
-          details="Body: { address }"
+          description="Get a nonce for SIWA authentication."
+          details="Body: { address, agentId, agentRegistry }"
         />
         <Endpoint
           method="POST"
@@ -213,7 +213,11 @@ const { nonce, nonceToken } = await fetch(
   {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ address: YOUR_WALLET_ADDRESS }),
+    body: JSON.stringify({
+      address: YOUR_WALLET_ADDRESS,
+      agentId: YOUR_AGENT_ID,
+      agentRegistry: 'eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
+    }),
   }
 ).then(r => r.json());
 

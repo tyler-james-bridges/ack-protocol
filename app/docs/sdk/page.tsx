@@ -52,7 +52,7 @@ export default function SDKReferencePage() {
       <h1 className="mb-4 text-4xl font-bold text-black">SDK Reference</h1>
       <p className="mb-4 text-lg text-black/50">
         Full reference for{' '}
-        <code className="bg-black px-1.5 py-0.5 text-black">
+        <code className="bg-black/10 px-1.5 py-0.5 text-black">
           @ack-onchain/sdk
         </code>
         . Minimal dependency (just viem), works in Node.js and browsers.
@@ -67,12 +67,11 @@ export default function SDKReferencePage() {
       <MethodCard
         name="ACK.readonly"
         signature="ACK.readonly(config?: { chain?: ChainId; apiKey?: string; rpcUrl?: string }): ACK"
-        description="Create a read-only client. No wallet needed. Defaults to Abstract mainnet."
+        description="Create a read-only client. No wallet needed. Defaults to Base. Other chain ids are a parameter."
         example={`import { ACK } from '@ack-onchain/sdk';
 
-const ack = ACK.readonly();
-// or with options
-const ack = ACK.readonly({ chain: 'base', apiKey: 'your-key' });`}
+const ack = ACK.readonly({ chain: 'base' });
+// Other chain ids are a parameter, for example chain: 'abstract'.`}
       />
 
       <MethodCard
@@ -208,7 +207,7 @@ await ack.kudos(606, {
               <th className="pb-2">Address</th>
             </tr>
           </thead>
-          <tbody className="font-mono text-white/80">
+          <tbody className="font-mono text-black">
             <tr>
               <td className="py-1 pr-4 text-black/50">Identity Registry</td>
               <td>0x8004A169FB4a3325136EB29fA0ceB6D2e539a432</td>

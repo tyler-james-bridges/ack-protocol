@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
-import Image from 'next/image';
 import { AgentAvatar } from '@/components/agent-avatar';
 import { ChainIcon } from '@/components/chain-icon';
 import { HeroSearch } from '@/components/hero-search';
@@ -45,66 +44,10 @@ export default async function Home() {
           <h1 className="text-4xl sm:text-6xl font-bold font-mono uppercase tracking-tight leading-none">
             ACK
           </h1>
-          <p className="mt-3 text-lg sm:text-2xl font-mono uppercase tracking-tight text-black/70">
-            Onchain reputation through consensus.
+          <p className="mt-4 max-w-xl text-base sm:text-lg font-mono text-black/70 leading-relaxed">
+            ACK records kudos for ERC-8004 agents. The default chain is Base. An
+            agent can be registered on another supported chain.
           </p>
-          <p className="mt-4 max-w-lg text-sm font-mono text-black/40">
-            Give kudos to AI agents. Via post. Onchain. The open protocol for
-            agent identity and trust.
-          </p>
-
-          {/* Protocol rail */}
-          <div className="mt-8 flex flex-wrap items-center gap-6">
-            <span className="text-[10px] text-black/30 uppercase tracking-[0.2em] font-mono">
-              Payments on
-            </span>
-            <a
-              href="https://abs.xyz"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:opacity-70 transition-opacity"
-            >
-              <Image
-                src="/abstract-logo.png"
-                alt="Abstract"
-                width={98}
-                height={14}
-                className="h-4 w-auto"
-                style={{
-                  filter:
-                    'invert(70%) sepia(50%) saturate(600%) hue-rotate(95deg) brightness(95%) contrast(95%)',
-                }}
-              />
-            </a>
-            <a
-              href="https://base.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:opacity-70 transition-opacity"
-            >
-              <Image
-                src="/base-logo-brand.png"
-                alt="Base"
-                width={64}
-                height={36}
-                className="h-8 w-auto"
-              />
-            </a>
-            <a
-              href="https://tempo.xyz"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:opacity-70 transition-opacity"
-            >
-              <Image
-                src="/tempo-logo.png"
-                alt="Tempo"
-                width={59}
-                height={14}
-                className="h-4 w-auto"
-              />
-            </a>
-          </div>
 
           <TwitterCTA />
           <HeroSearch />
@@ -117,12 +60,9 @@ export default async function Home() {
           {/* Top Agents */}
           <div className="lg:border-r lg:border-black/20">
             <div className="flex items-center justify-between px-4 py-3 border-b border-black/20">
-              <div className="flex items-center gap-2">
-                <ChainIcon chainId={2741} size={18} />
-                <h2 className="text-sm font-bold font-mono uppercase tracking-wider">
-                  TOP AGENTS
-                </h2>
-              </div>
+              <h2 className="text-sm font-bold font-mono uppercase tracking-wider">
+                TOP AGENTS
+              </h2>
               <Link
                 href="/leaderboard"
                 className="text-xs font-mono uppercase tracking-wider text-black/50 hover:text-black transition-colors"
@@ -151,6 +91,7 @@ export default async function Home() {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
+                    <ChainIcon chainId={agent.chain_id} size={14} />
                     <p className="text-sm font-bold font-mono truncate">
                       {agent.name}
                     </p>
@@ -294,7 +235,7 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
               {
                 step: '04',
                 title: 'REGISTER',
-                desc: 'Get an ERC-8004 identity. Gas-free via paymaster.',
+                desc: 'Get an ERC-8004 identity. The wallet needs ETH for gas.',
                 href: '/register',
                 label: 'Register now',
               },

@@ -51,7 +51,7 @@ export default function RegisterPage() {
   } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { writeContract, data: txHash, isPending } = useWriteContract();
-  const { switchChain } = useSwitchChain();
+  const { switchChainAsync } = useSwitchChain();
 
   // Form state
   const [name, setName] = useState('');
@@ -144,16 +144,16 @@ export default function RegisterPage() {
     if (!name.trim() || !description.trim() || !address) return;
 
     setError(null);
+    setStatus('idle');
 
-    // Switch chain if needed
     if (needsChainSwitch) {
       try {
-        switchChain({ chainId: selectedChainId });
-        // Give the wallet time to switch, then re-trigger
-        setError('Please switch chains in your wallet, then try again.');
-        return;
-      } catch {
-        setError('Failed to switch chain. Please switch manually.');
+        await switchChainAsync({ chainId: selectedChainId });
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to switch chain.'
+        );
+        setStatus('error');
         return;
       }
     }
@@ -278,9 +278,12 @@ export default function RegisterPage() {
               &#9670;
             </span>
             <div>
-              <p className="text-sm font-medium">Gas-free registration</p>
+              <p className="text-sm font-medium">
+                ETH on {selectedChain?.name ?? 'the selected network'} for gas
+              </p>
               <p className="text-xs text-black/50">
-                Powered by Abstract paymaster - no ETH needed
+                Your wallet needs ETH on{' '}
+                {selectedChain?.name ?? 'the selected network'} to register.
               </p>
             </div>
           </div>
@@ -342,7 +345,8 @@ export default function RegisterPage() {
                 />
               </div>
               <p className="text-xs text-black/50 text-center">
-                You will need: a connected wallet with ETH on Base for gas.
+                You will need a connected wallet with ETH on{' '}
+                {selectedChain?.name ?? 'the selected network'} for gas.
               </p>
             </div>
           </div>
@@ -622,7 +626,8 @@ export default function RegisterPage() {
             </Button>
 
             <p className="text-xs text-center text-black/50">
-              Mints an ERC-8004 identity NFT. No cost beyond gas.
+              Mints an ERC-8004 identity NFT. You pay gas with ETH on{' '}
+              {selectedChain?.name ?? 'the selected network'}.
             </p>
           </div>
         )}

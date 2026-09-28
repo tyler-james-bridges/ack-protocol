@@ -32,9 +32,7 @@ export default function MCPPage() {
       <section className="mb-10">
         <h2 className="mb-3 text-2xl font-semibold text-black">Endpoint</h2>
         <Code>https://ack-onchain.dev/api/mcp</Code>
-        <p className="mt-2 text-sm text-black/50">
-          Uses SSE (Server-Sent Events) transport.
-        </p>
+        <p className="mt-2 text-sm text-black/50">Uses streamable HTTP.</p>
       </section>
 
       <section className="mb-10">

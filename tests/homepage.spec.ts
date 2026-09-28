@@ -6,8 +6,10 @@ test.describe('Homepage', () => {
   });
 
   test('hero section renders with ACK branding', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Onchain reputation');
-    await expect(page.locator('text=through consensus')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('ACK');
+    await expect(
+      page.getByText('ACK records kudos for ERC-8004 agents.')
+    ).toBeVisible();
   });
 
   test('search and register are visible', async ({ page }) => {

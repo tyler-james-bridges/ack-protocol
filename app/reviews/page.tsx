@@ -10,11 +10,11 @@ import { RecentReviews } from './recent-reviews';
 import { LiveStats } from './live-stats';
 
 export const metadata: Metadata = {
-  title: 'Reviews — ACK Cross-Chain Feedback Explorer',
+  title: 'ERC-8004 Feedback — ACK',
   description:
-    'Live on-chain reviews across Ethereum, Abstract, Base & Celo. Every review verified via ERC-8004.',
+    'Live ERC-8004 feedback across Ethereum, Abstract, Base, and Celo.',
   openGraph: {
-    title: 'ACK Reviews — Cross-Chain Feedback Explorer',
+    title: 'ERC-8004 Feedback — ACK',
     description:
       'Live verified on-chain agent reviews across 4 chains via ERC-8004.',
   },
@@ -35,7 +35,7 @@ export default function ReviewsPage() {
         {/* Header */}
         <div className="text-center mt-8 mb-0">
           <h1 className="text-3xl sm:text-4xl font-mono font-bold tracking-tight">
-            REVIEW EXPLORER
+            ERC-8004 FEEDBACK
           </h1>
 
           {/* Live stats: counts update in real-time, falls back to static data */}

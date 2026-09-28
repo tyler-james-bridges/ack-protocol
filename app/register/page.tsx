@@ -53,7 +53,6 @@ export default function RegisterPage() {
   const { writeContract, data: txHash, isPending } = useWriteContract();
   const { switchChainAsync } = useSwitchChain();
 
-  // Form state
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedChainId, setSelectedChainId] = useState<number>(

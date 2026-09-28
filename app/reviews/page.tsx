@@ -32,13 +32,11 @@ export default function ReviewsPage() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-16">
         <Breadcrumbs items={[{ label: 'HOME', href: '/' }]} current="REVIEWS" />
 
-        {/* Header */}
         <div className="text-center mt-8 mb-0">
           <h1 className="text-3xl sm:text-4xl font-mono font-bold tracking-tight">
             ERC-8004 FEEDBACK
           </h1>
 
-          {/* Live stats: counts update in real-time, falls back to static data */}
           <LiveStats
             fallbackTotal={data.total}
             fallbackChainCount={data.chains.length}

@@ -1,24 +1,3 @@
-/**
- * Model Context Protocol (MCP) Server for ERC-8004 Agent Data
- *
- * This endpoint implements the MCP specification using streamable HTTP.
- * to provide AI tools with access to ERC-8004 agent registry and reputation data.
- *
- * The server exposes 5 tools:
- * - search_agents: Search agents by name/description
- * - get_agent: Get detailed agent information
- * - get_reputation: Get agent reputation breakdown
- * - get_agent_feedbacks: Get agent kudos/feedback
- * - list_leaderboard: Get top agents by chain
- *
- * All data is proxied from the 8004scan API with authentication.
- *
- * Usage:
- * - GET /api/mcp: Server info and health check (JSON)
- * - POST /api/mcp: MCP tool calls and list requests (JSON-RPC)
- * - OPTIONS /api/mcp: CORS preflight
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 

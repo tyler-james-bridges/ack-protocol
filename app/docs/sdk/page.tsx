@@ -70,8 +70,7 @@ export default function SDKReferencePage() {
         description="Create a read-only client. No wallet needed. Defaults to Base. Other chain ids are a parameter."
         example={`import { ACK } from '@ack-onchain/sdk';
 
-const ack = ACK.readonly({ chain: 'base' });
-// Other chain ids are a parameter, for example chain: 'abstract'.`}
+const ack = ACK.readonly({ chain: 'base' });`}
       />
 
       <MethodCard

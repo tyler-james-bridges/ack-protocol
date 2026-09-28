@@ -291,6 +291,8 @@ export async function fetchLeaderboard(
     const data = await proxyFetch<ScanAgentsResponse>('agents', {
       chain_id: options.chainId,
       limit: displayLimit,
+      sort_by: 'total_score',
+      sort_order: 'desc',
     });
     const agents = (data.items || []).filter((a) => !a.is_testnet);
     return sortAgents(agents, sortBy);

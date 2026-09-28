@@ -33,18 +33,23 @@ export interface NetworkStats {
   total_kudos: number;
 }
 
-export async function fetchNetworkStats(): Promise<NetworkStats> {
-  // Fetch Abstract-only stats
+export async function fetchNetworkStats(
+  chainId: number
+): Promise<NetworkStats> {
   const [agentsRes, feedbackRes, kudosRes] = await Promise.all([
-    fetch('/api/agents?path=agents&chain_id=2741&limit=1'),
+    fetch(`/api/agents?path=agents&chain_id=${chainId}&limit=1`),
     fetch(
-      '/api/agents?path=agents&chain_id=2741&limit=50&sort_by=total_feedbacks&sort_order=desc'
+      `/api/agents?path=agents&chain_id=${chainId}&limit=50&sort_by=total_feedbacks&sort_order=desc`
     ),
     fetch('/api/streaks?top=0'),
   ]);
 
+  if (!agentsRes.ok) {
+    throw new Error(`Failed to load agent stats (${agentsRes.status})`);
+  }
+
   let totalAgents = 0;
-  if (agentsRes.ok) {
+  {
     const agentsData = await agentsRes.json();
     totalAgents = agentsData?.total || 0;
   }

@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, decodeAbiParameters, type Hex } from 'viem';
-import { abstract } from 'viem/chains';
+import {
+  DEFAULT_8004_CHAIN_ID,
+  SUPPORTED_8004_CHAINS,
+  getChainConfig,
+} from '@/config/chain';
 
 const REPUTATION_REGISTRY =
   '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63' as const;
 const NEW_FEEDBACK_TOPIC =
   '0x6a4a61743519c9d648a14e6493f47dbe3ff1aa29e7785c96c8326a205e58febc' as const;
 
-const client = createPublicClient({ chain: abstract, transport: http() });
+const agentNames: Record<string, string> = {};
 
-// Agent name cache
-const agentNames: Record<number, string> = {};
-
-async function getAgentName(agentId: number): Promise<string> {
-  if (agentNames[agentId]) return agentNames[agentId];
+async function getAgentName(agentId: number, chainId: number): Promise<string> {
+  const key = `${chainId}:${agentId}`;
+  if (agentNames[key]) return agentNames[key];
 
   try {
     const apiKey = process.env.EIGHTOOSCAN_API_KEY;
@@ -21,18 +23,44 @@ async function getAgentName(agentId: number): Promise<string> {
     if (apiKey) headers['x-api-key'] = apiKey;
 
     const res = await fetch(
-      `https://api.8004scan.io/api/v1/agents?chainId=2741&search=&limit=100`,
+      `https://api.8004scan.io/api/v1/agents?chainId=${chainId}&search=&limit=100`,
       { headers }
     );
     if (res.ok) {
       const data = await res.json();
       for (const agent of data.items || []) {
-        agentNames[Number(agent.token_id)] = agent.name;
+        agentNames[`${chainId}:${Number(agent.token_id)}`] = agent.name;
       }
     }
   } catch {}
 
-  return agentNames[agentId] || `Agent #${agentId}`;
+  return agentNames[key] || `Agent #${agentId}`;
+}
+
+async function findReceipt(txHash: Hex) {
+  const chainIds = [
+    DEFAULT_8004_CHAIN_ID,
+    ...Object.keys(SUPPORTED_8004_CHAINS)
+      .map(Number)
+      .filter((id) => id !== DEFAULT_8004_CHAIN_ID),
+  ];
+  for (const chainId of chainIds) {
+    const cfg = getChainConfig(chainId);
+    const client = createPublicClient({
+      chain: cfg.chain,
+      transport: http(cfg.rpcUrl),
+    });
+    try {
+      const receipt = await client.getTransactionReceipt({ hash: txHash });
+      const block = await client.getBlock({
+        blockNumber: receipt.blockNumber,
+      });
+      return { receipt, block, chainId };
+    } catch {
+      continue;
+    }
+  }
+  return null;
 }
 
 export async function GET(
@@ -46,9 +74,14 @@ export async function GET(
   }
 
   try {
-    const receipt = await client.getTransactionReceipt({
-      hash: txHash as Hex,
-    });
+    const found = await findReceipt(txHash as Hex);
+    if (!found) {
+      return NextResponse.json(
+        { error: 'Transaction not found' },
+        { status: 404 }
+      );
+    }
+    const { receipt, block, chainId } = found;
 
     if (receipt.status !== 'success') {
       return NextResponse.json(
@@ -56,10 +89,6 @@ export async function GET(
         { status: 404 }
       );
     }
-
-    const block = await client.getBlock({
-      blockNumber: receipt.blockNumber,
-    });
 
     // Find the FeedbackGiven event
     const feedbackLog = receipt.logs.find(
@@ -115,10 +144,11 @@ export async function GET(
       } catch {}
     }
 
-    const agentName = await getAgentName(agentId);
+    const agentName = await getAgentName(agentId, chainId);
 
     return NextResponse.json({
       txHash,
+      chainId,
       agentId,
       agentName,
       sender,

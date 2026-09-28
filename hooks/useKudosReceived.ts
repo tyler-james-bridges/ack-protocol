@@ -2,9 +2,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import type { Address, Hex } from 'viem';
+import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 
 export interface KudosEvent {
   sender: Address;
+  chainId: number;
   feedbackIndex: bigint;
   value: bigint;
   tag1: string;
@@ -25,9 +27,11 @@ function mapEvent(e: {
   feedbackHash: string;
   blockNumber: string;
   txHash: string;
+  chainId?: number;
 }): KudosEvent {
   return {
     sender: e.sender as Address,
+    chainId: e.chainId ?? DEFAULT_8004_CHAIN_ID,
     feedbackIndex: BigInt(e.feedbackIndex),
     value: BigInt(e.value),
     tag1: e.tag1,

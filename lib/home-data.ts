@@ -6,21 +6,20 @@
  */
 
 import { createPublicClient, http } from 'viem';
-import { abstract } from 'viem/chains';
-import { getAllFeedbackEvents, type FeedbackEvent } from './feedback-cache';
+import { DEFAULT_8004_CHAIN_ID, getChainConfig } from '@/config/chain';
+import {
+  getAllFeedbackEventsForChain,
+  type FeedbackEvent,
+} from './feedback-cache';
 import { getAllStreaks, getTopStreakers, type StreakData } from './streaks';
 import type { ScanAgent } from './api';
 
 const SCAN_API = 'https://8004scan.io/api/v1/public';
 
-const abstractClient = createPublicClient({
-  chain: abstract,
-  transport: http(),
-});
-
 export interface RecentKudosItem {
   sender: string;
   agentId: number;
+  chainId: number;
   tag1: string;
   tag2: string;
   message: string | null;
@@ -45,6 +44,7 @@ export interface HomePageData {
   streaks: Record<string, StreakData>;
   topStreakers: { address: string; streak: StreakData }[];
   activeStreakCount: number;
+  feedError: boolean;
 }
 
 function parseMessage(feedbackURI: string): string | null {
@@ -105,20 +105,28 @@ async function fetchScanAgents(
   }
 }
 
-export async function getHomePageData(): Promise<HomePageData> {
-  // Wave 1: Fetch everything in parallel (Abstract-only).
-  // Leaderboard order is authoritative from 8004scan — sort by total_score desc
-  // server-side and preserve that order in the UI (matches /agents?chain=2741&sort=total_score).
-  const [abstractAgentsRes, feedbackEvents, allStreaks] = await Promise.all([
+export async function getHomePageData(
+  chainId: number = DEFAULT_8004_CHAIN_ID
+): Promise<HomePageData> {
+  const chainClient = createPublicClient({
+    chain: getChainConfig(chainId).chain,
+    transport: http(getChainConfig(chainId).rpcUrl),
+  });
+  const feedbackResult = getAllFeedbackEventsForChain(chainId)
+    .then((events) => ({ events, error: false as const }))
+    .catch(() => ({ events: [] as FeedbackEvent[], error: true as const }));
+  const [chainAgentsRes, feedbackResultValue, allStreaks] = await Promise.all([
     fetchScanAgents({
-      chainId: 2741,
+      chainId,
       sortBy: 'total_score',
       sortOrder: 'desc',
       limit: 20,
     }),
-    getAllFeedbackEvents(),
+    feedbackResult,
     getAllStreaks(),
   ]);
+  const feedbackEvents = feedbackResultValue.events;
+  const feedError = feedbackResultValue.error;
 
   // Build feedback counts map
   const feedbackCounts: Record<number, number> = {};
@@ -129,7 +137,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   // Enrich with local kudos counts for display; dedupe by chain:token_id.
   // Do NOT re-sort — 8004scan's total_score ordering is the source of truth.
   const seenAgents = new Set<string>();
-  const leaderboard = (abstractAgentsRes.items || [])
+  const leaderboard = (chainAgentsRes.items || [])
     .filter((a) => !a.is_testnet)
     .filter((a) => {
       const key = `${a.chain_id}:${a.token_id}`;
@@ -160,6 +168,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     recentKudos.push({
       sender: e.sender,
       agentId: e.agentId,
+      chainId: e.chainId,
       tag1: e.tag1,
       tag2: e.tag2,
       message: msg,
@@ -195,7 +204,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     feedbackEvents.map((e) => e.sender.toLowerCase())
   ).size;
   const stats = {
-    total_agents: globalAgents || abstractAgentsRes.total || 0,
+    total_agents: globalAgents || chainAgentsRes.total || 0,
     total_kudos: feedbackEvents.length,
     total_feedbacks: globalFeedbacks,
     total_chains: globalChains,
@@ -210,7 +219,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     await Promise.all(
       blockNumbers.map(async (bn) => {
         try {
-          const block = await abstractClient.getBlock({
+          const block = await chainClient.getBlock({
             blockNumber: BigInt(bn),
           });
           timestamps[bn] = Number(block.timestamp);
@@ -255,5 +264,6 @@ export async function getHomePageData(): Promise<HomePageData> {
     streaks,
     topStreakers,
     activeStreakCount,
+    feedError,
   };
 }

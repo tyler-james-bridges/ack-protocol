@@ -17,10 +17,13 @@ vi.mock('viem', async () => {
 
 vi.mock('viem/chains', () => ({
   abstract: { id: 2741, name: 'Abstract' },
+  abstractTestnet: { id: 11124, name: 'Abstract Testnet' },
+  base: { id: 8453, name: 'Base' },
+  mainnet: { id: 1, name: 'Ethereum' },
 }));
 
 vi.mock('../feedback-cache', () => ({
-  getAllFeedbackEvents: vi.fn().mockResolvedValue([]),
+  getAllFeedbackEventsForChain: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('../streaks', () => ({
@@ -43,12 +46,12 @@ describe('home-data', () => {
   }
 
   it('parses base64 feedback URI messages', async () => {
-    const { getAllFeedbackEvents } = await import('../feedback-cache');
+    const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
     const payload = JSON.stringify({ reasoning: 'Great work!' });
     const base64 = Buffer.from(payload).toString('base64');
     const feedbackURI = `data:application/json;base64,${base64}`;
 
-    vi.mocked(getAllFeedbackEvents).mockResolvedValue([
+    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([
       {
         sender: '0xabc',
         agentId: 1,
@@ -75,11 +78,11 @@ describe('home-data', () => {
   });
 
   it('parses data:, URI messages', async () => {
-    const { getAllFeedbackEvents } = await import('../feedback-cache');
+    const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
     const payload = JSON.stringify({ reasoning: 'Nice agent' });
     const feedbackURI = `data:,${encodeURIComponent(payload)}`;
 
-    vi.mocked(getAllFeedbackEvents).mockResolvedValue([
+    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([
       {
         sender: '0xdef',
         agentId: 2,
@@ -106,9 +109,9 @@ describe('home-data', () => {
   });
 
   it('returns null message for malformed URI', async () => {
-    const { getAllFeedbackEvents } = await import('../feedback-cache');
+    const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
 
-    vi.mocked(getAllFeedbackEvents).mockResolvedValue([
+    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([
       {
         sender: '0xabc',
         agentId: 1,
@@ -135,10 +138,10 @@ describe('home-data', () => {
   });
 
   it('parses raw JSON string feedback URI', async () => {
-    const { getAllFeedbackEvents } = await import('../feedback-cache');
+    const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
     const feedbackURI = JSON.stringify({ message: 'Hello from JSON' });
 
-    vi.mocked(getAllFeedbackEvents).mockResolvedValue([
+    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([
       {
         sender: '0xabc',
         agentId: 1,
@@ -165,8 +168,8 @@ describe('home-data', () => {
   });
 
   it('returns stats from agent data', async () => {
-    const { getAllFeedbackEvents } = await import('../feedback-cache');
-    vi.mocked(getAllFeedbackEvents).mockResolvedValue([]);
+    const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
+    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([]);
 
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,

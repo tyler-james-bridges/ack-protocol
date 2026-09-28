@@ -61,7 +61,7 @@ function WalletDropdown({
       {open && (
         <div className="absolute right-0 top-full mt-0 w-44 border-2 border-black bg-white overflow-hidden z-50">
           <Link
-            href={`/address/${address}`}
+            href="/profile"
             prefetch={false}
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-3 py-2.5 text-sm font-mono uppercase tracking-wider text-black hover:bg-black hover:text-white transition-colors"
@@ -277,11 +277,11 @@ export function Nav() {
               ))}
               {isConnected && address && (
                 <Link
-                  href={`/address/${address}`}
+                  href="/profile"
                   prefetch={false}
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center px-4 py-3 text-[13px] font-mono uppercase tracking-wider border-b border-black/10 transition-colors ${
-                    pathname.startsWith('/address/')
+                    pathname === '/profile'
                       ? 'text-black font-bold bg-black/5'
                       : 'text-black/60 hover:bg-black hover:text-white'
                   }`}

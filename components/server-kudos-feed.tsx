@@ -9,6 +9,13 @@ import type { RecentKudosItem } from '@/lib/home-data';
 import type { ScanAgent } from '@/lib/api';
 import type { StreakData } from '@/lib/streaks';
 import { getTipByKudosTxHash } from '@/lib/tip-store';
+import {
+  ABSTRACT_CHAIN_ID,
+  DEFAULT_8004_CHAIN_ID,
+  getAgentPath,
+  getChainSlug,
+  getExplorerTxUrl,
+} from '@/config/chain';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}\u2009..\u2009${addr.slice(-4)}`;
@@ -20,6 +27,8 @@ interface ServerKudosFeedProps {
   senderMap: Map<string, ScanAgent>;
   timestamps: Record<string, number>;
   streaks?: Record<string, StreakData>;
+  chainId: number;
+  feedError?: boolean;
 }
 
 function FeedItem({
@@ -81,7 +90,10 @@ function FeedItem({
             <span className="text-xs text-black/40 font-mono uppercase">
               gave
             </span>
-            <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
+            <Link
+              href={getAgentPath(kudos.agentId, kudos.chainId)}
+              className="shrink-0"
+            >
               <AgentAvatar
                 name={name}
                 imageUrl={agent?.image_url}
@@ -90,7 +102,7 @@ function FeedItem({
               />
             </Link>
             <Link
-              href={`/agent/2741/${kudos.agentId}`}
+              href={getAgentPath(kudos.agentId, kudos.chainId)}
               className="text-xs font-bold text-black hover:underline transition-colors"
             >
               {name}
@@ -111,7 +123,7 @@ function FeedItem({
             )}
           </div>
           <a
-            href={`https://abscan.org/tx/${kudos.txHash}`}
+            href={getExplorerTxUrl(kudos.txHash, kudos.chainId)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[11px] text-black/30 hover:text-black transition-colors shrink-0 mt-0.5 font-mono"
@@ -151,6 +163,8 @@ export async function ServerKudosFeed({
   senderMap,
   timestamps,
   streaks,
+  chainId,
+  feedError = false,
 }: ServerKudosFeedProps) {
   return (
     <div className="overflow-hidden bg-white flex flex-col">
@@ -162,9 +176,21 @@ export async function ServerKudosFeed({
           <h2 className="text-sm font-bold font-mono uppercase tracking-wider">
             LATEST KUDOS
           </h2>
+          <Link
+            href={`/?chain=${getChainSlug(DEFAULT_8004_CHAIN_ID)}`}
+            className={`text-[11px] font-mono uppercase ${chainId === DEFAULT_8004_CHAIN_ID ? 'text-black font-bold' : 'text-black/40'}`}
+          >
+            Base
+          </Link>
+          <Link
+            href={`/?chain=${getChainSlug(ABSTRACT_CHAIN_ID)}`}
+            className={`text-[11px] font-mono uppercase ${chainId === ABSTRACT_CHAIN_ID ? 'text-black font-bold' : 'text-black/40'}`}
+          >
+            Abstract
+          </Link>
         </div>
         <Link
-          href="/kudos"
+          href={`/kudos?chain=${getChainSlug(chainId)}`}
           className="text-xs font-mono uppercase tracking-wider text-black/50 hover:text-black transition-colors"
         >
           View all &rarr;
@@ -172,7 +198,13 @@ export async function ServerKudosFeed({
       </div>
 
       <div>
-        {kudos.length === 0 ? (
+        {feedError ? (
+          <div className="px-4 py-8 text-center">
+            <p className="text-sm font-mono text-black/50">
+              Could not load kudos.
+            </p>
+          </div>
+        ) : kudos.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <p className="text-sm font-mono text-black/50">
               No kudos yet - be the first!

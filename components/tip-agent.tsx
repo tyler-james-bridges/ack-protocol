@@ -25,11 +25,16 @@ import {
 } from '@/config/chain';
 import { dataSuffixForChainId } from '@/config/builder-code';
 import { cn } from '@/lib/utils';
-import { checkMppPreflight } from '@/lib/payments/mpp-preflight';
 import { mapMppErrorToUiMessage } from '@/lib/payments/mpp-errors';
 import type { Address } from 'viem';
 
 const TIP_PRESETS = [1, 2, 5, 10] as const;
+
+function paymentHash(ref: string | undefined): string | null {
+  if (!ref) return null;
+  const raw = ref.replace(/^(x402:|mpp:)/, '');
+  return /^0x[0-9a-fA-F]{64}$/.test(raw) ? raw : null;
+}
 
 type TipToken = 'USDC' | 'PENGU';
 
@@ -66,26 +71,7 @@ export function TipAgent({
     'idle' | 'sending' | 'success' | 'error'
   >('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [mppViable, setMppViable] = useState<boolean | null>(null);
-  const [mppReason, setMppReason] = useState<string | null>(null);
-
-  // Run MPP preflight when wallet connects
-  useEffect(() => {
-    if (!walletClient) {
-      setMppViable(null);
-      setMppReason(null);
-      return;
-    }
-    let cancelled = false;
-    checkMppPreflight(walletClient).then((result) => {
-      if (cancelled) return;
-      setMppViable(result.viable);
-      setMppReason(result.viable ? null : (result.reason ?? null));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [walletClient]);
+  const [paymentTxHash, setPaymentTxHash] = useState<string | null>(null);
 
   const isSelf =
     address &&
@@ -161,13 +147,15 @@ export function TipAgent({
         });
 
         const res = await paidFetch(`/api/tips/${tipId}/pay`);
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          tip?: { paymentTxHash?: string };
+        };
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(
-            (data as Record<string, string>).error ||
-              `Payment failed (${res.status})`
-          );
+          throw new Error(data.error || `Payment failed (${res.status})`);
         }
+        const settled = paymentHash(data.tip?.paymentTxHash);
+        if (settled) setPaymentTxHash(settled);
 
         setStatus('success');
       } catch (err) {
@@ -207,6 +195,7 @@ export function TipAgent({
     setToken('USDC');
     setStatus('idle');
     setErrorMsg(null);
+    setPaymentTxHash(null);
   }
 
   if (status === 'success') {
@@ -226,9 +215,12 @@ export function TipAgent({
           {amountLabel} {token} sent to {agentName}!
         </p>
         <div className="flex items-center justify-center gap-3">
-          {txHash && (
+          {(paymentTxHash || txHash) && (
             <a
-              href={getExplorerTxUrl(txHash, targetChainId)}
+              href={getExplorerTxUrl(
+                (paymentTxHash || txHash) as string,
+                targetChainId
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-black hover:underline"
@@ -297,7 +289,7 @@ export function TipAgent({
         </svg>
         <p className="font-semibold text-sm">Tip with {token}</p>
         <span className="text-[10px] text-black/60 font-medium uppercase tracking-wider">
-          x402
+          {token === 'USDC' ? 'x402' : 'transfer'}
         </span>
       </div>
 
@@ -325,18 +317,10 @@ export function TipAgent({
       </div>
 
       <p className="text-xs text-black/50">
-        Send {token} directly to {agentName}&apos;s owner wallet. Settled
-        onchain via x402.
+        {token === 'USDC'
+          ? `Send USDC to ${agentName}'s owner wallet. Settled onchain via x402.`
+          : `Send PENGU to ${agentName}'s owner wallet. Direct transfer on Abstract.`}
       </p>
-
-      {/* MPP viability indicator */}
-      {isConnected && token === 'USDC' && mppViable === false && mppReason && (
-        <div className="rounded-none border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
-          <p className="text-xs text-yellow-400">
-            <span className="font-medium">MPP unavailable:</span> {mppReason}
-          </p>
-        </div>
-      )}
 
       {/* Amount presets + custom input */}
       <div className="flex gap-2">

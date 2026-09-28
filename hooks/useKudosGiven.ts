@@ -2,9 +2,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import type { Address, Hex } from 'viem';
+import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 
 export interface KudosGivenEvent {
   agentId: number;
+  chainId: number;
   sender: string;
   tag1: string;
   tag2: string;
@@ -48,6 +50,7 @@ async function fetchKudosGiven(address: Address): Promise<KudosGivenEvent[]> {
   return (data.events || []).map(
     (e: {
       agentId: number;
+      chainId?: number;
       sender: string;
       tag1: string;
       tag2: string;
@@ -56,6 +59,7 @@ async function fetchKudosGiven(address: Address): Promise<KudosGivenEvent[]> {
       blockNumber: string;
     }) => ({
       agentId: e.agentId,
+      chainId: e.chainId ?? DEFAULT_8004_CHAIN_ID,
       sender: e.sender || address.toLowerCase(),
       tag1: e.tag1,
       tag2: e.tag2,

@@ -8,11 +8,18 @@ import { StreakBadge } from '@/components/streak-badge';
 import { TwitterCTA } from '@/components/twitter-cta';
 import { getHomePageData } from '@/lib/home-data';
 import type { ScanAgent } from '@/lib/api';
+import { DEFAULT_8004_CHAIN_ID, resolveChainId } from '@/config/chain';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
-  const data = await getHomePageData();
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ chain?: string }>;
+}) {
+  const { chain: chainParam } = await searchParams;
+  const chainId = resolveChainId(chainParam) ?? DEFAULT_8004_CHAIN_ID;
+  const data = await getHomePageData(chainId);
 
   const agentMap = new Map<number, ScanAgent & { kudos: number }>();
   const senderMap = new Map<string, ScanAgent & { kudos: number }>();
@@ -132,6 +139,8 @@ export default async function Home() {
               senderMap={senderMap}
               timestamps={data.timestamps}
               streaks={data.streaks}
+              chainId={chainId}
+              feedError={data.feedError}
             />
           </div>
         </div>

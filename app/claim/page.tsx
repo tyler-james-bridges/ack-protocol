@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { AgentSearch } from '@/components/agent-search';
 import type { ScanAgent } from '@/lib/api';
+import { getExplorerTxUrl } from '@/config/chain';
 
 type ClaimStep = 'handle' | 'agent' | 'post';
 type ClaimStatus = 'idle' | 'loading' | 'pending' | 'claimed' | 'error';
@@ -154,7 +155,7 @@ export default function ClaimPage() {
             <div className="flex flex-col items-center gap-2">
               {txHash && (
                 <a
-                  href={`https://abscan.org/tx/${txHash}`}
+                  href={getExplorerTxUrl(txHash, selectedAgent?.chain_id)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-black hover:underline"

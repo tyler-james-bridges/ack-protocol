@@ -20,6 +20,7 @@ import {
   formatRelativeTime,
 } from '@/hooks/useBlockTimestamps';
 import { createPublicClient, http, formatEther } from 'viem';
+import { getExplorerTxUrl } from '@/config/chain';
 import { abstract } from 'viem/chains';
 import { StreakCard } from '@/components/streak-card';
 import { useStreak } from '@/hooks';
@@ -110,7 +111,10 @@ function KudosHistoryCard({
               {senderName}
             </Link>
             <span>gave</span>
-            <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
+            <Link
+              href={`/agent/${kudos.chainId}/${kudos.agentId}`}
+              className="shrink-0"
+            >
               <AgentAvatar
                 name={agentName}
                 imageUrl={agent?.image_url}
@@ -118,7 +122,7 @@ function KudosHistoryCard({
               />
             </Link>
             <Link
-              href={`/agent/2741/${kudos.agentId}`}
+              href={`/agent/${kudos.chainId}/${kudos.agentId}`}
               className="truncate max-w-[100px] font-semibold text-black hover:underline transition-colors"
             >
               {agentName}
@@ -136,7 +140,7 @@ function KudosHistoryCard({
               <TipBadge amountUsd={tipInfo.amountUsd} />
             )}
             <a
-              href={`https://abscan.org/tx/${kudos.txHash}`}
+              href={getExplorerTxUrl(kudos.txHash, kudos.chainId)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] text-black/50/50 hover:underline transition-colors"
@@ -184,6 +188,7 @@ function KudosReceivedCard({
   txHash,
   blockNumber,
   timestamp,
+  chainId,
   tipInfo,
 }: {
   sender: `0x${string}`;
@@ -192,6 +197,7 @@ function KudosReceivedCard({
   txHash: `0x${string}`;
   blockNumber: bigint;
   timestamp?: number;
+  chainId: number;
   tipInfo?: {
     amountUsd: number;
     fromAddress: string;
@@ -230,7 +236,7 @@ function KudosReceivedCard({
               <TipBadge amountUsd={tipInfo.amountUsd} />
             )}
             <a
-              href={`https://abscan.org/tx/${txHash}`}
+              href={getExplorerTxUrl(txHash, chainId)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] text-black/50/50 hover:underline transition-colors"
@@ -764,6 +770,7 @@ export default function UserProfilePage() {
                         category={k.tag2}
                         feedbackURI={k.feedbackURI}
                         txHash={k.txHash}
+                        chainId={k.chainId}
                         blockNumber={k.blockNumber}
                         timestamp={timestamps?.get(k.blockNumber.toString())}
                         tipInfo={tipMap[k.txHash.toLowerCase()]}

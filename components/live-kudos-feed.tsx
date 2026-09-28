@@ -18,6 +18,11 @@ import {
   formatRelativeTime,
 } from '@/hooks/useBlockTimestamps';
 import type { ScanAgent } from '@/lib/api';
+import {
+  DEFAULT_8004_CHAIN_ID,
+  getAgentPath,
+  getExplorerTxUrl,
+} from '@/config/chain';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}\u2009..\u2009${addr.slice(-4)}`;
@@ -76,11 +81,14 @@ function FeedItem({
               />
             )}
             <span className="text-xs text-black/50">gave</span>
-            <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
+            <Link
+              href={getAgentPath(kudos.agentId, kudos.chainId)}
+              className="shrink-0"
+            >
               <AgentAvatar name={name} imageUrl={agent?.image_url} size={32} />
             </Link>
             <Link
-              href={`/agent/2741/${kudos.agentId}`}
+              href={getAgentPath(kudos.agentId, kudos.chainId)}
               className="text-xs font-semibold text-black hover:text-black transition-colors"
             >
               {name}
@@ -94,7 +102,7 @@ function FeedItem({
             )}
           </div>
           <a
-            href={`https://abscan.org/tx/${kudos.txHash}`}
+            href={getExplorerTxUrl(kudos.txHash, kudos.chainId)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[11px] text-black/50/50 hover:text-black transition-colors shrink-0 mt-0.5"
@@ -119,7 +127,7 @@ export function LiveKudosFeed() {
   // Reuses the same query key as the home page hero — shared React Query cache
   const { data: agents } = useLeaderboard({
     limit: 50,
-    chainId: 2741,
+    chainId: DEFAULT_8004_CHAIN_ID,
     sortBy: 'total_score',
   });
 

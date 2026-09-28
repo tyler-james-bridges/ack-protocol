@@ -59,7 +59,6 @@ export function useGiveKudos() {
         queryKey: ['kudos-received', kudosAgentId],
       });
       queryClient.invalidateQueries({ queryKey: ['cross-chain-rep'] });
-      queryClient.invalidateQueries({ queryKey: ['network-stats'] });
       queryClient.invalidateQueries({ queryKey: ['abstract-feedback-counts'] });
       queryClient.invalidateQueries({ queryKey: ['recent-kudos'] });
       queryClient.invalidateQueries({ queryKey: ['kudos-given'] });

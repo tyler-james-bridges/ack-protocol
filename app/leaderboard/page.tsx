@@ -3,7 +3,6 @@
 import { Suspense, useCallback, useState } from 'react';
 import {
   useLeaderboard,
-  useNetworkStats,
   useAbstractFeedbackCounts,
   getChainName,
 } from '@/hooks';
@@ -80,11 +79,6 @@ function LeaderboardPage() {
     limit: 100,
     sortBy,
   });
-  const {
-    data: networkStats,
-    isError: statsError,
-    isLoading: statsLoading,
-  } = useNetworkStats(DEFAULT_8004_CHAIN_ID);
   const { data: abstractCounts } = useAbstractFeedbackCounts();
 
   const [expandedChains, setExpandedChains] = useState<Set<number>>(
@@ -214,30 +208,38 @@ function LeaderboardPage() {
           </p>
         </div>
 
-        {/* Abstract Stats */}
-        {networkStats && !statsError && !statsLoading && (
-          <div className="mb-6">
-            <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-2">
-              {getChainName(DEFAULT_8004_CHAIN_ID)}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <StatCard
-                label={`Agents on ${getChainName(DEFAULT_8004_CHAIN_ID)}`}
-                value={networkStats.total_agents.toLocaleString()}
-              />
-              <StatCard
-                label="Total Feedback"
-                value={networkStats.total_feedbacks.toLocaleString()}
-              />
-              {isKudosIndexed(DEFAULT_8004_CHAIN_ID) && (
+        {!isLoadingFeatured &&
+          !isErrorFeatured &&
+          featuredAgents.length > 0 && (
+            <div className="mb-6">
+              <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-2">
+                {getChainName(DEFAULT_8004_CHAIN_ID)}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <StatCard
-                  label="Kudos Given"
-                  value={networkStats.total_kudos?.toLocaleString() || '0'}
+                  label={`Agents on ${getChainName(DEFAULT_8004_CHAIN_ID)}`}
+                  value={featuredAgents.length.toLocaleString()}
                 />
-              )}
+                <StatCard
+                  label="Total Feedback"
+                  value={featuredAgents
+                    .reduce(
+                      (sum, agent) => sum + (agent.total_feedbacks || 0),
+                      0
+                    )
+                    .toLocaleString()}
+                />
+                {isKudosIndexed(DEFAULT_8004_CHAIN_ID) && (
+                  <StatCard
+                    label="Kudos Given"
+                    value={featuredAgents
+                      .reduce((sum, agent) => sum + agent.kudos, 0)
+                      .toLocaleString()}
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Sort */}
         <div className="mb-6">

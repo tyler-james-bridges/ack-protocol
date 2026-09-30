@@ -61,19 +61,7 @@ export const DEFAULT_8004_CHAIN_ID = SUPPORTED_8004_CHAINS[chain.id]
   ? chain.id
   : base.id;
 
-/**
- * Full kudos logs the leaderboard may show as a count.
- * Base is readable by chain id, but its public RPC caps eth_getLogs at
- * 2000 blocks, so that scan is a recent window and stays unindexed.
- */
-export const INDEXED_KUDOS_CHAIN_IDS = [2741] as const;
-
-/** Unscoped feedback reads. Base first, then the fully indexed Abstract log. */
-export const DEFAULT_FEEDBACK_CHAIN_IDS = [8453, 2741] as const;
-
-export function isKudosIndexed(chainId: number): boolean {
-  return (INDEXED_KUDOS_CHAIN_IDS as readonly number[]).includes(chainId);
-}
+export const DEFAULT_FEEDBACK_CHAIN_IDS = [2741] as const;
 
 /** Resolve a chain name or ID to the numeric chain ID. Returns undefined if unsupported. */
 export function resolveChainId(

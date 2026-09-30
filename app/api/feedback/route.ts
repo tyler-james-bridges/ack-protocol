@@ -22,8 +22,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getAllFeedbackEvents,
   getAllFeedbackEventsForChain,
+  type FeedbackEvent,
 } from '@/lib/feedback-cache';
+import {
+  readBaseCounts,
+  readBaseHistory,
+  readBaseRecent,
+} from '@/lib/base-feedback-store';
 import { resolveChainId } from '@/config/chain';
+
+const BASE_CHAIN_ID = 8453;
+const ABSTRACT_CHAIN_ID = 2741;
+
+function countEvents(events: FeedbackEvent[]): Record<number, number> {
+  const counts: Record<number, number> = {};
+  for (const event of events) {
+    counts[event.agentId] = (counts[event.agentId] || 0) + 1;
+  }
+  return counts;
+}
+
+function totalOf(counts: Record<number, number>): number {
+  return Object.values(counts).reduce((sum, count) => sum + count, 0);
+}
+
+function countsRecord(counts: Map<number, number>): Record<number, number> {
+  const record: Record<number, number> = {};
+  for (const [agentId, count] of counts) {
+    record[agentId] = count;
+  }
+  return record;
+}
 
 /**
  * GET /api/feedback
@@ -48,18 +77,12 @@ export async function GET(request: NextRequest) {
 
   try {
     const targetChain = resolveChainId(chainIdParam ?? undefined);
-    const all = targetChain
-      ? await getAllFeedbackEventsForChain(targetChain)
-      : await getAllFeedbackEvents();
 
-    if (countsOnly) {
-      const counts: Record<number, number> = {};
-      for (const e of all) {
-        counts[e.agentId] = (counts[e.agentId] || 0) + 1;
-      }
-      const total = Object.values(counts).reduce((sum, c) => sum + c, 0);
+    if (countsOnly && targetChain === BASE_CHAIN_ID) {
+      const { coverage, counts } = await readBaseCounts();
+      const record = countsRecord(counts);
       return NextResponse.json(
-        { counts, total },
+        { counts: record, total: totalOf(record), coverage },
         {
           headers: {
             'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
@@ -68,6 +91,67 @@ export async function GET(request: NextRequest) {
         }
       );
     }
+
+    if (countsOnly && targetChain === ABSTRACT_CHAIN_ID) {
+      try {
+        const all = await getAllFeedbackEventsForChain(ABSTRACT_CHAIN_ID);
+        const counts = countEvents(all);
+        return NextResponse.json(
+          {
+            counts,
+            total: totalOf(counts),
+            coverage: { status: 'complete' },
+          },
+          {
+            headers: {
+              'Cache-Control':
+                'public, s-maxage=60, stale-while-revalidate=120',
+              'X-API-Version': '1',
+            },
+          }
+        );
+      } catch {
+        return NextResponse.json(
+          { counts: {}, total: 0, coverage: { status: 'absent' } },
+          {
+            headers: {
+              'Cache-Control':
+                'public, s-maxage=60, stale-while-revalidate=120',
+              'X-API-Version': '1',
+            },
+          }
+        );
+      }
+    }
+
+    if (countsOnly) {
+      const all = targetChain
+        ? await getAllFeedbackEventsForChain(targetChain)
+        : await getAllFeedbackEvents();
+      const counts = countEvents(all);
+      return NextResponse.json(
+        { counts, total: totalOf(counts) },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+            'X-API-Version': '1',
+          },
+        }
+      );
+    }
+
+    if (targetChain === BASE_CHAIN_ID) {
+      return baseEventsResponse({
+        agentIdParam,
+        senderParam,
+        handleParam,
+        limitParam,
+      });
+    }
+
+    const all = targetChain
+      ? await getAllFeedbackEventsForChain(targetChain)
+      : await getAllFeedbackEvents();
 
     let filtered = all;
 
@@ -110,4 +194,46 @@ export async function GET(request: NextRequest) {
       { status: 502 }
     );
   }
+}
+
+async function baseEventsResponse(input: {
+  agentIdParam: string | null;
+  senderParam: string | null;
+  handleParam: string | null;
+  limitParam: number;
+}): Promise<NextResponse> {
+  const headers = {
+    'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+    'X-API-Version': '1',
+  };
+  if (
+    input.agentIdParam !== null &&
+    Number.isNaN(parseInt(input.agentIdParam, 10))
+  ) {
+    return NextResponse.json({ events: [], total: 0 }, { headers });
+  }
+  const agentId =
+    input.agentIdParam !== null ? parseInt(input.agentIdParam, 10) : undefined;
+  const sender = input.senderParam?.toLowerCase();
+  const hasIdentity = agentId !== undefined || Boolean(sender);
+  const loaded = hasIdentity
+    ? await readBaseHistory({
+        agentId,
+        sender,
+        limit: input.limitParam,
+      })
+    : { events: await readBaseRecent(input.limitParam) };
+
+  let filtered = loaded.events;
+  if (input.handleParam) {
+    const tag2Match = `x:${input.handleParam.toLowerCase()}`;
+    filtered = filtered.filter(
+      (event) => event.tag1 === 'proxy' && event.tag2 === tag2Match
+    );
+  }
+  const events = [...filtered]
+    .sort((a, b) => parseInt(b.blockNumber, 10) - parseInt(a.blockNumber, 10))
+    .slice(0, input.limitParam);
+
+  return NextResponse.json({ events, total: events.length }, { headers });
 }

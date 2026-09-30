@@ -11,6 +11,7 @@ import {
   getAllFeedbackEventsForChain,
   type FeedbackEvent,
 } from './feedback-cache';
+import { readBaseCounts, readBaseRecent } from './base-feedback-store';
 import { getAllStreaks, getTopStreakers, type StreakData } from './streaks';
 import type { ScanAgent } from './api';
 
@@ -75,6 +76,45 @@ function parseMessage(feedbackURI: string): string | null {
   return null;
 }
 
+async function loadChainFeedback(chainId: number): Promise<{
+  events: FeedbackEvent[];
+  counts: Record<number, number>;
+  totalKudos: number;
+  error: boolean;
+}> {
+  if (chainId === 8453) {
+    try {
+      const [countsResult, recent] = await Promise.all([
+        readBaseCounts(),
+        readBaseRecent(5),
+      ]);
+      if (countsResult.coverage.status === 'absent') {
+        return { events: [], counts: {}, totalKudos: 0, error: false };
+      }
+      const counts: Record<number, number> = {};
+      let totalKudos = 0;
+      for (const [agentId, count] of countsResult.counts) {
+        counts[agentId] = count;
+        totalKudos += count;
+      }
+      return { events: recent, counts, totalKudos, error: false };
+    } catch {
+      return { events: [], counts: {}, totalKudos: 0, error: true };
+    }
+  }
+
+  try {
+    const events = await getAllFeedbackEventsForChain(chainId);
+    const counts: Record<number, number> = {};
+    for (const event of events) {
+      counts[event.agentId] = (counts[event.agentId] || 0) + 1;
+    }
+    return { events, counts, totalKudos: events.length, error: false };
+  } catch {
+    return { events: [], counts: {}, totalKudos: 0, error: true };
+  }
+}
+
 async function fetchScanAgents(
   params: Record<string, string | number>
 ): Promise<{
@@ -112,27 +152,19 @@ export async function getHomePageData(
     chain: getChainConfig(chainId).chain,
     transport: http(getChainConfig(chainId).rpcUrl),
   });
-  const feedbackResult = getAllFeedbackEventsForChain(chainId)
-    .then((events) => ({ events, error: false as const }))
-    .catch(() => ({ events: [] as FeedbackEvent[], error: true as const }));
-  const [chainAgentsRes, feedbackResultValue, allStreaks] = await Promise.all([
+  const [chainAgentsRes, feedback, allStreaks] = await Promise.all([
     fetchScanAgents({
       chainId,
       sortBy: 'total_score',
       sortOrder: 'desc',
       limit: 20,
     }),
-    feedbackResult,
+    loadChainFeedback(chainId),
     getAllStreaks(chainId),
   ]);
-  const feedbackEvents = feedbackResultValue.events;
-  const feedError = feedbackResultValue.error;
-
-  // Build feedback counts map
-  const feedbackCounts: Record<number, number> = {};
-  for (const e of feedbackEvents) {
-    feedbackCounts[e.agentId] = (feedbackCounts[e.agentId] || 0) + 1;
-  }
+  const feedbackEvents = feedback.events;
+  const feedError = feedback.error;
+  const feedbackCounts = feedback.counts;
 
   // Enrich with local kudos counts for display; dedupe by chain:token_id.
   // Do NOT re-sort — 8004scan's total_score ordering is the source of truth.
@@ -205,7 +237,7 @@ export async function getHomePageData(
   ).size;
   const stats = {
     total_agents: globalAgents || chainAgentsRes.total || 0,
-    total_kudos: feedbackEvents.length,
+    total_kudos: feedback.totalKudos,
     total_feedbacks: globalFeedbacks,
     total_chains: globalChains,
     top_score: topScore,

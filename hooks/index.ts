@@ -30,7 +30,8 @@ export {
 
 export { useAckMetadata } from './useAckMetadata';
 export type { AckMetadata } from './useAckMetadata';
-export { useAbstractFeedbackCounts } from './useAbstractFeedbackCounts';
+export { useChainFeedbackCounts } from './useChainFeedbackCounts';
+export type { ChainFeedbackCounts } from './useChainFeedbackCounts';
 export { useRecentKudos } from './useRecentKudos';
 export type { RecentKudos } from './useRecentKudos';
 export { useKudosGiven } from './useKudosGiven';

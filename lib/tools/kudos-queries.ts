@@ -25,6 +25,7 @@ import {
   getAllFeedbackEventsForChain,
   type FeedbackEvent,
 } from '@/lib/feedback-cache';
+import { readBaseHistory, readBaseRecent } from '@/lib/base-feedback-store';
 import { getStreakForAddress, type StreakData } from '@/lib/streaks';
 import { getTip, tipToJSON, type TipRecordJSON } from '@/lib/tip-store';
 import { getVouches, type PendingVouch } from '@/lib/vouch-store';
@@ -121,14 +122,34 @@ export interface KudosFeedFilters {
   limit?: number;
 }
 
+async function loadBaseFeedEvents(
+  filters: KudosFeedFilters,
+  limit: number
+): Promise<FeedbackEvent[]> {
+  const needsPostFilter = Boolean(filters.handle || filters.category);
+  const sender = filters.sender?.toLowerCase();
+  if (filters.agentId !== undefined || sender) {
+    const { events } = await readBaseHistory({
+      agentId: filters.agentId,
+      sender,
+      limit: needsPostFilter ? 500 : limit,
+    });
+    return events;
+  }
+  return readBaseRecent(needsPostFilter ? 50 : limit);
+}
+
 export async function queryKudosFeed(
   filters: KudosFeedFilters = {}
 ): Promise<{ items: KudosFeedItem[]; total: number }> {
   const limit = Math.min(Math.max(filters.limit ?? 20, 1), 50);
   const targetChain = resolveChainId(filters.chainId);
-  const all = targetChain
-    ? await getAllFeedbackEventsForChain(targetChain)
-    : await getAllFeedbackEvents();
+  const all =
+    targetChain === 8453
+      ? await loadBaseFeedEvents(filters, limit)
+      : targetChain
+        ? await getAllFeedbackEventsForChain(targetChain)
+        : await getAllFeedbackEvents();
 
   let filtered: FeedbackEvent[] = all;
 

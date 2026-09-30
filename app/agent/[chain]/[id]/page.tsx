@@ -114,7 +114,7 @@ export default function AgentProfilePage({
           <Breadcrumbs
             items={[
               { label: 'Home', href: '/' },
-              { label: 'Explore', href: '/explore' },
+              { label: 'Explore', href: '/leaderboard' },
             ]}
             current="..."
           />
@@ -155,7 +155,7 @@ export default function AgentProfilePage({
           <Breadcrumbs
             items={[
               { label: 'Home', href: '/' },
-              { label: 'Explore', href: '/explore' },
+              { label: 'Explore', href: '/leaderboard' },
             ]}
             current="Not Found"
           />
@@ -191,7 +191,7 @@ export default function AgentProfilePage({
         <Breadcrumbs
           items={[
             { label: 'Home', href: '/' },
-            { label: 'Explore', href: '/explore' },
+            { label: 'Explore', href: '/leaderboard' },
           ]}
           current={agent.name}
         />

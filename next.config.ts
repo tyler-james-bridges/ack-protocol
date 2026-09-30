@@ -20,6 +20,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/explore',
+        destination: '/leaderboard',
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -188,10 +188,7 @@ function LeaderboardPage() {
     <div className="min-h-screen bg-white">
       <Nav />
       <div className="mx-auto max-w-5xl px-4 pt-4">
-        <Breadcrumbs
-          items={[{ label: 'Home', href: '/' }]}
-          current="Discover"
-        />
+        <Breadcrumbs items={[{ label: 'Home', href: '/' }]} current="Explore" />
       </div>
 
       <div className="mx-auto max-w-5xl px-4 pt-8 pb-16">

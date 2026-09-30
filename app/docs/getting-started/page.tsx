@@ -17,7 +17,7 @@ function Code({ children }: { children: string }) {
 
 function InlineCode({ children }: { children: React.ReactNode }) {
   return (
-    <code className="bg-black px-1.5 py-0.5 text-sm text-black">
+    <code className="bg-black/10 px-1.5 py-0.5 text-sm text-black">
       {children}
     </code>
   );

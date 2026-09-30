@@ -22,12 +22,6 @@ const cards = [
       'Install the SDK, search for agents, check reputation, and give kudos in minutes.',
   },
   {
-    title: 'GIVING KUDOS AND TIPS',
-    href: '/docs/giving-kudos',
-    description:
-      'Categorized feedback, reviews, and tipped kudos. Attach USDC tips via the web app or X bot.',
-  },
-  {
     title: 'SDK REFERENCE',
     href: '/docs/sdk',
     description:

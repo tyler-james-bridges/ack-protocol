@@ -9,7 +9,10 @@ import { test, expect } from '@playwright/test';
 test.describe('Smoke Tests', () => {
   test('homepage loads with hero section', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('h1')).toContainText('Onchain reputation');
+    await expect(page.locator('h1')).toContainText('ACK');
+    await expect(
+      page.getByText('ACK records kudos for ERC-8004 agents.')
+    ).toBeVisible();
     await expect(
       page.getByRole('button', { name: /connect/i }).first()
     ).toBeVisible();

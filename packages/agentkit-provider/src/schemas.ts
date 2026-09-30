@@ -151,8 +151,8 @@ export const GetLeaderboardSchema = z
     chainId: z
       .number()
       .optional()
-      .default(2741)
-      .describe('Chain ID to get leaderboard for (default 2741 for Abstract)'),
+      .default(8453)
+      .describe('Chain ID to get leaderboard for (default 8453 for Base)'),
     limit: z
       .number()
       .optional()

@@ -2,11 +2,17 @@ import { abstract, abstractTestnet, base, mainnet } from 'viem/chains';
 import type { Chain } from 'viem';
 
 /**
- * Chain configuration for the Agent Kudos app.
- * Defaults to Abstract mainnet. Set NEXT_PUBLIC_CHAIN=testnet for dev.
+ * App chain. Base mainnet is the default.
+ * NEXT_PUBLIC_CHAIN=abstract keeps Abstract. NEXT_PUBLIC_CHAIN=testnet uses Abstract testnet.
  */
-export const chain =
-  process.env.NEXT_PUBLIC_CHAIN === 'testnet' ? abstractTestnet : abstract;
+function resolveAppChain() {
+  const raw = (process.env.NEXT_PUBLIC_CHAIN || '').toLowerCase();
+  if (raw === 'testnet' || raw === 'abstract-testnet') return abstractTestnet;
+  if (raw === 'abstract' || raw === 'abs') return abstract;
+  return base;
+}
+
+export const chain = resolveAppChain();
 
 /**
  * Abstract chain ID for ERC-8004 agent registry references
@@ -50,7 +56,10 @@ export const SUPPORTED_8004_CHAINS: Record<number, ChainConfig> = {
   },
 } as const;
 
-export const DEFAULT_8004_CHAIN_ID = ABSTRACT_CHAIN_ID;
+/** Default ERC-8004 chain. Base, unless the app chain is another supported network. */
+export const DEFAULT_8004_CHAIN_ID = SUPPORTED_8004_CHAINS[chain.id]
+  ? chain.id
+  : base.id;
 
 /** Resolve a chain name or ID to the numeric chain ID. Returns undefined if unsupported. */
 export function resolveChainId(
@@ -73,7 +82,7 @@ export function resolveChainId(
   return SUPPORTED_8004_CHAINS[id] ? id : undefined;
 }
 
-/** Resolve a chain ID to config, falling back to Abstract for legacy callers. */
+/** Resolve a chain ID to config, falling back to the default chain. */
 export function getChainConfig(chainId?: number): ChainConfig {
   return (
     (chainId !== undefined ? SUPPORTED_8004_CHAINS[chainId] : undefined) ??

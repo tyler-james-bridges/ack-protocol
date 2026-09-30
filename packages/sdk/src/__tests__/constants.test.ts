@@ -25,8 +25,8 @@ describe('SDK constants', () => {
   });
 
   describe('toCAIP10Address', () => {
-    it('formats with default chain ID (2741)', () => {
-      expect(toCAIP10Address('0xABC')).toBe('eip155:2741:0xABC');
+    it('formats with default chain ID (8453)', () => {
+      expect(toCAIP10Address('0xABC')).toBe('eip155:8453:0xABC');
     });
 
     it('formats with custom chain ID', () => {

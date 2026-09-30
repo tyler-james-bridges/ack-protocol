@@ -29,6 +29,7 @@ import { createWalletClient, http, type Chain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base, mainnet } from 'viem/chains';
 import { buildAckReputationManifest } from '../lib/tool-manifest';
+import { dataSuffixForChainId } from '../config/builder-code';
 
 const LIVE_METADATA_URI =
   'https://ack-onchain.dev/.well-known/ai-tool/ack-reputation.json';
@@ -192,6 +193,7 @@ async function main() {
     account,
     chain,
     transport: http(rpcUrl),
+    dataSuffix: dataSuffixForChainId(chain.id),
   });
 
   const registry = new sdk.ToolRegistryClient({

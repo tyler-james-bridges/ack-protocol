@@ -18,10 +18,12 @@ import {
   PENGU_DECIMALS,
 } from '@/config/tokens';
 import {
+  ABSTRACT_CHAIN_ID,
   DEFAULT_8004_CHAIN_ID,
   getAgentPath,
   getExplorerTxUrl,
 } from '@/config/chain';
+import { dataSuffixForChainId } from '@/config/builder-code';
 import { cn } from '@/lib/utils';
 import { checkMppPreflight } from '@/lib/payments/mpp-preflight';
 import { mapMppErrorToUiMessage } from '@/lib/payments/mpp-errors';
@@ -92,7 +94,7 @@ export function TipAgent({
 
   const { writeContract, data: txHash, reset } = useWriteContract();
   const targetChainId = chainId;
-  const isAbstractTip = targetChainId === DEFAULT_8004_CHAIN_ID;
+  const isAbstractTip = targetChainId === ABSTRACT_CHAIN_ID;
   const tokenOptions: TipToken[] = isAbstractTip ? ['USDC', 'PENGU'] : ['USDC'];
   const usdcNetwork = `eip155:${targetChainId}` as `${string}:${string}`;
 
@@ -185,6 +187,7 @@ export function TipAgent({
         functionName: 'transfer',
         args: [ownerAddress as Hex, rawAmount],
         chainId: targetChainId,
+        dataSuffix: dataSuffixForChainId(targetChainId),
       },
       {
         onError: (err) => {

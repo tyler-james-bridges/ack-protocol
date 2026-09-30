@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
 import { SUPPORTED_CHAINS } from '@/config/chains';
+import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
+import { dataSuffixForChainId } from '@/config/builder-code';
 
 /** Chains where ERC-8004 identity registry is deployed (deterministic address). */
 const REGISTER_CHAINS = SUPPORTED_CHAINS.map((m) => ({
@@ -54,7 +56,9 @@ export default function RegisterPage() {
   // Form state
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedChainId, setSelectedChainId] = useState(2741); // Abstract default
+  const [selectedChainId, setSelectedChainId] = useState<number>(
+    DEFAULT_8004_CHAIN_ID
+  );
   const [imageUrl, setImageUrl] = useState('');
   const [services, setServices] = useState<ServiceEntry[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -194,6 +198,7 @@ export default function RegisterPage() {
         functionName: 'register',
         args: [dataURI],
         chainId: selectedChainId,
+        dataSuffix: dataSuffixForChainId(selectedChainId),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -337,7 +342,7 @@ export default function RegisterPage() {
                 />
               </div>
               <p className="text-xs text-black/50 text-center">
-                You will need: a connected wallet with ETH on Abstract for gas.
+                You will need: a connected wallet with ETH on Base for gas.
               </p>
             </div>
           </div>

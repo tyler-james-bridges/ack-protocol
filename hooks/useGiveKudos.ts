@@ -14,6 +14,7 @@ import {
 } from '@/config/contract';
 import type { KudosCategory } from '@/config/contract';
 import { chain as defaultChain } from '@/config/chain';
+import { dataSuffixForChainId } from '@/config/builder-code';
 import { buildFeedback } from '@/lib/feedback';
 
 interface GiveKudosParams {
@@ -110,6 +111,7 @@ export function useGiveKudos() {
               feedbackHash,
             ],
             chainId,
+            dataSuffix: dataSuffixForChainId(chainId),
           },
           {
             onSuccess: () => setStatus('waiting'),

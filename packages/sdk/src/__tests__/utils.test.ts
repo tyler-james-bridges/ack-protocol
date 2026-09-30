@@ -49,7 +49,7 @@ describe('SDK utils', () => {
       expect(parsed.reasoning).toBe('Precise');
     });
 
-    it('uses default chainId 2741 (Abstract)', () => {
+    it('uses default chainId 8453 (Base)', () => {
       const result = buildFeedback({
         agentId: 1,
         clientAddress: '0xabc',
@@ -61,7 +61,7 @@ describe('SDK utils', () => {
         ''
       );
       const parsed = JSON.parse(Buffer.from(base64, 'base64').toString());
-      expect(parsed.clientAddress).toContain('eip155:2741:');
+      expect(parsed.clientAddress).toContain('eip155:8453:');
     });
 
     it('uses custom chainId when provided', () => {
@@ -70,14 +70,14 @@ describe('SDK utils', () => {
         clientAddress: '0xabc',
         category: 'reliability',
         message: 'Test',
-        chainId: 8453,
+        chainId: 2741,
       });
       const base64 = result.feedbackURI.replace(
         'data:application/json;base64,',
         ''
       );
       const parsed = JSON.parse(Buffer.from(base64, 'base64').toString());
-      expect(parsed.clientAddress).toContain('eip155:8453:');
+      expect(parsed.clientAddress).toContain('eip155:2741:');
     });
 
     it('trims message whitespace', () => {

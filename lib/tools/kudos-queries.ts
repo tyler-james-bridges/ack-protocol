@@ -191,7 +191,10 @@ export interface KudosDetail {
 
 const agentNames: Record<number, string> = {};
 
-async function getAgentName(agentId: number): Promise<string> {
+async function getAgentName(
+  agentId: number,
+  chainId: number = DEFAULT_8004_CHAIN_ID
+): Promise<string> {
   if (agentNames[agentId]) return agentNames[agentId];
 
   try {
@@ -200,7 +203,7 @@ async function getAgentName(agentId: number): Promise<string> {
     if (apiKey) headers['x-api-key'] = apiKey;
 
     const res = await fetch(
-      `https://api.8004scan.io/api/v1/agents?chainId=2741&search=&limit=100`,
+      `https://api.8004scan.io/api/v1/agents?chainId=${chainId}&search=&limit=100`,
       { headers }
     );
     if (res.ok) {
@@ -305,7 +308,7 @@ export async function queryKudosDetail(
       message = parseKudosMessage(feedbackURI) || '';
     }
 
-    const agentName = await getAgentName(agentId);
+    const agentName = await getAgentName(agentId, chainId);
 
     return {
       ok: true,

@@ -7,6 +7,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { mainnet, base } from 'viem/chains';
 import { gunzipSync, gzipSync } from 'zlib';
 import { readFileSync } from 'fs';
+import { dataSuffixForChain } from './builder-code.mjs';
 
 const REGISTRY_ETH = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
 const REGISTRY_BASE = '0x8004A818BFB912233c491871b3d84c89A494BD9e';
@@ -58,6 +59,7 @@ async function main() {
     account,
     chain: selectedChain,
     transport: http(),
+    dataSuffix: dataSuffixForChain(selectedChain),
   });
 
   // Check balance

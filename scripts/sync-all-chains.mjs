@@ -11,6 +11,7 @@ import { gzipSync } from 'zlib';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { BASE_DATA_SUFFIX } from './builder-code.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const envContent = readFileSync(join(__dirname, '..', '.env.local'), 'utf-8');
@@ -132,6 +133,7 @@ async function main() {
       account,
       chain: base,
       transport: http(),
+      dataSuffix: BASE_DATA_SUFFIX,
     });
 
     // Build temp URI with current registrations (will update after)
@@ -283,6 +285,7 @@ async function main() {
       account,
       chain: base,
       transport: http(),
+      dataSuffix: BASE_DATA_SUFFIX,
     });
     const baseHash = await baseWallet.writeContract({
       address: REGISTRIES.base,

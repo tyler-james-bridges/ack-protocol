@@ -35,8 +35,8 @@ export interface ChainConfig {
  * SDK configuration options
  */
 export interface ACKConfig {
-  /** Target blockchain */
-  chain: ChainId;
+  /** Target blockchain. Defaults to Base. */
+  chain?: ChainId;
   /** API key for 8004scan (optional) */
   apiKey?: string;
   /** Custom RPC URL (overrides default) */

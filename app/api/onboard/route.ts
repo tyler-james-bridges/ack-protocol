@@ -1,9 +1,10 @@
 import { encodeFunctionData } from 'viem';
-import { abstract } from 'viem/chains';
+import { abstract, base } from 'viem/chains';
 import { withSiwa, siwaOptions } from '@buildersgarden/siwa/next';
 import { RateLimiter } from '@/lib/rate-limit';
 import { IDENTITY_REGISTRY_ABI } from '@/config/abi';
 import { IDENTITY_REGISTRY_ADDRESS } from '@/config/contract';
+import { appendBuilderCodeCalldata } from '@/config/builder-code';
 import { getVouches } from '@/lib/vouch-store';
 import type { ScanAgentsResponse } from '@/lib/api';
 
@@ -40,8 +41,8 @@ async function searchAgentsByAddress(
  * Agent-first programmatic onboarding endpoint.
  *
  * Authenticates via SIWA (ERC-8128), resolves the agent's identity across
- * all ERC-8004 chains. If not registered, returns instructions to register
- * on Abstract.
+ * all ERC-8004 chains. If not registered, returns Base registration
+ * calldata (with the builder-code suffix) and Abstract as an option.
  *
  * Requires: X-SIWA-Receipt header + ERC-8128 signed request.
  */
@@ -119,12 +120,14 @@ export const POST = withSiwa(async (agent) => {
     };
   }
 
-  // Not registered on any chain -- return registration instructions
+  // Not registered on any chain -- return registration instructions.
+  // Base is the default chain. Abstract stays available without a Base suffix.
   const registerCalldata = encodeFunctionData({
     abi: IDENTITY_REGISTRY_ABI,
     functionName: 'register',
     args: [''],
   });
+  const baseCalldata = appendBuilderCodeCalldata(registerCalldata, base.id);
 
   // Check for pending vouches — incentivizes registration
   const pending = getVouches(agent.address);
@@ -132,6 +135,13 @@ export const POST = withSiwa(async (agent) => {
   return {
     status: 'not_registered',
     registerUrl: '/register',
+    registration: {
+      contract: IDENTITY_REGISTRY_ADDRESS,
+      function: 'register(string)',
+      chain: 'base',
+      chainId: base.id,
+      calldata: baseCalldata,
+    },
     abstractRegistration: {
       contract: IDENTITY_REGISTRY_ADDRESS,
       function: 'register(string)',

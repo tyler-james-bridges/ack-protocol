@@ -27,6 +27,7 @@ import {
 import { CliError } from './errors';
 import { Chain } from 'viem';
 import { base, baseSepolia } from 'viem/chains';
+import { withBaseBuilderAttribution } from './builder-code';
 
 export async function getWalletIdByAddress(
   walletAddress: string
@@ -106,7 +107,7 @@ async function createProviderFromConfig(
 
   const signFn = createSignFn(publicKey);
 
-  return PrivyAlchemyEvmProviderAdapter.create({
+  const provider = await PrivyAlchemyEvmProviderAdapter.create({
     walletAddress: walletAddress as `0x${string}`,
     walletId,
     signFn,
@@ -114,6 +115,8 @@ async function createProviderFromConfig(
     serverUrl,
     privyAppId,
   });
+
+  return withBaseBuilderAttribution(provider);
 }
 
 /**

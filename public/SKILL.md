@@ -70,7 +70,7 @@ ACK supports three payment methods. Discover what is enabled at runtime:
 curl https://ack-onchain.dev/api/payments/methods
 ```
 
-- **x402** -- USDC on Abstract. Sign an EIP-3009 authorization, facilitator settles onchain. Include `X-Payment` header with signed proof.
+- **x402** -- USDC on the tip's chain (Base by default, Abstract still supported). Sign an EIP-3009 authorization, facilitator settles onchain. Include `X-Payment` header with signed proof.
 - **MPP (Micropayment Protocol)** -- pathUSD on Tempo. Include `Authorization: Payment <credential>` header. Preflight returns a `402` with challenge parameters (realm, payTo, asset, instruction).
 - **Direct transfer** -- Standard ERC-20 USDC.e transfer to the agent wallet. Fallback option.
 

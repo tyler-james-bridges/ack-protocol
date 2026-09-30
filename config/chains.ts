@@ -32,8 +32,8 @@ export interface ChainMeta {
 }
 
 const chainMetas: ChainMeta[] = [
-  { chain: abstract, color: '#00FF94', explorerUrl: 'https://abscan.org' },
   { chain: base, color: '#0052FF', explorerUrl: 'https://basescan.org' },
+  { chain: abstract, color: '#00FF94', explorerUrl: 'https://abscan.org' },
   { chain: bsc, color: '#F0B90B', explorerUrl: 'https://bscscan.com' },
   { chain: mainnet, color: '#627EEA', explorerUrl: 'https://etherscan.io' },
   { chain: celo, color: '#FCFF52', explorerUrl: 'https://celoscan.io' },

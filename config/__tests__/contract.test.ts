@@ -15,8 +15,7 @@ describe('toCAIP10Address', () => {
 
   it('includes the correct chain ID', () => {
     const result = toCAIP10Address('0xABC');
-    // Abstract chain ID is 2741
-    expect(result).toContain('eip155:2741:');
+    expect(result).toContain('eip155:8453:');
   });
 });
 

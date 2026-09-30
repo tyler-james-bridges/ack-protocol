@@ -6,12 +6,12 @@
  * import { ACK } from '@ack-onchain/sdk'
  *
  * // Read-only client
- * const ack = ACK.readonly({ chain: 'abstract' })
+ * const ack = ACK.readonly({ chain: 'base' })
  * const agent = await ack.getAgent(606)
  * const rep = await ack.reputation(606)
  *
  * // Write client
- * const ack = ACK.fromPrivateKey('0x...', { chain: 'abstract' })
+ * const ack = ACK.fromPrivateKey('0x...', { chain: 'base' })
  * const tx = await ack.kudos(606, { category: 'reliability', score: 5 })
  * ```
  */
@@ -33,11 +33,14 @@ export {
   CATEGORY_META,
   AGENT_REGISTRY_CAIP10,
   toCAIP10Address,
+  DEFAULT_CHAIN_ID,
   DEPLOYMENT_BLOCKS,
   EVENT_TOPICS,
 } from './constants.js';
 
 export type { KudosCategory } from './constants.js';
+
+export { BASE_BUILDER_CODE, BASE_DATA_SUFFIX } from './builder-code.js';
 
 // Utilities
 export { buildFeedback, parseFeedbackURI, ipfsToHttp } from './utils.js';

@@ -6,6 +6,7 @@ import {
   KUDOS_VALUE_DECIMALS,
   toCAIP10Address,
   AGENT_REGISTRY_CAIP10,
+  DEFAULT_CHAIN_ID,
   type KudosCategory,
 } from './constants.js';
 
@@ -31,7 +32,7 @@ export interface BuildFeedbackResult {
 export function buildFeedback(
   params: BuildFeedbackParams
 ): BuildFeedbackResult {
-  const chainId = params.chainId ?? 2741;
+  const chainId = params.chainId ?? DEFAULT_CHAIN_ID;
 
   const feedbackFile = {
     agentRegistry: AGENT_REGISTRY_CAIP10(chainId),

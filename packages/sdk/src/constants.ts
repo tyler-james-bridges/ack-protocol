@@ -84,9 +84,14 @@ export function AGENT_REGISTRY_CAIP10(chainId: number): string {
 /**
  * Format an address as a CAIP-10 account ID.
  * @param address - Ethereum address
- * @param chainId - Chain ID (default: 2741 for Abstract)
+ * @param chainId - Chain ID (default: 8453 for Base)
  */
-export function toCAIP10Address(address: string, chainId = 2741): string {
+export const DEFAULT_CHAIN_ID = 8453;
+
+export function toCAIP10Address(
+  address: string,
+  chainId = DEFAULT_CHAIN_ID
+): string {
   return `eip155:${chainId}:${address}`;
 }
 

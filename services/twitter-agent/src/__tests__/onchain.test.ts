@@ -8,6 +8,7 @@ import {
   resolveHandleToAgentId,
   resolveHandleTarget,
   resolveTwitterChainId,
+  getDefaultChainId,
   getAgentName,
   type KudosSubmission,
 } from '../onchain';
@@ -54,6 +55,14 @@ const mockWalletClient = {
 beforeEach(async () => {
   vi.unstubAllGlobals();
   vi.clearAllMocks();
+  mockReadContract.mockReset();
+  mockWriteContract.mockReset();
+  mockSendTransaction.mockReset();
+  mockWaitForTransactionReceipt.mockReset();
+  delete process.env.ACK_CHAIN_ID;
+  delete process.env.ACK_CHAIN;
+  delete process.env.BASE_HANDLE_REGISTRY_ADDRESS;
+  delete process.env.HANDLE_REGISTRY_ADDRESS;
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => ({
@@ -231,6 +240,10 @@ describe('submitKudos', () => {
 });
 
 describe('resolveTwitterChainId', () => {
+  it('defaults to Base mainnet when no chain env is set', () => {
+    expect(getDefaultChainId()).toBe(8453);
+  });
+
   it('resolves supported chain names and ids', () => {
     expect(resolveTwitterChainId('abstract')).toBe(2741);
     expect(resolveTwitterChainId('base')).toBe(8453);
@@ -251,7 +264,7 @@ describe('ensureHandleRegistered', () => {
 
     mockReadContract.mockResolvedValue(true); // Handle exists
 
-    const result = await ensureHandleRegistered('testhandle');
+    const result = await ensureHandleRegistered('testhandle', 2741);
 
     expect(result).toEqual({ registered: false });
     expect(mockReadContract).toHaveBeenCalledWith({
@@ -269,7 +282,7 @@ describe('ensureHandleRegistered', () => {
     mockWriteContract.mockResolvedValue('0xregistertx');
     mockWaitForTransactionReceipt.mockResolvedValue({ status: 'success' });
 
-    const result = await ensureHandleRegistered('NewHandle');
+    const result = await ensureHandleRegistered('NewHandle', 2741);
 
     expect(result).toEqual({
       registered: true,
@@ -289,9 +302,19 @@ describe('ensureHandleRegistered', () => {
 
     mockReadContract.mockRejectedValue(new Error('Network error'));
 
+    const result = await ensureHandleRegistered('testhandle', 2741);
+
+    expect(result).toEqual({ registered: false });
+  });
+
+  it('does not send a transaction on Base when no handle registry is configured', async () => {
+    process.env.AGENT_PRIVATE_KEY = '0x' + 'a'.repeat(64);
+
     const result = await ensureHandleRegistered('testhandle');
 
     expect(result).toEqual({ registered: false });
+    expect(mockReadContract).not.toHaveBeenCalled();
+    expect(mockWriteContract).not.toHaveBeenCalled();
   });
 });
 
@@ -314,7 +337,7 @@ describe('submitClaim', () => {
       .mockResolvedValueOnce('0xlinktx'); // linkAgent
     mockWaitForTransactionReceipt.mockResolvedValue({ status: 'success' });
 
-    const result = await submitClaim('testhandle', '0xowner', 606);
+    const result = await submitClaim('testhandle', '0xowner', 606, 2741);
 
     expect(result).toEqual({
       success: true,
@@ -343,7 +366,7 @@ describe('submitClaim', () => {
 
     mockReadContract.mockRejectedValue(new Error('Handle not found'));
 
-    const result = await submitClaim('testhandle', '0xowner', 606);
+    const result = await submitClaim('testhandle', '0xowner', 606, 2741);
 
     expect(result).toEqual({
       success: false,
@@ -410,8 +433,8 @@ describe('resolveAgentTarget', () => {
 
     expect(result).toEqual({
       agentId: 8453002,
-      chainId: 2741,
-      chainName: 'Abstract',
+      chainId: 8453,
+      chainName: 'Base',
     });
     expect(mockReadContract).toHaveBeenCalledTimes(2);
   });
@@ -444,7 +467,7 @@ describe('resolveHandleToAgentId', () => {
         claimedAt: BigInt(123457),
       });
 
-    const result = await resolveHandleToAgentId('testhandle');
+    const result = await resolveHandleToAgentId('testhandle', 2741);
 
     expect(result).toBe(606);
   });
@@ -459,7 +482,7 @@ describe('resolveHandleToAgentId', () => {
       claimedAt: BigInt(123457),
     });
 
-    const result = await resolveHandleToAgentId('bighoss');
+    const result = await resolveHandleToAgentId('bighoss', 2741);
 
     expect(result).toBe(592); // From hardcoded map
   });
@@ -467,7 +490,7 @@ describe('resolveHandleToAgentId', () => {
   it('should return null for unknown handle', async () => {
     mockReadContract.mockRejectedValue(new Error('Handle not found'));
 
-    const result = await resolveHandleToAgentId('unknownhandle');
+    const result = await resolveHandleToAgentId('unknownhandle', 2741);
 
     expect(result).toBeNull();
   });
@@ -482,7 +505,7 @@ describe('resolveHandleToAgentId', () => {
       claimedAt: BigInt(123457),
     });
 
-    const result = await resolveHandleToAgentId('ACK_ONCHAIN');
+    const result = await resolveHandleToAgentId('ACK_ONCHAIN', 2741);
 
     expect(result).toBe(606); // From hardcoded map, case insensitive
   });

@@ -51,8 +51,6 @@ export default function ProfilePage() {
     query: { enabled: !!address },
   });
 
-  const hasAgent = balance ? Number(balance) > 0 : false;
-
   // Load pending agent data from registration for preview
   const [pendingAgent, setPendingAgent] = useState<{
     name: string;
@@ -68,21 +66,30 @@ export default function ProfilePage() {
   // (clear pending moved below myAgent declaration)
 
   // Find agent on 8004scan by owner address
-  const { data: myAgent, isLoading: loadingAgent } = useQuery({
-    queryKey: ['my-agent', address],
-    queryFn: async (): Promise<ScanAgent | null> => {
-      if (!address) return null;
+  const { data: myAgents, isLoading: loadingAgent } = useQuery({
+    queryKey: ['my-agents', address],
+    queryFn: async (): Promise<ScanAgent[]> => {
+      if (!address) return [];
       const result = await fetchAgents({ search: address, limit: 50 });
-      const match = result.items.find(
+      return result.items.filter(
         (a) =>
           a.owner_address.toLowerCase() === address.toLowerCase() ||
           a.creator_address?.toLowerCase() === address.toLowerCase()
       );
-      return match || null;
     },
-    enabled: !!address && hasAgent,
+    enabled: !!address,
     staleTime: 60_000,
   });
+  const myAgent =
+    myAgents?.find((a) => a.chain_id === chain.id) ?? myAgents?.[0] ?? null;
+  const hasAgent =
+    (balance ? Number(balance) > 0 : false) || (myAgents?.length ?? 0) > 0;
+  const agentsByChain = new Map<number, ScanAgent[]>();
+  for (const agent of myAgents ?? []) {
+    const list = agentsByChain.get(agent.chain_id) ?? [];
+    list.push(agent);
+    agentsByChain.set(agent.chain_id, list);
+  }
 
   // Clear pending data once agent is indexed
   useEffect(() => {
@@ -101,7 +108,8 @@ export default function ProfilePage() {
 
   // Kudos received by this wallet's agent
   const { data: kudosReceived, isLoading: loadingReceived } = useKudosReceived(
-    myAgent ? Number(myAgent.token_id) : undefined
+    myAgent ? Number(myAgent.token_id) : undefined,
+    myAgent?.chain_id
   );
 
   const allProfileTxHashes = [
@@ -135,8 +143,7 @@ export default function ProfilePage() {
               Connect Wallet
             </h1>
             <p className="text-sm md:text-base text-black/50 mb-8 max-w-xs mx-auto">
-              Connect your Abstract Global Wallet to view your agent profile and
-              reputation.
+              Connect your wallet to view your agents.
             </p>
             <Button
               size="lg"
@@ -196,6 +203,39 @@ export default function ProfilePage() {
             </div>
           </div>
         </section>
+
+        {agentsByChain.size > 0 && (
+          <section className="border-2 border-black bg-white p-6 mb-5">
+            <h2 className="text-[10px] font-semibold text-black/50 uppercase tracking-widest mb-4">
+              Your agents
+            </h2>
+            <div className="space-y-4">
+              {[...agentsByChain.entries()].map(([chainId, agents]) => (
+                <div key={chainId}>
+                  <p className="text-xs font-semibold mb-2">
+                    {getChainName(chainId)}
+                  </p>
+                  <ul className="space-y-2">
+                    {agents.map((agent) => (
+                      <li key={`${agent.chain_id}:${agent.token_id}`}>
+                        <Link
+                          href={`/agent/${agent.chain_id}/${agent.token_id}`}
+                          className="flex items-center gap-2 text-sm hover:underline"
+                        >
+                          <ChainIcon chainId={agent.chain_id} size={14} />
+                          {agent.name}
+                          <span className="text-black/50">
+                            #{agent.token_id}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Agent Details or Register CTA */}
         {hasAgent ? (
@@ -368,6 +408,7 @@ export default function ProfilePage() {
                         key={`recv-${k.txHash}-${i}`}
                         sender={k.sender}
                         agentId={null}
+                        chainId={k.chainId}
                         tag2={k.tag2}
                         message={parseMessage(k.feedbackURI)}
                         txHash={k.txHash}
@@ -428,6 +469,7 @@ export default function ProfilePage() {
                       key={`given-${k.txHash}-${i}`}
                       sender={null}
                       agentId={k.agentId}
+                      chainId={k.chainId}
                       tag2={k.tag2}
                       message={k.message}
                       txHash={k.txHash}
@@ -630,6 +672,7 @@ function parseMessage(feedbackURI: string): string | null {
 function KudosCard({
   sender,
   agentId,
+  chainId,
   tag2,
   message,
   txHash,
@@ -638,6 +681,7 @@ function KudosCard({
 }: {
   sender: string | null;
   agentId: number | null;
+  chainId?: number;
   tag2: string;
   message: string | null;
   txHash: string;
@@ -664,7 +708,7 @@ function KudosCard({
           )}
           {agentId !== null && (
             <Link
-              href={`/agent/2741/${agentId}`}
+              href={`/agent/${chainId ?? chain.id}/${agentId}`}
               className="text-sm font-medium text-black hover:text-black transition-colors"
             >
               Agent #{agentId}

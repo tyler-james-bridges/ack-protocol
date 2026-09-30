@@ -2,10 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import type { Address, Hex } from 'viem';
+import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 
 export interface RecentKudos {
   sender: Address;
   agentId: number;
+  chainId: number;
   tag1: string;
   tag2: string;
   message: string | null;
@@ -41,8 +43,8 @@ function parseMessage(feedbackURI: string): string | null {
   return null;
 }
 
-async function fetchRecentKudos(): Promise<RecentKudos[]> {
-  const res = await fetch('/api/feedback?limit=50');
+async function fetchRecentKudos(chainId: number): Promise<RecentKudos[]> {
+  const res = await fetch(`/api/feedback?limit=50&chainId=${chainId}`);
   if (!res.ok) throw new Error(`Failed to fetch recent kudos: ${res.status}`);
   const data = await res.json();
 
@@ -50,6 +52,7 @@ async function fetchRecentKudos(): Promise<RecentKudos[]> {
     (e: {
       sender: string;
       agentId: number;
+      chainId: number;
       tag1: string;
       tag2: string;
       feedbackURI: string;
@@ -58,6 +61,7 @@ async function fetchRecentKudos(): Promise<RecentKudos[]> {
     }) => ({
       sender: e.sender as Address,
       agentId: e.agentId,
+      chainId: e.chainId,
       tag1: e.tag1,
       tag2: e.tag2,
       message: parseMessage(e.feedbackURI),
@@ -68,10 +72,10 @@ async function fetchRecentKudos(): Promise<RecentKudos[]> {
   );
 }
 
-export function useRecentKudos() {
+export function useRecentKudos(chainId: number = DEFAULT_8004_CHAIN_ID) {
   return useQuery({
-    queryKey: ['recent-kudos'],
-    queryFn: fetchRecentKudos,
+    queryKey: ['recent-kudos', chainId],
+    queryFn: () => fetchRecentKudos(chainId),
     staleTime: 60_000,
     gcTime: 300_000,
   });

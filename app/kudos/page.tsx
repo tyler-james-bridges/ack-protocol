@@ -13,6 +13,7 @@ import {
   type KudosCategory,
 } from '@/config/contract';
 import {
+  getChainName,
   useGiveKudos,
   useRecentKudos,
   useIsAgent,
@@ -30,6 +31,14 @@ import {
 } from '@/hooks/useBlockTimestamps';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import {
+  ABSTRACT_CHAIN_ID,
+  DEFAULT_8004_CHAIN_ID,
+  getAgentPath,
+  getChainSlug,
+  resolveChainId,
+} from '@/config/chain';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTipsForKudos, type TipInfo } from '@/hooks/useTipsForKudos';
 import { TipBadge, TipAttribution } from '@/components/tip-badge';
@@ -89,7 +98,10 @@ function RecentKudosCard({
           />
         )}
         <span className="text-black/50/40 text-xs shrink-0">to</span>
-        <Link href={`/agent/2741/${kudos.agentId}`} className="shrink-0">
+        <Link
+          href={getAgentPath(kudos.agentId, kudos.chainId)}
+          className="shrink-0"
+        >
           <AgentAvatar
             name={receiverName}
             imageUrl={agent?.image_url}
@@ -97,7 +109,7 @@ function RecentKudosCard({
           />
         </Link>
         <Link
-          href={`/agent/2741/${kudos.agentId}`}
+          href={getAgentPath(kudos.agentId, kudos.chainId)}
           className="text-xs sm:text-sm font-semibold text-black hover:text-black transition-colors truncate"
         >
           {receiverName}
@@ -139,10 +151,18 @@ export default function GiveKudosPage() {
   const [activeFilter, setActiveFilter] = useState<KudosCategory | 'all'>(
     'all'
   );
+  const searchParams = useSearchParams();
+  const feedChain =
+    resolveChainId(searchParams.get('chain') ?? undefined) ??
+    DEFAULT_8004_CHAIN_ID;
   const { openConnectModal } = useConnectModal();
   const { address, isConnected, status: accountStatus } = useAccount();
   const { giveKudos, status, txHash, reset, isLoading } = useGiveKudos();
-  const { data: recentKudos, isLoading: loadingFeed } = useRecentKudos();
+  const {
+    data: recentKudos,
+    isLoading: loadingFeed,
+    isError: feedError,
+  } = useRecentKudos(feedChain);
   const blockNumbers = recentKudos?.map((k) => k.blockNumber) || [];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
   const senders = recentKudos?.map((k) => k.sender) || [];
@@ -151,7 +171,7 @@ export default function GiveKudosPage() {
   const tipMap = useTipsForKudos(kudosTxHashes);
   const { data: agents } = useLeaderboard({
     limit: 50,
-    chainId: 2741,
+    chainId: feedChain,
     sortBy: 'total_score',
   });
 
@@ -288,8 +308,23 @@ export default function GiveKudosPage() {
               Recent Kudos
             </h2>
             <p className="text-sm md:text-base text-black/50">
-              Latest onchain kudos across all agents on Abstract.
+              Latest onchain kudos on {getChainName(feedChain)}.
             </p>
+          </div>
+          <div className="flex gap-2">
+            {[DEFAULT_8004_CHAIN_ID, ABSTRACT_CHAIN_ID].map((id) => (
+              <Link
+                key={id}
+                href={`/kudos?chain=${getChainSlug(id)}`}
+                className={`px-3 py-1 text-xs font-mono uppercase border ${
+                  feedChain === id
+                    ? 'bg-black text-white border-black'
+                    : 'bg-white text-black/50 border-black/20'
+                }`}
+              >
+                {getChainName(id)}
+              </Link>
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -331,6 +366,12 @@ export default function GiveKudosPage() {
                   <div className="h-3 bg-black/5 rounded w-1/2" />
                 </div>
               ))}
+            </div>
+          ) : feedError ? (
+            <div className="border-2 border-black p-8 text-center">
+              <p className="text-sm text-black/50">
+                Could not load kudos for {getChainName(feedChain)}.
+              </p>
             </div>
           ) : !recentKudos?.length ? (
             <div className="border-2 border-black p-8 text-center">

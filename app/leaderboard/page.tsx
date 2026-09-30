@@ -3,7 +3,6 @@
 import { Suspense, useCallback, useState } from 'react';
 import {
   useLeaderboard,
-  useNetworkStats,
   useAbstractFeedbackCounts,
   getChainName,
 } from '@/hooks';
@@ -15,6 +14,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { ScanAgent } from '@/lib/api';
 import { StreakBadge } from '@/components/streak-badge';
 import { useStreaksBulk } from '@/hooks';
+import { DEFAULT_8004_CHAIN_ID, isKudosIndexed } from '@/config/chain';
 
 type SortKey =
   | 'created_at'
@@ -71,16 +71,18 @@ function LeaderboardPage() {
     sortBy,
   });
   const {
-    data: abstractAgentsList,
-    isLoading: isLoadingAbstract,
-    isError: isErrorAbstract,
-  } = useLeaderboard({ chainId: 2741, limit: 100, sortBy });
-  const { data: networkStats } = useNetworkStats();
+    data: featuredAgentsList,
+    isLoading: isLoadingFeatured,
+    isError: isErrorFeatured,
+  } = useLeaderboard({
+    chainId: DEFAULT_8004_CHAIN_ID,
+    limit: 100,
+    sortBy,
+  });
   const { data: abstractCounts } = useAbstractFeedbackCounts();
 
-  // Expanded chains state (Abstract always expanded by default)
   const [expandedChains, setExpandedChains] = useState<Set<number>>(
-    new Set([2741])
+    new Set([DEFAULT_8004_CHAIN_ID])
   );
 
   const toggleChain = (chainId: number) => {
@@ -98,13 +100,13 @@ function LeaderboardPage() {
     agents.map((agent) => ({
       ...agent,
       kudos:
-        agent.chain_id === 2741 && abstractCounts
+        isKudosIndexed(agent.chain_id) && abstractCounts
           ? abstractCounts.get(Number(agent.token_id)) || 0
           : 0,
     }));
 
   const enrichedAll = enrich(allAgentsList || []);
-  const enrichedAbstract = enrich(abstractAgentsList || []);
+  const enrichedFeatured = enrich(featuredAgentsList || []);
 
   // Sort helper — always re-sort client-side to factor in kudos
   const doSort = (list: EnrichedAgent[]): EnrichedAgent[] => {
@@ -146,10 +148,10 @@ function LeaderboardPage() {
   };
 
   const sorted = doSort(enrichedAll);
-  const abstractAgents = doSort(enrichedAbstract);
+  const featuredAgents = doSort(enrichedFeatured);
   const otherChainAgents = new Map<number, EnrichedAgent[]>();
   for (const agent of sorted) {
-    if (agent.chain_id === 2741) continue;
+    if (agent.chain_id === DEFAULT_8004_CHAIN_ID) continue;
     const list = otherChainAgents.get(agent.chain_id) || [];
     list.push(agent);
     otherChainAgents.set(agent.chain_id, list);
@@ -163,7 +165,7 @@ function LeaderboardPage() {
   // Collect all owner/wallet addresses for bulk streak lookup
   const allAddresses = [
     ...new Set(
-      [...(abstractAgentsList || []), ...(allAgentsList || [])]
+      [...(featuredAgentsList || []), ...(allAgentsList || [])]
         .flatMap((a) => [a.owner_address, a.agent_wallet].filter(Boolean))
         .map((a) => (a as string).toLowerCase())
     ),
@@ -201,32 +203,43 @@ function LeaderboardPage() {
             Explore Agents
           </h1>
           <p className="text-sm md:text-base text-black/50 mt-1">
-            Discover and explore AI agents on Abstract.
+            Agents on {getChainName(DEFAULT_8004_CHAIN_ID)}. Other chains are in
+            the list.
           </p>
         </div>
 
-        {/* Abstract Stats */}
-        {networkStats && (
-          <div className="mb-6">
-            <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-2">
-              Abstract Network
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <StatCard
-                label="Agents on Abstract"
-                value={networkStats.total_agents.toLocaleString()}
-              />
-              <StatCard
-                label="Total Feedback"
-                value={networkStats.total_feedbacks.toLocaleString()}
-              />
-              <StatCard
-                label="Kudos Given"
-                value={networkStats.total_kudos?.toLocaleString() || '0'}
-              />
+        {!isLoadingFeatured &&
+          !isErrorFeatured &&
+          featuredAgents.length > 0 && (
+            <div className="mb-6">
+              <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-2">
+                {getChainName(DEFAULT_8004_CHAIN_ID)}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <StatCard
+                  label={`Agents on ${getChainName(DEFAULT_8004_CHAIN_ID)}`}
+                  value={featuredAgents.length.toLocaleString()}
+                />
+                <StatCard
+                  label="Total Feedback"
+                  value={featuredAgents
+                    .reduce(
+                      (sum, agent) => sum + (agent.total_feedbacks || 0),
+                      0
+                    )
+                    .toLocaleString()}
+                />
+                {isKudosIndexed(DEFAULT_8004_CHAIN_ID) && (
+                  <StatCard
+                    label="Kudos Given"
+                    value={featuredAgents
+                      .reduce((sum, agent) => sum + agent.kudos, 0)
+                      .toLocaleString()}
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Sort */}
         <div className="mb-6">
@@ -254,34 +267,38 @@ function LeaderboardPage() {
         <div className="mb-8">
           <button
             type="button"
-            onClick={() => toggleChain(2741)}
+            onClick={() => toggleChain(DEFAULT_8004_CHAIN_ID)}
             className="flex items-center gap-3 w-full mb-3 text-left cursor-pointer group"
           >
-            <ChainIcon chainId={2741} size={20} />
-            <h2 className="text-lg font-bold">Abstract</h2>
+            <ChainIcon chainId={DEFAULT_8004_CHAIN_ID} size={20} />
+            <h2 className="text-lg font-bold">
+              {getChainName(DEFAULT_8004_CHAIN_ID)}
+            </h2>
             <span className="text-xs text-black/50">
-              {abstractAgents.length} agents
+              {featuredAgents.length} agents
             </span>
-            {abstractAgents.reduce((s, a) => s + a.kudos, 0) > 0 && (
+            {featuredAgents.reduce((s, a) => s + a.kudos, 0) > 0 && (
               <span className="text-xs text-black font-medium">
-                {abstractAgents.reduce((s, a) => s + a.kudos, 0)} kudos
+                {featuredAgents.reduce((s, a) => s + a.kudos, 0)} kudos
               </span>
             )}
             <span className="ml-auto text-black/50 text-xs group-hover:text-black transition-colors">
-              {expandedChains.has(2741) ? 'Collapse' : 'Expand'}
+              {expandedChains.has(DEFAULT_8004_CHAIN_ID)
+                ? 'Collapse'
+                : 'Expand'}
             </span>
           </button>
 
-          {expandedChains.has(2741) && (
+          {expandedChains.has(DEFAULT_8004_CHAIN_ID) && (
             <div className="border-2 border-black overflow-hidden bg-white">
-              {isLoadingAbstract ? (
+              {isLoadingFeatured ? (
                 <LoadingSkeleton count={5} />
-              ) : isErrorAbstract ? (
+              ) : isErrorFeatured ? (
                 <ErrorState />
-              ) : abstractAgents.length === 0 ? (
+              ) : featuredAgents.length === 0 ? (
                 <EmptyState />
               ) : (
-                abstractAgents.map((agent, i) => (
+                featuredAgents.map((agent, i) => (
                   <AgentRow
                     key={agent.id}
                     agent={agent}
@@ -323,7 +340,6 @@ function LeaderboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {otherChainEntries.map(([chainId, agents]) => {
                 const isExpanded = expandedChains.has(chainId);
-                const preview = agents.slice(0, 3);
 
                 return (
                   <div
@@ -346,39 +362,6 @@ function LeaderboardPage() {
                         {isExpanded ? 'Collapse' : 'Expand'}
                       </span>
                     </button>
-
-                    {!isExpanded && (
-                      <div className="px-4 pb-3 space-y-1">
-                        {preview.map((agent, i) => (
-                          <button
-                            key={agent.id}
-                            type="button"
-                            onClick={() => goToAgent(agent)}
-                            className="flex items-center gap-2 w-full text-left py-1 hover:text-black transition-colors cursor-pointer"
-                          >
-                            <span className="text-xs text-black/50 w-5">
-                              #{i + 1}
-                            </span>
-                            <AgentAvatar
-                              name={agent.name}
-                              imageUrl={agent.image_url}
-                              size={20}
-                            />
-                            <span className="text-xs font-medium truncate flex-1">
-                              {agent.name}
-                            </span>
-                            <span className="text-xs tabular-nums text-black/50">
-                              {agent.total_score.toFixed(1)}
-                            </span>
-                          </button>
-                        ))}
-                        {agents.length > 3 && (
-                          <p className="text-[10px] text-black/50 pt-1">
-                            +{agents.length - 3} more
-                          </p>
-                        )}
-                      </div>
-                    )}
 
                     {isExpanded && (
                       <div>
@@ -565,9 +548,12 @@ function getPrimary(
 ): { value: string; label: string; accent?: boolean } {
   switch (sortBy) {
     case 'kudos':
+      if (!isKudosIndexed(agent.chain_id)) {
+        return { value: '—', label: 'not indexed' };
+      }
       return agent.kudos > 0
         ? { value: String(agent.kudos), label: 'kudos', accent: true }
-        : { value: '-', label: 'kudos' };
+        : { value: '0', label: 'kudos' };
     case 'total_feedbacks':
       return agent.total_feedbacks > 0
         ? { value: String(agent.total_feedbacks), label: 'feedback' }

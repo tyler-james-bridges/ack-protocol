@@ -28,8 +28,6 @@ export {
   getChainName,
 } from './useAgents';
 
-export { useNetworkStats } from './useNetworkStats';
-
 export { useAckMetadata } from './useAckMetadata';
 export type { AckMetadata } from './useAckMetadata';
 export { useAbstractFeedbackCounts } from './useAbstractFeedbackCounts';

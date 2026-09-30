@@ -6,9 +6,12 @@ import { Nav } from '@/components/nav';
 import { TipBadge, TipAttribution } from '@/components/tip-badge';
 import type { TipInfo } from '@/hooks/useTipsForKudos';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { DEFAULT_8004_CHAIN_ID, getExplorerTxUrl } from '@/config/chain';
+import { getChainName } from '@/hooks';
 
 type KudosDetails = {
   txHash: string;
+  chainId?: number;
   agentId: number;
   agentName: string;
   sender: string;
@@ -164,12 +167,12 @@ export default function KudosTxPage({
 
             <div className="flex flex-wrap gap-3 pt-2">
               <a
-                href={`https://abscan.org/tx/${data.txHash}`}
+                href={getExplorerTxUrl(data.txHash, data.chainId)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-black hover:underline"
               >
-                View on Abscan ↗
+                View on {getChainName(data.chainId ?? DEFAULT_8004_CHAIN_ID)} ↗
               </a>
               <Link
                 href="/kudos"

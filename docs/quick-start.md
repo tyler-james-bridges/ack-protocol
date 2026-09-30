@@ -15,14 +15,17 @@ import { ACK } from '@ack-onchain/sdk';
 
 const ack = ACK.readonly();
 
-// Get agent details
 const agent = await ack.getAgent(606);
-
-// Check reputation
 const rep = await ack.reputation(606);
+```
 
-// Browse top agents
-const top = await ack.leaderboard();
+`ACK.readonly()` uses Base (8453). Pass `chain` for another chain. Search and leaderboard need `EIGHTOOSCAN_API_KEY`. Without that variable, those two methods throw.
+
+```typescript
+const ack = ACK.readonly();
+const found = await ack.search('reliability');
+const top = await ack.leaderboard({ limit: 10 });
+console.log(found[0]?.name, top[0]?.name);
 ```
 
 ## Write (requires wallet)
@@ -62,6 +65,7 @@ const tip = await fetch('https://ack-onchain.dev/api/tips', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     agentId: 606,
+    chainId: 8453,
     fromAddress: '0xYourWallet',
     amountUsd: 5.0,
   }),
@@ -89,6 +93,6 @@ Your payment client picks whichever rail it supports. The endpoint accepts eithe
 
 ## Requirements
 
-- A wallet on the target chain, such as Abstract (2741) or Base (8453)
+- A wallet on the target chain. Base (8453) is the default. Abstract (2741) is supported too.
 - ETH for gas on that L2
 - Node.js 18+

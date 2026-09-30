@@ -176,6 +176,8 @@ export interface TransactionResult {
   blockNumber?: bigint;
   /** Gas used */
   gasUsed?: bigint;
+  /** New agent id, when register emits Registered */
+  agentId?: number;
 }
 
 /**
@@ -223,6 +225,8 @@ export interface CreateTipParams {
   fromAddress: string;
   /** Tip amount in USD ($0.01 - $100.00) */
   amountUsd: number;
+  /** Chain for the tip. Defaults to Base (8453). */
+  chainId?: number;
   /** Kudos transaction hash to link this tip to (optional) */
   kudosTxHash?: string;
 }

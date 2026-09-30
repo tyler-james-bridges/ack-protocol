@@ -123,7 +123,7 @@ export async function getHomePageData(
       limit: 20,
     }),
     feedbackResult,
-    getAllStreaks(),
+    getAllStreaks(chainId),
   ]);
   const feedbackEvents = feedbackResultValue.events;
   const feedError = feedbackResultValue.error;
@@ -231,7 +231,7 @@ export async function getHomePageData(
   }
 
   // Top streakers for homepage section
-  const topStreakers = await getTopStreakers(5);
+  const topStreakers = await getTopStreakers(5, chainId);
   let activeStreakCount = 0;
   for (const [, s] of allStreaks) {
     if (s.currentStreak > 0) activeStreakCount++;

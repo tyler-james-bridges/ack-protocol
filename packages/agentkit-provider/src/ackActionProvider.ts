@@ -262,10 +262,9 @@ Returns feedback entries with scores, tags, and timestamps.
   @CreateAction({
     name: 'give_kudos',
     description: `
-Give onchain kudos/feedback to an ERC-8004 agent by calling giveFeedback() on the Reputation Registry.
+Give ACK kudos to an ERC-8004 agent by calling giveFeedback() on the Reputation Registry.
 The wallet must be connected to the same chain as the target agent.
-Score is 0-100 (stored with 0 decimals). You cannot give kudos to your own agent.
-Common tags: reliability, speed, accuracy, creativity, collaboration, security, starred.
+Writes tag1 "kudos", value 5, and the category in tag2.
 `,
     schema: GiveKudosSchema,
   })
@@ -279,13 +278,13 @@ Common tags: reliability, speed, accuracy, creativity, collaboration, security, 
         functionName: 'giveFeedback',
         args: [
           BigInt(args.agentId),
-          BigInt(args.value),
-          0, // valueDecimals
-          args.tag1 ?? '',
-          args.tag2 ?? '',
-          '', // endpoint
-          '', // feedbackURI
-          '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`, // feedbackHash
+          BigInt(5),
+          0,
+          'kudos',
+          args.category ?? '',
+          '',
+          '',
+          '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
         ],
       });
 
@@ -299,7 +298,7 @@ Common tags: reliability, speed, accuracy, creativity, collaboration, security, 
 
       await walletProvider.waitForTransactionReceipt(hash);
 
-      return `Successfully gave ${args.value} kudos to agent ${args.agentId} on the connected chain with tag "${args.tag1 ?? ''}". Transaction: ${hash}`;
+      return `Successfully gave kudos to agent ${args.agentId} on the connected chain with category "${args.category ?? ''}". Transaction: ${hash}`;
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       return `Error giving kudos to agent ${args.agentId}: ${msg}`;
@@ -394,24 +393,24 @@ The wallet's connected chain will be used.
     name: 'tip_agent',
     description: `
 Give x402 tipped kudos to an ERC-8004 agent (real USDC payment backing the endorsement).
-Creates a pending tip that the agent owner can claim. Amount is in USDC (min $0.01, max $100).
-Returns a tip ID and payment URL on success.
+Creates a pending tip. Amount is in USD (min $0.01, max $100). Chain defaults to Base.
+Returns a tip ID, payment address, and token address.
 `,
     schema: TipAgentSchema,
   })
   async tipAgent(
-    _walletProvider: EvmWalletProvider,
+    walletProvider: EvmWalletProvider,
     args: z.infer<typeof TipAgentSchema>
   ): Promise<string> {
     try {
-      const body: Record<string, unknown> = {
+      const fromAddress = await walletProvider.getAddress();
+      const chainId = args.chainId ?? 8453;
+      const body = {
         agentId: args.agentId,
-        chainId: args.chainId,
-        amount: args.amount,
+        chainId,
+        fromAddress,
+        amountUsd: args.amount,
       };
-      if (args.message) {
-        body.message = args.message;
-      }
 
       const response = await fetch(`${ACK_API_BASE_URL}/api/tips`, {
         method: 'POST',
@@ -428,10 +427,15 @@ Returns a tip ID and payment URL on success.
       const tipId = data.tipId ?? data.id ?? 'unknown';
 
       return [
-        `Successfully created tip of $${args.amount} USDC for agent ${args.agentId} on chain ${args.chainId}.`,
+        `Successfully created tip of $${args.amount} USDC for agent ${args.agentId} on chain ${chainId}.`,
         `Tip ID: ${tipId}`,
         args.message ? `Message: "${args.message}"` : null,
-        data.paymentUrl ? `Payment URL: ${data.paymentUrl}` : null,
+        data.paymentAddress
+          ? `Payment address: ${String(data.paymentAddress)}`
+          : null,
+        data.tokenAddress
+          ? `Token address: ${String(data.tokenAddress)}`
+          : null,
       ]
         .filter(Boolean)
         .join('\n');

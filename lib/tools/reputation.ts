@@ -96,7 +96,13 @@ async function handleFeedbackHistory(
     return badRequest('offset must be >= 0');
   }
 
-  const result = await getFeedbackHistory({ agentId, limit, offset });
+  const chainId = asInt(params.chainId);
+  const result = await getFeedbackHistory({
+    agentId,
+    chainId: chainId ?? undefined,
+    limit,
+    offset,
+  });
   return { status: 200, body: { ...result } };
 }
 

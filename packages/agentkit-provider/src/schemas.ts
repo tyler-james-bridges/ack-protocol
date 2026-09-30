@@ -65,27 +65,16 @@ export const GetAgentFeedbacksSchema = z
 export const GiveKudosSchema = z
   .object({
     agentId: z.number().describe('Token ID of the agent to give kudos to'),
-    value: z
-      .number()
-      .int()
-      .min(0)
-      .max(100)
-      .describe('Kudos score from 0-100 (integer, stored with 0 decimals)'),
-    tag1: z
+    category: z
       .string()
       .optional()
       .default('')
       .describe(
-        'Primary category tag: reliability, speed, accuracy, creativity, collaboration, security, starred'
+        'Category stored in tag2: reliability, speed, accuracy, creativity, collaboration, security'
       ),
-    tag2: z
-      .string()
-      .optional()
-      .default('')
-      .describe("Secondary tag (freeform, e.g. 'great response time')"),
   })
   .describe(
-    'Give onchain kudos/feedback to an ERC-8004 agent via the Reputation Registry'
+    'Give ACK kudos to an ERC-8004 agent. Writes tag1 kudos and value 5.'
   );
 
 /**
@@ -120,13 +109,15 @@ export const TipAgentSchema = z
   .object({
     chainId: z
       .number()
-      .describe('Chain ID of the agent to tip (e.g. 2741 for Abstract)'),
+      .optional()
+      .default(8453)
+      .describe('Chain ID of the agent to tip. Defaults to Base (8453).'),
     agentId: z.number().describe('Token ID of the agent to tip'),
     amount: z
       .number()
       .min(0.01)
       .max(100)
-      .describe('Tip amount in USDC (min 0.01, max 100)'),
+      .describe('Tip amount in USD, posted as amountUsd (min 0.01, max 100)'),
     message: z
       .string()
       .optional()

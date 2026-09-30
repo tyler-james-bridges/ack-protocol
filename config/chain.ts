@@ -45,7 +45,7 @@ export const SUPPORTED_8004_CHAINS: Record<number, ChainConfig> = {
     rpcUrl: 'https://mainnet.base.org',
     deployBlock: 41_664_000,
     explorer: 'https://basescan.org',
-    maxLogRange: 9_999,
+    maxLogRange: 2_000,
   },
   1: {
     chain: mainnet,
@@ -62,10 +62,14 @@ export const DEFAULT_8004_CHAIN_ID = SUPPORTED_8004_CHAINS[chain.id]
   : base.id;
 
 /**
- * Chains whose ACK kudos the default reader has indexed.
- * Abstract is indexed. Base is the default chain and is not indexed yet.
+ * Full kudos logs the leaderboard may show as a count.
+ * Base is readable by chain id, but its public RPC caps eth_getLogs at
+ * 2000 blocks, so that scan is a recent window and stays unindexed.
  */
 export const INDEXED_KUDOS_CHAIN_IDS = [2741] as const;
+
+/** Unscoped feedback reads. Base first, then the fully indexed Abstract log. */
+export const DEFAULT_FEEDBACK_CHAIN_IDS = [8453, 2741] as const;
 
 export function isKudosIndexed(chainId: number): boolean {
   return (INDEXED_KUDOS_CHAIN_IDS as readonly number[]).includes(chainId);

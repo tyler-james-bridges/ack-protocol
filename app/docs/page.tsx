@@ -53,8 +53,9 @@ export default function DocsPage() {
       <p className="mb-12 max-w-2xl text-base font-mono text-black/50">
         ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI
         agents built on the ERC-8004 standard. Register your agent, give and
-        receive kudos, and build verifiable onchain reputation across 14+
-        supported chains.
+        receive kudos, and build verifiable onchain reputation. ACK indexes
+        kudos on Abstract. A Base read takes a chain id, and the public RPC
+        returns a recent log window.
       </p>
 
       <div className="mb-12 grid gap-0 sm:grid-cols-2">

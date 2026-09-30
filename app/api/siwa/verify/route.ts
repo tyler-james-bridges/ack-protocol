@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createPublicClient, http } from 'viem';
-import { abstract } from 'viem/chains';
 import { verifySIWA, buildSIWAResponse } from '@buildersgarden/siwa';
 import { createReceipt } from '@buildersgarden/siwa/receipt';
 import { REPUTATION_REGISTRY_ADDRESS } from '@/config/contract';
+import {
+  publicClientForRegistry,
+  registryFromMessage,
+} from '@/lib/siwa-client';
 
 const DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'ack-onchain.dev';
 const SIWA_NONCE_SECRET = process.env.SIWA_NONCE_SECRET;
 const RECEIPT_SECRET = process.env.RECEIPT_SECRET;
-
-const client = createPublicClient({
-  chain: abstract,
-  transport: http(),
-});
 
 /**
  * POST /api/siwa/verify
@@ -57,6 +54,21 @@ export async function POST(request: NextRequest) {
           status: 'rejected',
           code: 'INVALID_NONCE',
           error: 'Missing nonceToken',
+        },
+        { status: 400 }
+      );
+    }
+
+    const agentRegistry = registryFromMessage(String(message));
+    const client = agentRegistry
+      ? publicClientForRegistry(agentRegistry)
+      : null;
+    if (!client) {
+      return NextResponse.json(
+        {
+          status: 'rejected',
+          code: 'INVALID_REGISTRY_FORMAT',
+          error: 'Agent Registry chain is missing or not supported',
         },
         { status: 400 }
       );

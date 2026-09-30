@@ -21,7 +21,7 @@ interface StreakCache {
   ts: number;
 }
 
-let streakCache: StreakCache | null = null;
+const streakCaches = new Map<string, StreakCache>();
 const STREAK_CACHE_TTL = 60_000; // 60s, matches feedback cache
 
 function toUTCDateString(timestamp: number): string {
@@ -114,13 +114,17 @@ function computeLongestStreak(sortedDatesDesc: string[]): number {
  * Uses block number estimation for timestamps: Abstract has ~1s block time,
  * so we estimate: estimatedTs = currentTimestamp - (currentBlock - targetBlock)
  */
-export async function getAllStreaks(): Promise<Map<string, StreakData>> {
+export async function getAllStreaks(
+  chainId?: number
+): Promise<Map<string, StreakData>> {
+  const cacheKey = chainId === undefined ? 'indexed' : String(chainId);
   const now = Date.now();
+  const streakCache = streakCaches.get(cacheKey);
   if (streakCache && now - streakCache.ts < STREAK_CACHE_TTL) {
     return streakCache.streaks;
   }
 
-  const events = await getAllFeedbackEvents();
+  const events = await getAllFeedbackEvents(chainId);
 
   // Estimate timestamps from block numbers
   // Abstract L2 has ~1 second block time
@@ -150,7 +154,7 @@ export async function getAllStreaks(): Promise<Map<string, StreakData>> {
     streaks.set(sender, computeStreak(dates));
   }
 
-  streakCache = { streaks, ts: now };
+  streakCaches.set(cacheKey, { streaks, ts: now });
   return streaks;
 }
 
@@ -158,9 +162,10 @@ export async function getAllStreaks(): Promise<Map<string, StreakData>> {
  * Get streak data for a single address.
  */
 export async function getStreakForAddress(
-  address: string
+  address: string,
+  chainId?: number
 ): Promise<StreakData> {
-  const all = await getAllStreaks();
+  const all = await getAllStreaks(chainId);
   return (
     all.get(address.toLowerCase()) || {
       currentStreak: 0,
@@ -176,9 +181,10 @@ export async function getStreakForAddress(
  * Get top streakers sorted by current streak (descending).
  */
 export async function getTopStreakers(
-  limit: number = 20
+  limit: number = 20,
+  chainId?: number
 ): Promise<{ address: string; streak: StreakData }[]> {
-  const all = await getAllStreaks();
+  const all = await getAllStreaks(chainId);
   return [...all.entries()]
     .map(([address, streak]) => ({ address, streak }))
     .filter((s) => s.streak.currentStreak > 0)

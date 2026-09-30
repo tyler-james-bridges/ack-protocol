@@ -5,7 +5,7 @@
  * caches so that multiple API routes (feedback, discover, reputation) share
  * the same data without redundant RPC calls.
  *
- * Supports Abstract, Base, and Ethereum. Each chain maintains its own
+ * The default reader scans Base and Abstract. Each chain maintains its own
  * independent cache and client instance.
  *
  * SERVERLESS CAVEAT: The in-memory caches reset on every cold start in
@@ -22,7 +22,11 @@ import {
   type Address,
   type PublicClient,
 } from 'viem';
-import { SUPPORTED_8004_CHAINS, type ChainConfig } from '@/config/chain';
+import {
+  DEFAULT_FEEDBACK_CHAIN_IDS,
+  SUPPORTED_8004_CHAINS,
+  type ChainConfig,
+} from '@/config/chain';
 
 const REPUTATION_REGISTRY =
   '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63' as const;
@@ -132,18 +136,22 @@ async function fetchChainFeedback(chainId: number): Promise<FeedbackEvent[]> {
   if (!cfg) return [];
 
   const client = getClient(chainId);
-  const fromBlock = cached
-    ? cached.toBlock + 1
-    : (cfg as ChainConfig).deployBlock;
+  const deployBlock = (cfg as ChainConfig).deployBlock;
+  const fromBlock = cached ? cached.toBlock + 1 : deployBlock;
 
   const latestHex = (await client.request({
     method: 'eth_blockNumber',
   })) as Hex;
   const latestBlock = Number(BigInt(latestHex));
   const CHUNK = (cfg as ChainConfig).maxLogRange;
+  const narrowWindow = 24 * CHUNK;
+  const scanFrom =
+    !cached && CHUNK <= 10_000
+      ? Math.max(deployBlock, latestBlock - narrowWindow + 1)
+      : fromBlock;
 
   const rawLogs: RawLog[] = [];
-  for (let start = fromBlock; start <= latestBlock; start += CHUNK) {
+  for (let start = scanFrom; start <= latestBlock; start += CHUNK) {
     const end = Math.min(start + CHUNK - 1, latestBlock);
     const logs = await client.request({
       method: 'eth_getLogs',
@@ -160,7 +168,7 @@ async function fetchChainFeedback(chainId: number): Promise<FeedbackEvent[]> {
   }
 
   const newEvents = parseLogs(rawLogs, chainId);
-  let maxBlock = fromBlock;
+  let maxBlock = scanFrom;
   for (const log of rawLogs) {
     const bn = Number(BigInt(log.blockNumber));
     if (bn > maxBlock) maxBlock = bn;
@@ -193,15 +201,14 @@ export async function getAllFeedbackEventsForChain(
 }
 
 /**
- * Fetch all NewFeedback events across all supported chains.
- * Results are merged and sorted by block number (descending, cross-chain
- * ordering is approximate).
+ * Fetch NewFeedback events for the default chains.
+ * Pass chainId to scan one chain. The default set is Base, then Abstract.
  */
-export async function getAllFeedbackEvents(): Promise<FeedbackEvent[]> {
-  // Default to Abstract-only for performance on serverless. Base/ETH have 10k
-  // block log limits causing hundreds of sequential RPC calls on cold start.
-  // Other chains available via getAllFeedbackEventsForChain() or chainId param.
-  const chainIds = [2741];
+export async function getAllFeedbackEvents(
+  chainId?: number
+): Promise<FeedbackEvent[]> {
+  const chainIds =
+    chainId !== undefined ? [chainId] : [...DEFAULT_FEEDBACK_CHAIN_IDS];
   const results = await Promise.all(
     chainIds.map((cid) =>
       fetchChainFeedback(cid).catch(() => [] as FeedbackEvent[])
@@ -229,17 +236,23 @@ export function warmupFeedbackCache(): void {
  * Get feedback events filtered by agent token ID.
  */
 export async function getFeedbackByAgentId(
-  agentId: number
+  agentId: number,
+  chainId?: number
 ): Promise<FeedbackEvent[]> {
-  const all = await getAllFeedbackEvents();
+  const all =
+    chainId !== undefined
+      ? await getAllFeedbackEventsForChain(chainId)
+      : await getAllFeedbackEvents();
   return all.filter((e) => e.agentId === agentId);
 }
 
 /**
  * Get a map of agentId -> feedback count for all agents.
  */
-export async function getFeedbackCounts(): Promise<Record<number, number>> {
-  const all = await getAllFeedbackEvents();
+export async function getFeedbackCounts(
+  chainId?: number
+): Promise<Record<number, number>> {
+  const all = await getAllFeedbackEvents(chainId);
   const counts: Record<number, number> = {};
   for (const e of all) {
     counts[e.agentId] = (counts[e.agentId] || 0) + 1;

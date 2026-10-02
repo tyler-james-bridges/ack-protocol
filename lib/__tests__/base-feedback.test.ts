@@ -10,7 +10,6 @@ import {
 
 const maxLogRange = SUPPORTED_8004_CHAINS[8453].maxLogRange;
 const now = 1_700_000_000_000;
-const twoHours = 2 * 60 * 60 * 1000;
 
 function event(overrides: Partial<StoredFeedback> = {}): StoredFeedback {
   return {
@@ -111,19 +110,16 @@ describe('commitChunk', () => {
 
 describe('deriveCoverage', () => {
   it('is absent when there is no cursor', () => {
-    expect(deriveCoverage(null, now)).toEqual({ status: 'absent' });
+    expect(deriveCoverage(null)).toEqual({ status: 'absent' });
   });
 
-  it('is complete when the cursor is caught up and fresh', () => {
+  it('is complete when the scan has reached the observed head', () => {
     expect(
-      deriveCoverage(
-        {
-          scannedThroughBlock: 51904950,
-          observedHeadBlock: 51904950,
-          updatedAt: now,
-        },
-        now
-      )
+      deriveCoverage({
+        scannedThroughBlock: 51904950,
+        observedHeadBlock: 51904950,
+        updatedAt: now,
+      })
     ).toEqual({
       status: 'complete',
       deployBlock: 41664000,
@@ -133,35 +129,30 @@ describe('deriveCoverage', () => {
     });
   });
 
-  it('is partial when the same cursor is older than 2 hours', () => {
+  it('stays complete when the cursor reached head and has not been touched for hours', () => {
+    const updatedAt = now - 3 * 60 * 60 * 1000;
     expect(
-      deriveCoverage(
-        {
-          scannedThroughBlock: 51904950,
-          observedHeadBlock: 51904950,
-          updatedAt: now - twoHours - 1,
-        },
-        now
-      )
+      deriveCoverage({
+        scannedThroughBlock: 51904950,
+        observedHeadBlock: 51904950,
+        updatedAt,
+      })
     ).toEqual({
-      status: 'partial',
+      status: 'complete',
       deployBlock: 41664000,
       scannedThroughBlock: 51904950,
       observedHeadBlock: 51904950,
-      updatedAt: now - twoHours - 1,
+      updatedAt,
     });
   });
 
   it('is partial when the cursor is 10000 blocks behind its head', () => {
     expect(
-      deriveCoverage(
-        {
-          scannedThroughBlock: 1_000_000,
-          observedHeadBlock: 1_010_000,
-          updatedAt: now,
-        },
-        now
-      )
+      deriveCoverage({
+        scannedThroughBlock: 1_000_000,
+        observedHeadBlock: 1_010_000,
+        updatedAt: now,
+      })
     ).toEqual({
       status: 'partial',
       deployBlock: 41664000,

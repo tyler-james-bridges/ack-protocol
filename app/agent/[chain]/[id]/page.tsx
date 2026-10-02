@@ -183,6 +183,7 @@ export default function AgentProfilePage({
     (a, b) => b[1] - a[1]
   );
   const uniqueGivers = kudos ? new Set(kudos.map((k) => k.sender)).size : 0;
+  const recordTotal = kudos ? kudos.total : null;
 
   return (
     <div className="min-h-screen bg-white">
@@ -340,8 +341,12 @@ export default function AgentProfilePage({
                   <div className="w-px h-10 bg-black" />
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 flex-1 text-sm font-mono">
                     <div>
-                      <span className="font-bold">{kudos?.length ?? 0}</span>
-                      <span className="text-black/50 ml-1 text-xs">kudos</span>
+                      <span className="font-bold">
+                        {recordTotal === null
+                          ? '—'
+                          : recordTotal.toLocaleString()}
+                      </span>
+                      <span className="text-black/70 ml-1 text-xs">kudos</span>
                     </div>
                     <div>
                       <span className="font-bold">{uniqueGivers}</span>
@@ -349,14 +354,17 @@ export default function AgentProfilePage({
                         {uniqueGivers === 1 ? 'giver' : 'givers'}
                       </span>
                     </div>
-                    <div>
-                      <span className="font-bold">
-                        {agent.scores?.rank
-                          ? `#${agent.scores.rank.toLocaleString()}`
-                          : '-'}
-                      </span>
-                      <span className="text-black/50 ml-1 text-xs">rank</span>
-                    </div>
+                    {typeof agent.scores?.rank === 'number' &&
+                      agent.scores.rank > 0 && (
+                        <div>
+                          <span className="font-bold">
+                            #{agent.scores.rank.toLocaleString()}
+                          </span>
+                          <span className="text-black/70 ml-1 text-xs">
+                            rank
+                          </span>
+                        </div>
+                      )}
                     <div>
                       <span className="font-bold">{agent.star_count}</span>
                       <span className="text-black/50 ml-1 text-xs">stars</span>
@@ -599,9 +607,9 @@ export default function AgentProfilePage({
                 <h2 className="text-lg font-bold font-mono uppercase tracking-wider">
                   KUDOS
                 </h2>
-                {kudos && kudos.length > 0 && (
+                {recordTotal !== null && recordTotal > 0 && (
                   <span className="inline-flex items-center justify-center border-2 border-black bg-black text-white text-xs font-mono font-bold px-2 py-0.5 tabular-nums">
-                    {kudos.length}
+                    {recordTotal.toLocaleString()}
                   </span>
                 )}
               </div>

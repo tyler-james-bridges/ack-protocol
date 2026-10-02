@@ -40,8 +40,52 @@ import {
   resolveChainId,
 } from '@/config/chain';
 import { motion, AnimatePresence } from 'framer-motion';
+import { latestDistinctAgents } from '@/lib/activity';
 import { useTipsForKudos, type TipInfo } from '@/hooks/useTipsForKudos';
 import { TipBadge, TipAttribution } from '@/components/tip-badge';
+
+function RecentList({
+  kudos,
+  agentSet,
+  agentMap,
+  senderMap,
+  timestamps,
+  streaksData,
+  tipMap,
+}: {
+  kudos: RecentKudos[];
+  agentSet?: Set<string>;
+  agentMap: Map<number, ScanAgent>;
+  senderMap: Map<string, ScanAgent>;
+  timestamps?: Map<string, number>;
+  streaksData?: Record<
+    string,
+    { currentStreak: number; isActiveToday: boolean }
+  >;
+  tipMap: Record<string, TipInfo>;
+}) {
+  if (kudos.length === 0) {
+    return (
+      <p className="text-sm text-black/70">No kudos in this category yet.</p>
+    );
+  }
+  return (
+    <div className="border-2 border-black divide-y divide-black/10">
+      {kudos.map((k) => (
+        <RecentKudosCard
+          key={k.txHash}
+          kudos={k}
+          isAgent={agentSet?.has(k.sender.toLowerCase()) ?? false}
+          agent={agentMap.get(k.agentId)}
+          senderAgent={senderMap.get(k.sender.toLowerCase())}
+          timestamp={timestamps?.get(k.blockNumber.toString())}
+          senderStreak={streaksData?.[k.sender.toLowerCase()]}
+          tipInfo={tipMap[k.txHash.toLowerCase()]}
+        />
+      ))}
+    </div>
+  );
+}
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -74,7 +118,7 @@ function RecentKudosCard({
     : `/address/${kudos.sender}`;
 
   return (
-    <div className="border border-black/20 rounded-none p-3 sm:p-4 bg-white hover:border-black transition-colors">
+    <div className="px-4 py-3 bg-white">
       <div className="flex items-center gap-1.5 flex-wrap mb-1">
         <Link href={senderLink} className="shrink-0">
           <AgentAvatar
@@ -209,14 +253,14 @@ export default function GiveKudosPage() {
   return (
     <div className="min-h-screen">
       <Nav />
-      <div className="mx-auto max-w-2xl px-4 pt-4">
+      <div className="mx-auto max-w-5xl px-4 pt-4">
         <Breadcrumbs
           items={[{ label: 'Home', href: '/' }]}
           current="Give Kudos"
         />
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 pt-12 pb-16">
+      <div className="mx-auto max-w-5xl px-4 pt-10 pb-16 lg:grid lg:grid-cols-2 lg:gap-16 lg:items-start">
         <AnimatePresence mode="wait">
           {status === 'success' ? (
             <motion.div
@@ -262,22 +306,28 @@ export default function GiveKudosPage() {
                 </p>
               </div>
 
-              {!isConnected && accountStatus !== 'reconnecting' ? (
-                <div className="border-2 border-black p-8 text-center space-y-4">
-                  <p className="text-black/50">
-                    Connect your wallet to give kudos.
-                  </p>
-                  <Button size="lg" onClick={() => openConnectModal?.()}>
-                    Connect Wallet
-                  </Button>
-                </div>
-              ) : accountStatus === 'reconnecting' ? (
-                <div className="border-2 border-black p-8 text-center">
-                  <p className="text-black/50">Reconnecting wallet...</p>
-                </div>
+              {accountStatus === 'reconnecting' ? (
+                <p className="text-sm text-black/70">Reconnecting wallet...</p>
               ) : (
                 <>
-                  <KudosForm onSubmit={handleSubmit} isLoading={isLoading} />
+                  <KudosForm
+                    onSubmit={
+                      isConnected
+                        ? handleSubmit
+                        : () => {
+                            openConnectModal?.();
+                          }
+                    }
+                    isLoading={isLoading}
+                    submitLabel={
+                      isConnected ? 'Give Kudos' : 'Connect wallet to send'
+                    }
+                  />
+                  {!isConnected && (
+                    <p className="text-sm text-black/70">
+                      Pick an agent now. Sending kudos uses your wallet.
+                    </p>
+                  )}
 
                   {status === 'error' && (
                     <p className="text-sm text-black text-center">
@@ -302,7 +352,7 @@ export default function GiveKudosPage() {
         </AnimatePresence>
 
         {/* Recent Kudos Feed */}
-        <div className="mt-12 space-y-4">
+        <div className="mt-12 space-y-4 lg:mt-0">
           <div className="space-y-1">
             <h2 className="text-lg md:text-xl font-bold tracking-tight">
               Recent Kudos
@@ -380,33 +430,20 @@ export default function GiveKudosPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {recentKudos
-                .filter(
+            <RecentList
+              kudos={latestDistinctAgents(
+                recentKudos.filter(
                   (k) => activeFilter === 'all' || k.tag2 === activeFilter
-                )
-                .map((k, i) => (
-                  <RecentKudosCard
-                    key={`${k.txHash}-${i}`}
-                    kudos={k}
-                    isAgent={agentSet?.has(k.sender.toLowerCase()) ?? false}
-                    agent={agentMap.get(k.agentId)}
-                    senderAgent={senderMap.get(k.sender.toLowerCase())}
-                    timestamp={timestamps?.get(k.blockNumber.toString())}
-                    senderStreak={streaksData?.[k.sender.toLowerCase()]}
-                    tipInfo={tipMap[k.txHash.toLowerCase()]}
-                  />
-                ))}
-              {recentKudos.filter(
-                (k) => activeFilter === 'all' || k.tag2 === activeFilter
-              ).length === 0 && (
-                <div className="border-2 border-black p-8 text-center">
-                  <p className="text-sm text-black/50">
-                    No kudos in this category yet.
-                  </p>
-                </div>
+                ),
+                8
               )}
-            </div>
+              agentSet={agentSet}
+              agentMap={agentMap}
+              senderMap={senderMap}
+              timestamps={timestamps}
+              streaksData={streaksData}
+              tipMap={tipMap}
+            />
           )}
         </div>
       </div>

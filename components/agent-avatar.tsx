@@ -1,6 +1,5 @@
 'use client';
 
-import { Facehash } from 'facehash';
 import Image from 'next/image';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -35,9 +34,8 @@ function pickPalette(name: string): string[] {
 }
 
 /**
- * Agent avatar with Facehash fallback.
- * Uses the agent's image if available, otherwise generates a deterministic
- * colorful face from the agent name via Facehash.
+ * Agent avatar. Uses the agent's image when it loads, otherwise a
+ * deterministic color tile with no numeral.
  */
 export function AgentAvatar({
   name,
@@ -69,31 +67,17 @@ export function AgentAvatar({
     );
   }
 
-  const colors = pickPalette(name);
-
-  // At small sizes, Facehash 3D renders as a dark blob — use a gradient circle instead
-  if (size <= 28) {
-    return (
-      <div
-        className={cn('shrink-0 rounded-none', className)}
-        style={{
-          width: size,
-          height: size,
-          background: `linear-gradient(135deg, ${colors[0]}, ${colors[2]})`,
-        }}
-      />
-    );
-  }
+  const colors = pickPalette(name || 'agent');
 
   return (
-    <div className={cn('shrink-0 rounded-none overflow-hidden', className)}>
-      <Facehash
-        name={name}
-        size={size}
-        colors={colors}
-        intensity3d="dramatic"
-        enableBlink
-      />
-    </div>
+    <div
+      className={cn('shrink-0 rounded-none', className)}
+      style={{
+        width: size,
+        height: size,
+        background: `linear-gradient(135deg, ${colors[0]}, ${colors[2]})`,
+      }}
+      aria-hidden
+    />
   );
 }

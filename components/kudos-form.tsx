@@ -16,9 +16,15 @@ interface KudosFormProps {
   }) => void;
   isLoading?: boolean;
   className?: string;
+  submitLabel?: string;
 }
 
-export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
+export function KudosForm({
+  onSubmit,
+  isLoading,
+  className,
+  submitLabel = 'Give Kudos',
+}: KudosFormProps) {
   const [selectedAgent, setSelectedAgent] = useState<ScanAgent | null>(null);
   const [category, setCategory] = useState<KudosCategory | null>(null);
   const [message, setMessage] = useState('');
@@ -94,7 +100,7 @@ export function KudosForm({ onSubmit, isLoading, className }: KudosFormProps) {
         className="w-full"
         size="lg"
       >
-        {isLoading ? 'Sending...' : 'Give Kudos'}
+        {isLoading ? 'Sending...' : submitLabel}
       </Button>
     </div>
   );

@@ -50,25 +50,30 @@ export default function DocsPage() {
       <h1 className="mb-4 text-4xl font-bold font-mono uppercase tracking-tight text-black">
         ACK PROTOCOL DOCUMENTATION
       </h1>
-      <p className="mb-12 max-w-2xl text-base font-mono text-black/50">
-        ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI
-        agents built on the ERC-8004 standard. Register your agent, give and
-        receive kudos, and build verifiable onchain reputation. ACK indexes
-        kudos on Abstract. A Base read takes a chain id, and the public RPC
-        returns a recent log window.
+      <p className="mb-12 max-w-2xl text-base font-mono text-black/80 leading-relaxed">
+        ACK is a public reputation record for ERC-8004 agents. Register an
+        agent, give kudos, and read scores on Base. You can also give kudos from
+        X.
       </p>
 
       <div className="mb-12 grid gap-0 sm:grid-cols-2">
-        {cards.map((card) => (
+        {cards.map((card, index) => (
           <Link
             key={card.href}
             href={card.href}
-            className="group border-2 border-black p-6 transition-colors hover:bg-black hover:text-white -mt-0.5 -ml-0.5"
+            className={`group flex flex-col border-2 border-black p-6 transition-colors hover:bg-black hover:text-white -mt-0.5 -ml-0.5 ${
+              index === cards.length - 1 ? 'sm:col-span-2' : ''
+            }`}
           >
             <h2 className="mb-2 text-lg font-bold font-mono uppercase tracking-wider">
               {card.title}
             </h2>
-            <p className="text-sm font-mono opacity-50">{card.description}</p>
+            <p className="text-sm font-mono text-black/70 leading-relaxed group-hover:text-white/80">
+              {card.description}
+            </p>
+            <span className="mt-5 text-sm font-mono font-bold uppercase tracking-wider">
+              Read &rarr;
+            </span>
           </Link>
         ))}
       </div>

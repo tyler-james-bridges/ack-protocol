@@ -112,19 +112,18 @@ export default async function Home({
                       ) : null;
                     })()}
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs font-mono opacity-50">
-                    <span>{agent.total_score.toFixed(1)} score</span>
-                    {agent.kudos > 0 && (
-                      <>
-                        <span>|</span>
-                        <span>{agent.kudos} kudos</span>
-                      </>
-                    )}
-                  </div>
+                  {agent.kudos > 0 && (
+                    <p className="text-xs font-mono opacity-70">
+                      {agent.kudos.toLocaleString()} kudos
+                    </p>
+                  )}
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-sm font-bold font-mono tabular-nums">
                     {agent.total_score.toFixed(1)}
+                  </p>
+                  <p className="text-[10px] font-mono uppercase tracking-wider opacity-50">
+                    score
                   </p>
                 </div>
               </Link>
@@ -170,7 +169,7 @@ export default async function Home({
               <h3 className="text-lg font-bold font-mono uppercase tracking-wider">
                 {prop.title}
               </h3>
-              <p className="mt-2 text-sm font-mono text-black/50 leading-relaxed">
+              <p className="mt-3 text-base font-mono text-black/80 leading-relaxed">
                 {prop.desc}
               </p>
             </div>
@@ -262,10 +261,10 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
                 <span className="text-lg font-bold font-mono text-black/20 tabular-nums">
                   {card.step}
                 </span>
-                <p className="font-bold text-sm font-mono uppercase tracking-wider mt-1">
+                <p className="font-bold text-sm font-mono uppercase tracking-wider mt-2">
                   {card.title}
                 </p>
-                <p className="text-xs font-mono text-black/50 mt-1">
+                <p className="text-sm font-mono text-black/80 mt-2 leading-relaxed">
                   {card.desc}
                 </p>
                 {card.external ? (
@@ -306,7 +305,7 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
             <p className="text-sm font-bold font-mono mt-1 uppercase tracking-wider">
               Agent Identity Standard
             </p>
-            <p className="text-xs font-mono opacity-50 mt-2">
+            <p className="text-sm font-mono mt-2 leading-relaxed opacity-80">
               Open standard for registering AI agents onchain. Portable
               identity, metadata, and reputation across any EVM chain.
             </p>
@@ -324,7 +323,7 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
             <p className="text-sm font-bold font-mono mt-1 uppercase tracking-wider">
               Dual Payment Rails
             </p>
-            <p className="text-xs font-mono opacity-50 mt-2">
+            <p className="text-sm font-mono mt-2 leading-relaxed opacity-80">
               Two payment protocols for tipped kudos. x402 for signed
               authorizations, MPP via Tempo for instant micropayments.
             </p>

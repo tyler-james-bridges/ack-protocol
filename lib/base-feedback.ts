@@ -3,7 +3,6 @@ import type { FeedbackEvent } from '@/lib/feedback-cache';
 
 const BASE_CHAIN_ID = 8453;
 const COVERAGE_BLOCK_SLACK = 4000;
-const COVERAGE_FRESHNESS_MS = 2 * 60 * 60 * 1000;
 
 export type Coverage =
   | { status: 'absent' }
@@ -47,12 +46,9 @@ export function planNextChunk(
   return { fromBlock, toBlock };
 }
 
-export function deriveCoverage(
-  cursor: FeedbackCursor | null,
-  now: number
-): Coverage {
+export function deriveCoverage(cursor: FeedbackCursor | null): Coverage {
   if (cursor === null) return { status: 'absent' };
-  const status = coverageStatus(cursor, now);
+  const status = coverageStatus(cursor);
   return {
     status,
     deployBlock: SUPPORTED_8004_CHAINS[BASE_CHAIN_ID].deployBlock,
@@ -99,15 +95,11 @@ export function feedbackEventKey(event: {
   return `${event.chainId}:${event.txHash}:${event.logIndex}`;
 }
 
-function coverageStatus(
-  cursor: FeedbackCursor,
-  now: number
-): 'partial' | 'complete' {
-  const fresh = now - cursor.updatedAt <= COVERAGE_FRESHNESS_MS;
+function coverageStatus(cursor: FeedbackCursor): 'partial' | 'complete' {
   const caughtUp =
     cursor.scannedThroughBlock >=
     cursor.observedHeadBlock - COVERAGE_BLOCK_SLACK;
-  if (fresh && caughtUp) return 'complete';
+  if (caughtUp) return 'complete';
   return 'partial';
 }
 

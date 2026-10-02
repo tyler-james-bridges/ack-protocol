@@ -24,6 +24,7 @@ import {
   getAllFeedbackEventsForChain,
   type FeedbackEvent,
 } from '@/lib/feedback-cache';
+import { kudosWindow } from '@/lib/activity';
 import {
   readBaseCounts,
   readBaseHistory,
@@ -235,5 +236,26 @@ async function baseEventsResponse(input: {
     .sort((a, b) => parseInt(b.blockNumber, 10) - parseInt(a.blockNumber, 10))
     .slice(0, input.limitParam);
 
-  return NextResponse.json({ events, total: events.length }, { headers });
+  let archiveTotal: number | null = null;
+  if (agentId !== undefined) {
+    try {
+      const { coverage, counts } = await readBaseCounts();
+      if (coverage.status !== 'absent') {
+        archiveTotal = counts.get(agentId) ?? 0;
+      }
+    } catch {
+      archiveTotal = null;
+    }
+  }
+  const windowed = kudosWindow(archiveTotal, events.length);
+
+  return NextResponse.json(
+    {
+      events,
+      total: windowed.total,
+      shown: events.length,
+      capped: windowed.capped,
+    },
+    { headers }
+  );
 }

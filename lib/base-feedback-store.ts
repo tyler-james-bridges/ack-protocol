@@ -62,7 +62,7 @@ let countsSnapshot: CountsSnapshot | null = null;
 
 export async function readBaseCounts(): Promise<BaseCounts> {
   const cursor = await readCursor();
-  const coverage = deriveCoverage(cursor, Date.now());
+  const coverage = deriveCoverage(cursor);
   if (!cursor) {
     return { coverage, counts: new Map(), uniqueSenders: 0 };
   }
@@ -101,7 +101,7 @@ export async function readBaseHistory(
   query: BaseHistoryQuery
 ): Promise<{ coverage: Coverage; events: StoredFeedback[] }> {
   const cursor = await readCursor();
-  const coverage = deriveCoverage(cursor, Date.now());
+  const coverage = deriveCoverage(cursor);
   const limit = boundedLimit(query.limit, HISTORY_LIMIT);
   if (!cursor || limit === 0) return { coverage, events: [] };
   const sender = query.sender?.toLowerCase();

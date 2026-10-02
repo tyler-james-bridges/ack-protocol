@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import type { Address, Hex } from 'viem';
 import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 
+export type KudosList = KudosEvent[] & { total: number; capped: boolean };
+
 export interface KudosEvent {
   sender: Address;
   chainId: number;
@@ -47,7 +49,7 @@ async function fetchKudos(
   agentId: number,
   chainId?: number,
   linkedHandles?: string[]
-): Promise<KudosEvent[]> {
+): Promise<KudosList> {
   const params = new URLSearchParams({
     agentId: String(agentId),
     limit: '500',
@@ -58,6 +60,8 @@ async function fetchKudos(
   const data = await res.json();
 
   const events: KudosEvent[] = (data.events || []).map(mapEvent);
+  const archiveTotal = typeof data.total === 'number' ? data.total : null;
+  const capped = data.capped === true;
 
   // Also fetch proxy kudos for linked handles
   if (linkedHandles && linkedHandles.length > 0) {
@@ -89,7 +93,14 @@ async function fetchKudos(
     events.sort((a, b) => (b.blockNumber > a.blockNumber ? 1 : -1));
   }
 
-  return events;
+  const list = events as KudosList;
+  list.total =
+    archiveTotal === null
+      ? events.length
+      : Math.max(archiveTotal, events.length);
+  list.capped =
+    capped || (archiveTotal !== null && archiveTotal > events.length);
+  return list;
 }
 
 export function useKudosReceived(

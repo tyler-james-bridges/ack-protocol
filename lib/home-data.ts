@@ -11,6 +11,7 @@ import {
   getAllFeedbackEventsForChain,
   type FeedbackEvent,
 } from './feedback-cache';
+import { latestDistinctAgents } from './activity';
 import { readBaseCounts, readBaseRecent } from './base-feedback-store';
 import { getAllStreaks, getTopStreakers, type StreakData } from './streaks';
 import type { ScanAgent } from './api';
@@ -86,7 +87,7 @@ async function loadChainFeedback(chainId: number): Promise<{
     try {
       const [countsResult, recent] = await Promise.all([
         readBaseCounts(),
-        readBaseRecent(5),
+        readBaseRecent(50),
       ]);
       if (countsResult.coverage.status === 'absent') {
         return { events: [], counts: {}, totalKudos: 0, error: false };
@@ -183,32 +184,23 @@ export async function getHomePageData(
     }))
     .slice(0, 10);
 
-  // Build recent kudos (top 5, newest first), deduplicating near-identical entries.
-  // Two events are considered duplicates if they share the same sender, agentId,
-  // tag1, tag2, and message — keeps the earliest (lowest txHash) occurrence.
   const sortedEvents = [...feedbackEvents].sort(
     (a, b) => parseInt(b.blockNumber) - parseInt(a.blockNumber)
   );
-  const seenKudos = new Set<string>();
-  const recentKudos: RecentKudosItem[] = [];
-  for (const e of sortedEvents) {
-    if (recentKudos.length >= 5) break;
-    const msg = parseMessage(e.feedbackURI);
-    const dedupKey = `${e.sender}:${e.agentId}:${e.tag1}:${e.tag2}:${msg || ''}`;
-    if (seenKudos.has(dedupKey)) continue;
-    seenKudos.add(dedupKey);
-    recentKudos.push({
-      sender: e.sender,
-      agentId: e.agentId,
-      chainId: e.chainId,
-      tag1: e.tag1,
-      tag2: e.tag2,
-      message: msg,
-      feedbackURI: e.feedbackURI,
-      txHash: e.txHash,
-      blockNumber: e.blockNumber,
-    });
-  }
+  const recentKudos: RecentKudosItem[] = latestDistinctAgents(
+    sortedEvents,
+    5
+  ).map((e) => ({
+    sender: e.sender,
+    agentId: e.agentId,
+    chainId: e.chainId,
+    tag1: e.tag1,
+    tag2: e.tag2,
+    message: parseMessage(e.feedbackURI),
+    feedbackURI: e.feedbackURI,
+    txHash: e.txHash,
+    blockNumber: e.blockNumber,
+  }));
 
   // Stats (global from 8004scan + Abstract-specific)
   let globalAgents = 0;

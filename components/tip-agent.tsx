@@ -25,7 +25,7 @@ import {
 } from '@/config/chain';
 import { dataSuffixForChainId } from '@/config/builder-code';
 import { cn } from '@/lib/utils';
-import { mapMppErrorToUiMessage } from '@/lib/payments/mpp-errors';
+import { x402RejectionMessage } from '@/lib/payments/x402-errors';
 import type { Address } from 'viem';
 
 const TIP_PRESETS = [1, 2, 5, 10] as const;
@@ -149,17 +149,21 @@ export function TipAgent({
         const res = await paidFetch(`/api/tips/${tipId}/pay`);
         const data = (await res.json().catch(() => ({}))) as {
           error?: string;
+          detail?: string;
           tip?: { paymentTxHash?: string };
         };
         if (!res.ok) {
-          throw new Error(data.error || `Payment failed (${res.status})`);
+          throw new Error(
+            data.error || data.detail || `Payment failed (${res.status})`
+          );
         }
         const settled = paymentHash(data.tip?.paymentTxHash);
         if (settled) setPaymentTxHash(settled);
 
         setStatus('success');
       } catch (err) {
-        setErrorMsg(mapMppErrorToUiMessage(err));
+        const raw = err instanceof Error ? err.message : 'Payment failed';
+        setErrorMsg(x402RejectionMessage(raw));
         setStatus('error');
       }
       return;

@@ -17,8 +17,18 @@ import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 import { BASE_BUILDER_CODE } from '@/config/builder-code';
 
 export const ABSTRACT_FACILITATOR_URL = 'https://facilitator.x402.abs.xyz';
-/** Settles Base mainnet. `/supported` extensions are `["discovery"]` only. */
+/**
+ * Rejects any payTo that has not signed up at openx402.ai
+ * (`invalidReason: address_not_registered`). Do not use this for tips.
+ */
 export const OPENX402_BASE_FACILITATOR_URL = 'https://facilitator.openx402.ai';
+/**
+ * Public Base facilitator. `GET /supported` includes v2 `exact` on
+ * `eip155:8453`. `POST /verify` accepts an arbitrary payTo with no API key
+ * and no payee registration. Gas is sponsored and there is no protocol fee.
+ * Extensions do not include `builder-code`.
+ */
+export const XPAY_BASE_FACILITATOR_URL = 'https://facilitator.xpay.sh';
 /**
  * CDP facilitator documents builder-code on Base (`eip155:8453`).
  * `GET /supported` returns 401 without CDP API credentials, and this app does
@@ -30,7 +40,7 @@ export const CDP_X402_FACILITATOR_URL =
 export const BASE_FACILITATOR_URL =
   process.env.BASE_X402_FACILITATOR_URL ||
   process.env.X402_BASE_FACILITATOR_URL ||
-  OPENX402_BASE_FACILITATOR_URL;
+  XPAY_BASE_FACILITATOR_URL;
 
 export const NETWORK: Network = 'eip155:8453';
 
@@ -38,12 +48,15 @@ export const NETWORK: Network = 'eip155:8453';
  * Advertise ERC-8021 builder-code on Base payment requirements only when the
  * configured facilitator is expected to honor it.
  *
- * Checked 2026-09-26:
- * - openx402 (default) settles eip155:8453 and does not list `builder-code`
+ * Checked 2026-10-06:
+ * - xpay (default) settles eip155:8453 exact for any payTo and does not list
+ *   `builder-code`
+ * - openx402 settles eip155:8453 but rejects unregistered payTo addresses
  * - https://x402.org/facilitator lists `builder-code` but not eip155:8453
  * - CDP lists both, and requires authenticated settle calls
  *
- * Leaving the extension off by default keeps openx402 settlement working.
+ * Leaving the extension off by default keeps xpay settlement working.
+ * Direct Base transactions still append the builder-code calldata suffix.
  * Set BASE_X402_BUILDER_CODE=1 after the facilitator both settles Base and
  * advertises builder-code.
  */

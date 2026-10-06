@@ -18,6 +18,10 @@ import {
   markProofUsed,
   parseXPaymentProofId,
 } from '@/lib/payments/replay';
+import {
+  requestAttemptedX402Payment,
+  withFacilitatorRejectionBody,
+} from '@/lib/payments/x402-rejection';
 
 /**
  * Build an RFC 9457 problem+json response for payment errors.
@@ -302,7 +306,11 @@ export async function GET(
     tip.chainId
   );
 
-  return gatedHandler(request);
+  const paid = await gatedHandler(request);
+  return withFacilitatorRejectionBody(
+    paid,
+    requestAttemptedX402Payment(request.headers)
+  );
 }
 
 /**

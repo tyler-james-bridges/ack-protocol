@@ -33,6 +33,7 @@ import {
   createPaymentTimer,
 } from '@/lib/payments/telemetry';
 import { mapMppError } from '@/lib/payments/mpp-errors';
+import { x402RejectionMessage } from '@/lib/payments/x402-errors';
 import { checkMppPreflight } from '@/lib/payments/mpp-preflight';
 
 interface TipData {
@@ -416,7 +417,8 @@ export default function TipPage({
         );
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'x402 payment failed';
+      const raw = err instanceof Error ? err.message : 'x402 payment failed';
+      const msg = x402RejectionMessage(raw);
       trackPaymentEvent('payment_failed', {
         method: 'x402',
         tipId,

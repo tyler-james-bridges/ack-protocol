@@ -38,13 +38,17 @@ describe('x402 builder-code facilitator gate', () => {
     delete process.env.X402_BASE_FACILITATOR_URL;
   });
 
-  it('keeps openx402 as the Base facilitator and hides builder-code', async () => {
+  it('uses the keyless Base facilitator and hides builder-code', async () => {
     const x402 = await import('./x402');
-    expect(x402.BASE_FACILITATOR_URL).toBe(x402.OPENX402_BASE_FACILITATOR_URL);
+    expect(x402.BASE_FACILITATOR_URL).toBe(x402.XPAY_BASE_FACILITATOR_URL);
+    expect(x402.BASE_FACILITATOR_URL).toBe('https://facilitator.xpay.sh');
     expect(x402.facilitatorSupportsBuilderCode()).toBe(false);
     expect(x402.paymentExtensionsForChain(8453)).toBeUndefined();
     expect(x402.paymentExtensionsForChain(2741)).toBeUndefined();
     expect(x402.CDP_X402_FACILITATOR_URL).toContain('api.cdp.coinbase.com');
+    expect(x402.OPENX402_BASE_FACILITATOR_URL).toBe(
+      'https://facilitator.openx402.ai'
+    );
   });
 
   it('advertises builder-code on Base when explicitly enabled', async () => {

@@ -1,4 +1,5 @@
 import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
+import { CLAWDIA_BASE_TIP_BACKFILL } from '@/lib/payments/x402-backfill';
 
 let _sql: NeonQueryFunction<false, false> | null = null;
 let _migrated = false;
@@ -47,5 +48,18 @@ export async function ensureMigrations(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_tips_kudos_tx ON tips (kudos_tx_hash)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_tips_status ON tips (status)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_tips_agent_chain ON tips (agent_id, chain_id)`;
+  const backfill = CLAWDIA_BASE_TIP_BACKFILL;
+  await sql`
+    UPDATE tips
+    SET payment_tx_hash = ${backfill.txHash}
+    WHERE id = ${backfill.tipId}
+      AND status = 'completed'
+      AND payment_tx_hash = ${backfill.placeholder}
+      AND agent_id = ${backfill.agentId}
+      AND chain_id = ${backfill.chainId}
+      AND amount_usd = ${backfill.amountUsd}
+      AND LOWER(from_address) = ${backfill.fromAddress}
+      AND LOWER(to_address) = ${backfill.toAddress}
+  `;
   _migrated = true;
 }

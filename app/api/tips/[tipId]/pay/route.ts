@@ -6,6 +6,8 @@ import {
   tipToJSON,
   resolvePaymentAddress,
 } from '@/lib/tip-store';
+import { X402_FACILITATOR_SETTLEMENT } from '@/lib/payments/payment-ref';
+import { settlementTransactionHash } from '@/lib/payments/x402-errors';
 import {
   buildMppChallenge,
   buildMppChallengeResponse,
@@ -75,11 +77,8 @@ function problemResponse(
  * 2. Server returns 402 with payment requirements (tip amount in USDC)
  * 3. Client signs payment via x402 (EIP-3009 transferWithAuthorization)
  * 4. Facilitator settles USDC onchain
- * 5. Server marks tip as completed, returns confirmation
+ * 5. Server reads the settlement tx from PAYMENT-RESPONSE and completes the tip
  */
-// Module-level stash for x402 tx hash (set in GET, read in handler)
-let _pendingX402TxHash: string | null = null;
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handler(request: NextRequest): Promise<NextResponse<any>> {
   const tipId = request.nextUrl.pathname.split('/').slice(-2)[0];
@@ -100,26 +99,11 @@ async function handler(request: NextRequest): Promise<NextResponse<any>> {
     return NextResponse.json({ error: 'Tip has expired' }, { status: 410 });
   }
 
-  // Extract x402 settlement tx hash — stashed by GET before withPayment runs
-  const x402TxHash = _pendingX402TxHash;
-  _pendingX402TxHash = null; // consume it
-  const x402Ref = x402TxHash
-    ? `x402:${x402TxHash}`
-    : 'x402-facilitator-settlement';
-
-  // Mark the tip as completed with the settlement reference
-  const completed = await completeTip(tipId, x402Ref);
-  if (!completed) {
-    return NextResponse.json(
-      { error: 'Failed to complete tip' },
-      { status: 500 }
-    );
-  }
-
+  // Settlement runs after this handler returns. Completing the tip here would
+  // store the placeholder, because PAYMENT-RESPONSE does not exist yet.
   return NextResponse.json({
-    status: 'paid',
-    tip: tipToJSON(completed),
-    message: `Tip of $${completed.amountUsd.toFixed(2)} paid via x402`,
+    status: 'payment_verified',
+    tipId,
   });
 }
 
@@ -290,9 +274,6 @@ export async function GET(
 
     // Pre-mark proof id to prevent rapid replay attempts against the same tip path.
     markProofUsed(proofId);
-
-    // Stash the tx hash so handler() can store it with the tip
-    _pendingX402TxHash = proofId;
   }
 
   const payTo = await resolvePaymentAddress(tip.agentId, tip.chainId);
@@ -307,10 +288,38 @@ export async function GET(
   );
 
   const paid = await gatedHandler(request);
-  return withFacilitatorRejectionBody(
+  const settled = await withFacilitatorRejectionBody(
     paid,
     requestAttemptedX402Payment(request.headers)
   );
+  if (settled.status >= 400) return settled;
+
+  const txHash = settlementTransactionHash(settled.headers);
+  const paymentTxHash = txHash ?? X402_FACILITATOR_SETTLEMENT;
+  const completed = await completeTip(tipId, paymentTxHash);
+  const stored = completed ?? (await getTip(tipId));
+  if (!stored || stored.status !== 'completed') {
+    return NextResponse.json(
+      { error: 'Failed to complete tip' },
+      { status: 500 }
+    );
+  }
+
+  return withTipBody(settled, {
+    status: 'paid',
+    tip: tipToJSON(stored),
+    message: `Tip of $${stored.amountUsd.toFixed(2)} paid via x402`,
+  });
+}
+
+async function withTipBody(
+  response: NextResponse,
+  body: Record<string, unknown>
+): Promise<NextResponse> {
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  headers.set('content-type', 'application/json');
+  return NextResponse.json(body, { status: response.status, headers });
 }
 
 /**

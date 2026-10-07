@@ -1,3 +1,5 @@
+import { isEvmTxHash } from '@/lib/payments/payment-ref';
+
 /**
  * Readable copy for x402 facilitator rejections.
  *
@@ -123,4 +125,21 @@ export function facilitatorRejectionReason(headers: {
   const reason = stringField(required, 'error');
   if (!reason || isX402ChallengeError(reason)) return null;
   return reason;
+}
+
+/**
+ * Read the onchain tx hash from a successful facilitator settle response.
+ * x402 puts that payload in the `PAYMENT-RESPONSE` header as
+ * `{ success, transaction, network }`.
+ */
+export function settlementTransactionHash(headers: {
+  get(name: string): string | null;
+}): string | null {
+  const settled = decodeHeaderJson(
+    headers.get('payment-response') ?? headers.get('x-payment-response')
+  );
+  if (!settled || settled.success !== true) return null;
+  const transaction = stringField(settled, 'transaction');
+  if (!transaction || !isEvmTxHash(transaction)) return null;
+  return transaction;
 }

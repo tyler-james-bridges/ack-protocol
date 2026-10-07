@@ -7,6 +7,7 @@ import { TipBadge } from '@/components/tip-badge';
 import type { StandaloneTip } from '@/hooks/useTipsFeed';
 import type { ScanAgent } from '@/lib/api';
 import { getAgentPath, getExplorerTxUrl } from '@/config/chain';
+import { paymentRefTxHash } from '@/lib/payments/payment-ref';
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -33,6 +34,7 @@ export function TipCard({
     ? `/agent/${tip.fromAgent.chainId}/${tip.fromAgent.tokenId}`
     : `/address/${tip.fromAddress}`;
   const receiverName = receiverAgent?.name || `Agent #${tip.agentId}`;
+  const settlementTxHash = paymentRefTxHash(tip.paymentTxHash);
 
   return (
     <div className="flex gap-3 border border-black/20 rounded-none p-4 bg-black/5/50 hover:border-[#00FF94]/40 transition-colors">
@@ -75,20 +77,17 @@ export function TipCard({
           </div>
           <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
             <TipBadge amountUsd={tip.amountUsd} />
-            {tip.paymentTxHash &&
-              tip.paymentTxHash !== 'x402-facilitator-settlement' && (
-                <a
-                  href={getExplorerTxUrl(tip.paymentTxHash, tip.chainId)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] text-black/50/50 hover:text-black transition-colors"
-                  title="View payment transaction"
-                >
-                  {formatRelativeTime(tip.completedAt)} ↗
-                </a>
-              )}
-            {(!tip.paymentTxHash ||
-              tip.paymentTxHash === 'x402-facilitator-settlement') && (
+            {settlementTxHash ? (
+              <a
+                href={getExplorerTxUrl(settlementTxHash, tip.chainId)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-black/50/50 hover:text-black transition-colors"
+                title="View payment transaction"
+              >
+                {formatRelativeTime(tip.completedAt)} ↗
+              </a>
+            ) : (
               <span className="text-[11px] text-black/50/50">
                 {formatRelativeTime(tip.completedAt)}
               </span>

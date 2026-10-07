@@ -105,11 +105,12 @@ describe('GET /api/tips/[tipId]/pay facilitator rejection', () => {
         kudosTxHash: '',
         fromAddress: '0x668add9213985e7fd613aec87767c892f4b9df1c',
         toAddress: '0x715dc035ffb97dd7bb4095c6670138ba05bb4e6d',
+        // tipToJSON is mocked as identity, so keep amountRaw JSON-safe.
         amountRaw: '1000000',
         createdAt: 1,
         completedAt: 2,
         expiresAt: 3,
-      } as Awaited<ReturnType<typeof completeTip>>;
+      } as unknown as Awaited<ReturnType<typeof completeTip>>;
     });
 
     const request = new NextRequest(

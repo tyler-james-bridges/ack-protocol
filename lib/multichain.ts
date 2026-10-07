@@ -21,6 +21,16 @@ const DEPLOYMENT_BLOCKS: Record<number, bigint> = {
   59144: BigInt(10000000), // Linea
   167000: BigInt(500000), // Taiko
   196: BigInt(1000000), // XLayer
+  4663: BigInt(12058809), // Robinhood Chain (identity registry creation block)
+};
+
+/**
+ * Max block span a chain's public RPC accepts in one eth_getLogs call.
+ * Robinhood Chain rejects single-topic queries spanning more than 10M blocks,
+ * so its range is split into chunks. Chains not listed use one query.
+ */
+const MAX_LOG_RANGE: Record<number, bigint> = {
+  4663: BigInt(10_000_000),
 };
 
 const FEEDBACK_GIVEN_TOPIC =
@@ -54,7 +64,15 @@ export async function fetchCrossChainReputation(
     SUPPORTED_CHAINS.map(async ({ chain }) => {
       const client = getPublicClient(chain.id);
       const deployBlock = DEPLOYMENT_BLOCKS[chain.id] ?? BigInt(0);
-      const logs = (await withTimeout(
+      const maxRange = MAX_LOG_RANGE[chain.id];
+
+      type FeedbackLog = {
+        blockNumber: `0x${string}`;
+        transactionHash: `0x${string}`;
+        data: `0x${string}`;
+      };
+
+      const getLogs = (fromBlock: bigint, toBlock: bigint | 'latest') =>
         client.request({
           method: 'eth_getLogs',
           params: [
@@ -65,17 +83,27 @@ export async function fetchCrossChainReputation(
                 null,
                 paddedAddress,
               ],
-              fromBlock: numberToHex(deployBlock),
-              toBlock: 'latest',
+              fromBlock: numberToHex(fromBlock),
+              toBlock: toBlock === 'latest' ? 'latest' : numberToHex(toBlock),
             },
           ],
-        }),
-        5000
-      )) as {
-        blockNumber: `0x${string}`;
-        transactionHash: `0x${string}`;
-        data: `0x${string}`;
-      }[];
+        }) as Promise<FeedbackLog[]>;
+
+      const fetchLogs = async (): Promise<FeedbackLog[]> => {
+        if (!maxRange) return getLogs(deployBlock, 'latest');
+        const latest = await client.getBlockNumber();
+        const ranges: [bigint, bigint][] = [];
+        for (let from = deployBlock; from <= latest; from += maxRange) {
+          const to = from + maxRange - BigInt(1);
+          ranges.push([from, to < latest ? to : latest]);
+        }
+        const chunks = await Promise.all(
+          ranges.map(([from, to]) => getLogs(from, to))
+        );
+        return chunks.flat();
+      };
+
+      const logs = await withTimeout(fetchLogs(), 5000);
 
       return {
         chainId: chain.id,

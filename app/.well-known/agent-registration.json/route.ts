@@ -94,6 +94,10 @@ export function GET() {
         agentRegistry: 'eip155:4217:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
       },
       {
+        agentId: 8619,
+        agentRegistry: 'eip155:4663:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
+      },
+      {
         agentId: 0,
         asset: 'fx6DUWG1cfvvwaDgWhfQHydsbdYVbgg1aJuYDskmTv9',
         agentRegistry:

@@ -25,6 +25,21 @@ const xlayer: Chain = {
   },
 };
 
+const robinhoodChain: Chain = {
+  id: 4663,
+  name: 'Robinhood Chain',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://rpc.mainnet.chain.robinhood.com'] },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Blockscout',
+      url: 'https://robinhoodchain.blockscout.com',
+    },
+  },
+};
+
 export interface ChainMeta {
   chain: Chain;
   color: string;
@@ -50,6 +65,11 @@ const chainMetas: ChainMeta[] = [
   { chain: linea, color: '#61DFFF', explorerUrl: 'https://lineascan.build' },
   { chain: taiko, color: '#E81899', explorerUrl: 'https://taikoscan.io' },
   { chain: xlayer, color: '#FFFFFF', explorerUrl: 'https://xlayerscan.com' },
+  {
+    chain: robinhoodChain,
+    color: '#CCFF00',
+    explorerUrl: 'https://robinhoodchain.blockscout.com',
+  },
 ];
 
 export const SUPPORTED_CHAINS = chainMetas;

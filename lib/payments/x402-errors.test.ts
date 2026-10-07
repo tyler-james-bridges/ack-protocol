@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   facilitatorRejectionReason,
+  settlementTransactionHash,
   x402RejectionMessage,
 } from './x402-errors';
 
@@ -76,6 +77,37 @@ describe('facilitatorRejectionReason', () => {
       })
     );
     expect(reason).toBeNull();
+  });
+
+  it('reads a successful settlement tx hash', () => {
+    const hash =
+      '0xd2f76f380901785842b4d8f9d539f7b8b84a2a0fa415bac2cec725947a2a10e1';
+    expect(
+      settlementTransactionHash(
+        headers({
+          'PAYMENT-RESPONSE': encoded({
+            success: true,
+            transaction: hash,
+            network: 'eip155:8453',
+          }),
+        })
+      )
+    ).toBe(hash);
+  });
+
+  it('ignores a failed settlement response', () => {
+    expect(
+      settlementTransactionHash(
+        headers({
+          'PAYMENT-RESPONSE': encoded({
+            success: false,
+            errorReason: 'insufficient_funds',
+            transaction: '',
+            network: 'eip155:8453',
+          }),
+        })
+      )
+    ).toBeNull();
   });
 
   it('reads a settle failure from PAYMENT-RESPONSE', () => {

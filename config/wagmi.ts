@@ -18,7 +18,12 @@ import {
   avalanche,
   linea,
   mainnet,
+  bsc,
+  celo,
+  gnosis,
+  taiko,
 } from 'viem/chains';
+import { robinhoodChain, xlayer } from '@/config/chains';
 
 const projectId =
   process.env.NEXT_PUBLIC_WC_PROJECT_ID || '00000000000000000000000000000000';
@@ -46,6 +51,9 @@ const connectors = connectorsForWallets(
   }
 );
 
+// Base stays first so it remains the default chain. Every network offered
+// on /register must be listed here; otherwise the wallet cannot switch to
+// it or add it.
 const chains = [
   base,
   abstract,
@@ -56,6 +64,12 @@ const chains = [
   avalanche,
   linea,
   mainnet,
+  bsc,
+  celo,
+  gnosis,
+  taiko,
+  xlayer,
+  robinhoodChain,
 ] as const;
 
 export const wagmiConfig = createConfig({
@@ -76,6 +90,12 @@ export const wagmiConfig = createConfig({
       process.env.NEXT_PUBLIC_ETH_RPC_URL ||
         'https://ethereum-rpc.publicnode.com'
     ),
+    [bsc.id]: http(),
+    [celo.id]: http(),
+    [gnosis.id]: http(),
+    [taiko.id]: http(),
+    [xlayer.id]: http(),
+    [robinhoodChain.id]: http(),
   },
   ssr: true,
 });

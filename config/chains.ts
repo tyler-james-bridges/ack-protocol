@@ -15,7 +15,7 @@ import {
 } from 'viem/chains';
 import { abstract } from 'viem/chains';
 
-const xlayer: Chain = {
+export const xlayer: Chain = {
   id: 196,
   name: 'X Layer',
   nativeCurrency: { name: 'OKB', symbol: 'OKB', decimals: 18 },
@@ -25,7 +25,7 @@ const xlayer: Chain = {
   },
 };
 
-const robinhoodChain: Chain = {
+export const robinhoodChain: Chain = {
   id: 4663,
   name: 'Robinhood Chain',
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },

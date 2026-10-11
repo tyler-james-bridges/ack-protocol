@@ -7,9 +7,13 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Main's UI and mono faces. The stack was stored as --font-geist-mono and applied with font-mono. Geist was not loaded. */
+  --font-sans:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
   --font-mono:
-    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
   --font-heading: var(--font-sans);
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -175,16 +179,16 @@
   font-family: var(--font-sans);
   font-size: clamp(40px, 5vw, 56px);
   font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
 @utility type-title {
   font-family: var(--font-sans);
   font-size: clamp(28px, 2vw + 16px, 36px);
   font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.025em;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
 }
 
 @utility type-heading {
@@ -192,7 +196,7 @@
   font-size: 16px;
   font-weight: 600;
   line-height: 1.35;
-  letter-spacing: -0.011em;
+  letter-spacing: 0;
 }
 
 @utility type-body {

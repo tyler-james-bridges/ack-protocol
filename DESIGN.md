@@ -71,17 +71,19 @@ Map the palette onto shadcn variables. Do not introduce a parallel set of raw he
 
 ## Typography
 
-UI text is Geist. Scores, addresses, hashes, and code are Geist Mono. `--font-heading` stays on Geist; display type is the same face at a larger size, not a second family.
+UI text and mono use the same system monospace stack main shipped: `ui-monospace`, `SFMono-Regular`, `Menlo`, `Monaco`, `Consolas`, `Liberation Mono`, `Courier New`, `monospace`. Main stored that stack in `--font-geist-mono` and set the body to `font-mono`. It did not load Geist or Geist Mono. `--font-heading` uses the same stack. Display type is that face at a larger size, not a second family.
 
-| Utility        | Size / line / weight / tracking                       | Use                               |
-| -------------- | ----------------------------------------------------- | --------------------------------- |
-| `type-display` | clamp(40px, 5vw, 56px) / 1.02 / 600 / -0.035em        | The ACK wordmark and nothing else |
-| `type-title`   | clamp(28px, 2vw + 16px, 36px) / 1.15 / 600 / -0.025em | Page titles                       |
-| `type-heading` | 16px / 1.35 / 600 / -0.011em                          | Section titles                    |
-| `type-body`    | 15px / 1.55 / 450                                     | Paragraphs                        |
-| `type-small`   | 13px / 1.45 / 450                                     | Rows, helper text                 |
-| `type-kicker`  | 12px / 1.3 / 600 / 0.08em, uppercase                  | One short label above a title     |
-| `type-mono`    | 13px / 1.4 / 500, tabular nums                        | Scores and addresses              |
+The stack is static (regular and bold). `type-body` and `type-small` ask for 450, which resolves to regular. `type-mono` asks for 500, which stays regular on faces without a medium cut. Display, title, heading, and kicker stay at 600 so they pick up bold. Negative tracking on this face is kept small so glyphs do not collide: display `-0.02em`, title `-0.015em`, heading `0`.
+
+| Utility        | Size / line / weight / tracking                      | Use                               |
+| -------------- | ---------------------------------------------------- | --------------------------------- |
+| `type-display` | clamp(40px, 5vw, 56px) / 1.05 / 600 / -0.02em        | The ACK wordmark and nothing else |
+| `type-title`   | clamp(28px, 2vw + 16px, 36px) / 1.2 / 600 / -0.015em | Page titles                       |
+| `type-heading` | 16px / 1.35 / 600 / 0                                | Section titles                    |
+| `type-body`    | 15px / 1.55 / 450                                    | Paragraphs                        |
+| `type-small`   | 13px / 1.45 / 450                                    | Rows, helper text                 |
+| `type-kicker`  | 12px / 1.3 / 600 / 0.08em, uppercase                 | One short label above a title     |
+| `type-mono`    | 13px / 1.4 / 500, tabular nums                       | Scores and addresses              |
 
 Display and title weights stay at 600. Do not set them to 700 or to a compressed all-caps tracking.
 
@@ -145,7 +147,7 @@ Control heights move together.
 | Quiet action     | `Button` ghost. No border until hover                                                                     |
 | Text link        | `Button` link, or `text-link`                                                                             |
 | Danger           | `Button` destructive                                                                                      |
-| Badge            | Hairline or muted fill, 4px radius, 11px medium. Not uppercase, not mono, not a pill                      |
+| Badge            | Hairline or muted fill, 4px radius, 11px medium. Not uppercase and not a pill                             |
 | Card             | `--card`, 1px border, 8px radius, no shadow                                                               |
 | Text input       | 36px, hairline `--input`, 6px radius, ring on focus                                                       |
 | Row              | Full width, hairline divider, muted hover. Do not invert to a solid fill                                  |
@@ -169,7 +171,7 @@ Don't:
 - Don't use gradients, glass, backdrop blur, or glow.
 - Don't invert a row or a card to a solid fill on hover.
 - Don't draw a 2px black frame around every region.
-- Don't set body, buttons, or navigation in all caps or in mono.
+- Don't set body, buttons, or navigation in all caps. The UI face is already the system monospace stack.
 - Don't introduce a second action color. The old mint (`#00FF94`, `#00DE73`) is not a button color.
 - Don't write `bg-black`, `text-black`, `bg-white`, or raw hex in product UI. Use the semantic tokens.
 - Don't put a shadow on a card that already has a hairline.

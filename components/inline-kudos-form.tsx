@@ -112,13 +112,13 @@ export function InlineKudosForm({
     return (
       <div
         className={cn(
-          'rounded-none border border-primary/30 bg-primary/5 p-6 text-center space-y-3',
+          'rounded-lg border border-primary/30 bg-primary/5 p-6 text-center space-y-3',
           className
         )}
       >
         <p className="text-2xl">🎉</p>
         <p className="font-semibold">Kudos sent to {agentName}!</p>
-        <p className="text-sm md:text-base text-black/50">
+        <p className="text-sm md:text-base text-muted-foreground">
           Your feedback is now onchain on the ERC-8004 Reputation Registry.
         </p>
         <div className="flex items-center justify-center gap-3">
@@ -127,7 +127,7 @@ export function InlineKudosForm({
               href={getExplorerTxUrl(txHash, chainId)}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-black hover:underline"
+              className="text-sm text-foreground hover:underline"
             >
               View transaction ↗
             </a>
@@ -136,7 +136,7 @@ export function InlineKudosForm({
             href={shareUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-none bg-primary/10 px-3 py-1 text-sm text-black hover:bg-primary/20 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1 text-sm text-foreground hover:bg-primary/20 transition-colors"
           >
             <svg
               className="w-3.5 h-3.5"
@@ -160,12 +160,12 @@ export function InlineKudosForm({
     return (
       <div
         className={cn(
-          'rounded-none border-2 border-dashed border-primary/30 p-6 text-center space-y-3',
+          'rounded-lg border border-dashed border-primary/30 p-6 text-center space-y-3',
           className
         )}
       >
         <p className="font-semibold">Give Kudos to {agentName}</p>
-        <p className="text-sm text-black/50">Reconnecting wallet...</p>
+        <p className="text-sm text-muted-foreground">Reconnecting wallet...</p>
       </div>
     );
   }
@@ -174,12 +174,12 @@ export function InlineKudosForm({
     return (
       <div
         className={cn(
-          'rounded-none border-2 border-dashed border-primary/30 p-6 text-center space-y-3',
+          'rounded-lg border border-dashed border-primary/30 p-6 text-center space-y-3',
           className
         )}
       >
         <p className="font-semibold">Give Kudos to {agentName}</p>
-        <p className="text-sm md:text-base text-black/50">
+        <p className="text-sm md:text-base text-muted-foreground">
           Connect your wallet to leave onchain feedback.
         </p>
         <Button onClick={() => openConnectModal?.()}>Connect Wallet</Button>
@@ -189,10 +189,7 @@ export function InlineKudosForm({
 
   return (
     <div
-      className={cn(
-        'rounded-none border border-black/20 p-5 space-y-4',
-        className
-      )}
+      className={cn('rounded-lg border border-border p-5 space-y-4', className)}
       id="give-kudos"
     >
       <p className="font-semibold">
@@ -200,17 +197,17 @@ export function InlineKudosForm({
       </p>
 
       {/* Mode toggle */}
-      <div className="flex gap-1 rounded-none bg-black/5 p-1 w-fit">
+      <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
         {(['kudos', 'review'] as const).map((m) => (
           <button
             key={m}
             type="button"
             onClick={() => setMode(m)}
             className={cn(
-              'px-3 py-1 text-sm rounded-none transition-colors capitalize',
+              'px-3 py-1 text-sm rounded-lg transition-colors capitalize',
               mode === m
-                ? 'bg-white text-black shadow-sm'
-                : 'text-black/50 hover:text-black'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {m}
@@ -221,7 +218,7 @@ export function InlineKudosForm({
       {/* Review value selector */}
       {mode === 'review' && (
         <div className="space-y-2">
-          <p className="text-xs text-black/50">
+          <p className="text-xs text-muted-foreground">
             Rating ({REVIEW_MIN_VALUE} to {REVIEW_MAX_VALUE})
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -234,13 +231,13 @@ export function InlineKudosForm({
                 type="button"
                 onClick={() => setReviewValue(v)}
                 className={cn(
-                  'w-9 h-9 rounded-none text-sm font-medium border transition-colors',
+                  'w-9 h-9 rounded-lg text-sm font-medium border transition-colors',
                   reviewValue === v
                     ? 'border-primary bg-primary/10'
-                    : 'border-black/20 hover:border-primary/50',
+                    : 'border-border hover:border-primary/50',
                   v < 0 && 'text-red-500',
                   v > 0 && 'text-green-500',
-                  v === 0 && 'text-black/50'
+                  v === 0 && 'text-muted-foreground'
                 )}
               >
                 {v > 0 ? `+${v}` : v}
@@ -252,8 +249,8 @@ export function InlineKudosForm({
 
       {/* Category */}
       <div className="space-y-2">
-        <p className="text-xs text-black/50">
-          Category <span className="text-black/50/40">(optional)</span>
+        <p className="text-xs text-muted-foreground">
+          Category <span className="text-muted-foreground">(optional)</span>
         </p>
         <div className="flex flex-wrap gap-2">
           {KUDOS_CATEGORIES.map((cat) => (
@@ -262,7 +259,7 @@ export function InlineKudosForm({
               type="button"
               onClick={() => setCategory(cat)}
               className={cn(
-                'transition-all duration-150 rounded-none cursor-pointer',
+                'transition-all duration-150 rounded-lg cursor-pointer',
                 category === cat
                   ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-105'
                   : 'opacity-50 hover:opacity-90 hover:scale-105'
@@ -277,7 +274,7 @@ export function InlineKudosForm({
 
       {/* Message */}
       <div className="space-y-1.5">
-        <p className="text-xs text-black/50">Message (optional)</p>
+        <p className="text-xs text-muted-foreground">Message (optional)</p>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -289,23 +286,25 @@ export function InlineKudosForm({
           rows={3}
           maxLength={280}
           className={cn(
-            'w-full rounded-none border border-input bg-white px-3 py-2 text-sm md:text-base',
-            'placeholder:text-black/50',
+            'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm md:text-base',
+            'placeholder:text-muted-foreground',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             'resize-none'
           )}
         />
-        <p className="text-xs text-black/50 text-right">{message.length}/280</p>
+        <p className="text-xs text-muted-foreground text-right">
+          {message.length}/280
+        </p>
       </div>
 
       {/* Submit */}
       {isSelfKudos && (
-        <p className="text-sm text-black/50 text-center">
+        <p className="text-sm text-muted-foreground text-center">
           You own this agent - you can&apos;t give kudos to yourself.
         </p>
       )}
       {isCrossChainFromAGW && (
-        <div className="rounded-none border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-200 text-center">
+        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-200 text-center">
           This agent is on a different chain. Abstract Global Wallet only
           supports Abstract. Connect with MetaMask, Rainbow, or another
           multi-chain wallet to give cross-chain kudos.
@@ -322,7 +321,7 @@ export function InlineKudosForm({
       </Button>
 
       {status === 'error' && error && (
-        <p className="text-xs text-black/50 mt-1 font-mono break-all">
+        <p className="text-xs text-muted-foreground mt-1 break-all">
           {error.message?.slice(0, 200)}
         </p>
       )}

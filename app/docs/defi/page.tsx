@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 function Code({ children }: { children: string }) {
   return (
-    <pre className="overflow-x-auto bg-black p-4 text-sm leading-relaxed text-white/80">
+    <pre className="overflow-x-auto bg-foreground p-4 text-sm leading-relaxed text-code-foreground">
       <code>{children}</code>
     </pre>
   );
@@ -30,19 +30,19 @@ function Endpoint({
 }) {
   const color =
     method === 'GET'
-      ? 'bg-green-500/20 text-black'
-      : 'bg-yellow-500/20 text-black';
+      ? 'bg-green-500/20 text-foreground'
+      : 'bg-yellow-500/20 text-foreground';
   return (
-    <div className="border-2 border-black bg-white p-5">
+    <div className="border border-border bg-background p-5">
       <div className="mb-2 flex items-center gap-3">
-        <span className={`px-2 py-0.5 font-mono text-xs font-bold ${color}`}>
+        <span className={`px-2 py-0.5 text-xs font-bold ${color}`}>
           {method}
         </span>
         <code className="text-sm">{path}</code>
-        <span className="ml-auto font-mono text-xs text-black/40">{price}</span>
+        <span className="ml-auto text-xs text-muted-foreground">{price}</span>
       </div>
-      <p className="text-sm text-black/50">{description}</p>
-      {params && <p className="mt-1 text-xs text-black/40">{params}</p>}
+      <p className="text-sm text-muted-foreground">{description}</p>
+      {params && <p className="mt-1 text-xs text-muted-foreground">{params}</p>}
     </div>
   );
 }
@@ -72,11 +72,11 @@ function TokenTable() {
       {tokens.map((t) => (
         <div
           key={t.symbol}
-          className="flex items-center gap-4 border-2 border-black bg-white px-4 py-2 font-mono text-xs"
+          className="flex items-center gap-4 border border-border bg-background px-4 py-2 text-xs"
         >
           <span className="w-24 font-bold">{t.symbol}</span>
-          <span className="flex-1 text-black/50">{t.address}</span>
-          <span className="text-black/40">{t.decimals}d</span>
+          <span className="flex-1 text-muted-foreground">{t.address}</span>
+          <span className="text-muted-foreground">{t.decimals}d</span>
         </div>
       ))}
     </div>
@@ -88,50 +88,50 @@ export default function DefiDocsPage() {
     <main className="mx-auto max-w-3xl px-6 py-20">
       <Link
         href="/docs"
-        className="mb-6 inline-block text-sm text-black/40 hover:text-black"
+        className="mb-6 inline-block text-sm text-muted-foreground hover:text-foreground"
       >
         Docs
       </Link>
-      <h1 className="mb-4 text-4xl font-bold text-black">DeFi API</h1>
-      <p className="mb-10 text-lg text-black/50">
+      <h1 className="mb-4 text-4xl font-bold text-foreground">DeFi API</h1>
+      <p className="mb-10 text-lg text-muted-foreground">
         On-chain DeFi operations on Abstract via ACK&apos;s Abstract Global
         Wallet. Swaps, lending, and prediction markets -- all gated behind x402
         micropayments.
       </p>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
         Supported Tokens
       </h2>
       <div className="mb-10">
         <TokenTable />
       </div>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">Protocols</h2>
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">Protocols</h2>
       <div className="mb-10 space-y-2">
-        <div className="border-2 border-black bg-white p-4">
+        <div className="border border-border bg-background p-4">
           <p className="font-bold">Aborean DEX</p>
-          <p className="text-sm text-black/50">
+          <p className="text-sm text-muted-foreground">
             Aerodrome/Velodrome fork on Abstract. Token swaps with configurable
             slippage.
           </p>
         </div>
-        <div className="border-2 border-black bg-white p-4">
+        <div className="border border-border bg-background p-4">
           <p className="font-bold">Morpho Blue</p>
-          <p className="text-sm text-black/50">
+          <p className="text-sm text-muted-foreground">
             Lending protocol. Supply WETH as collateral, borrow USDC, repay,
             withdraw.
           </p>
         </div>
-        <div className="border-2 border-black bg-white p-4">
+        <div className="border border-border bg-background p-4">
           <p className="font-bold">Myriad Markets</p>
-          <p className="text-sm text-black/50">
+          <p className="text-sm text-muted-foreground">
             Prediction markets on Abstract. List open markets, get quotes, place
             bets.
           </p>
         </div>
       </div>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">Endpoints</h2>
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">Endpoints</h2>
       <div className="mb-10 space-y-3">
         <Endpoint
           method="GET"
@@ -168,19 +168,21 @@ export default function DefiDocsPage() {
         />
       </div>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">Payment (x402)</h2>
-      <p className="mb-4 text-sm text-black/50">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
+        Payment (x402)
+      </h2>
+      <p className="mb-4 text-sm text-muted-foreground">
         POST endpoints require x402 payment in USDC on Abstract (chain 2741).
         GET endpoints are free. See{' '}
-        <code className="bg-black px-1 py-0.5 text-white text-xs">
+        <code className="bg-code px-1 py-0.5 text-code-foreground text-xs">
           /api/x402
         </code>{' '}
         for payment requirements.
       </p>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">Examples</h2>
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">Examples</h2>
 
-      <h3 className="mb-2 text-lg font-semibold text-black">
+      <h3 className="mb-2 text-lg font-semibold text-foreground">
         Get Portfolio Status
       </h3>
       <Code>
@@ -206,7 +208,7 @@ export default function DefiDocsPage() {
 }`}
       </Code>
 
-      <h3 className="mb-2 mt-6 text-lg font-semibold text-black">
+      <h3 className="mb-2 mt-6 text-lg font-semibold text-foreground">
         Swap Tokens
       </h3>
       <Code>
@@ -227,7 +229,7 @@ curl -X POST https://ack-onchain.dev/api/defi/swap \\
 }`}
       </Code>
 
-      <h3 className="mb-2 mt-6 text-lg font-semibold text-black">
+      <h3 className="mb-2 mt-6 text-lg font-semibold text-foreground">
         Lending Operations
       </h3>
       <Code>
@@ -244,7 +246,7 @@ curl -X POST https://ack-onchain.dev/api/defi/lend \\
   -d '{"action": "borrow", "amount": "1.5"}'`}
       </Code>
 
-      <h3 className="mb-2 mt-6 text-lg font-semibold text-black">
+      <h3 className="mb-2 mt-6 text-lg font-semibold text-foreground">
         Prediction Markets
       </h3>
       <Code>
@@ -259,10 +261,16 @@ curl -X POST https://ack-onchain.dev/api/defi/bet \\
       </Code>
 
       <div className="mt-12 flex gap-4 text-sm">
-        <Link href="/docs/api" className="text-black hover:text-black">
+        <Link
+          href="/docs/api"
+          className="text-foreground hover:text-foreground"
+        >
           API Reference
         </Link>
-        <Link href="/docs/sdk" className="text-black hover:text-black">
+        <Link
+          href="/docs/sdk"
+          className="text-foreground hover:text-foreground"
+        >
           SDK Reference
         </Link>
       </div>

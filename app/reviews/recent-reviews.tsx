@@ -64,8 +64,8 @@ export function RecentReviews() {
 
   if (loading && reviews.length === 0) {
     return (
-      <div className="border-2 border-black dark:border-neutral-800 bg-card p-8 text-center">
-        <div className="text-xs font-mono text-muted-foreground animate-pulse">
+      <div className="border border-border dark:border-neutral-800 bg-card p-8 text-center">
+        <div className="text-xs text-muted-foreground animate-pulse">
           LOADING LIVE REVIEWS...
         </div>
       </div>
@@ -74,8 +74,8 @@ export function RecentReviews() {
 
   if (reviews.length === 0) {
     return (
-      <div className="border-2 border-black dark:border-neutral-800 bg-card p-8 text-center">
-        <div className="text-xs font-mono text-muted-foreground">
+      <div className="border border-border dark:border-neutral-800 bg-card p-8 text-center">
+        <div className="text-xs text-muted-foreground">
           NO REVIEWS AVAILABLE
         </div>
       </div>
@@ -83,7 +83,7 @@ export function RecentReviews() {
   }
 
   return (
-    <div className="border-2 border-black dark:border-neutral-800 bg-card">
+    <div className="border border-border dark:border-neutral-800 bg-card">
       {/* Live indicator */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800/30">
         <div className="flex items-center gap-2">
@@ -91,19 +91,19 @@ export function RecentReviews() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          <span className="text-[10px] font-mono text-emerald-500 tracking-wider">
+          <span className="text-[10px] text-emerald-500 tracking-wider">
             LIVE
           </span>
         </div>
         {lastUpdated && (
-          <span className="text-[9px] font-mono text-muted-foreground">
+          <span className="text-[9px] text-muted-foreground">
             UPDATED {lastUpdated.toLocaleTimeString()}
           </span>
         )}
       </div>
 
       {/* Table header */}
-      <div className="grid grid-cols-[1fr_80px_60px_100px] sm:grid-cols-[1fr_100px_70px_140px] gap-2 px-4 py-2.5 border-b-2 border-black dark:border-neutral-800 text-[10px] font-mono font-bold tracking-wider text-muted-foreground">
+      <div className="grid grid-cols-[1fr_80px_60px_100px] sm:grid-cols-[1fr_100px_70px_140px] gap-2 px-4 py-2.5 border-b border-border dark:border-neutral-800 text-[10px] font-bold tracking-wider text-muted-foreground">
         <span>AGENT</span>
         <span>CHAIN</span>
         <span className="text-right">RATING</span>
@@ -114,7 +114,7 @@ export function RecentReviews() {
       {shown.map((r, i) => (
         <div
           key={r.txHash}
-          className={`grid grid-cols-[1fr_80px_60px_100px] sm:grid-cols-[1fr_100px_70px_140px] gap-2 px-4 py-2.5 items-center text-xs font-mono ${
+          className={`grid grid-cols-[1fr_80px_60px_100px] sm:grid-cols-[1fr_100px_70px_140px] gap-2 px-4 py-2.5 items-center text-xs ${
             i < shown.length - 1 ? 'border-b border-neutral-800/50' : ''
           } hover:bg-muted/20 transition-colors`}
         >
@@ -128,7 +128,7 @@ export function RecentReviews() {
               style={{ backgroundColor: CHAIN_COLORS[r.chainId] ?? '#888' }}
             />
             <span
-              className="text-[10px] uppercase tracking-wider"
+              className="text-[10px] "
               style={{ color: CHAIN_COLORS[r.chainId] ?? '#888' }}
             >
               {CHAIN_NAMES[r.chainId] ?? 'Unknown'}
@@ -173,7 +173,7 @@ export function RecentReviews() {
       {reviews.length > 8 && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full py-2.5 text-[11px] font-mono font-bold tracking-wider text-muted-foreground hover:text-emerald-500 transition-colors border-t-2 border-black dark:border-neutral-800 uppercase"
+          className="w-full py-2.5 text-[11px] font-bold tracking-wider text-muted-foreground hover:text-emerald-500 transition-colors border-t border-border dark:border-neutral-800 uppercase"
         >
           {expanded
             ? '↑ SHOW LESS'

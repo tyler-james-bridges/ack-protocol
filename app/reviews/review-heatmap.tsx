@@ -81,13 +81,13 @@ export function ReviewHeatmap({ byDate, firstDate, lastDate }: Props) {
   }
 
   return (
-    <div className="border-2 border-black dark:border-neutral-800 bg-card p-4 sm:p-6 overflow-x-auto relative">
+    <div className="border border-border dark:border-neutral-800 bg-card p-4 sm:p-6 overflow-x-auto relative">
       {/* Month labels */}
       <div className="flex mb-2 pl-8 relative h-5">
         {months.map((m, i) => (
           <span
             key={i}
-            className="absolute text-[10px] font-mono uppercase tracking-wider text-muted-foreground"
+            className="absolute text-[10px] text-muted-foreground"
             style={{ left: `${32 + m.weekIdx * 17}px` }}
           >
             {m.month}
@@ -97,7 +97,7 @@ export function ReviewHeatmap({ byDate, firstDate, lastDate }: Props) {
 
       <div className="flex">
         {/* Day labels */}
-        <div className="flex flex-col gap-[3px] mr-2 text-[10px] font-mono text-muted-foreground">
+        <div className="flex flex-col gap-[3px] mr-2 text-[10px] text-muted-foreground">
           <span className="h-[14px]">&nbsp;</span>
           <span className="h-[14px] flex items-center">MON</span>
           <span className="h-[14px]">&nbsp;</span>
@@ -136,7 +136,7 @@ export function ReviewHeatmap({ byDate, firstDate, lastDate }: Props) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-1.5 mt-4 justify-end text-[10px] font-mono text-muted-foreground">
+      <div className="flex items-center gap-1.5 mt-4 justify-end text-[10px] text-muted-foreground">
         <span>LESS</span>
         <div className="w-[14px] h-[14px] bg-muted/50" />
         <div className="w-[14px] h-[14px] bg-emerald-900/40" />
@@ -149,7 +149,7 @@ export function ReviewHeatmap({ byDate, firstDate, lastDate }: Props) {
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="fixed z-50 bg-popover border-2 border-black dark:border-neutral-700 px-3 py-2 text-xs font-mono pointer-events-none"
+          className="fixed z-50 bg-popover border border-border dark:border-neutral-700 px-3 py-2 text-xs pointer-events-none"
           style={{
             left: `${tooltip.x}px`,
             top: `${tooltip.y}px`,

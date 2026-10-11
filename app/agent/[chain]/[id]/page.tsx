@@ -108,7 +108,7 @@ export default function AgentProfilePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background text-foreground">
         <Nav />
         <div className="mx-auto max-w-5xl px-4 pt-4">
           <Breadcrumbs
@@ -122,24 +122,24 @@ export default function AgentProfilePage({
         <div className="mx-auto max-w-5xl px-4 pt-8">
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="w-full lg:w-80 shrink-0 space-y-4">
-              <div className="border-2 border-black p-6 space-y-4">
+              <div className="border border-border p-6 space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-16 w-16 bg-black/10" />
+                  <div className="h-16 w-16 bg-muted" />
                   <div className="space-y-2 flex-1">
-                    <div className="h-6 w-36 bg-black/10" />
-                    <div className="h-3 w-24 bg-black/10" />
+                    <div className="h-6 w-36 bg-muted" />
+                    <div className="h-3 w-24 bg-muted" />
                   </div>
                 </div>
-                <div className="h-4 w-full bg-black/10" />
-                <div className="h-4 w-3/4 bg-black/10" />
-                <div className="h-20 bg-black/10" />
-                <div className="h-9 bg-black/10" />
+                <div className="h-4 w-full bg-muted" />
+                <div className="h-4 w-3/4 bg-muted" />
+                <div className="h-20 bg-muted" />
+                <div className="h-9 bg-muted" />
               </div>
             </div>
             <div className="flex-1 space-y-4">
-              <div className="h-5 w-32 bg-black/10" />
-              <div className="h-28 bg-black/10" />
-              <div className="h-28 bg-black/10" />
+              <div className="h-5 w-32 bg-muted" />
+              <div className="h-28 bg-muted" />
+              <div className="h-28 bg-muted" />
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function AgentProfilePage({
 
   if (error || !agent) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background text-foreground">
         <Nav />
         <div className="mx-auto max-w-5xl px-4 pt-4">
           <Breadcrumbs
@@ -161,7 +161,7 @@ export default function AgentProfilePage({
           />
         </div>
         <div className="mx-auto max-w-3xl px-4 pt-12 text-center space-y-4">
-          <p className="text-lg font-mono text-black/50">
+          <p className="text-lg text-muted-foreground">
             {error || 'Agent not found'}
           </p>
           <Button variant="outline" onClick={() => router.push('/')}>
@@ -186,7 +186,7 @@ export default function AgentProfilePage({
   const recordTotal = kudos ? kudos.total : null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Nav />
       <div className="mx-auto max-w-5xl px-4 pt-4">
         <Breadcrumbs
@@ -202,25 +202,25 @@ export default function AgentProfilePage({
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
           {/* LEFT COLUMN - Profile Sidebar */}
           <aside className="w-full lg:w-80 shrink-0 space-y-4">
-            <div className="border-2 border-black p-5 space-y-4">
+            <div className="space-y-4 rounded-xl border border-border bg-card p-5">
               {/* Identity header */}
               <div className="flex items-start gap-3.5">
                 <AgentAvatar
                   name={agent.name}
                   imageUrl={agent.image_url}
                   size={64}
-                  className="rounded-none shrink-0 border-2 border-black"
+                  className="rounded-lg shrink-0 border border-border"
                 />
                 <div className="min-w-0 flex-1 pt-0.5">
-                  <h1 className="text-lg font-bold font-mono uppercase tracking-wider truncate leading-tight">
+                  <h1 className="truncate text-lg font-semibold tracking-tight">
                     {agent.name}
                   </h1>
                   <div className="flex items-center gap-1.5 mt-1">
                     <ChainIcon chainId={agent.chain_id} size={14} />
-                    <span className="text-xs font-mono text-black/50 uppercase tracking-wider">
+                    <span className="text-xs text-muted-foreground ">
                       {getChainName(agent.chain_id)}
                     </span>
-                    <span className="text-xs font-mono text-black/40">
+                    <span className="font-mono text-xs text-muted-foreground">
                       #{agent.token_id}
                     </span>
                   </div>
@@ -237,7 +237,7 @@ export default function AgentProfilePage({
                         >
                           <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        VERIFIED
+                        Verified
                       </Badge>
                     )}
                     {agent.is_active && (
@@ -246,9 +246,9 @@ export default function AgentProfilePage({
                         className="text-[10px] px-1.5 py-0"
                       >
                         <span className="relative flex h-1.5 w-1.5 mr-0.5">
-                          <span className="relative inline-flex h-1.5 w-1.5 bg-black" />
+                          <span className="relative inline-flex h-1.5 w-1.5 bg-foreground" />
                         </span>
-                        ACTIVE
+                        Active
                       </Badge>
                     )}
                   </div>
@@ -256,7 +256,7 @@ export default function AgentProfilePage({
               </div>
 
               {agent.description && (
-                <p className="text-sm font-mono text-black/50 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {agent.description}
                 </p>
               )}
@@ -290,7 +290,7 @@ export default function AgentProfilePage({
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 border border-black/10 px-2.5 py-1 text-xs font-mono text-black/50 hover:bg-black hover:text-white transition-colors"
+                        className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
                       >
                         {type === 'twitter' ? (
                           <svg
@@ -328,29 +328,31 @@ export default function AgentProfilePage({
               })()}
 
               {/* Score + Stats */}
-              <div className="border-2 border-black p-4">
+              <div className="rounded-xl border border-border bg-muted/60 p-4">
                 <div className="flex items-center gap-4">
-                  <div className="text-center shrink-0">
-                    <div className="text-3xl font-bold font-mono leading-none">
+                  <div className="shrink-0 text-center">
+                    <div className="font-mono text-3xl leading-none font-semibold tabular-nums">
                       {agent.total_score.toFixed(1)}
                     </div>
-                    <div className="text-[10px] font-mono text-black/40 mt-1 uppercase tracking-wider">
-                      SCORE
+                    <div className="type-kicker mt-1 text-muted-foreground">
+                      Score
                     </div>
                   </div>
-                  <div className="w-px h-10 bg-black" />
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 flex-1 text-sm font-mono">
+                  <div className="h-10 w-px bg-border" />
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 flex-1 text-sm">
                     <div>
                       <span className="font-bold">
                         {recordTotal === null
                           ? '—'
                           : recordTotal.toLocaleString()}
                       </span>
-                      <span className="text-black/70 ml-1 text-xs">kudos</span>
+                      <span className="text-muted-foreground ml-1 text-xs">
+                        kudos
+                      </span>
                     </div>
                     <div>
                       <span className="font-bold">{uniqueGivers}</span>
-                      <span className="text-black/50 ml-1 text-xs">
+                      <span className="text-muted-foreground ml-1 text-xs">
                         {uniqueGivers === 1 ? 'giver' : 'givers'}
                       </span>
                     </div>
@@ -360,21 +362,23 @@ export default function AgentProfilePage({
                           <span className="font-bold">
                             #{agent.scores.rank.toLocaleString()}
                           </span>
-                          <span className="text-black/70 ml-1 text-xs">
+                          <span className="text-muted-foreground ml-1 text-xs">
                             rank
                           </span>
                         </div>
                       )}
                     <div>
                       <span className="font-bold">{agent.star_count}</span>
-                      <span className="text-black/50 ml-1 text-xs">stars</span>
+                      <span className="text-muted-foreground ml-1 text-xs">
+                        stars
+                      </span>
                     </div>
                     {totalTipsUsd !== null && totalTipsUsd > 0 && (
                       <div>
                         <span className="font-bold">
                           ${totalTipsUsd.toFixed(2)}
                         </span>
-                        <span className="text-black/50 ml-1 text-xs">
+                        <span className="text-muted-foreground ml-1 text-xs">
                           received ({tipsReceivedCount})
                         </span>
                       </div>
@@ -384,7 +388,7 @@ export default function AgentProfilePage({
                         <span className="font-bold">
                           ${tipsGivenUsd.toFixed(2)}
                         </span>
-                        <span className="text-black/50 ml-1 text-xs">
+                        <span className="text-muted-foreground ml-1 text-xs">
                           tipped ({tipsGivenCount})
                         </span>
                       </div>
@@ -396,7 +400,7 @@ export default function AgentProfilePage({
               {/* Category Badges */}
               {sortedCategories.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-wider text-black/40 font-mono font-bold">
+                  <p className="text-[11px] text-muted-foreground font-bold">
                     REPUTATION
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -450,7 +454,7 @@ export default function AgentProfilePage({
                       d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                     />
                   </svg>
-                  GIVE KUDOS
+                  Give kudos
                 </Button>
                 <a
                   href={`https://x.com/intent/post?text=${encodeURIComponent(
@@ -458,7 +462,7 @@ export default function AgentProfilePage({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 border-2 border-black px-3 py-2 text-sm font-mono uppercase tracking-wider text-black hover:bg-black hover:text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 border border-border px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                   title="Give Kudos via Post"
                 >
                   <svg
@@ -475,10 +479,10 @@ export default function AgentProfilePage({
               {/* On-Chain Info */}
               <details
                 open
-                className="group border-2 border-black overflow-hidden"
+                className="group border border-border overflow-hidden"
               >
-                <summary className="flex cursor-pointer items-center justify-between px-3 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-black/50 hover:text-black transition-colors select-none">
-                  ON-CHAIN DETAILS
+                <summary className="flex cursor-pointer items-center justify-between px-3 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors select-none">
+                  On-chain details
                   <svg
                     className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-180"
                     xmlns="http://www.w3.org/2000/svg"
@@ -494,7 +498,7 @@ export default function AgentProfilePage({
                     />
                   </svg>
                 </summary>
-                <div className="border-t-2 border-black px-3 py-2.5 space-y-1.5 text-xs font-mono">
+                <div className="border-t border-border px-3 py-2.5 space-y-1.5 text-xs">
                   <InfoRow label="Owner" value={agent.owner_address} mono />
                   <InfoRow
                     label="Wallet"
@@ -515,10 +519,10 @@ export default function AgentProfilePage({
                 (agent?.tags?.length ?? 0) > 0) && (
                 <details
                   open
-                  className="group border-2 border-black overflow-hidden"
+                  className="group border border-border overflow-hidden"
                 >
-                  <summary className="flex cursor-pointer items-center justify-between px-3 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-black/50 hover:text-black transition-colors select-none">
-                    PROTOCOLS & TAGS
+                  <summary className="flex cursor-pointer items-center justify-between px-3 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors select-none">
+                    Protocols and tags
                     <svg
                       className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-180"
                       xmlns="http://www.w3.org/2000/svg"
@@ -534,11 +538,11 @@ export default function AgentProfilePage({
                       />
                     </svg>
                   </summary>
-                  <div className="border-t-2 border-black px-3 py-2.5 space-y-2.5">
+                  <div className="border-t border-border px-3 py-2.5 space-y-2.5">
                     {agent?.supported_protocols?.length > 0 && (
                       <div className="space-y-1">
-                        <p className="text-[10px] font-mono text-black/40 uppercase tracking-wider">
-                          PROTOCOLS
+                        <p className="text-[10px] text-muted-foreground ">
+                          Protocols
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {agent.supported_protocols.map((p) => (
@@ -555,8 +559,8 @@ export default function AgentProfilePage({
                     )}
                     {(agent?.tags?.length ?? 0) > 0 && (
                       <div className="space-y-1">
-                        <p className="text-[10px] font-mono text-black/40 uppercase tracking-wider">
-                          TAGS
+                        <p className="text-[10px] text-muted-foreground ">
+                          Tags
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {agent.tags?.map((t) => (
@@ -580,7 +584,7 @@ export default function AgentProfilePage({
                 href={`https://www.8004scan.io/agents/${getChainSlug(agent.chain_id)}/${agent.token_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-black/40 hover:text-black transition-colors py-1"
+                className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1"
               >
                 View on 8004scan
                 <svg
@@ -604,11 +608,9 @@ export default function AgentProfilePage({
           <main className="flex-1 min-w-0 space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <h2 className="text-lg font-bold font-mono uppercase tracking-wider">
-                  KUDOS
-                </h2>
+                <h2 className="text-lg font-bold ">KUDOS</h2>
                 {recordTotal !== null && recordTotal > 0 && (
-                  <span className="inline-flex items-center justify-center border-2 border-black bg-black text-white text-xs font-mono font-bold px-2 py-0.5 tabular-nums">
+                  <span className="inline-flex items-center justify-center border border-border bg-primary text-primary-foreground text-xs font-mono font-bold px-2 py-0.5 tabular-nums">
                     {recordTotal.toLocaleString()}
                   </span>
                 )}
@@ -639,7 +641,7 @@ export default function AgentProfilePage({
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                   />
                 </svg>
-                GIVE KUDOS
+                Give kudos
               </Button>
             </div>
 
@@ -680,8 +682,8 @@ function InfoRow({
 
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-black/50 uppercase tracking-wider">{label}</span>
-      <span className={mono ? 'font-mono text-xs' : ''}>{truncated}</span>
+      <span className="text-muted-foreground ">{label}</span>
+      <span className={mono ? ' text-xs' : ''}>{truncated}</span>
     </div>
   );
 }

@@ -1,10 +1,21 @@
 import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
 import { NextAbstractWalletProvider } from '@/components/agw-provider';
+import { Footer } from '@/components/footer';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
-import { Footer } from '@/components/footer';
-import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
+
+const geistSans = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+});
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+});
 
 export const metadata: Metadata = {
   title: 'ACK - Give Kudos to AI Agents Onchain',
@@ -52,7 +63,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable}`}
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -60,7 +75,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-mono bg-background text-foreground antialiased overflow-x-hidden">
+      <body className="overflow-x-hidden bg-background font-sans text-foreground antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

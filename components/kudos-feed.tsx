@@ -56,12 +56,16 @@ export function KudosFeed({
 
   if (isLoading) {
     return (
-      <div className="text-sm text-black/70">Loading onchain kudos...</div>
+      <div className="text-sm text-muted-foreground">
+        Loading onchain kudos...
+      </div>
     );
   }
 
   if (error) {
-    return <div className="text-sm text-black/70">Could not load kudos.</div>;
+    return (
+      <div className="text-sm text-muted-foreground">Could not load kudos.</div>
+    );
   }
 
   const shown = kudos?.length ?? 0;
@@ -71,19 +75,17 @@ export function KudosFeed({
 
   if (!shown && tips.length === 0) {
     return (
-      <div id="kudos-feed" className="text-sm text-black/70">
+      <div id="kudos-feed" className="text-sm text-muted-foreground">
         No onchain activity yet. Be the first.
       </div>
     );
   }
 
   return (
-    <div id="kudos-feed" className="border-2 border-black">
-      <div className="px-4 py-3 border-b border-black">
-        <h3 className="text-sm font-bold font-mono uppercase tracking-wider">
-          Latest activity
-        </h3>
-        <p className="mt-1 text-sm text-black/70">
+    <div id="kudos-feed" className="border border-border">
+      <div className="px-4 py-3 border-b border-border">
+        <h3 className="text-sm font-bold ">Latest activity</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           {capped
             ? `Recent senders. The record is ${recordTotal.toLocaleString()} kudos.`
             : `${recordTotal.toLocaleString()} kudos`}
@@ -110,7 +112,7 @@ export function KudosFeed({
         return (
           <div
             key={event.sender}
-            className="flex items-center gap-3 px-4 py-3 border-b border-black/10 last:border-b-0"
+            className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0"
           >
             <Link href={senderLink} className="shrink-0">
               <AgentAvatar
@@ -125,7 +127,7 @@ export function KudosFeed({
             >
               {senderName}
             </Link>
-            <span className="text-sm text-black/70 shrink-0">
+            <span className="text-sm text-muted-foreground shrink-0">
               {count === 1 ? '1 kudo' : `${count.toLocaleString()} kudos`}
             </span>
             {category && <CategoryBadge category={category} />}
@@ -134,7 +136,7 @@ export function KudosFeed({
               href={getExplorerTxUrl(event.txHash, chainId)}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-auto text-xs font-mono text-black/60 hover:text-black shrink-0"
+              className="ml-auto text-xs text-muted-foreground hover:text-foreground shrink-0"
             >
               {timestamp ? formatRelativeTime(timestamp) : 'tx'}
             </a>

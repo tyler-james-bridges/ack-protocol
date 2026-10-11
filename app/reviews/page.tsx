@@ -33,7 +33,7 @@ export default function ReviewsPage() {
         <Breadcrumbs items={[{ label: 'HOME', href: '/' }]} current="REVIEWS" />
 
         <div className="text-center mt-8 mb-0">
-          <h1 className="text-3xl sm:text-4xl font-mono font-bold tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
             ERC-8004 FEEDBACK
           </h1>
 
@@ -44,7 +44,7 @@ export default function ReviewsPage() {
             fallbackDays={activeDays}
           />
 
-          <div className="inline-flex items-center gap-1.5 border-2 border-emerald-600/40 bg-emerald-600/10 px-3 py-1 mb-10 text-[11px] font-mono text-emerald-500 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 border border-emerald-600/40 bg-emerald-600/10 px-3 py-1 mb-10 text-[11px] text-emerald-500 ">
             <svg
               width="12"
               height="12"
@@ -64,7 +64,7 @@ export default function ReviewsPage() {
 
         {/* Activity Heatmap — GitHub contribution style hero */}
         <section className="mb-10">
-          <h2 className="text-sm font-mono font-bold tracking-wider mb-3 flex items-center gap-3">
+          <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             REVIEW ACTIVITY
             <span className="flex-1 h-px bg-border" />
           </h2>
@@ -77,7 +77,7 @@ export default function ReviewsPage() {
 
         {/* Recent Reviews — live on-chain proof, polls every 30s */}
         <section className="mb-10">
-          <h2 className="text-sm font-mono font-bold tracking-wider mb-3 flex items-center gap-3">
+          <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             RECENT REVIEWS
             <span className="flex-1 h-px bg-border" />
           </h2>
@@ -86,7 +86,7 @@ export default function ReviewsPage() {
 
         {/* Chain Distribution */}
         <section className="mb-10">
-          <h2 className="text-sm font-mono font-bold tracking-wider mb-3 flex items-center gap-3">
+          <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             CHAIN DISTRIBUTION
             <span className="flex-1 h-px bg-border" />
           </h2>
@@ -95,7 +95,7 @@ export default function ReviewsPage() {
 
         {/* Cumulative Timeline */}
         <section className="mb-10">
-          <h2 className="text-sm font-mono font-bold tracking-wider mb-3 flex items-center gap-3">
+          <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             CUMULATIVE REVIEWS
             <span className="flex-1 h-px bg-border" />
           </h2>
@@ -104,7 +104,7 @@ export default function ReviewsPage() {
 
         {/* Network Graph */}
         <section className="mb-10">
-          <h2 className="text-sm font-mono font-bold tracking-wider mb-3 flex items-center gap-3">
+          <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             REVIEW NETWORK
             <span className="flex-1 h-px bg-border" />
           </h2>
@@ -112,8 +112,8 @@ export default function ReviewsPage() {
         </section>
 
         {/* Footer */}
-        <div className="text-center pt-8 border-t-2 border-black dark:border-neutral-800">
-          <p className="text-xs font-mono text-muted-foreground">
+        <div className="text-center pt-8 border-t border-border dark:border-neutral-800">
+          <p className="text-xs text-muted-foreground">
             ACK — on-chain agent feedback via{' '}
             <a
               href="https://eips.ethereum.org/EIPS/eip-8004"
@@ -124,7 +124,7 @@ export default function ReviewsPage() {
               ERC-8004
             </a>
           </p>
-          <p className="text-[10px] font-mono text-muted-foreground mt-1">
+          <p className="text-[10px] text-muted-foreground mt-1">
             DATA FROM ETHEREUM · ABSTRACT · BASE · CELO MAINNETS
           </p>
         </div>

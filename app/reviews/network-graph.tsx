@@ -182,15 +182,15 @@ export function NetworkGraph({ chains, total }: Props) {
   }, [draw]);
 
   return (
-    <div className="border-2 border-black dark:border-neutral-800 bg-card overflow-hidden">
+    <div className="border border-border dark:border-neutral-800 bg-card overflow-hidden">
       <canvas ref={canvasRef} className="w-full h-[400px] sm:h-[450px]" />
-      <div className="flex justify-center gap-4 sm:gap-6 flex-wrap px-4 py-3 border-t-2 border-black dark:border-neutral-800">
+      <div className="flex justify-center gap-4 sm:gap-6 flex-wrap px-4 py-3 border-t border-border dark:border-neutral-800">
         {chains
           .sort((a, b) => b.count - a.count)
           .map((c) => (
             <div
               key={c.id}
-              className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground"
+              className="flex items-center gap-2 text-[11px] text-muted-foreground"
             >
               <span
                 className="w-2.5 h-2.5 inline-block"

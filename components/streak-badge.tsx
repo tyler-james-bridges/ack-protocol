@@ -20,10 +20,10 @@ export function StreakBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-0.5 font-mono uppercase tracking-wider tabular-nums shrink-0',
+        'inline-flex shrink-0 items-center gap-0.5 rounded-sm border font-medium tabular-nums',
         isActive
-          ? 'bg-black text-white border border-black'
-          : 'bg-white text-black border border-black/20',
+          ? 'border-transparent bg-foreground text-background'
+          : 'border-border bg-muted text-foreground',
         size === 'sm' && 'px-1.5 py-0.5 text-[10px] leading-none',
         size === 'md' && 'px-2 py-1 text-xs',
         className

@@ -61,13 +61,13 @@ function FeedItem({
     : `/address/${kudos.sender}`;
 
   return (
-    <div className="flex gap-3 px-4 py-3 border-b border-black/10 last:border-b-0 hover:bg-black/5 transition-colors">
+    <div className="flex gap-3 px-4 py-3 border-b border-border last:border-b-0 hover:bg-muted transition-colors">
       <Link href={senderLink} className="shrink-0 mt-0.5">
         <AgentAvatar
           name={senderName}
           imageUrl={senderAgent?.image_url}
           size={32}
-          className="rounded-none"
+          className="rounded-lg"
         />
       </Link>
 
@@ -76,7 +76,7 @@ function FeedItem({
           <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
             <Link
               href={senderLink}
-              className={`text-xs hover:underline transition-colors ${senderAgent ? 'font-bold text-black' : 'font-mono text-black/50'}`}
+              className={`text-xs hover:underline transition-colors ${senderAgent ? 'font-bold text-foreground' : ' text-muted-foreground'}`}
             >
               {senderAgent ? senderAgent.name : truncateAddress(kudos.sender)}
             </Link>
@@ -87,7 +87,7 @@ function FeedItem({
                 size="sm"
               />
             )}
-            <span className="text-xs text-black/40 font-mono uppercase">
+            <span className="text-xs text-muted-foreground uppercase">
               gave
             </span>
             <Link
@@ -98,16 +98,16 @@ function FeedItem({
                 name={name}
                 imageUrl={agent?.image_url}
                 size={32}
-                className="rounded-none"
+                className="rounded-lg"
               />
             </Link>
             <Link
               href={getAgentPath(kudos.agentId, kudos.chainId)}
-              className="text-xs font-bold text-black hover:underline transition-colors"
+              className="text-xs font-bold text-foreground hover:underline transition-colors"
             >
               {name}
             </Link>
-            <span className="text-xs text-black/40 font-mono uppercase">
+            <span className="text-xs text-muted-foreground uppercase">
               kudos
             </span>
             {tipAmountUsd !== undefined && tipAmountUsd > 0 && (
@@ -115,7 +115,7 @@ function FeedItem({
             )}
             {isValidCategory && (
               <>
-                <span className="text-xs text-black/40 font-mono uppercase">
+                <span className="text-xs text-muted-foreground uppercase">
                   for
                 </span>
                 <CategoryBadge category={kudos.tag2 as KudosCategory} />
@@ -126,14 +126,14 @@ function FeedItem({
             href={getExplorerTxUrl(kudos.txHash, kudos.chainId)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[11px] text-black/30 hover:text-black transition-colors shrink-0 mt-0.5 font-mono"
+            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5"
           >
             {timestamp ? formatRelativeTime(timestamp) : 'tx'}
           </a>
         </div>
 
         {kudos.message && (
-          <p className="text-xs text-black/50 mt-1 line-clamp-2 leading-relaxed font-mono">
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
             &ldquo;{kudos.message}&rdquo;
           </p>
         )}
@@ -167,31 +167,29 @@ export async function ServerKudosFeed({
   feedError = false,
 }: ServerKudosFeedProps) {
   return (
-    <div className="overflow-hidden bg-white flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-black/20">
+    <div className="overflow-hidden bg-background flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className="relative inline-flex h-2 w-2 bg-black" />
+            <span className="relative inline-flex h-2 w-2 bg-foreground" />
           </span>
-          <h2 className="text-sm font-bold font-mono uppercase tracking-wider">
-            LATEST KUDOS
-          </h2>
+          <h2 className="text-sm font-bold ">LATEST KUDOS</h2>
           <Link
             href={`/?chain=${getChainSlug(DEFAULT_8004_CHAIN_ID)}`}
-            className={`text-[11px] font-mono uppercase ${chainId === DEFAULT_8004_CHAIN_ID ? 'text-black font-bold' : 'text-black/40'}`}
+            className={`text-[11px] uppercase ${chainId === DEFAULT_8004_CHAIN_ID ? 'text-foreground font-bold' : 'text-muted-foreground'}`}
           >
             Base
           </Link>
           <Link
             href={`/?chain=${getChainSlug(ABSTRACT_CHAIN_ID)}`}
-            className={`text-[11px] font-mono uppercase ${chainId === ABSTRACT_CHAIN_ID ? 'text-black font-bold' : 'text-black/40'}`}
+            className={`text-[11px] uppercase ${chainId === ABSTRACT_CHAIN_ID ? 'text-foreground font-bold' : 'text-muted-foreground'}`}
           >
             Abstract
           </Link>
         </div>
         <Link
           href={`/kudos?chain=${getChainSlug(chainId)}`}
-          className="text-xs font-mono uppercase tracking-wider text-black/50 hover:text-black transition-colors"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           View all &rarr;
         </Link>
@@ -200,13 +198,13 @@ export async function ServerKudosFeed({
       <div>
         {feedError ? (
           <div className="px-4 py-8 text-center">
-            <p className="text-sm font-mono text-black/50">
+            <p className="text-sm text-muted-foreground">
               Could not load kudos.
             </p>
           </div>
         ) : kudos.length === 0 ? (
           <div className="px-4 py-8 text-center">
-            <p className="text-sm font-mono text-black/50">
+            <p className="text-sm text-muted-foreground">
               No kudos yet - be the first!
             </p>
           </div>

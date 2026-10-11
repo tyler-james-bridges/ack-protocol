@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 function Code({ children }: { children: string }) {
   return (
-    <pre className="overflow-x-auto bg-black p-4 text-sm leading-relaxed text-white/80">
+    <pre className="overflow-x-auto bg-foreground p-4 text-sm leading-relaxed text-code-foreground">
       <code>{children}</code>
     </pre>
   );
@@ -27,14 +27,12 @@ function MethodCard({
   example: string;
 }) {
   return (
-    <div className="mb-8 border-2 border-black bg-white p-6">
-      <h3 className="mb-1 font-mono text-lg font-semibold text-black">
-        {name}
-      </h3>
-      <pre className="mb-3 text-sm text-black/50">
+    <div className="mb-8 border border-border bg-background p-6">
+      <h3 className="mb-1 text-lg font-semibold text-foreground">{name}</h3>
+      <pre className="mb-3 text-sm text-muted-foreground">
         <code>{signature}</code>
       </pre>
-      <p className="mb-4 text-sm text-black/70">{description}</p>
+      <p className="mb-4 text-sm text-muted-foreground">{description}</p>
       <Code>{example}</Code>
     </div>
   );
@@ -45,14 +43,14 @@ export default function SDKReferencePage() {
     <main className="mx-auto max-w-3xl px-6 py-20">
       <Link
         href="/docs"
-        className="mb-6 inline-block text-sm text-black/40 hover:text-black"
+        className="mb-6 inline-block text-sm text-muted-foreground hover:text-foreground"
       >
         Docs
       </Link>
-      <h1 className="mb-4 text-4xl font-bold text-black">SDK Reference</h1>
-      <p className="mb-4 text-lg text-black/50">
+      <h1 className="mb-4 text-4xl font-bold text-foreground">SDK Reference</h1>
+      <p className="mb-4 text-lg text-muted-foreground">
         Full reference for{' '}
-        <code className="bg-black/10 px-1.5 py-0.5 text-black">
+        <code className="bg-muted px-1.5 py-0.5 text-foreground">
           @ack-onchain/sdk
         </code>
         . Minimal dependency (just viem), works in Node.js and browsers.
@@ -60,7 +58,7 @@ export default function SDKReferencePage() {
 
       <Code>npm install @ack-onchain/sdk</Code>
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-foreground">
         Constructors
       </h2>
 
@@ -92,7 +90,7 @@ const walletClient = createWalletClient({ account, transport: http() });
 const ack = ACK.fromWalletClient(walletClient);`}
       />
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-foreground">
         Read Methods
       </h2>
 
@@ -136,7 +134,7 @@ console.log(results[0]?.agent.name);`}
 top.forEach(entry => console.log(entry.agent.name, entry.score));`}
       />
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-foreground">
         Write Methods
       </h2>
 
@@ -177,49 +175,53 @@ await ack.kudos(606, {
 });`}
       />
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-foreground">
         Configuration
       </h2>
       <Code>
         {`interface ACKConfig {
-  chain?: ChainId;    // 'abstract' | 'base' | 'ethereum' | 'bnb' | ...
-  apiKey?: string;    // 8004scan API key for search/leaderboard
-  rpcUrl?: string;    // Custom RPC URL
+  chain?: ChainId; // 'abstract' | 'base' | 'ethereum' | 'bnb' | ...
+  apiKey?: string; // 8004scan API key for search/leaderboard
+  rpcUrl?: string; // Custom RPC URL
 }
 
 // Supported chains: abstract, base, ethereum, bnb, celo, gnosis,
 // arbitrum, optimism, polygon, scroll, avalanche, linea, taiko, xlayer`}
       </Code>
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-foreground">
         Contract Addresses
       </h2>
-      <p className="mb-4 text-sm text-black/50">
+      <p className="mb-4 text-sm text-muted-foreground">
         Deterministic across all supported chains (Abstract, Base, Ethereum,
         etc.):
       </p>
-      <div className="overflow-x-auto border-2 border-black bg-white p-4 text-sm">
+      <div className="overflow-x-auto border border-border bg-background p-4 text-sm">
         <table className="w-full text-left">
           <thead>
-            <tr className="text-black/50">
+            <tr className="text-muted-foreground">
               <th className="pb-2 pr-4">Contract</th>
               <th className="pb-2">Address</th>
             </tr>
           </thead>
-          <tbody className="font-mono text-black">
+          <tbody className=" text-foreground">
             <tr>
-              <td className="py-1 pr-4 text-black/50">Identity Registry</td>
+              <td className="py-1 pr-4 text-muted-foreground">
+                Identity Registry
+              </td>
               <td>0x8004A169FB4a3325136EB29fA0ceB6D2e539a432</td>
             </tr>
             <tr>
-              <td className="py-1 pr-4 text-black/50">Reputation Registry</td>
+              <td className="py-1 pr-4 text-muted-foreground">
+                Reputation Registry
+              </td>
               <td>0x8004BAa17C55a88189AE136b182e5fdA19dE9b63</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h2 className="mb-4 mt-12 text-2xl font-semibold text-black">
+      <h2 className="mb-4 mt-12 text-2xl font-semibold text-foreground">
         TypeScript Types
       </h2>
       <Code>
@@ -236,11 +238,14 @@ await ack.kudos(606, {
       <div className="mt-12 flex gap-4 text-sm">
         <Link
           href="/docs/getting-started"
-          className="text-black hover:text-black"
+          className="text-foreground hover:text-foreground"
         >
           Getting Started
         </Link>
-        <Link href="/docs/api" className="text-black hover:text-black">
+        <Link
+          href="/docs/api"
+          className="text-foreground hover:text-foreground"
+        >
           API Reference
         </Link>
       </div>

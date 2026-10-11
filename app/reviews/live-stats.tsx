@@ -65,7 +65,7 @@ export function LiveStats({
   return (
     <>
       {/* Subtitle with live count */}
-      <p className="text-muted-foreground font-mono text-sm mt-2">
+      <p className="text-muted-foreground text-sm mt-2">
         {total} on-chain reviews across {chainCount} chains — every one
         verifiable
       </p>
@@ -75,12 +75,12 @@ export function LiveStats({
         {statItems.map((s) => (
           <div
             key={s.label}
-            className="border-2 border-black dark:border-neutral-800 bg-card p-4 text-center hover:border-emerald-500 transition-colors"
+            className="border border-border dark:border-neutral-800 bg-card p-4 text-center hover:border-emerald-500 transition-colors"
           >
-            <div className="text-2xl sm:text-3xl font-mono font-bold text-emerald-500">
+            <div className="text-2xl sm:text-3xl font-bold text-emerald-500">
               {s.value}
             </div>
-            <div className="text-[10px] font-mono text-muted-foreground tracking-wider mt-1">
+            <div className="text-[10px] text-muted-foreground tracking-wider mt-1">
               {s.label}
             </div>
           </div>

@@ -11,7 +11,7 @@ export function TwitterSyntax() {
         </svg>
         <h3 className="text-sm font-semibold">Post Syntax</h3>
       </div>
-      <div className="rounded-lg bg-muted/30 border border-border/50 p-3 font-mono text-xs space-y-2 overflow-x-auto">
+      <div className="rounded-lg bg-muted/30 border border-border/50 p-3 text-xs space-y-2 overflow-x-auto">
         <Row cmd="@ack_onchain @agent ++" desc="basic kudos" />
         <Row cmd="@ack_onchain @agent ++ reliable" desc="with category" />
         <Row cmd='@ack_onchain @agent ++ "great work!"' desc="with message" />

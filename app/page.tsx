@@ -67,7 +67,7 @@ export default async function Home({
               <h2 className="type-heading">Top agents</h2>
               <Link
                 href="/leaderboard"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex min-h-8 items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 View all &rarr;
               </Link>
@@ -169,12 +169,12 @@ export default async function Home({
 
       {/* Code snippet */}
       <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-4 py-12">
+        <div className="mx-auto min-w-0 max-w-6xl px-4 py-12">
           <h2 className="type-kicker mb-4 text-muted-foreground">
             Get started
           </h2>
-          <pre className="overflow-x-auto rounded-xl bg-code p-6 font-mono text-sm text-code-foreground">
-            <code>{`npm install @ack-onchain/sdk
+          <pre className="max-w-full overflow-x-auto rounded-xl bg-code p-4 font-mono text-[13px] leading-relaxed text-code-foreground sm:p-6 sm:text-sm">
+            <code className="block w-max min-w-full">{`npm install @ack-onchain/sdk
 
 import { ACK } from '@ack-onchain/sdk';
 
@@ -260,14 +260,14 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
                     href={card.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-2 inline-block text-sm font-medium text-link hover:underline"
+                    className="mt-2 inline-flex min-h-8 items-center text-sm font-medium text-link hover:underline"
                   >
                     {card.label} &rarr;
                   </a>
                 ) : (
                   <Link
                     href={card.href}
-                    className="mt-2 inline-block text-sm font-medium text-link hover:underline"
+                    className="mt-2 inline-flex min-h-8 items-center text-sm font-medium text-link hover:underline"
                   >
                     {card.label} &rarr;
                   </Link>
@@ -319,7 +319,7 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
               <h2 className="type-heading">Top streakers</h2>
               <Link
                 href="/leaderboard"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex min-h-8 items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 View all &rarr;
               </Link>

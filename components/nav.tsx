@@ -132,7 +132,7 @@ export function Nav() {
             <Link
               href="/"
               prefetch={false}
-              className="flex items-center gap-1.5"
+              className="flex items-center gap-1.5 py-2"
             >
               <span className="text-base font-semibold tracking-tight text-foreground">
                 ACK
@@ -191,7 +191,7 @@ export function Nav() {
                     ) : (
                       <button
                         onClick={openConnectModal}
-                        className="ml-1 h-8 rounded-lg bg-primary px-3 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-primary-active"
+                        className="ml-1 h-9 rounded-lg bg-primary px-3 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-primary-active"
                         type="button"
                       >
                         Connect
@@ -204,7 +204,7 @@ export function Nav() {
 
             <button
               onClick={() => setMobileOpen((v) => !v)}
-              className="md:hidden ml-0.5 flex h-7 w-7 items-center justify-center text-foreground hover:bg-muted transition-colors"
+              className="md:hidden ml-0.5 flex size-9 items-center justify-center rounded-lg text-foreground hover:bg-muted transition-colors"
               aria-label="Toggle menu"
             >
               {mobileOpen ? (
@@ -246,7 +246,7 @@ export function Nav() {
               </span>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="flex h-7 w-7 items-center justify-center text-foreground hover:bg-muted transition-colors"
+                className="flex size-9 items-center justify-center rounded-lg text-foreground hover:bg-muted transition-colors"
               >
                 <svg
                   viewBox="0 0 24 24"

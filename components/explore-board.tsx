@@ -270,15 +270,15 @@ function LeaderboardPage({
 
         {/* Sort */}
         <div className="mb-6">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
-              Sort by
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-medium text-muted-foreground">
+              Sort
             </span>
             {SORT_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setSortBy(opt.value)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                className={`inline-flex min-h-8 items-center rounded-md px-2.5 text-xs font-medium transition-colors ${
                   sortBy === opt.value
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -295,7 +295,7 @@ function LeaderboardPage({
           <button
             type="button"
             onClick={() => toggleChain(DEFAULT_8004_CHAIN_ID)}
-            className="flex items-center gap-3 w-full mb-3 text-left cursor-pointer group"
+            className="flex min-h-11 w-full flex-wrap items-center gap-x-3 gap-y-1 py-2 text-left cursor-pointer group"
           >
             <ChainIcon chainId={DEFAULT_8004_CHAIN_ID} size={20} />
             <h2 className="text-lg font-bold">
@@ -348,8 +348,8 @@ function LeaderboardPage({
         )}
         {otherChainEntries.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-4">
-              Other Chains
+            <p className="mb-4 text-xs font-medium text-muted-foreground">
+              Other chains
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {otherChainEntries.map(([chainId, agents]) => {
@@ -363,7 +363,7 @@ function LeaderboardPage({
                     <button
                       type="button"
                       onClick={() => toggleChain(chainId)}
-                      className="flex items-center gap-2 w-full px-4 py-3 text-left cursor-pointer hover:bg-muted transition-colors"
+                      className="flex min-h-11 w-full items-center gap-2 px-4 py-3 text-left cursor-pointer hover:bg-muted transition-colors"
                     >
                       <ChainIcon chainId={chainId} size={16} />
                       <span className="text-sm font-semibold">

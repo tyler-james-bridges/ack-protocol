@@ -306,7 +306,7 @@ export function TipAgent({
               setCustom('');
             }}
             className={cn(
-              'px-3 py-1 text-xs rounded-lg transition-colors font-medium',
+              'inline-flex min-h-8 items-center rounded-lg px-3 text-xs font-medium transition-colors',
               token === t
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -334,7 +334,7 @@ export function TipAgent({
               setCustom('');
             }}
             className={cn(
-              'flex-1 py-2 rounded-lg text-sm font-semibold border transition-all',
+              'inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border py-2 text-sm font-semibold transition-all',
               amount === preset && !custom
                 ? 'border-primary bg-success/10 text-success scale-[1.02]'
                 : 'border-border text-muted-foreground hover:border-primary/40 hover:text-foreground'

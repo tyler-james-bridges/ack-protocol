@@ -168,31 +168,28 @@ export async function ServerKudosFeed({
 }: ServerKudosFeedProps) {
   return (
     <div className="overflow-hidden bg-background flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="relative inline-flex h-2 w-2 bg-foreground" />
-          </span>
-          <h2 className="text-sm font-bold ">LATEST KUDOS</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <h2 className="type-heading">Latest kudos</h2>
+        <div className="flex flex-wrap items-center gap-1.5">
           <Link
             href={`/?chain=${getChainSlug(DEFAULT_8004_CHAIN_ID)}`}
-            className={`text-[11px] uppercase ${chainId === DEFAULT_8004_CHAIN_ID ? 'text-foreground font-bold' : 'text-muted-foreground'}`}
+            className={`inline-flex min-h-8 items-center rounded-md px-2.5 text-xs font-medium ${chainId === DEFAULT_8004_CHAIN_ID ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
           >
             Base
           </Link>
           <Link
             href={`/?chain=${getChainSlug(ABSTRACT_CHAIN_ID)}`}
-            className={`text-[11px] uppercase ${chainId === ABSTRACT_CHAIN_ID ? 'text-foreground font-bold' : 'text-muted-foreground'}`}
+            className={`inline-flex min-h-8 items-center rounded-md px-2.5 text-xs font-medium ${chainId === ABSTRACT_CHAIN_ID ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
           >
             Abstract
           </Link>
+          <Link
+            href={`/kudos?chain=${getChainSlug(chainId)}`}
+            className="inline-flex min-h-8 items-center px-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            View all &rarr;
+          </Link>
         </div>
-        <Link
-          href={`/kudos?chain=${getChainSlug(chainId)}`}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          View all &rarr;
-        </Link>
       </div>
 
       <div>

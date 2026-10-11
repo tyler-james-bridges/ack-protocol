@@ -290,7 +290,7 @@ export default function AgentProfilePage({
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                        className="inline-flex min-h-8 max-w-full items-center gap-1.5 break-all rounded-md border border-border px-2.5 text-xs text-muted-foreground hover:bg-muted transition-colors"
                       >
                         {type === 'twitter' ? (
                           <svg
@@ -400,8 +400,8 @@ export default function AgentProfilePage({
               {/* Category Badges */}
               {sortedCategories.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[11px] text-muted-foreground font-bold">
-                    REPUTATION
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Reputation
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {sortedCategories.map(([cat, count]) => (
@@ -462,7 +462,7 @@ export default function AgentProfilePage({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 border border-border px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm text-foreground hover:bg-muted transition-colors"
                   title="Give Kudos via Post"
                 >
                   <svg
@@ -472,7 +472,7 @@ export default function AgentProfilePage({
                   >
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
-                  POST
+                  Post
                 </a>
               </div>
 

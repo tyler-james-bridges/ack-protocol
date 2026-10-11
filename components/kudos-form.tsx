@@ -62,7 +62,7 @@ export function KudosForm({
               type="button"
               onClick={() => setCategory(cat)}
               className={cn(
-                'transition-all duration-150',
+                'inline-flex min-h-8 items-center transition-all duration-150',
                 category === cat
                   ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg'
                   : 'opacity-60 hover:opacity-100'

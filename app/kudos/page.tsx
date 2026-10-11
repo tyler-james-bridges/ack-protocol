@@ -370,7 +370,7 @@ export default function GiveKudosPage() {
               <Link
                 key={id}
                 href={`/kudos?chain=${getChainSlug(id)}`}
-                className={`rounded-md border px-3 py-1 text-xs font-medium ${
+                className={`inline-flex min-h-8 items-center rounded-md border px-3 text-xs font-medium ${
                   feedChain === id
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-background text-muted-foreground hover:bg-muted'
@@ -385,7 +385,7 @@ export default function GiveKudosPage() {
             <button
               type="button"
               onClick={() => setActiveFilter('all')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
+              className={`inline-flex min-h-8 items-center rounded-lg border px-3 text-xs font-medium transition-colors ${
                 activeFilter === 'all'
                   ? 'bg-primary text-primary-foreground border-border'
                   : 'bg-background text-muted-foreground border-border hover:border-border'
@@ -398,7 +398,7 @@ export default function GiveKudosPage() {
                 key={cat}
                 type="button"
                 onClick={() => setActiveFilter(cat)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                className={`inline-flex min-h-8 items-center rounded-lg border px-3 text-xs font-medium transition-colors ${
                   activeFilter === cat
                     ? 'bg-primary text-primary-foreground border-border'
                     : 'bg-background text-muted-foreground border-border hover:border-border'

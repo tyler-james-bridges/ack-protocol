@@ -221,7 +221,7 @@ function LeaderboardPage({
     router.push(`/agent/${agent.chain_id}/${agent.token_id}`);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Nav />
       <div className="mx-auto max-w-5xl px-4 pt-4">
         <Breadcrumbs items={[{ label: 'Home', href: '/' }]} current="Explore" />
@@ -230,13 +230,8 @@ function LeaderboardPage({
       <div className="mx-auto max-w-5xl px-4 pt-8 pb-16">
         {/* Header */}
         <div className="mb-6">
-          <p className="text-xs font-semibold tracking-widest text-black uppercase mb-1">
-            Explore
-          </p>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            Explore Agents
-          </h1>
-          <p className="text-sm md:text-base text-black/50 mt-1">
+          <h1 className="type-title">Explore agents</h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
             Agents on {getChainName(DEFAULT_8004_CHAIN_ID)}. Other chains are in
             the list.
           </p>
@@ -246,7 +241,7 @@ function LeaderboardPage({
           !isErrorFeatured &&
           featuredAgents.length > 0 && (
             <div className="mb-6">
-              <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-2">
+              <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-2">
                 {getChainName(DEFAULT_8004_CHAIN_ID)}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -275,18 +270,18 @@ function LeaderboardPage({
 
         {/* Sort */}
         <div className="mb-6">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium tracking-wider text-black/50 uppercase">
-              Sort by
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-medium text-muted-foreground">
+              Sort
             </span>
             {SORT_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setSortBy(opt.value)}
-                className={`px-2.5 py-1 text-xs font-medium transition-colors ${
+                className={`inline-flex min-h-8 items-center rounded-md px-2.5 text-xs font-medium transition-colors ${
                   sortBy === opt.value
-                    ? 'bg-black text-white'
-                    : 'text-black/50 hover:text-black'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
                 {opt.label}
@@ -300,23 +295,23 @@ function LeaderboardPage({
           <button
             type="button"
             onClick={() => toggleChain(DEFAULT_8004_CHAIN_ID)}
-            className="flex items-center gap-3 w-full mb-3 text-left cursor-pointer group"
+            className="flex min-h-11 w-full flex-wrap items-center gap-x-3 gap-y-1 py-2 text-left cursor-pointer group"
           >
             <ChainIcon chainId={DEFAULT_8004_CHAIN_ID} size={20} />
             <h2 className="text-lg font-bold">
               {getChainName(DEFAULT_8004_CHAIN_ID)}
             </h2>
             {featuredAgents.length > 0 && (
-              <span className="text-sm text-black/70">
+              <span className="text-sm text-muted-foreground">
                 {featuredAgents.length} agents
               </span>
             )}
             {featuredAgents.reduce((s, a) => s + a.kudos, 0) > 0 && (
-              <span className="text-xs text-black font-medium">
+              <span className="text-xs text-foreground font-medium">
                 {featuredAgents.reduce((s, a) => s + a.kudos, 0)} kudos
               </span>
             )}
-            <span className="ml-auto text-black/50 text-xs group-hover:text-black transition-colors">
+            <span className="ml-auto text-muted-foreground text-xs group-hover:text-foreground transition-colors">
               {expandedChains.has(DEFAULT_8004_CHAIN_ID)
                 ? 'Collapse'
                 : 'Expand'}
@@ -325,13 +320,13 @@ function LeaderboardPage({
 
           {expandedChains.has(DEFAULT_8004_CHAIN_ID) &&
             (isLoadingFeatured && featuredAgents.length === 0 ? (
-              <p className="text-sm text-black/70">Loading agents...</p>
+              <p className="text-sm text-muted-foreground">Loading agents...</p>
             ) : isErrorFeatured && featuredAgents.length === 0 ? (
               <ErrorState />
             ) : featuredAgents.length === 0 ? (
               <EmptyState />
             ) : (
-              <div className="border-2 border-black overflow-hidden bg-white">
+              <div className="overflow-hidden rounded-xl border border-border bg-card">
                 {featuredAgents.map((agent, i) => (
                   <AgentRow
                     key={agent.id}
@@ -347,14 +342,14 @@ function LeaderboardPage({
         </div>
 
         {isErrorAll && !allAgentsList && (
-          <p className="mb-8 text-sm text-black/70">
+          <p className="mb-8 text-sm text-muted-foreground">
             Other chains could not be loaded.
           </p>
         )}
         {otherChainEntries.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase mb-4">
-              Other Chains
+            <p className="mb-4 text-xs font-medium text-muted-foreground">
+              Other chains
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {otherChainEntries.map(([chainId, agents]) => {
@@ -363,21 +358,21 @@ function LeaderboardPage({
                 return (
                   <div
                     key={chainId}
-                    className="border-2 border-black overflow-hidden"
+                    className="overflow-hidden rounded-xl border border-border bg-card"
                   >
                     <button
                       type="button"
                       onClick={() => toggleChain(chainId)}
-                      className="flex items-center gap-2 w-full px-4 py-3 text-left cursor-pointer hover:bg-black/5 transition-colors"
+                      className="flex min-h-11 w-full items-center gap-2 px-4 py-3 text-left cursor-pointer hover:bg-muted transition-colors"
                     >
                       <ChainIcon chainId={chainId} size={16} />
                       <span className="text-sm font-semibold">
                         {getChainName(chainId)}
                       </span>
-                      <span className="text-xs text-black/50">
+                      <span className="text-xs text-muted-foreground">
                         {agents.length} agents
                       </span>
-                      <span className="ml-auto text-xs text-black/50">
+                      <span className="ml-auto text-xs text-muted-foreground">
                         {isExpanded ? 'Collapse' : 'Expand'}
                       </span>
                     </button>
@@ -424,11 +419,11 @@ function AgentRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-4 w-full px-4 py-3 text-left transition-colors hover:bg-black/5 border-b border-black/10 last:border-b-0 cursor-pointer"
+      className="flex items-center gap-4 w-full px-4 py-3 text-left transition-colors hover:bg-muted border-b border-border last:border-b-0 cursor-pointer"
     >
       <span
         className={`w-8 text-sm font-bold tabular-nums ${
-          rank <= 3 ? 'text-black' : 'text-black/50'
+          rank <= 3 ? 'text-foreground' : 'text-muted-foreground'
         }`}
       >
         #{rank}
@@ -446,7 +441,7 @@ function AgentRow({
               />
             )}
           </div>
-          <div className="flex items-center gap-1 text-[11px] text-black/50">
+          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <ChainIcon chainId={agent.chain_id} size={12} />
             <span>{getChainName(agent.chain_id)}</span>
           </div>
@@ -463,7 +458,6 @@ function StatCard({
   label,
   value,
   sub,
-  accent,
 }: {
   label: string;
   value: string;
@@ -471,33 +465,33 @@ function StatCard({
   accent?: boolean;
 }) {
   return (
-    <div
-      className={`border-2 border-black p-4 ${accent ? 'border-black' : 'border-black/10'}`}
-    >
-      <p className="text-[10px] font-medium tracking-wider text-black/50 uppercase">
+    <div className="rounded-xl border border-border bg-card p-4">
+      <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
         {label}
       </p>
-      <p
-        className={`text-2xl md:text-3xl font-bold tracking-tight mt-1 ${accent ? 'text-black' : ''}`}
-      >
+      <p className="mt-1 font-mono text-2xl font-semibold tracking-tight tabular-nums md:text-3xl">
         {value}
       </p>
-      {sub && <p className="text-[10px] text-black/50/50 mt-0.5">{sub}</p>}
+      {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
     </div>
   );
 }
 
 function EmptyState() {
-  return <p className="text-sm text-black/70">No agents on Base yet.</p>;
+  return (
+    <p className="text-sm text-muted-foreground">No agents on Base yet.</p>
+  );
 }
 
 function ErrorState() {
   return (
     <div className="px-4 py-12 text-center space-y-2">
-      <p className="text-black/50">Failed to load agents. Try refreshing.</p>
+      <p className="text-muted-foreground">
+        Failed to load agents. Try refreshing.
+      </p>
       <button
         onClick={() => window.location.reload()}
-        className="text-sm text-black hover:underline"
+        className="text-sm text-foreground hover:underline"
       >
         Refresh
       </button>
@@ -518,12 +512,12 @@ function SortMetric({
     <>
       <div className="text-right w-16">
         <p
-          className={`text-sm font-bold tabular-nums ${primary.accent ? 'text-black' : ''}`}
+          className={`text-sm font-bold tabular-nums ${primary.accent ? 'text-foreground' : ''}`}
         >
           {primary.value}
         </p>
         <p
-          className={`text-[10px] ${primary.accent ? 'text-black/70' : 'text-black/50'}`}
+          className={`text-[10px] ${primary.accent ? 'text-muted-foreground' : 'text-muted-foreground'}`}
         >
           {primary.label}
         </p>

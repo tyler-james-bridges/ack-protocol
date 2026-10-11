@@ -18,11 +18,11 @@ export function ChainBars({ chains }: Props) {
   const maxCount = Math.max(...sorted.map((c) => c.count));
 
   return (
-    <div className="border-2 border-black dark:border-neutral-800 bg-card p-4 sm:p-6 space-y-3">
+    <div className="border border-border dark:border-neutral-800 bg-card p-4 sm:p-6 space-y-3">
       {sorted.map((chain) => (
         <div key={chain.id} className="flex items-center gap-3">
           <div
-            className="w-20 text-right text-xs font-mono font-bold uppercase tracking-wider shrink-0"
+            className="w-20 text-right text-xs font-bold shrink-0"
             style={{ color: chain.color }}
           >
             {chain.name}
@@ -35,12 +35,12 @@ export function ChainBars({ chains }: Props) {
                 backgroundColor: chain.color,
               }}
             >
-              <span className="text-[10px] font-mono font-bold text-black whitespace-nowrap">
+              <span className="text-[10px] font-bold text-foreground whitespace-nowrap">
                 {chain.uniqueAgents} AGENTS
               </span>
             </div>
           </div>
-          <div className="w-10 text-right text-sm font-mono font-bold shrink-0">
+          <div className="w-10 text-right text-sm font-bold shrink-0">
             {chain.count}
           </div>
         </div>

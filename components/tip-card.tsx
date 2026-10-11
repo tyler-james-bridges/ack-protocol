@@ -37,7 +37,7 @@ export function TipCard({
   const settlementTxHash = paymentRefTxHash(tip.paymentTxHash);
 
   return (
-    <div className="flex gap-3 border border-black/20 rounded-none p-4 bg-black/5/50 hover:border-[#00FF94]/40 transition-colors">
+    <div className="flex gap-3 border border-border rounded-lg p-4 bg-muted hover:border-primary/40 transition-colors">
       {/* Payer avatar */}
       <Link href={payerLink} className="shrink-0 mt-0.5">
         <AgentAvatar
@@ -49,10 +49,10 @@ export function TipCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-black/50">
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-xs text-muted-foreground">
             <Link
               href={payerLink}
-              className={`hover:text-black transition-colors ${tip.fromAgent ? 'font-semibold text-black' : 'font-mono'}`}
+              className={`hover:text-foreground transition-colors ${tip.fromAgent ? 'font-semibold text-foreground' : ''}`}
             >
               {payerName}
             </Link>
@@ -70,7 +70,7 @@ export function TipCard({
             </Link>
             <Link
               href={getAgentPath(tip.agentId, tip.chainId)}
-              className="font-semibold text-black hover:text-black transition-colors"
+              className="font-semibold text-foreground hover:text-foreground transition-colors"
             >
               {receiverName}
             </Link>
@@ -82,13 +82,13 @@ export function TipCard({
                 href={getExplorerTxUrl(settlementTxHash, tip.chainId)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] text-black/50/50 hover:text-black transition-colors"
+                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                 title="View payment transaction"
               >
                 {formatRelativeTime(tip.completedAt)} ↗
               </a>
             ) : (
-              <span className="text-[11px] text-black/50/50">
+              <span className="text-[11px] text-muted-foreground">
                 {formatRelativeTime(tip.completedAt)}
               </span>
             )}

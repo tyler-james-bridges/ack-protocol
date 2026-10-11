@@ -5,23 +5,24 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-mono uppercase tracking-wider transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none border-2 border-black",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none",
   {
     variants: {
       variant: {
-        default: 'bg-black text-white hover:bg-white hover:text-black',
-        destructive: 'bg-black text-white hover:bg-white hover:text-black',
-        outline: 'bg-white text-black hover:bg-black hover:text-white',
-        secondary:
-          'border-black/20 bg-white text-black hover:border-black hover:bg-black hover:text-white',
-        ghost:
-          'border-transparent hover:bg-black hover:text-white hover:border-black',
-        link: 'border-transparent text-black underline-offset-4 hover:underline',
+        default:
+          'bg-primary text-primary-foreground hover:bg-primary-active active:bg-primary-active',
+        destructive:
+          'bg-destructive-fill text-white hover:bg-destructive-fill/90',
+        outline:
+          'border border-border bg-background text-foreground hover:bg-muted',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-accent',
+        ghost: 'hover:bg-muted hover:text-foreground',
+        link: 'text-link underline-offset-4 hover:underline',
       },
       size: {
-        default: 'h-9 px-4 py-2 has-[>svg]:px-3',
-        sm: 'h-8 gap-1.5 px-3 has-[>svg]:px-2.5',
-        lg: 'h-10 px-6 has-[>svg]:px-4',
+        default: 'h-9 px-3.5 has-[>svg]:px-3',
+        sm: 'h-8 gap-1.5 px-3 text-[13px] has-[>svg]:px-2.5',
+        lg: 'h-10 px-4 has-[>svg]:px-3.5',
         icon: 'size-9',
       },
     },

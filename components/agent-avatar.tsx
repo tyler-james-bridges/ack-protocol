@@ -11,26 +11,25 @@ interface AgentAvatarProps {
   className?: string;
 }
 
-// Vibrant color palettes - deterministically picked per agent name
-const PALETTES = [
-  ['#6366f1', '#8b5cf6', '#a78bfa'], // indigo-violet
-  ['#f43f5e', '#fb7185', '#fda4af'], // rose
-  ['#0ea5e9', '#38bdf8', '#7dd3fc'], // sky
-  ['#10b981', '#34d399', '#6ee7b7'], // emerald
-  ['#f59e0b', '#fbbf24', '#fcd34d'], // amber
-  ['#ec4899', '#f472b6', '#f9a8d4'], // pink
-  ['#14b8a6', '#2dd4bf', '#5eead4'], // teal
-  ['#8b5cf6', '#c084fc', '#d8b4fe'], // purple
-  ['#ef4444', '#f87171', '#fca5a5'], // red
-  ['#06b6d4', '#22d3ee', '#67e8f9'], // cyan
+const TILES = [
+  '#3d4f7c',
+  '#2f5d50',
+  '#6b4e2e',
+  '#5a3d6b',
+  '#3d5a63',
+  '#6b3d45',
+  '#3f5340',
+  '#4a4e68',
+  '#6a4030',
+  '#2f4f6b',
 ];
 
-function pickPalette(name: string): string[] {
+function pickTile(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
   }
-  return PALETTES[Math.abs(hash) % PALETTES.length];
+  return TILES[Math.abs(hash) % TILES.length];
 }
 
 /**
@@ -49,7 +48,7 @@ export function AgentAvatar({
     return (
       <div
         className={cn(
-          'relative shrink-0 overflow-hidden rounded-none bg-white',
+          'relative shrink-0 overflow-hidden rounded-md bg-muted',
           className
         )}
         style={{ width: size, height: size }}
@@ -67,15 +66,13 @@ export function AgentAvatar({
     );
   }
 
-  const colors = pickPalette(name || 'agent');
-
   return (
     <div
-      className={cn('shrink-0 rounded-none', className)}
+      className={cn('shrink-0 rounded-md', className)}
       style={{
         width: size,
         height: size,
-        background: `linear-gradient(135deg, ${colors[0]}, ${colors[2]})`,
+        backgroundColor: pickTile(name || 'agent'),
       }}
       aria-hidden
     />

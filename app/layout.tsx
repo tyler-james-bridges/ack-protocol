@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/react';
 import { NextAbstractWalletProvider } from '@/components/agw-provider';
+import { Footer } from '@/components/footer';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
-import { Footer } from '@/components/footer';
-import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -60,7 +60,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-mono bg-background text-foreground antialiased overflow-x-hidden">
+      <body className="overflow-x-hidden bg-background font-sans text-foreground antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

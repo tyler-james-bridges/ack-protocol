@@ -46,7 +46,7 @@ export function KudosForm({
         <label className="text-sm md:text-base font-medium">Agent</label>
         <AgentSearch onSelect={setSelectedAgent} />
         {selectedAgent && (
-          <p className="text-xs text-black/50">
+          <p className="text-xs text-muted-foreground">
             Selected: <span className="font-medium">{selectedAgent.name}</span>{' '}
             (#{selectedAgent.token_id})
           </p>
@@ -62,9 +62,9 @@ export function KudosForm({
               type="button"
               onClick={() => setCategory(cat)}
               className={cn(
-                'transition-all duration-150',
+                'inline-flex min-h-8 items-center transition-all duration-150',
                 category === cat
-                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-none'
+                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg'
                   : 'opacity-60 hover:opacity-100'
               )}
             >
@@ -85,13 +85,15 @@ export function KudosForm({
           rows={3}
           maxLength={280}
           className={cn(
-            'w-full rounded-none border border-input bg-white px-3 py-2 text-sm md:text-base',
-            'placeholder:text-black/50',
+            'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm md:text-base text-foreground',
+            'placeholder:text-muted-foreground',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             'resize-none'
           )}
         />
-        <p className="text-xs text-black/50 text-right">{message.length}/280</p>
+        <p className="text-xs text-muted-foreground text-right">
+          {message.length}/280
+        </p>
       </div>
 
       <Button

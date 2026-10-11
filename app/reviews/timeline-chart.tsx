@@ -143,13 +143,13 @@ export function TimelineChart({ byDate }: Props) {
   }, [draw]);
 
   return (
-    <div className="border-2 border-black dark:border-neutral-800 bg-card p-4 sm:p-6">
+    <div className="border border-border dark:border-neutral-800 bg-card p-4 sm:p-6">
       <canvas ref={canvasRef} className="w-full h-[180px] sm:h-[200px]" />
       <div className="flex justify-center gap-4 mt-3 flex-wrap">
         {Object.entries(CHAIN_NAMES).map(([id, name]) => (
           <div
             key={id}
-            className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground"
+            className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
           >
             <span
               className="w-2 h-2 inline-block"

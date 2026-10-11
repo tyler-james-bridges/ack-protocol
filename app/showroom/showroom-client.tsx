@@ -7,7 +7,7 @@ const ShowroomScene = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full items-center justify-center font-mono text-xs text-muted-foreground uppercase tracking-widest">
+      <div className="flex h-full items-center justify-center text-xs text-muted-foreground ">
         Loading showroom...
       </div>
     ),

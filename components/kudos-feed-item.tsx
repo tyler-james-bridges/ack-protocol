@@ -66,7 +66,7 @@ export function KudosFeedItem({
           </span>
           <CategoryBadge category={category} />
           {tipAmountUsd !== undefined && tipAmountUsd > 0 && (
-            <span className="inline-flex items-center rounded-full bg-[#00FF94]/10 text-[#00FF94] text-[10px] font-semibold px-1.5 py-0.5 tabular-nums">
+            <span className="inline-flex items-center rounded-full bg-success/10 text-success text-[10px] font-semibold px-1.5 py-0.5 tabular-nums">
               ${tipAmountUsd.toFixed(tipAmountUsd < 1 ? 2 : 0)}
             </span>
           )}

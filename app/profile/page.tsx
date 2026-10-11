@@ -120,15 +120,15 @@ export default function ProfilePage() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-white text-black">
+      <div className="min-h-screen bg-background text-foreground">
         <Nav />
         <main className="mx-auto max-w-lg px-4 pt-24 pb-24 text-center">
-          <div className="border-2 border-black bg-white p-10">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-none bg-black/5 border border-black/20">
+          <div className="border border-border bg-background p-10">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-lg bg-muted border border-border">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
-                className="h-7 w-7 text-black/50"
+                className="h-7 w-7 text-muted-foreground"
               >
                 <path
                   d="M15.75 5.25a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
@@ -142,7 +142,7 @@ export default function ProfilePage() {
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
               Connect Wallet
             </h1>
-            <p className="text-sm md:text-base text-black/50 mb-8 max-w-xs mx-auto">
+            <p className="text-sm md:text-base text-muted-foreground mb-8 max-w-xs mx-auto">
               Connect your wallet to view your agents.
             </p>
             <Button
@@ -159,12 +159,12 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-background text-foreground">
       <Nav />
       <main className="mx-auto max-w-2xl px-4 pt-10 pb-24">
         {/* Page Header */}
         <div className="mb-8">
-          <p className="text-xs font-semibold tracking-widest text-black/50 uppercase mb-1">
+          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">
             Profile
           </p>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
@@ -173,40 +173,44 @@ export default function ProfilePage() {
         </div>
 
         {/* Wallet Card */}
-        <section className="border-2 border-black bg-white p-5 mb-5">
-          <h2 className="text-[10px] font-semibold text-black/50 uppercase tracking-widest mb-4">
+        <section className="border border-border bg-background p-5 mb-5">
+          <h2 className="text-[10px] font-semibold text-muted-foreground mb-4">
             Wallet
           </h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-black/50">Address</span>
-              <span className="text-sm font-mono text-black bg-black/5 rounded-none px-2 py-0.5 border border-black/20">
+              <span className="text-sm text-muted-foreground">Address</span>
+              <span className="text-sm text-foreground bg-muted rounded-lg px-2 py-0.5 border border-border">
                 {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : ''}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-black/50">Network</span>
-              <span className="text-sm text-black">
+              <span className="text-sm text-muted-foreground">Network</span>
+              <span className="text-sm text-foreground">
                 {connectedChain ? connectedChain.name : 'Unknown'}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-black/50">Agent Status</span>
+              <span className="text-sm text-muted-foreground">
+                Agent Status
+              </span>
               {hasAgent ? (
-                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-black">
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
                   <span className="h-2 w-2 rounded-full bg-foreground " />
                   Registered
                 </span>
               ) : (
-                <span className="text-sm text-black/50">Not registered</span>
+                <span className="text-sm text-muted-foreground">
+                  Not registered
+                </span>
               )}
             </div>
           </div>
         </section>
 
         {agentsByChain.size > 0 && (
-          <section className="border-2 border-black bg-white p-6 mb-5">
-            <h2 className="text-[10px] font-semibold text-black/50 uppercase tracking-widest mb-4">
+          <section className="border border-border bg-background p-6 mb-5">
+            <h2 className="text-[10px] font-semibold text-muted-foreground mb-4">
               Your agents
             </h2>
             <div className="space-y-4">
@@ -224,7 +228,7 @@ export default function ProfilePage() {
                         >
                           <ChainIcon chainId={agent.chain_id} size={14} />
                           {agent.name}
-                          <span className="text-black/50">
+                          <span className="text-muted-foreground">
                             #{agent.token_id}
                           </span>
                         </Link>
@@ -241,18 +245,18 @@ export default function ProfilePage() {
         {hasAgent ? (
           <>
             {/* Agent Card */}
-            <section className="border-2 border-black bg-white p-6 mb-5 relative overflow-hidden">
-              <h2 className="text-[10px] font-semibold text-black/50 uppercase tracking-widest mb-5 relative">
+            <section className="border border-border bg-background p-6 mb-5 relative overflow-hidden">
+              <h2 className="text-[10px] font-semibold text-muted-foreground mb-5 relative">
                 Your Agent
               </h2>
 
               {loadingAgent ? (
                 <div className="space-y-4 relative">
                   <div className="flex items-center gap-4">
-                    <div className="h-14 w-14  rounded-none bg-black/5" />
+                    <div className="h-14 w-14 rounded-lg bg-muted" />
                     <div className="space-y-2 flex-1">
-                      <div className="h-5 w-40  rounded bg-black/5" />
-                      <div className="h-3 w-28  rounded bg-black/5" />
+                      <div className="h-5 w-40 rounded bg-muted" />
+                      <div className="h-3 w-28 rounded bg-muted" />
                     </div>
                   </div>
                 </div>
@@ -260,7 +264,7 @@ export default function ProfilePage() {
                 <div className="space-y-5 relative">
                   {/* Agent identity */}
                   <div className="flex items-center gap-4">
-                    <div className="rounded-none overflow-hidden ring-2 ring-border ring-offset-2 ring-offset-background">
+                    <div className="rounded-lg overflow-hidden ring-2 ring-border ring-offset-2 ring-offset-background">
                       <AgentAvatar
                         name={myAgent.name}
                         imageUrl={myAgent.image_url}
@@ -274,7 +278,7 @@ export default function ProfilePage() {
                         </p>
                         <ChainIcon chainId={myAgent.chain_id} size={16} />
                       </div>
-                      <p className="text-xs text-black/50 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Token #{myAgent.token_id} on{' '}
                         {getChainName(myAgent.chain_id)}
                       </p>
@@ -282,7 +286,7 @@ export default function ProfilePage() {
                   </div>
 
                   {myAgent.description && (
-                    <p className="text-sm md:text-base text-black/50 leading-relaxed">
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                       {myAgent.description}
                     </p>
                   )}
@@ -310,7 +314,7 @@ export default function ProfilePage() {
 
                   <Link
                     href={`/agent/${myAgent.chain_id}/${myAgent.token_id}`}
-                    className="inline-flex items-center gap-1.5 text-sm text-black hover:text-black/80 transition-colors font-medium"
+                    className="inline-flex items-center gap-1.5 text-sm text-foreground hover:text-foreground transition-colors font-medium"
                   >
                     View agent page
                     <svg
@@ -329,35 +333,35 @@ export default function ProfilePage() {
               ) : (
                 <div className="relative space-y-4">
                   {pendingAgent ? (
-                    <div className="border-2 border-black bg-black/5/30 p-4 space-y-2 ">
+                    <div className="border border-border bg-muted p-4 space-y-2 ">
                       <p className="text-sm font-medium">{pendingAgent.name}</p>
                       {pendingAgent.description && (
-                        <p className="text-xs text-black/50 leading-relaxed">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
                           {pendingAgent.description}
                         </p>
                       )}
                     </div>
                   ) : (
                     <div className="flex items-center gap-4">
-                      <div className="h-14 w-14  rounded-none bg-black/5" />
+                      <div className="h-14 w-14 rounded-lg bg-muted" />
                       <div className="space-y-2 flex-1">
-                        <div className="h-5 w-40  rounded bg-black/5" />
-                        <div className="h-3 w-28  rounded bg-black/5" />
+                        <div className="h-5 w-40 rounded bg-muted" />
+                        <div className="h-3 w-28 rounded bg-muted" />
                       </div>
                     </div>
                   )}
                   <div className="text-center">
-                    <p className="text-sm text-black/50">
+                    <p className="text-sm text-muted-foreground">
                       Registered onchain -- waiting for indexer.
                     </p>
-                    <p className="text-xs text-black/50/50 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       This usually takes a few minutes.
                     </p>
                     <a
                       href="https://www.8004scan.io/agents/abstract"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block mt-2 text-xs text-black hover:underline"
+                      className="inline-block mt-2 text-xs text-foreground hover:underline"
                     >
                       View all Abstract agents on 8004scan
                     </a>
@@ -371,11 +375,11 @@ export default function ProfilePage() {
 
             {/* Kudos Received */}
             {myAgent && (
-              <section className="border-2 border-black bg-white p-6 mb-5">
-                <h2 className="text-[10px] font-semibold text-black/50 uppercase tracking-widest mb-4">
+              <section className="border border-border bg-background p-6 mb-5">
+                <h2 className="text-[10px] font-semibold text-muted-foreground mb-4">
                   Kudos Received
                   {kudosReceived && kudosReceived.length > 0 && (
-                    <span className="ml-2 text-black">
+                    <span className="ml-2 text-foreground">
                       ({kudosReceived.length})
                     </span>
                   )}
@@ -385,19 +389,19 @@ export default function ProfilePage() {
                     {[...Array(2)].map((_, i) => (
                       <div
                         key={i}
-                        className="border border-black/20 rounded-none p-4 "
+                        className="border border-border rounded-lg p-4 "
                       >
-                        <div className="h-4 bg-black/5 rounded w-2/3 mb-3" />
-                        <div className="h-3 bg-black/5 rounded w-1/2" />
+                        <div className="h-4 bg-muted rounded w-2/3 mb-3" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
                       </div>
                     ))}
                   </div>
                 ) : !kudosReceived?.length ? (
                   <div className="text-center py-6">
-                    <p className="text-sm text-black/50">
+                    <p className="text-sm text-muted-foreground">
                       No kudos received yet.
                     </p>
-                    <p className="text-xs text-black/50/50 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Share your agent page to start collecting reputation.
                     </p>
                   </div>
@@ -422,11 +426,13 @@ export default function ProfilePage() {
             )}
 
             {/* Kudos Given */}
-            <section className="border-2 border-black bg-white p-6">
-              <h2 className="text-[10px] font-semibold text-black/50 uppercase tracking-widest mb-4">
+            <section className="border border-border bg-background p-6">
+              <h2 className="text-[10px] font-semibold text-muted-foreground mb-4">
                 Kudos Given
                 {kudosGiven && kudosGiven.length > 0 && (
-                  <span className="ml-2 text-black">({kudosGiven.length})</span>
+                  <span className="ml-2 text-foreground">
+                    ({kudosGiven.length})
+                  </span>
                 )}
               </h2>
               {loadingGiven ? (
@@ -434,19 +440,21 @@ export default function ProfilePage() {
                   {[...Array(2)].map((_, i) => (
                     <div
                       key={i}
-                      className="border border-black/20 rounded-none p-4 "
+                      className="border border-border rounded-lg p-4 "
                     >
-                      <div className="h-4 bg-black/5 rounded w-2/3 mb-3" />
-                      <div className="h-3 bg-black/5 rounded w-1/2" />
+                      <div className="h-4 bg-muted rounded w-2/3 mb-3" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
                     </div>
                   ))}
                 </div>
               ) : !kudosGiven?.length ? (
                 <div className="text-center py-6">
-                  <p className="text-sm text-black/50">No kudos given yet.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No kudos given yet.
+                  </p>
                   <Link
                     href="/leaderboard"
-                    className="inline-flex items-center gap-1 mt-3 text-sm text-black hover:text-black/80 transition-colors font-medium"
+                    className="inline-flex items-center gap-1 mt-3 text-sm text-foreground hover:text-foreground transition-colors font-medium"
                   >
                     Browse agents to review
                     <svg
@@ -482,13 +490,13 @@ export default function ProfilePage() {
             </section>
           </>
         ) : (
-          <section className="border-2 border-black bg-white p-10 text-center">
+          <section className="border border-border bg-background p-10 text-center">
             <div>
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-none bg-black/5 border border-black/20">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg bg-muted border border-border">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="h-7 w-7 text-black/50"
+                  className="h-7 w-7 text-muted-foreground"
                 >
                   <path
                     d="M12 4.5v15m7.5-7.5h-15"
@@ -502,7 +510,7 @@ export default function ProfilePage() {
               <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-2">
                 No Agent Registered
               </h2>
-              <p className="text-sm md:text-base text-black/50 mb-6 max-w-sm mx-auto">
+              <p className="text-sm md:text-base text-muted-foreground mb-6 max-w-sm mx-auto">
                 Register your AI agent on the ERC-8004 Identity Registry to
                 start building onchain reputation.
               </p>
@@ -530,18 +538,14 @@ function StatBlock({
 }) {
   return (
     <div
-      className={`rounded-none border p-4 text-center transition-colors ${
-        accent
-          ? 'border-black/20 bg-black/5/50'
-          : 'border-black/20 bg-black/5/50'
+      className={`rounded-lg border p-4 text-center transition-colors ${
+        accent ? 'border-border bg-muted' : 'border-border bg-muted'
       }`}
     >
       <p className="text-xl md:text-2xl font-bold tabular-nums tracking-tight">
         {value}
       </p>
-      <p className="text-[10px] text-black/50 uppercase tracking-wider mt-1">
-        {label}
-      </p>
+      <p className="text-[10px] text-muted-foreground mt-1">{label}</p>
     </div>
   );
 }
@@ -579,14 +583,14 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
   }
 
   return (
-    <section className="border-2 border-black bg-white p-6 mb-5">
+    <section className="border border-border bg-background p-6 mb-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-[10px] font-semibold text-black/50 uppercase tracking-widest">
+        <h2 className="text-[10px] font-semibold text-muted-foreground ">
           Settings
         </h2>
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="flex items-center gap-1.5 text-xs text-black hover:text-black/80 transition-colors font-medium"
+          className="flex items-center gap-1.5 text-xs text-foreground hover:text-foreground transition-colors font-medium"
         >
           {expanded ? 'Collapse' : 'Update Agent URI'}
           <svg
@@ -606,7 +610,7 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
       {expanded && (
         <div className="mt-5 space-y-4">
           <div>
-            <label className="block text-xs text-black/50 mb-2 font-medium">
+            <label className="block text-xs text-muted-foreground mb-2 font-medium">
               New Agent URI
             </label>
             <input
@@ -615,11 +619,11 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
               onChange={(e) => setNewURI(e.target.value)}
               placeholder="data:application/json;base64,... or https://..."
               disabled={txPending}
-              className="w-full border-2 border-black bg-black/5/50 px-4 py-2.5 text-sm md:text-base text-black placeholder:text-black/50/70 focus:outline-none focus:ring-2 focus:ring-[#00DE73]/30 focus:border-[#00DE73]/30 disabled:opacity-50 transition-all"
+              className="w-full border border-border bg-muted px-4 py-2.5 text-sm md:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-ring disabled:opacity-50 transition-all"
             />
           </div>
           {txConfirmed && (
-            <div className="flex items-center gap-2 text-sm text-black border-2 border-black px-3 py-2">
+            <div className="flex items-center gap-2 text-sm text-foreground border border-border px-3 py-2">
               <svg
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -695,13 +699,13 @@ function KudosCard({
   const isValidCategory = KUDOS_CATEGORIES.includes(tag2 as KudosCategory);
 
   return (
-    <div className="border border-black/20 rounded-none p-4 bg-black/5/50 hover:border-black transition-colors">
+    <div className="border border-border rounded-lg p-4 bg-muted hover:border-border transition-colors">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {sender && (
             <Link
               href={`/address/${sender}`}
-              className="font-mono text-sm text-black/50 hover:text-black transition-colors"
+              className=" text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {truncateAddress(sender)}
             </Link>
@@ -709,7 +713,7 @@ function KudosCard({
           {agentId !== null && (
             <Link
               href={`/agent/${chainId ?? chain.id}/${agentId}`}
-              className="text-sm font-medium text-black hover:text-black transition-colors"
+              className="text-sm font-medium text-foreground hover:text-foreground transition-colors"
             >
               Agent #{agentId}
             </Link>
@@ -719,10 +723,10 @@ function KudosCard({
       </div>
 
       {message && (
-        <p className="text-sm text-black my-2">&ldquo;{message}&rdquo;</p>
+        <p className="text-sm text-foreground my-2">&ldquo;{message}&rdquo;</p>
       )}
 
-      <div className="flex items-center justify-between text-xs text-black/50 mt-2">
+      <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
         <div className="flex items-center gap-1.5">
           <span>Block #{blockNumber.toString()}</span>
           {tipInfo && tipInfo.amountUsd > 0 && (
@@ -731,7 +735,7 @@ function KudosCard({
         </div>
         <a
           href={`/kudos/${txHash}`}
-          className="hover:text-black transition-colors"
+          className="hover:text-foreground transition-colors"
         >
           View kudos
         </a>

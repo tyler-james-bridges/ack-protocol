@@ -23,14 +23,16 @@ export function ChainBadgePill({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-none border border-gray-700 bg-gray-800 ${padding} ${textSize} font-medium text-gray-300`}
+      className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-muted ${padding} ${textSize} font-medium text-foreground`}
     >
       <span
-        className={`${dotSize} shrink-0 rounded-none`}
+        className={`${dotSize} shrink-0 rounded-full`}
         style={{ backgroundColor: color }}
       />
       <span className="truncate">{name}</span>
-      {count !== undefined && <span className="text-gray-500">{count}</span>}
+      {count !== undefined && (
+        <span className="text-muted-foreground">{count}</span>
+      )}
     </span>
   );
 }

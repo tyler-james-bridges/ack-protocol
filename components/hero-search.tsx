@@ -50,7 +50,7 @@ export function HeroSearch() {
           <div className="relative flex-1">
             <svg
               viewBox="0 0 24 24"
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/30"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
@@ -68,29 +68,27 @@ export function HeroSearch() {
               onFocus={() => {
                 if (query.length >= 2) setDropdownOpen(true);
               }}
-              placeholder="SEARCH AGENTS..."
+              placeholder="Search agents"
               aria-label="Search for an agent by name or address"
-              className="w-full h-10 border-2 border-black bg-white pl-9 pr-3 text-sm font-mono uppercase tracking-wider placeholder:text-black/30 focus:outline-none transition-colors"
+              className="h-10 w-full rounded-lg border border-input bg-background pr-3 pl-9 text-sm transition-colors outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-[3px] focus:ring-ring/30"
             />
           </div>
           <Link href="/register">
             <Button size="sm" className="h-10 px-4 text-sm">
-              REGISTER
+              Register
             </Button>
           </Link>
           <Link href="/kudos">
             <Button variant="outline" size="sm" className="h-10 px-4 text-sm">
-              GIVE KUDOS
+              Give kudos
             </Button>
           </Link>
         </div>
 
         {showDropdown && (
-          <div className="absolute top-full left-0 right-0 z-50 mt-0 max-h-64 overflow-y-auto border-2 border-black border-t-0 bg-white">
+          <div className="absolute top-full left-0 right-0 z-50 mt-0 max-h-64 overflow-y-auto border border-border border-t-0 bg-background">
             {searchLoading && (
-              <p className="p-3 text-sm font-mono text-black/50">
-                SEARCHING...
-              </p>
+              <p className="p-3 text-sm text-muted-foreground">Searching…</p>
             )}
 
             {hasResults &&
@@ -99,19 +97,17 @@ export function HeroSearch() {
                   key={agent.id}
                   type="button"
                   onClick={() => handleSelect(agent)}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 text-left transition-colors hover:bg-black hover:text-white border-b border-black/10 last:border-b-0 cursor-pointer"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 text-left transition-colors hover:bg-muted border-b border-border last:border-b-0 cursor-pointer"
                 >
                   <AgentAvatar
                     name={agent.name}
                     imageUrl={agent.image_url}
                     size={32}
-                    className="rounded-none"
+                    className="rounded-lg"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-mono font-bold truncate">
-                      {agent.name}
-                    </p>
-                    <p className="text-xs font-mono text-current opacity-50">
+                    <p className="text-sm font-bold truncate">{agent.name}</p>
+                    <p className="text-xs text-current opacity-50">
                       {getChainName(agent.chain_id)} #{agent.token_id}
                     </p>
                   </div>
@@ -125,12 +121,12 @@ export function HeroSearch() {
 
             {noResults && (
               <div className="p-3 text-center">
-                <p className="text-sm font-mono text-black/50">
+                <p className="text-sm text-muted-foreground">
                   NO AGENTS FOUND.
                 </p>
                 <Link
                   href="/register"
-                  className="inline-block mt-1 text-sm font-mono text-black hover:underline font-bold uppercase tracking-wider"
+                  className="inline-block mt-1 text-sm text-foreground hover:underline font-bold "
                 >
                   Register your agent &rarr;
                 </Link>

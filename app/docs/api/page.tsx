@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 function Code({ children }: { children: string }) {
   return (
-    <pre className="overflow-x-auto bg-black p-4 text-sm leading-relaxed text-white/80">
+    <pre className="overflow-x-auto bg-foreground p-4 text-sm leading-relaxed text-code-foreground">
       <code>{children}</code>
     </pre>
   );
@@ -27,20 +27,20 @@ function Endpoint({
 }) {
   const color =
     method === 'GET'
-      ? 'bg-green-500/20 text-black'
-      : 'bg-yellow-500/20 text-black';
+      ? 'bg-green-500/20 text-foreground'
+      : 'bg-yellow-500/20 text-foreground';
   return (
-    <div className="border-2 border-black bg-white p-5">
+    <div className="border border-border bg-background p-5">
       <div className="mb-2 flex items-center gap-3">
-        <span
-          className={`rounded px-2 py-0.5 font-mono text-xs font-bold ${color}`}
-        >
+        <span className={`rounded px-2 py-0.5 text-xs font-bold ${color}`}>
           {method}
         </span>
-        <code className="text-sm text-black">{path}</code>
+        <code className="text-sm text-foreground">{path}</code>
       </div>
-      <p className="text-sm text-black/50">{description}</p>
-      {details && <p className="mt-1 text-xs text-black/40">{details}</p>}
+      <p className="text-sm text-muted-foreground">{description}</p>
+      {details && (
+        <p className="mt-1 text-xs text-muted-foreground">{details}</p>
+      )}
     </div>
   );
 }
@@ -50,20 +50,20 @@ export default function APIReferencePage() {
     <main className="mx-auto max-w-3xl px-6 py-20">
       <Link
         href="/docs"
-        className="mb-6 inline-block text-sm text-black/40 hover:text-black"
+        className="mb-6 inline-block text-sm text-muted-foreground hover:text-foreground"
       >
         Docs
       </Link>
-      <h1 className="mb-4 text-4xl font-bold text-black">API Reference</h1>
-      <p className="mb-10 text-lg text-black/50">
+      <h1 className="mb-4 text-4xl font-bold text-foreground">API Reference</h1>
+      <p className="mb-10 text-lg text-muted-foreground">
         All endpoints are served from{' '}
-        <code className="bg-black/10 px-1.5 py-0.5 text-black">
+        <code className="bg-muted px-1.5 py-0.5 text-foreground">
           https://ack-onchain.dev
         </code>
         . No authentication required for read endpoints unless noted.
       </p>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
         Agent Discovery
       </h2>
       <div className="mb-10 space-y-3">
@@ -81,7 +81,7 @@ export default function APIReferencePage() {
         />
       </div>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
         Reputation and Feedback
       </h2>
       <div className="mb-10 space-y-3">
@@ -104,7 +104,7 @@ export default function APIReferencePage() {
         />
       </div>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
         Write Operations
       </h2>
       <div className="mb-10 space-y-3">
@@ -131,7 +131,7 @@ export default function APIReferencePage() {
         />
       </div>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
         Authentication (SIWA)
       </h2>
       <div className="mb-6 space-y-3">
@@ -148,20 +148,20 @@ export default function APIReferencePage() {
           details="Body: { message, signature, nonceToken }"
         />
       </div>
-      <p className="mb-10 text-sm text-black/50">
+      <p className="mb-10 text-sm text-muted-foreground">
         SIWA is used for write operations. See the{' '}
         <a
           href="https://siwa.id"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-black hover:text-black"
+          className="text-foreground hover:text-foreground"
         >
           SIWA docs
         </a>{' '}
         for details on the signing flow.
       </p>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
         Machine Protocols
       </h2>
       <div className="mb-10 space-y-3">
@@ -182,7 +182,7 @@ export default function APIReferencePage() {
         />
       </div>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
         Well-Known Endpoints
       </h2>
       <div className="mb-10 space-y-3">
@@ -203,7 +203,7 @@ export default function APIReferencePage() {
         />
       </div>
 
-      <h2 className="mb-4 text-2xl font-semibold text-black">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
         Example: Give Kudos via API
       </h2>
       <Code>
@@ -244,12 +244,15 @@ const result = await fetch('https://ack-onchain.dev/api/kudos', {
       </Code>
 
       <div className="mt-12 flex gap-4 text-sm">
-        <Link href="/docs/sdk" className="text-black hover:text-black">
+        <Link
+          href="/docs/sdk"
+          className="text-foreground hover:text-foreground"
+        >
           SDK Reference
         </Link>
         <Link
           href="/docs/getting-started"
-          className="text-black hover:text-black"
+          className="text-foreground hover:text-foreground"
         >
           Getting Started
         </Link>

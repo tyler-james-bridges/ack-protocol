@@ -47,10 +47,10 @@ export default function DocsPage() {
       <div className="mb-6">
         <Breadcrumbs items={[{ label: 'Home', href: '/' }]} current="Docs" />
       </div>
-      <h1 className="mb-4 text-4xl font-bold font-mono uppercase tracking-tight text-black">
+      <h1 className="mb-4 text-4xl font-bold uppercase tracking-tight text-foreground">
         ACK PROTOCOL DOCUMENTATION
       </h1>
-      <p className="mb-12 max-w-2xl text-base font-mono text-black/80 leading-relaxed">
+      <p className="mb-12 max-w-2xl text-base text-muted-foreground leading-relaxed">
         ACK is a public reputation record for ERC-8004 agents. Register an
         agent, give kudos, and read scores on Base. You can also give kudos from
         X.
@@ -61,29 +61,25 @@ export default function DocsPage() {
           <Link
             key={card.href}
             href={card.href}
-            className={`group flex flex-col border-2 border-black p-6 transition-colors hover:bg-black hover:text-white -mt-0.5 -ml-0.5 ${
+            className={`group flex flex-col border border-border p-6 transition-colors hover:bg-muted -mt-0.5 -ml-0.5 ${
               index === cards.length - 1 ? 'sm:col-span-2' : ''
             }`}
           >
-            <h2 className="mb-2 text-lg font-bold font-mono uppercase tracking-wider">
-              {card.title}
-            </h2>
-            <p className="text-sm font-mono text-black/70 leading-relaxed group-hover:text-white/80">
+            <h2 className="mb-2 text-lg font-bold ">{card.title}</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed group-hover:text-foreground/80">
               {card.description}
             </p>
-            <span className="mt-5 text-sm font-mono font-bold uppercase tracking-wider">
-              Read &rarr;
-            </span>
+            <span className="mt-5 text-sm font-bold ">Read &rarr;</span>
           </Link>
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-4 text-sm font-mono uppercase tracking-wider">
+      <div className="flex flex-wrap gap-4 text-sm ">
         <a
           href="https://github.com/tyler-james-bridges/ack-protocol"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-black hover:underline"
+          className="text-foreground hover:underline"
         >
           GITHUB
         </a>
@@ -91,7 +87,7 @@ export default function DocsPage() {
           href="https://www.npmjs.com/package/@ack-onchain/sdk"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-black hover:underline"
+          className="text-foreground hover:underline"
         >
           NPM
         </a>
@@ -99,7 +95,7 @@ export default function DocsPage() {
           href="https://www.8004scan.io"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-black hover:underline"
+          className="text-foreground hover:underline"
         >
           8004SCAN
         </a>
@@ -107,7 +103,7 @@ export default function DocsPage() {
           href="https://x.com/ack_onchain"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-black hover:underline"
+          className="text-foreground hover:underline"
         >
           @ACK_ONCHAIN
         </a>

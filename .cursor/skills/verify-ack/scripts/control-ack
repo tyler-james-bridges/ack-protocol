@@ -1,0 +1,1180 @@
+#!/usr/bin/env node
+/**
+ * control-ack drives a local ACK dev server and a Playwright browser.
+ * Wallet RPCs that sign or send a transaction are refused. Payment POSTs
+ * are answered locally and never forwarded.
+ */
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import net from 'node:net';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const SCRIPT = fileURLToPath(import.meta.url);
+const REPO = path.resolve(path.dirname(SCRIPT), '../../../..');
+const POINTER = '/tmp/ack-verify-active';
+const READY_PHRASE = 'ACK records kudos';
+const REFUSED_METHODS = new Set([
+  'personal_sign',
+  'eth_sign',
+  'eth_signTransaction',
+  'eth_signTypedData',
+  'eth_signTypedData_v1',
+  'eth_signTypedData_v3',
+  'eth_signTypedData_v4',
+  'eth_sendTransaction',
+  'eth_sendRawTransaction',
+  'wallet_sendCalls',
+  'wallet_sendTransaction',
+]);
+
+function parseArgs(argv) {
+  const positional = [];
+  const opts = {};
+  for (let i = 0; i < argv.length; i += 1) {
+    const token = argv[i];
+    if (!token.startsWith('--')) {
+      positional.push(token);
+      continue;
+    }
+    const key = token.slice(2);
+    const next = argv[i + 1];
+    if (next === undefined || next.startsWith('--')) {
+      opts[key] = true;
+    } else {
+      opts[key] = next;
+      i += 1;
+    }
+  }
+  return { positional, opts };
+}
+
+function dirFromEnv() {
+  if (process.env.ACK_VERIFY_DIR) return process.env.ACK_VERIFY_DIR;
+  if (fs.existsSync(POINTER)) return fs.readFileSync(POINTER, 'utf8').trim();
+  return '';
+}
+
+function requireDir() {
+  const dir = dirFromEnv();
+  if (!dir) {
+    throw new Error(
+      'ACK_VERIFY_DIR is unset and /tmp/ack-verify-active is missing. Run control-ack launch first.'
+    );
+  }
+  return dir;
+}
+
+function sessionPath(dir) {
+  return path.join(dir, 'session.json');
+}
+
+function readSession(dir) {
+  const file = sessionPath(dir);
+  if (!fs.existsSync(file)) throw new Error(`No session at ${file}`);
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+function writeSession(dir, session) {
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(sessionPath(dir), `${JSON.stringify(session, null, 2)}\n`);
+}
+
+function evidenceFile(dir, rel) {
+  const root = path.join(dir, 'evidence');
+  const resolved = path.resolve(root, rel);
+  if (resolved !== root && !resolved.startsWith(`${root}${path.sep}`)) {
+    throw new Error(`Evidence path must stay inside ${root}`);
+  }
+  fs.mkdirSync(path.dirname(resolved), { recursive: true });
+  return resolved;
+}
+
+function pidAlive(pid) {
+  if (!pid) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readStatus(pid) {
+  try {
+    return fs.readFileSync(`/proc/${pid}/status`, 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+function parentPid(pid) {
+  const match = readStatus(pid).match(/^PPid:\s+(\d+)/m);
+  return match ? Number(match[1]) : null;
+}
+
+function environHas(pid, key) {
+  try {
+    const raw = fs.readFileSync(`/proc/${pid}/environ`);
+    const text = raw.toString('utf8').split('\0');
+    return text.some(
+      (entry) => entry.startsWith(`${key}=`) && entry.length > key.length + 1
+    );
+  } catch {
+    return false;
+  }
+}
+
+function processTree(root) {
+  const children = new Map();
+  for (const name of fs.readdirSync('/proc')) {
+    if (!/^\d+$/.test(name)) continue;
+    const parent = parentPid(Number(name));
+    if (!children.has(parent)) children.set(parent, []);
+    children.get(parent).push(Number(name));
+  }
+  const pids = [];
+  const stack = [Number(root)];
+  while (stack.length > 0) {
+    const pid = stack.pop();
+    pids.push(pid);
+    for (const child of children.get(pid) || []) stack.push(child);
+  }
+  return pids;
+}
+
+function processListens(pid, port) {
+  const hexPort = Number(port).toString(16).toUpperCase().padStart(4, '0');
+  let tables = '';
+  for (const file of ['/proc/net/tcp', '/proc/net/tcp6']) {
+    try {
+      tables += fs.readFileSync(file, 'utf8');
+    } catch {
+      // tcp6 may be absent.
+    }
+  }
+  const inodes = new Set();
+  for (const line of tables.trim().split('\n').slice(1)) {
+    const cols = line.trim().split(/\s+/);
+    if (cols[3] === '0A' && (cols[1] || '').endsWith(`:${hexPort}`))
+      inodes.add(cols[9]);
+  }
+  let fds = [];
+  try {
+    fds = fs.readdirSync(`/proc/${pid}/fd`);
+  } catch {
+    return false;
+  }
+  for (const fd of fds) {
+    try {
+      const target = fs.readlinkSync(`/proc/${pid}/fd/${fd}`);
+      const match = target.match(/^socket:\[(\d+)\]$/);
+      if (match && inodes.has(match[1])) return true;
+    } catch {
+      // fd vanished
+    }
+  }
+  return false;
+}
+
+function awaitImport() {
+  return { execFileSync: globalThis.__execFileSync };
+}
+
+async function portFree(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', () => resolve(false));
+    server.once('listening', () => server.close(() => resolve(true)));
+    server.listen(port, '127.0.0.1');
+  });
+}
+
+async function fetchText(url, timeoutMs = 15000) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+  const text = await response.text();
+  return {
+    status: response.status,
+    text,
+    contentType: response.headers.get('content-type') || '',
+  };
+}
+
+function gitRev() {
+  const { execFileSync } = awaitImport();
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      cwd: REPO,
+      encoding: 'utf8',
+    }).trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function killGroup(pid) {
+  if (!pid || !pidAlive(pid)) return;
+  try {
+    process.kill(-pid, 'SIGTERM');
+  } catch {
+    try {
+      process.kill(pid, 'SIGTERM');
+    } catch {
+      // already gone
+    }
+  }
+}
+
+async function waitDead(pid, timeoutMs) {
+  const start = Date.now();
+  while (pidAlive(pid) && Date.now() - start < timeoutMs) {
+    await sleep(200);
+  }
+  if (pidAlive(pid)) {
+    try {
+      process.kill(-pid, 'SIGKILL');
+    } catch {
+      try {
+        process.kill(pid, 'SIGKILL');
+      } catch {
+        // already gone
+      }
+    }
+  }
+}
+
+function serverEnv(port) {
+  const env = { ...process.env };
+  for (const key of [
+    'DATABASE_URL',
+    'AGENT_PRIVATE_KEY',
+    'PRIVATE_KEY',
+    'NVM_API_KEY',
+    'SIWA_NONCE_SECRET',
+    'RECEIPT_SECRET',
+  ]) {
+    delete env[key];
+  }
+  env.SIWA_NONCE_SECRET = 'verify-ack-local-only';
+  env.RECEIPT_SECRET = 'verify-ack-local-only';
+  env.NEXT_PUBLIC_BASE_URL = `http://127.0.0.1:${port}`;
+  env.NEXT_PUBLIC_APP_DOMAIN = `127.0.0.1:${port}`;
+  env.NEXT_PUBLIC_WC_PROJECT_ID = '00000000000000000000000000000000';
+  env.NEXT_PUBLIC_CHAIN = 'base';
+  env.ACK_VERIFY_DIR = process.env.ACK_VERIFY_DIR || '';
+  return env;
+}
+
+async function launch(opts) {
+  const browserOnly = opts['browser-only'] === true;
+  const port = Number(opts.port || process.env.ACK_VERIFY_PORT || 4173);
+  const dir =
+    process.env.ACK_VERIFY_DIR ||
+    `/tmp/ack-verify-${Date.now()}-${process.pid}`;
+  process.env.ACK_VERIFY_DIR = dir;
+  fs.mkdirSync(path.join(dir, 'evidence'), { recursive: true });
+  fs.writeFileSync(POINTER, dir);
+
+  if (fs.existsSync(sessionPath(dir))) {
+    const previous = JSON.parse(fs.readFileSync(sessionPath(dir), 'utf8'));
+    if (pidAlive(previous.daemonPid) || pidAlive(previous.serverPid)) {
+      throw new Error(
+        `Session already running in ${dir}. Run control-ack cleanup before launching again.`
+      );
+    }
+  }
+
+  let origin = `http://127.0.0.1:${port}`;
+  let serverPid = null;
+  if (browserOnly) {
+    origin = String(opts.origin || 'https://ack-onchain.dev');
+  } else {
+    if (!(await portFree(port))) {
+      throw new Error(
+        `Port ${port} is already in use. Refusing to attach to an existing process. Set ACK_VERIFY_PORT to a free port.`
+      );
+    }
+    const logFd = fs.openSync(path.join(dir, 'server.log'), 'a');
+    const child = spawn(
+      'npx',
+      ['next', 'dev', '--turbopack', '-H', '127.0.0.1', '-p', String(port)],
+      {
+        cwd: REPO,
+        env: serverEnv(port),
+        detached: true,
+        stdio: ['ignore', logFd, logFd],
+      }
+    );
+    child.unref();
+    serverPid = child.pid;
+    fs.closeSync(logFd);
+    const start = Date.now();
+    let ready = false;
+    let last = '';
+    while (Date.now() - start < 180000) {
+      try {
+        const health = await fetchText(`${origin}/api/health`, 5000);
+        const home = await fetchText(`${origin}/`, 20000);
+        last = `health ${health.status}; home ${home.status}`;
+        const healthJson = JSON.parse(health.text);
+        if (
+          health.status === 200 &&
+          healthJson.status === 'healthy' &&
+          healthJson.name === 'ACK Protocol' &&
+          home.status === 200 &&
+          home.text.includes(READY_PHRASE)
+        ) {
+          ready = true;
+          break;
+        }
+      } catch (error) {
+        last = error instanceof Error ? error.message : String(error);
+      }
+      await sleep(1000);
+    }
+    if (!ready) {
+      killGroup(serverPid);
+      throw new Error(
+        `ACK did not become usable at ${origin} within 180s (${last}). See ${path.join(dir, 'server.log')}`
+      );
+    }
+  }
+
+  const daemonLog = fs.openSync(path.join(dir, 'daemon.log'), 'a');
+  const daemon = spawn(process.execPath, [SCRIPT, 'daemon'], {
+    cwd: REPO,
+    env: { ...process.env, ACK_VERIFY_DIR: dir },
+    detached: true,
+    stdio: ['ignore', daemonLog, daemonLog],
+  });
+  daemon.unref();
+  fs.closeSync(daemonLog);
+
+  const session = {
+    status: 'running',
+    dir,
+    port: browserOnly ? null : port,
+    origin,
+    browserOnly,
+    serverPid,
+    daemonPid: daemon.pid,
+    evidence: path.join(dir, 'evidence'),
+    gitRev: gitRev(),
+    readyPhrase: READY_PHRASE,
+    startedAt: new Date().toISOString(),
+  };
+  writeSession(dir, session);
+
+  const start = Date.now();
+  let daemonReady = false;
+  while (Date.now() - start < 30000) {
+    try {
+      await rpc(dir, 'ping', {});
+      daemonReady = true;
+      break;
+    } catch {
+      await sleep(200);
+    }
+  }
+  if (!daemonReady) {
+    killGroup(daemon.pid);
+    if (serverPid) killGroup(serverPid);
+    throw new Error(
+      `Browser daemon did not start. See ${path.join(dir, 'daemon.log')}`
+    );
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        dir,
+        origin,
+        evidence: session.evidence,
+        serverPid,
+        daemonPid: daemon.pid,
+        browserOnly,
+      },
+      null,
+      2
+    )
+  );
+}
+
+async function doctor(opts) {
+  const dir = requireDir();
+  const session = readSession(dir);
+  const origin = String(opts.origin || session.origin);
+  const local = origin.startsWith('http://127.0.0.1');
+  const health = await fetchText(`${origin}/api/health`);
+  let healthJson;
+  try {
+    healthJson = JSON.parse(health.text);
+  } catch {
+    throw new Error(`Health response from ${origin} was not JSON`);
+  }
+  if (
+    health.status !== 200 ||
+    healthJson.status !== 'healthy' ||
+    healthJson.name !== 'ACK Protocol'
+  ) {
+    throw new Error(`Unhealthy ACK at ${origin}: ${health.text.slice(0, 300)}`);
+  }
+
+  const report = {
+    ok: true,
+    origin,
+    name: healthJson.name,
+    version: healthJson.version,
+    gitRev: session.gitRev,
+    evidence: session.evidence,
+    browserOnly: session.browserOnly,
+    databaseUrl: false,
+    signing: 'refused-by-harness',
+  };
+
+  if (local && !session.browserOnly) {
+    if (!pidAlive(session.serverPid)) {
+      throw new Error(`Server pid ${session.serverPid} is not running`);
+    }
+    if (environHas(session.serverPid, 'DATABASE_URL')) {
+      throw new Error(
+        'Server has DATABASE_URL set. Refusing to drive a writable tip store.'
+      );
+    }
+    if (
+      environHas(session.serverPid, 'AGENT_PRIVATE_KEY') ||
+      environHas(session.serverPid, 'PRIVATE_KEY')
+    ) {
+      throw new Error(
+        'Server has a private key in its environment. Refusing to drive it.'
+      );
+    }
+    const owns = processTree(session.serverPid).some((pid) =>
+      processListens(pid, session.port)
+    );
+    if (!owns) {
+      throw new Error(
+        `Port ${session.port} is not owned by server pid ${session.serverPid}`
+      );
+    }
+    const home = await fetchText(`${origin}/`);
+    if (!home.text.includes(READY_PHRASE)) {
+      throw new Error(
+        `Home page at ${origin} is not usable yet (missing "${READY_PHRASE}")`
+      );
+    }
+    report.port = session.port;
+    report.serverPid = session.serverPid;
+    report.home = 'usable';
+  }
+
+  const ping = await rpc(dir, 'ping', {});
+  if (!pidAlive(session.daemonPid) || ping.daemonPid !== session.daemonPid) {
+    throw new Error('Browser daemon is not the one this session started');
+  }
+  report.daemonPid = session.daemonPid;
+  console.log(JSON.stringify(report, null, 2));
+}
+
+async function cleanup() {
+  const dir = dirFromEnv();
+  if (!dir || !fs.existsSync(sessionPath(dir))) {
+    console.log(
+      JSON.stringify({ ok: true, cleaned: false, reason: 'no session' })
+    );
+    return;
+  }
+  const session = readSession(dir);
+  killGroup(session.daemonPid);
+  killGroup(session.serverPid);
+  await waitDead(session.daemonPid, 5000);
+  await waitDead(session.serverPid, 5000);
+  const sock = path.join(dir, 'daemon.sock');
+  if (fs.existsSync(sock)) fs.rmSync(sock, { force: true });
+  const profile = path.join(dir, 'profile');
+  if (fs.existsSync(profile))
+    fs.rmSync(profile, { recursive: true, force: true });
+  session.status = 'stopped';
+  session.stoppedAt = new Date().toISOString();
+  writeSession(dir, session);
+  const evidence = path.join(dir, 'evidence');
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        cleaned: true,
+        evidence,
+        evidenceRemains: fs.existsSync(evidence),
+      },
+      null,
+      2
+    )
+  );
+}
+
+function rpc(dir, cmd, args) {
+  const sock = path.join(dir, 'daemon.sock');
+  return new Promise((resolve, reject) => {
+    const socket = net.createConnection(sock);
+    let buf = '';
+    const fail = (error) => {
+      socket.destroy();
+      reject(error);
+    };
+    socket.setTimeout(90000, () =>
+      fail(new Error(`Timed out waiting for browser command ${cmd}`))
+    );
+    socket.on('error', (error) => reject(error));
+    socket.on('connect', () => {
+      socket.write(`${JSON.stringify({ cmd, args })}\n`);
+    });
+    socket.on('data', (chunk) => {
+      buf += chunk.toString('utf8');
+    });
+    socket.on('end', () => {
+      if (!buf.trim()) {
+        reject(new Error('Browser daemon closed without a response'));
+        return;
+      }
+      const message = JSON.parse(buf);
+      if (!message.ok)
+        reject(new Error(message.error || 'browser command failed'));
+      else resolve(message.data);
+    });
+  });
+}
+
+function blockedPayment(url, method) {
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (method === 'POST' && /^\/api\/tips(\/|$)/.test(parsed.pathname))
+    return true;
+  if (method === 'POST' && parsed.pathname.startsWith('/api/kudos'))
+    return true;
+  if (/facilitator|xpay\.sh|api\.cdp\.coinbase\.com/i.test(parsed.hostname))
+    return true;
+  return false;
+}
+
+const WALLET_SCRIPT = `(() => {
+  if (window.__verifyAckRefusing) return;
+  const refused = new Set(${JSON.stringify([...REFUSED_METHODS])});
+  const log = [];
+  const listeners = {};
+  let chainId = '0x2105';
+  const account = '0x1111111111111111111111111111111111111111';
+  let connected = false;
+  function emit(event, value) {
+    for (const fn of listeners[event] || []) {
+      try { fn(value); } catch (err) { console.error(err); }
+    }
+  }
+  function record(method, outcome, detail) {
+    const entry = { method, outcome, detail: detail || null, at: Date.now() };
+    log.push(entry);
+    if (window.__verifyAckRecord) window.__verifyAckRecord(entry);
+  }
+  const provider = {
+    isMetaMask: false,
+    isVerifyAck: true,
+    request: async ({ method, params }) => {
+      if (refused.has(method) || /sign|send/i.test(method)) {
+        record(method, 'refused', params);
+        const error = new Error('verify-ack refused to sign or pay');
+        error.code = 4001;
+        throw error;
+      }
+      record(method, 'allowed');
+      switch (method) {
+        case 'eth_requestAccounts':
+          connected = true;
+          emit('accountsChanged', [account]);
+          return [account];
+        case 'eth_accounts':
+          return connected ? [account] : [];
+        case 'eth_chainId':
+          return chainId;
+        case 'net_version':
+          return String(parseInt(chainId, 16));
+        case 'wallet_switchEthereumChain':
+          chainId = params && params[0] && params[0].chainId ? params[0].chainId : chainId;
+          emit('chainChanged', chainId);
+          return null;
+        case 'wallet_addEthereumChain':
+          return null;
+        case 'wallet_requestPermissions':
+          connected = true;
+          return [{ parentCapability: 'eth_accounts' }];
+        case 'wallet_getPermissions':
+          return connected ? [{ parentCapability: 'eth_accounts' }] : [];
+        case 'wallet_revokePermissions':
+          connected = false;
+          emit('accountsChanged', []);
+          return null;
+        case 'eth_estimateGas':
+          return '0x5208';
+        case 'eth_gasPrice':
+        case 'eth_maxPriorityFeePerGas':
+          return '0x3b9aca00';
+        case 'eth_getBalance':
+        case 'eth_getTransactionCount':
+          return '0x0';
+        case 'eth_call':
+        case 'eth_getCode':
+          return '0x';
+        case 'eth_blockNumber':
+          return '0x1';
+        case 'eth_syncing':
+          return false;
+        case 'web3_clientVersion':
+          return 'verify-ack/refusing';
+        case 'eth_getBlockByNumber':
+          return { number: '0x1', timestamp: '0x0' };
+        default: {
+          const error = new Error('verify-ack does not implement ' + method);
+          error.code = -32601;
+          throw error;
+        }
+      }
+    },
+    on: (event, fn) => {
+      listeners[event] = listeners[event] || [];
+      listeners[event].push(fn);
+    },
+    removeListener: (event, fn) => {
+      listeners[event] = (listeners[event] || []).filter((item) => item !== fn);
+    },
+    enable: async () => provider.request({ method: 'eth_requestAccounts' }),
+  };
+  window.ethereum = provider;
+  window.__verifyAckRefusing = true;
+  window.__verifyAckWalletLog = log;
+  const info = {
+    uuid: '0b9b0a3e-7c1d-4e4a-9a1e-000000000001',
+    name: 'Verify ACK',
+    rdns: 'dev.ack.verify',
+    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'
+  };
+  function announce() {
+    window.dispatchEvent(new CustomEvent('eip6963:announceProvider', {
+      detail: Object.freeze({ info, provider })
+    }));
+  }
+  window.addEventListener('eip6963:requestProvider', announce);
+  announce();
+})();`;
+
+function scopeOf(page, within) {
+  if (!within) return page;
+  if (within === 'navigation') return page.getByRole('navigation').first();
+  if (within === 'mobile-menu') return page.locator('.fixed').last();
+  if (within === 'dialog') return page.getByRole('dialog').last();
+  if (within === 'main') return page.getByRole('main').first();
+  if (within.startsWith('css=')) return page.locator(within.slice(4)).first();
+  throw new Error(`Unknown --within ${within}`);
+}
+
+function locatorOf(page, args) {
+  const scope = scopeOf(page, args.within);
+  const exact = args.contains ? false : true;
+  let locator;
+  if (args.placeholder) {
+    locator = scope.getByPlaceholder(String(args.placeholder), { exact });
+  } else if (args.role) {
+    const name = args.name === undefined ? undefined : String(args.name);
+    locator = scope.getByRole(
+      String(args.role),
+      name === undefined ? undefined : { name, exact }
+    );
+  } else {
+    throw new Error(
+      'A browser target needs --role and --name, or --placeholder'
+    );
+  }
+  if (args.nth !== undefined) locator = locator.nth(Number(args.nth));
+  return locator;
+}
+
+async function runDaemon() {
+  const dir = requireDir();
+  const { chromium } = await import('playwright');
+  const profile = path.join(dir, 'profile');
+  fs.mkdirSync(profile, { recursive: true });
+  const context = await chromium.launchPersistentContext(profile, {
+    headless: true,
+    viewport: { width: 1280, height: 800 },
+    args: ['--disable-dev-shm-usage'],
+  });
+  await context.exposeBinding('__verifyAckRecord', (_source, entry) => {
+    fs.appendFileSync(
+      path.join(dir, 'evidence', 'wallet.jsonl'),
+      `${JSON.stringify(entry)}\n`
+    );
+  });
+
+  await context.route('**/*', async (route) => {
+    const request = route.request();
+    if (blockedPayment(request.url(), request.method())) {
+      const entry = {
+        blocked: true,
+        method: request.method(),
+        url: request.url(),
+        at: new Date().toISOString(),
+      };
+      fs.appendFileSync(
+        path.join(dir, 'evidence', 'blocked-payments.jsonl'),
+        `${JSON.stringify(entry)}\n`
+      );
+      await route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error:
+            'verify-ack blocked a payment write before it left the browser',
+        }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  context.on('response', async (response) => {
+    try {
+      const request = response.request();
+      const type = request.resourceType();
+      if (type !== 'fetch' && type !== 'xhr' && type !== 'document') return;
+      const record = {
+        method: request.method(),
+        url: response.url(),
+        status: response.status(),
+        at: new Date().toISOString(),
+      };
+      if (request.method() === 'GET' && response.status() < 400) {
+        const contentType = response.headers()['content-type'] || '';
+        if (contentType.includes('json')) {
+          const body = await response.text();
+          record.body = body.slice(0, 65536);
+        }
+      }
+      fs.appendFileSync(
+        path.join(dir, 'evidence', 'network.jsonl'),
+        `${JSON.stringify(record)}\n`
+      );
+    } catch {
+      // A closed body or navigation race should not kill the daemon.
+    }
+  });
+
+  let page = context.pages()[0] || (await context.newPage());
+  let walletArmed = false;
+
+  async function armWallet() {
+    if (walletArmed) return;
+    await context.addInitScript(WALLET_SCRIPT);
+    walletArmed = true;
+  }
+
+  async function setTheme(mode) {
+    if (mode !== 'light' && mode !== 'dark')
+      throw new Error('--mode must be light or dark');
+    const toggle = page.getByRole('button', {
+      name: 'Toggle theme',
+      exact: true,
+    });
+    await toggle.waitFor({ state: 'visible', timeout: 15000 });
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const dark = await page.evaluate(() =>
+        document.documentElement.classList.contains('dark')
+      );
+      if (dark === (mode === 'dark')) {
+        return { mode, dark };
+      }
+      await toggle.click();
+      await page.waitForFunction(
+        (wantDark) =>
+          document.documentElement.classList.contains('dark') === wantDark,
+        mode === 'dark',
+        { timeout: 5000 }
+      );
+    }
+    throw new Error(`Could not set theme to ${mode}`);
+  }
+
+  async function handle(cmd, args) {
+    if (cmd === 'ping') return { daemonPid: process.pid, walletArmed };
+    if (cmd === 'open') {
+      const session = readSession(dir);
+      const origin = String(args.origin || session.origin);
+      const target = new URL(String(args.path || '/'), origin).toString();
+      await page.goto(target, {
+        waitUntil: 'domcontentloaded',
+        timeout: 45000,
+      });
+      if (args.theme) await setTheme(String(args.theme));
+      return { url: page.url() };
+    }
+    if (cmd === 'viewport') {
+      await page.setViewportSize({
+        width: Number(args.width),
+        height: Number(args.height),
+      });
+      return { width: Number(args.width), height: Number(args.height) };
+    }
+    if (cmd === 'theme') return setTheme(String(args.mode));
+    if (cmd === 'click') {
+      const locator = locatorOf(page, args);
+      const count = await locator.count();
+      if (count !== 1) {
+        throw new Error(`Expected 1 match for click, found ${count}`);
+      }
+      const before = page.url();
+      await locator.click({ timeout: 15000 });
+      await page
+        .waitForURL((url) => url.toString() !== before, { timeout: 4000 })
+        .catch(() => {});
+      return { url: page.url() };
+    }
+    if (cmd === 'fill') {
+      const locator = locatorOf(page, args);
+      const count = await locator.count();
+      if (count !== 1)
+        throw new Error(`Expected 1 match for fill, found ${count}`);
+      await locator.fill(String(args.value ?? ''), { timeout: 15000 });
+      return { value: String(args.value ?? '') };
+    }
+    if (cmd === 'select') {
+      const select = page
+        .locator('label', { hasText: new RegExp(`^${args.near}$`) })
+        .locator('xpath=following-sibling::select[1]');
+      if ((await select.count()) !== 1) {
+        throw new Error(`Expected 1 select near ${args.near}`);
+      }
+      await select.selectOption(
+        { label: String(args.option) },
+        { timeout: 15000 }
+      );
+      const selected = await select.inputValue();
+      const label = await select.evaluate((element) => {
+        const chosen = element.selectedOptions[0];
+        return chosen ? chosen.label : '';
+      });
+      return { value: selected, label };
+    }
+    if (cmd === 'press') {
+      await page.keyboard.press(String(args.key));
+      return { key: args.key };
+    }
+    if (cmd === 'wait') {
+      const timeout = Number(args.timeout || 20000);
+      if (args.text) {
+        await page
+          .getByText(String(args.text), { exact: !args.contains })
+          .first()
+          .waitFor({
+            state: 'visible',
+            timeout,
+          });
+        return { text: args.text };
+      }
+      const locator = locatorOf(page, args);
+      await locator.first().waitFor({ state: 'visible', timeout });
+      return { count: await locator.count() };
+    }
+    if (cmd === 'screenshot') {
+      const file = evidenceFile(dir, String(args.path));
+      await page.screenshot({
+        path: file,
+        fullPage: args['full-page'] === true,
+      });
+      return { path: file };
+    }
+    if (cmd === 'snapshot') {
+      const file = evidenceFile(dir, String(args.path));
+      const body = await page.locator('body').ariaSnapshot();
+      fs.writeFileSync(file, body);
+      return { path: file };
+    }
+    if (cmd === 'assert-text') {
+      const text = await page.locator('body').innerText();
+      const needle = String(args.text);
+      if (!text.includes(needle))
+        throw new Error(`Page text does not include ${JSON.stringify(needle)}`);
+      return { includes: needle };
+    }
+    if (cmd === 'assert-absent') {
+      const text = await page.locator('body').innerText();
+      const needle = String(args.text);
+      if (text.includes(needle))
+        throw new Error(
+          `Page text unexpectedly includes ${JSON.stringify(needle)}`
+        );
+      return { absent: needle };
+    }
+    if (cmd === 'assert-url') {
+      const needle = String(args.includes);
+      try {
+        await page.waitForURL((url) => url.toString().includes(needle), {
+          timeout: Number(args.timeout || 10000),
+        });
+      } catch {
+        throw new Error(`URL ${page.url()} does not include ${needle}`);
+      }
+      return { url: page.url() };
+    }
+    if (cmd === 'url') return { url: page.url() };
+    if (cmd === 'overflow') {
+      const measured = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      }));
+      const overflow = measured.scrollWidth > measured.clientWidth + 1;
+      const result = { ...measured, overflow };
+      if (args.path) {
+        const file = evidenceFile(dir, String(args.path));
+        fs.writeFileSync(file, `${JSON.stringify(result, null, 2)}\n`);
+        result.path = file;
+      }
+      if (args['fail-on-overflow'] === true && overflow) {
+        throw new Error(
+          `Horizontal overflow ${measured.scrollWidth} > ${measured.clientWidth}`
+        );
+      }
+      return result;
+    }
+    if (cmd === 'wallet-attach') {
+      await armWallet();
+      return { armed: true };
+    }
+    if (cmd === 'wallet-connect') {
+      await armWallet();
+      if (page.url() === 'about:blank') {
+        throw new Error('Open a page before connecting the wallet');
+      }
+      const armed = await page.evaluate(
+        () => window.__verifyAckRefusing === true
+      );
+      if (!armed) {
+        await page.reload({ waitUntil: 'domcontentloaded' });
+      }
+      const stillArmed = await page.evaluate(
+        () => window.__verifyAckRefusing === true
+      );
+      if (!stillArmed)
+        throw new Error('Refusing wallet is not installed on this page');
+      const button = page.getByRole('button', {
+        name: String(args.button),
+        exact: true,
+      });
+      if ((await button.count()) !== 1) {
+        throw new Error(
+          `Expected 1 "${args.button}" button, found ${await button.count()}`
+        );
+      }
+      await button.click();
+      const walletButton = page.getByRole('button', {
+        name: 'Verify ACK',
+        exact: true,
+      });
+      try {
+        await walletButton.waitFor({ state: 'visible', timeout: 10000 });
+      } catch (error) {
+        const dump = evidenceFile(dir, 'debug/wallet-connect.aria.txt');
+        fs.writeFileSync(dump, await page.locator('body').ariaSnapshot());
+        throw new Error(
+          `Verify ACK wallet button did not appear. Snapshot: ${dump}. ${error.message}`
+        );
+      }
+      await walletButton.click();
+      await page.waitForFunction(
+        () =>
+          (window.__verifyAckWalletLog || []).some(
+            (entry) => entry.method === 'eth_requestAccounts'
+          ),
+        { timeout: 10000 }
+      );
+      return { connected: true, url: page.url() };
+    }
+    if (cmd === 'wallet-log') {
+      const entries = await page.evaluate(
+        () => window.__verifyAckWalletLog || []
+      );
+      const refused = entries.filter((entry) => entry.outcome === 'refused');
+      const sent = entries.filter(
+        (entry) =>
+          entry.outcome === 'allowed' && /sign|send/i.test(entry.method)
+      );
+      const result = {
+        entries,
+        refused: refused.length,
+        unexpectedSends: sent.length,
+      };
+      if (args.path) {
+        const file = evidenceFile(dir, String(args.path));
+        fs.writeFileSync(file, `${JSON.stringify(result, null, 2)}\n`);
+        result.path = file;
+      }
+      if (sent.length > 0) {
+        throw new Error('Refusing wallet allowed a sign or send method');
+      }
+      return result;
+    }
+    if (cmd === 'wallet-assert-refused') {
+      const entries = await page.evaluate(
+        () => window.__verifyAckWalletLog || []
+      );
+      const refused = entries.filter((entry) => entry.outcome === 'refused');
+      if (refused.length < 1) {
+        throw new Error('No refused signature or transaction was recorded');
+      }
+      const successText = await page.locator('body').innerText();
+      for (const phrase of ['Kudos Sent!', 'Agent Registered', 'sent to']) {
+        if (successText.includes(phrase)) {
+          throw new Error(`Payment or registration completed (${phrase})`);
+        }
+      }
+      return { refused: refused.map((entry) => entry.method) };
+    }
+    if (cmd === 'reset') {
+      await context.clearCookies();
+      if (page.url() !== 'about:blank') {
+        await page.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+      }
+      await page.goto('about:blank');
+      return { reset: true };
+    }
+    throw new Error(`Unknown browser command ${cmd}`);
+  }
+
+  const sock = path.join(dir, 'daemon.sock');
+  if (fs.existsSync(sock)) fs.rmSync(sock);
+  const server = net.createServer((socket) => {
+    let buf = '';
+    socket.on('data', async (chunk) => {
+      buf += chunk.toString('utf8');
+      const newline = buf.indexOf('\n');
+      if (newline === -1) return;
+      const line = buf.slice(0, newline);
+      try {
+        const message = JSON.parse(line);
+        const data = await handle(message.cmd, message.args || {});
+        socket.end(`${JSON.stringify({ ok: true, data })}\n`);
+      } catch (error) {
+        socket.end(
+          `${JSON.stringify({
+            ok: false,
+            error: error instanceof Error ? error.message : String(error),
+          })}\n`
+        );
+      }
+    });
+  });
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(sock, resolve);
+  });
+  fs.writeFileSync(path.join(dir, 'daemon.pid'), String(process.pid));
+  await new Promise(() => {});
+}
+
+async function httpGet(opts) {
+  const dir = requireDir();
+  const session = readSession(dir);
+  const origin = String(opts.origin || session.origin);
+  const target = new URL(String(opts.path), origin).toString();
+  const response = await fetchText(target, 30000);
+  const file = evidenceFile(dir, String(opts.out));
+  fs.writeFileSync(file, response.text);
+  let preview = null;
+  try {
+    const json = JSON.parse(response.text);
+    if (json && typeof json === 'object' && !Array.isArray(json)) {
+      preview = {
+        keys: Object.keys(json),
+        name: json.name || null,
+        status: json.status || null,
+        type: json.type || null,
+      };
+    }
+  } catch {
+    preview = null;
+  }
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(
+      `GET ${target} returned ${response.status}. Body saved at ${file}`
+    );
+  }
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        status: response.status,
+        contentType: response.contentType,
+        path: file,
+        preview,
+      },
+      null,
+      2
+    )
+  );
+}
+
+async function main() {
+  const { execFileSync } = await import('node:child_process');
+  globalThis.__execFileSync = execFileSync;
+  const { positional, opts } = parseArgs(process.argv.slice(2));
+  const [command, sub] = positional;
+  if (command === 'daemon') {
+    await runDaemon();
+    return;
+  }
+  if (command === 'launch') {
+    await launch(opts);
+    return;
+  }
+  if (command === 'doctor') {
+    await doctor(opts);
+    return;
+  }
+  if (command === 'cleanup') {
+    await cleanup();
+    return;
+  }
+  if (command === 'evidence') {
+    const dir = requireDir();
+    console.log(path.join(dir, 'evidence'));
+    return;
+  }
+  if (command === 'http' && sub === 'get') {
+    if (!opts.path || !opts.out)
+      throw new Error('http get requires --path and --out');
+    await httpGet(opts);
+    return;
+  }
+  if (command === 'browser') {
+    if (!sub) throw new Error('browser requires a subcommand');
+    const dir = requireDir();
+    const data = await rpc(dir, sub, opts);
+    console.log(JSON.stringify({ ok: true, ...data }, null, 2));
+    return;
+  }
+  throw new Error(
+    'Usage: control-ack launch | doctor | cleanup | evidence | http get | browser <command>'
+  );
+}
+
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+});

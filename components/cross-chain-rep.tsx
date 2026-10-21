@@ -8,77 +8,77 @@ interface CrossChainRepProps {
   agentAddress: string;
 }
 
+const chainOrder = new Map(
+  SUPPORTED_CHAINS.map((meta, index) => [meta.chain.id, index])
+);
+
 export function CrossChainRep({ agentAddress }: CrossChainRepProps) {
   const { chains, totalFeedbacks, isLoading } = useCrossChainRep(agentAddress);
 
-  if (isLoading) {
-    return (
-      <div className="rounded-xl border border-gray-700 bg-gray-800 p-5 space-y-3">
-        <div className="h-5 w-52 animate-pulse rounded bg-gray-700" />
-        <div className="h-4 w-32 animate-pulse rounded bg-gray-700" />
-        <div className="space-y-2 pt-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-8 animate-pulse rounded bg-gray-700" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (chains.length === 0) {
-    return (
-      <div className="rounded-xl border border-gray-700 bg-gray-800 p-5">
-        <h3 className="text-sm md:text-base font-semibold text-gray-300">
-          Reputation Across Chains
-        </h3>
-        <p className="mt-2 text-xs md:text-sm text-gray-500">
-          No reputation found on other chains
-        </p>
-      </div>
-    );
-  }
-
-  const maxCount = Math.max(...chains.map((c) => c.feedbackCount));
+  const ordered = [...chains].sort((a, b) => {
+    if (b.feedbackCount !== a.feedbackCount) {
+      return b.feedbackCount - a.feedbackCount;
+    }
+    return (chainOrder.get(a.chainId) ?? 0) - (chainOrder.get(b.chainId) ?? 0);
+  });
+  const maxCount = ordered.reduce(
+    (max, chain) => Math.max(max, chain.feedbackCount),
+    0
+  );
 
   return (
-    <div className="rounded-xl border border-gray-700 bg-gray-800 p-5 space-y-4">
-      <div>
-        <h3 className="text-sm md:text-base font-semibold text-gray-200">
-          Reputation Across Chains
-        </h3>
-        <p className="text-xs text-gray-500 mt-0.5">
-          {totalFeedbacks} total feedback{totalFeedbacks !== 1 ? 's' : ''}{' '}
-          across {chains.length} chain{chains.length !== 1 ? 's' : ''}
+    <section
+      className="rounded-xl border border-border bg-card p-4"
+      aria-labelledby="cross-chain-rep-title"
+    >
+      <p className="type-kicker text-muted-foreground">Cross-chain</p>
+      <h2 id="cross-chain-rep-title" className="type-heading mt-1">
+        Reputation
+      </h2>
+
+      {isLoading ? (
+        <div className="mt-4 space-y-3" aria-busy="true">
+          <div className="h-4 w-40 bg-muted" />
+          {[1, 2, 3, 4].map((row) => (
+            <div key={row} className="h-8 bg-muted" />
+          ))}
+        </div>
+      ) : ordered.length === 0 ? (
+        <p className="type-small mt-3 text-muted-foreground">
+          No chain reads completed for this wallet.
         </p>
-      </div>
-
-      <div className="space-y-2.5">
-        {chains.map((c) => {
-          const meta = SUPPORTED_CHAINS.find((m) => m.chain.id === c.chainId);
-          const color = meta?.color ?? '#888';
-          const pct = maxCount > 0 ? (c.feedbackCount / maxCount) * 100 : 0;
-
-          return (
-            <div key={c.chainId} className="space-y-1">
-              <div className="flex items-center justify-between">
-                <ChainBadgePill chainId={c.chainId} size="sm" />
-                <span className="text-xs font-medium text-gray-400">
-                  {c.feedbackCount}
-                </span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-gray-700">
-                <div
-                  className="h-1.5 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.max(pct, 4)}%`,
-                    backgroundColor: color,
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+      ) : (
+        <>
+          <p className="type-small mt-1 text-muted-foreground">
+            {totalFeedbacks} feedback across {ordered.length}{' '}
+            {ordered.length === 1 ? 'chain' : 'chains'}
+          </p>
+          <div className="mt-4 space-y-3">
+            {ordered.map((chain) => {
+              const width =
+                maxCount > 0 ? (chain.feedbackCount / maxCount) * 100 : 0;
+              return (
+                <div key={chain.chainId} className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <ChainBadgePill chainId={chain.chainId} size="sm" />
+                    <span className="type-mono text-foreground">
+                      {chain.feedbackCount}
+                    </span>
+                  </div>
+                  <div className="h-1 w-full rounded-sm bg-muted">
+                    <div
+                      className="h-1 rounded-sm bg-primary"
+                      style={{
+                        width: `${chain.feedbackCount > 0 ? Math.max(width, 4) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </section>
   );
 }

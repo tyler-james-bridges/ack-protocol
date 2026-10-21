@@ -13,6 +13,7 @@ import { CategoryBadge } from '@/components/category-badge';
 import { Nav } from '@/components/nav';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { KudosFeed } from '@/components/kudos-feed';
+import { CrossChainRep } from '@/components/cross-chain-rep';
 import { TipAgent } from '@/components/tip-agent';
 import { getChainName } from '@/hooks';
 import { useKudosReceived } from '@/hooks/useKudosReceived';
@@ -606,6 +607,9 @@ export default function AgentProfilePage({
 
           {/* RIGHT COLUMN - Kudos Feed + Form */}
           <main className="flex-1 min-w-0 space-y-6">
+            {agent.agent_wallet ? (
+              <CrossChainRep agentAddress={agent.agent_wallet} />
+            ) : null}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <h2 className="text-lg font-bold ">KUDOS</h2>

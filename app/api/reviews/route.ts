@@ -38,7 +38,6 @@ const CHAIN_META: Record<
   42220: { name: 'Celo', color: '#FCFF52', explorer: 'https://celoscan.io/tx' },
 };
 
-// All chains we want review data from
 const REVIEW_CHAIN_IDS = [1, 2741, 8453, 42220];
 
 interface AgentInfo {
@@ -80,10 +79,9 @@ export async function GET(request: NextRequest) {
   const recentLimit = parseInt(searchParams.get('recentLimit') || '20', 10);
 
   try {
-    // Fetch feedback from all supported review chains in parallel
     const chainResults = await Promise.allSettled(
-      REVIEW_CHAIN_IDS.filter((cid) => SUPPORTED_8004_CHAINS[cid]) // only chains we can actually query
-        .map(async (cid) => {
+      REVIEW_CHAIN_IDS.filter((cid) => SUPPORTED_8004_CHAINS[cid]).map(
+        async (cid) => {
           if (cid === 8453) {
             const recentCap = Number.isFinite(recentLimit)
               ? Math.min(Math.max(recentLimit, 0), 50)
@@ -108,10 +106,10 @@ export async function GET(request: NextRequest) {
             total: events.length,
             uniqueSenders: new Set(events.map((event) => event.sender)).size,
           };
-        })
+        }
+      )
     );
 
-    // Merge all events
     const allEvents: FeedbackEvent[] = [];
     const chainStats: Record<number, { count: number; uniqueSenders: number }> =
       {};
@@ -124,7 +122,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Build aggregate chain data
     const chains = REVIEW_CHAIN_IDS.filter(
       (cid) => chainStats[cid]?.count > 0
     ).map((cid) => ({
@@ -137,25 +134,11 @@ export async function GET(request: NextRequest) {
 
     const total = chains.reduce((s, c) => s + c.count, 0);
 
-    // Build byDate aggregation
-    const dateMap = new Map<string, Record<string, number>>();
-    for (const e of allEvents) {
-      // We don't have timestamps directly, but we can group by date if available
-      // For now, use a simple block-number-to-date approximation
-      // The feedback events don't carry a date field, so we'll skip byDate for
-      // live data (the heatmap will use the static data as fallback initially)
-    }
-
-    // Build byDate from events - we need block timestamps ideally
-    // For now, aggregate what we have and include the static data as baseline
-    // The recent reviews are the main real-time component
-
     // Sort all events newest first (by block number, cross-chain approximate)
     const sorted = [...allEvents].sort(
       (a, b) => parseInt(b.blockNumber) - parseInt(a.blockNumber)
     );
 
-    // Build recent reviews with agent names
     const recentSlice = sorted.slice(0, recentLimit);
     const recentReviews = await Promise.all(
       recentSlice.map(async (e) => {

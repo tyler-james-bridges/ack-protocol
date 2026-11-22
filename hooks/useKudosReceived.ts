@@ -64,7 +64,6 @@ async function fetchKudos(
   const archiveTotal = typeof data.total === 'number' ? data.total : null;
   const capped = data.capped === true;
 
-  // Also fetch proxy kudos for linked handles
   if (linkedHandles && linkedHandles.length > 0) {
     const proxyResults = await Promise.all(
       linkedHandles.map(async (handle) => {
@@ -79,7 +78,6 @@ async function fetchKudos(
       })
     );
 
-    // Merge and deduplicate by txHash
     const seen = new Set(events.map((e) => e.txHash));
     for (const proxyEvents of proxyResults) {
       for (const e of proxyEvents) {
@@ -90,7 +88,6 @@ async function fetchKudos(
       }
     }
 
-    // Re-sort by blockNumber descending
     events.sort((a, b) => (b.blockNumber > a.blockNumber ? 1 : -1));
   }
 

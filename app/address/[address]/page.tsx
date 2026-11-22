@@ -290,7 +290,6 @@ export default function UserProfilePage() {
           '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432' as const;
         const addr = address.toLowerCase() as `0x${string}`;
 
-        // Find Transfer events TO this address (mints + transfers in)
         const transferEvent = parseAbiItem(
           'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
         );
@@ -303,7 +302,6 @@ export default function UserProfilePage() {
         });
         if (logs.length === 0) return null;
 
-        // Check current ownership (last transfer wins, but verify with balanceOf)
         const tokenId = logs[logs.length - 1].args.tokenId!;
 
         const abi = [
@@ -323,7 +321,6 @@ export default function UserProfilePage() {
           },
         ] as const;
 
-        // Verify still owned
         const owner = await client.readContract({
           address: IDENTITY_REGISTRY,
           abi,
@@ -332,7 +329,6 @@ export default function UserProfilePage() {
         });
         if (owner.toLowerCase() !== addr) return null;
 
-        // Get name from tokenURI
         let name = `Agent #${tokenId.toString()}`;
         try {
           const uri = await client.readContract({
@@ -376,7 +372,6 @@ export default function UserProfilePage() {
       const map = new Map<number, ScanAgent>();
       if (agentIds.length === 0) return map;
 
-      // First try 8004scan API for metadata
       try {
         const result = await fetchAgents({ limit: 100, chainId: 2741 });
         for (const a of result.items) {
@@ -386,7 +381,6 @@ export default function UserProfilePage() {
         /* API may be rate-limited */
       }
 
-      // Resolve any missing agents from onchain tokenURI
       const missing = agentIds.filter((id) => !map.has(id));
       if (missing.length > 0) {
         const { createPublicClient, http } = await import('viem');
@@ -448,7 +442,6 @@ export default function UserProfilePage() {
     staleTime: 120_000,
   });
 
-  // Build sender address -> agent lookup from the agent map
   const senderAgentMap = new Map<string, ScanAgent>();
   if (agentMap) {
     for (const a of agentMap.values()) {
@@ -469,7 +462,6 @@ export default function UserProfilePage() {
   ];
   const tipMap = useTipsForKudos(allTxHashes);
 
-  // Compute stats
   const totalKudos = kudosGiven?.length || 0;
   const uniqueAgents = new Set(kudosGiven?.map((k) => k.agentId) || []).size;
 
@@ -509,13 +501,8 @@ export default function UserProfilePage() {
 
       <div className="mx-auto max-w-5xl px-4 pt-6 pb-16 w-full box-border">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
-          {/* ================================================================ */}
-          {/* LEFT COLUMN - Profile Sidebar */}
-          {/* ================================================================ */}
           <aside className="w-full max-w-full lg:w-80 shrink-0 space-y-4 overflow-hidden">
-            {/* Profile Card */}
             <div className="border border-border p-4 sm:p-5 space-y-4 overflow-hidden max-w-full">
-              {/* Identity header */}
               <div className="flex items-start gap-3.5">
                 <div className="overflow-hidden shrink-0 border border-border">
                   <AgentAvatar name={address} size={64} />
@@ -553,7 +540,6 @@ export default function UserProfilePage() {
                 </div>
               </div>
 
-              {/* Agent badge */}
               {ownedAgent ? (
                 <div className="pt-3 border-t border-border">
                   <Link
@@ -570,7 +556,6 @@ export default function UserProfilePage() {
                 </div>
               ) : null}
 
-              {/* Stats */}
               <div className="rounded-lg bg-muted border border-border p-4">
                 <div className="flex items-center gap-4">
                   <div className="text-center shrink-0">
@@ -616,12 +601,10 @@ export default function UserProfilePage() {
                 </div>
               </div>
 
-              {/* Kudos Streak */}
               {streakData && streakData.totalDaysActive > 0 && (
                 <StreakCard streak={streakData} />
               )}
 
-              {/* Reputation / Category Breakdown */}
               {sortedCategories.length > 0 && (
                 <div>
                   <h3 className="text-[10px] font-semibold text-muted-foreground mb-3">
@@ -639,7 +622,6 @@ export default function UserProfilePage() {
                 </div>
               )}
 
-              {/* Category Progress */}
               {sortedCategories.length > 1 && (
                 <div className="space-y-2">
                   {sortedCategories.map((cat) => {
@@ -677,9 +659,6 @@ export default function UserProfilePage() {
             </div>
           </aside>
 
-          {/* ================================================================ */}
-          {/* RIGHT COLUMN - Kudos Feed */}
-          {/* ================================================================ */}
           <section className="flex-1 min-w-0 overflow-hidden">
             <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
               Kudos Given

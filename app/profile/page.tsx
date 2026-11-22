@@ -41,7 +41,6 @@ export default function ProfilePage() {
   const { address, isConnected, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
 
-  // Check if wallet owns an agent
   const { data: balance } = useReadContract({
     address: IDENTITY_REGISTRY_ADDRESS,
     abi: BALANCE_OF_ABI,
@@ -51,7 +50,6 @@ export default function ProfilePage() {
     query: { enabled: !!address },
   });
 
-  // Load pending agent data from registration for preview
   const [pendingAgent, setPendingAgent] = useState<{
     name: string;
     description: string;
@@ -63,9 +61,6 @@ export default function ProfilePage() {
     } catch {}
   }, []);
 
-  // (clear pending moved below myAgent declaration)
-
-  // Find agent on 8004scan by owner address
   const { data: myAgents, isLoading: loadingAgent } = useQuery({
     queryKey: ['my-agents', address],
     queryFn: async (): Promise<ScanAgent[]> => {
@@ -91,7 +86,6 @@ export default function ProfilePage() {
     agentsByChain.set(agent.chain_id, list);
   }
 
-  // Clear pending data once agent is indexed
   useEffect(() => {
     if (myAgent) {
       localStorage.removeItem('ack-pending-agent');
@@ -99,14 +93,12 @@ export default function ProfilePage() {
     }
   }, [myAgent]);
 
-  // Kudos given by this wallet
   const { data: kudosGiven, isLoading: loadingGiven } = useKudosGiven(
     address as `0x${string}` | undefined
   );
 
   const { data: streakData } = useStreak(address);
 
-  // Kudos received by this wallet's agent
   const { data: kudosReceived, isLoading: loadingReceived } = useKudosReceived(
     myAgent ? Number(myAgent.token_id) : undefined,
     myAgent?.chain_id
@@ -162,7 +154,6 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
       <main className="mx-auto max-w-2xl px-4 pt-10 pb-24">
-        {/* Page Header */}
         <div className="mb-8">
           <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">
             Profile
@@ -172,7 +163,6 @@ export default function ProfilePage() {
           </h1>
         </div>
 
-        {/* Wallet Card */}
         <section className="border border-border bg-background p-5 mb-5">
           <h2 className="text-[10px] font-semibold text-muted-foreground mb-4">
             Wallet
@@ -241,10 +231,8 @@ export default function ProfilePage() {
           </section>
         )}
 
-        {/* Agent Details or Register CTA */}
         {hasAgent ? (
           <>
-            {/* Agent Card */}
             <section className="border border-border bg-background p-6 mb-5 relative overflow-hidden">
               <h2 className="text-[10px] font-semibold text-muted-foreground mb-5 relative">
                 Your Agent
@@ -262,7 +250,6 @@ export default function ProfilePage() {
                 </div>
               ) : myAgent ? (
                 <div className="space-y-5 relative">
-                  {/* Agent identity */}
                   <div className="flex items-center gap-4">
                     <div className="rounded-lg overflow-hidden ring-2 ring-border ring-offset-2 ring-offset-background">
                       <AgentAvatar
@@ -291,7 +278,6 @@ export default function ProfilePage() {
                     </p>
                   )}
 
-                  {/* Stats Grid */}
                   <div className="grid grid-cols-3 gap-3">
                     <StatBlock
                       label="Total Score"
@@ -370,10 +356,8 @@ export default function ProfilePage() {
               )}
             </section>
 
-            {/* Update Agent URI */}
             <UpdateAgentURI agent={myAgent} />
 
-            {/* Kudos Received */}
             {myAgent && (
               <section className="border border-border bg-background p-6 mb-5">
                 <h2 className="text-[10px] font-semibold text-muted-foreground mb-4">
@@ -425,7 +409,6 @@ export default function ProfilePage() {
               </section>
             )}
 
-            {/* Kudos Given */}
             <section className="border border-border bg-background p-6">
               <h2 className="text-[10px] font-semibold text-muted-foreground mb-4">
                 Kudos Given
@@ -562,7 +545,6 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
   const { isSuccess: txConfirmed, isLoading: txPending } =
     useWaitForTransactionReceipt({ hash: txHash, chainId: chain.id });
 
-  // Only show for owner wallet
   if (
     !agent ||
     !address ||

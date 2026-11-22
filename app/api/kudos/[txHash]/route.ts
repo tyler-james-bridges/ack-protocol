@@ -91,7 +91,6 @@ export async function GET(
       );
     }
 
-    // Find the FeedbackGiven event
     const feedbackLog = receipt.logs.find(
       (log) =>
         log.address.toLowerCase() === REPUTATION_REGISTRY.toLowerCase() &&
@@ -105,12 +104,10 @@ export async function GET(
       );
     }
 
-    // Decode indexed topics
     const agentId = Number(BigInt(feedbackLog.topics[1] as Hex));
     const sender = ('0x' +
       (feedbackLog.topics[2] as string).slice(26)) as string;
 
-    // Decode non-indexed data
     const decoded = decodeAbiParameters(
       [
         { name: 'feedbackIndex', type: 'uint64' },

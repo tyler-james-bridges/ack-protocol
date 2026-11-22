@@ -4,7 +4,6 @@ import { getPublicClient } from './client';
 import {
   ABOREAN_ROUTER,
   ABOREAN_FACTORY,
-  WETH,
   ABOREAN_ROUTER_ABI,
   ERC20_ABI,
   TOKEN_MAP,
@@ -26,16 +25,20 @@ export interface SwapResult {
   minOut: string;
 }
 
-/**
- * Validate swap parameters before execution.
- */
-export function validateSwapParams(params: SwapParams): string | null {
-  const fromKey = params.from.toUpperCase();
-  const toKey = params.to.toUpperCase();
+const tokensBySymbol = new Map(
+  Object.entries(TOKEN_MAP).map(([symbol, token]) => [
+    symbol.toUpperCase(),
+    { ...token, symbol },
+  ])
+);
 
-  if (!TOKEN_MAP[fromKey]) return `Unknown token: ${params.from}`;
-  if (!TOKEN_MAP[toKey]) return `Unknown token: ${params.to}`;
-  if (fromKey === toKey) return 'Cannot swap token to itself';
+function resolveSwap(params: SwapParams) {
+  const fromToken = tokensBySymbol.get(params.from.toUpperCase());
+  if (!fromToken) return `Unknown token: ${params.from}`;
+  const toToken = tokensBySymbol.get(params.to.toUpperCase());
+  if (!toToken) return `Unknown token: ${params.to}`;
+  if (fromToken.address === toToken.address)
+    return 'Cannot swap token to itself';
 
   const amount = parseFloat(params.amount);
   if (isNaN(amount) || amount <= 0) return 'Amount must be a positive number';
@@ -44,20 +47,21 @@ export function validateSwapParams(params: SwapParams): string | null {
       return 'Slippage must be between 0.1% and 50%';
   }
 
-  return null;
+  return { fromToken, toToken };
+}
+
+export function validateSwapParams(params: SwapParams): string | null {
+  const result = resolveSwap(params);
+  return typeof result === 'string' ? result : null;
 }
 
 /**
  * Execute a token swap via the Aborean DEX router.
  */
 export async function executeSwap(params: SwapParams): Promise<SwapResult> {
-  const error = validateSwapParams(params);
-  if (error) throw new Error(error);
-
-  const fromKey = params.from.toUpperCase();
-  const toKey = params.to.toUpperCase();
-  const fromToken = TOKEN_MAP[fromKey];
-  const toToken = TOKEN_MAP[toKey];
+  const result = resolveSwap(params);
+  if (typeof result === 'string') throw new Error(result);
+  const { fromToken, toToken } = result;
   const slippage = params.slippagePct ?? 5;
 
   const swapAmount = parseUnits(params.amount, fromToken.decimals);
@@ -86,7 +90,7 @@ export async function executeSwap(params: SwapParams): Promise<SwapResult> {
 
   let txHash: string;
 
-  if (fromKey === 'ETH') {
+  if (fromToken.symbol === 'ETH') {
     txHash = await agw.writeContract({
       address: ABOREAN_ROUTER,
       abi: ABOREAN_ROUTER_ABI,
@@ -105,7 +109,9 @@ export async function executeSwap(params: SwapParams): Promise<SwapResult> {
     );
 
     const fn =
-      toKey === 'ETH' ? 'swapExactTokensForETH' : 'swapExactTokensForTokens';
+      toToken.symbol === 'ETH'
+        ? 'swapExactTokensForETH'
+        : 'swapExactTokensForTokens';
     txHash = await agw.writeContract({
       address: ABOREAN_ROUTER,
       abi: ABOREAN_ROUTER_ABI,
@@ -118,8 +124,8 @@ export async function executeSwap(params: SwapParams): Promise<SwapResult> {
 
   return {
     txHash,
-    from: fromKey,
-    to: toKey,
+    from: fromToken.symbol,
+    to: toToken.symbol,
     amountIn: params.amount,
     expectedOut: formatUnits(expectedOut, toToken.decimals),
     minOut: formatUnits(minOut, toToken.decimals),

@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// We need to test parseMessage which is private.
-// We'll mock the heavy dependencies and test through getHomePageData,
-// but also extract parseMessage logic by testing the recentKudos output.
-
 vi.mock('viem', async () => {
   const actual = await vi.importActual('viem');
   return {
@@ -45,126 +41,33 @@ describe('home-data', () => {
     return import('../home-data');
   }
 
-  it('parses base64 feedback URI messages', async () => {
+  it('keeps absent feedback distinct from a message in the server feed', async () => {
     const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
-    const payload = JSON.stringify({ reasoning: 'Great work!' });
-    const base64 = Buffer.from(payload).toString('base64');
-    const feedbackURI = `data:application/json;base64,${base64}`;
-
-    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([
-      {
-        sender: '0xabc',
-        agentId: 1,
-        tag1: 'kudos',
-        tag2: 'reliability',
+    const uris = [JSON.stringify({ message: 'Well done!' }), '', 'data:,{}'];
+    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue(
+      uris.map((feedbackURI, i) => ({
         feedbackURI,
-        txHash: '0x123',
-        blockNumber: '100',
-      },
-    ] as never);
-
-    vi.mocked(global.fetch).mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: [],
-          meta: { pagination: { total: 0 } },
-        }),
-    } as Response);
-
-    const { getHomePageData } = await getModule();
-    const data = await getHomePageData(2741);
-    expect(data.recentKudos[0].message).toBe('Great work!');
-  });
-
-  it('parses data:, URI messages', async () => {
-    const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
-    const payload = JSON.stringify({ reasoning: 'Nice agent' });
-    const feedbackURI = `data:,${encodeURIComponent(payload)}`;
-
-    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([
-      {
-        sender: '0xdef',
-        agentId: 2,
-        tag1: 'kudos',
-        tag2: 'speed',
-        feedbackURI,
-        txHash: '0x456',
-        blockNumber: '200',
-      },
-    ] as never);
-
-    vi.mocked(global.fetch).mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: [],
-          meta: { pagination: { total: 0 } },
-        }),
-    } as Response);
-
-    const { getHomePageData } = await getModule();
-    const data = await getHomePageData(2741);
-    expect(data.recentKudos[0].message).toBe('Nice agent');
-  });
-
-  it('returns null message for malformed URI', async () => {
-    const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
-
-    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([
-      {
         sender: '0xabc',
-        agentId: 1,
+        agentId: i + 1,
+        chainId: 2741,
+        feedbackIndex: '0',
+        value: '1',
         tag1: 'kudos',
-        tag2: 'accuracy',
-        feedbackURI: 'not-a-valid-uri',
-        txHash: '0x789',
-        blockNumber: '300',
-      },
-    ] as never);
-
-    vi.mocked(global.fetch).mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: [],
-          meta: { pagination: { total: 0 } },
-        }),
-    } as Response);
+        tag2: '',
+        feedbackHash: '0x0',
+        txHash: '0x' + i,
+        blockNumber: String(100 - i),
+      }))
+    );
+    vi.mocked(global.fetch).mockResolvedValue(Response.json({ data: [] }));
 
     const { getHomePageData } = await getModule();
     const data = await getHomePageData(2741);
-    expect(data.recentKudos[0].message).toBeNull();
-  });
-
-  it('parses raw JSON string feedback URI', async () => {
-    const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
-    const feedbackURI = JSON.stringify({ message: 'Hello from JSON' });
-
-    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([
-      {
-        sender: '0xabc',
-        agentId: 1,
-        tag1: 'kudos',
-        tag2: 'creativity',
-        feedbackURI,
-        txHash: '0xabc',
-        blockNumber: '400',
-      },
-    ] as never);
-
-    vi.mocked(global.fetch).mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: [],
-          meta: { pagination: { total: 0 } },
-        }),
-    } as Response);
-
-    const { getHomePageData } = await getModule();
-    const data = await getHomePageData(2741);
-    expect(data.recentKudos[0].message).toBe('Hello from JSON');
+    expect(data.recentKudos.map((kudos) => kudos.message)).toEqual([
+      'Well done!',
+      null,
+      null,
+    ]);
   });
 
   it('returns stats from agent data', async () => {

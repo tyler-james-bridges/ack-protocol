@@ -27,6 +27,7 @@ import {
   EVENT_TOPICS,
 } from './constants.js';
 import { parseFeedbackURI } from './utils.js';
+import { readFeedback } from './feedback-uri.js';
 import { BASE_DATA_SUFFIX } from './builder-code.js';
 import type {
   ACKConfig,
@@ -240,12 +241,7 @@ export class ACK {
         );
         const items = data.items || data || [];
         return items.map((f: Record<string, unknown>) => {
-          let message = '';
-          const uri = String(f.feedback_uri || '');
-          const parsed = parseFeedbackURI(uri);
-          if (parsed) {
-            message = String(parsed.reasoning || parsed.message || '');
-          }
+          const { message } = readFeedback(String(f.feedback_uri || ''));
 
           return {
             id: String(f.id || ''),
@@ -255,7 +251,7 @@ export class ACK {
               f.category ||
               'reliability') as FeedbackCategory,
             score: Number(f.score || f.value || 0),
-            message,
+            message: message ?? '',
             timestamp: Number(
               f.created_at
                 ? new Date(f.created_at as string).getTime() / 1000
@@ -786,14 +782,6 @@ export class ACK {
       if (parsed) {
         name = String(parsed.name || name);
         description = String(parsed.description || description);
-      } else if (uri.startsWith('data:,')) {
-        try {
-          const metadata = JSON.parse(decodeURIComponent(uri.slice(6)));
-          name = metadata.name || name;
-          description = metadata.description || description;
-        } catch {
-          // ignore
-        }
       }
 
       return {
@@ -916,11 +904,7 @@ export class ACK {
         const tag2 = decoded[4];
         const feedbackURIStr = decoded[6];
 
-        let message = '';
-        const parsed = parseFeedbackURI(feedbackURIStr);
-        if (parsed) {
-          message = String(parsed.reasoning || parsed.message || '');
-        }
+        const { message } = readFeedback(feedbackURIStr);
 
         feedbacks.push({
           id: `${agentId}-${feedbackIndex}`,
@@ -928,7 +912,7 @@ export class ACK {
           from: sender,
           category: (tag2 || 'reliability') as FeedbackCategory,
           score: Number(value),
-          message,
+          message: message ?? '',
           timestamp: Number(BigInt(log.blockNumber)),
           transactionHash: log.transactionHash as Hash,
         });

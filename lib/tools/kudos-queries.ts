@@ -5,6 +5,8 @@
  * routes this tool wraps.
  */
 
+import { readFeedback } from '@/packages/sdk/src/feedback-uri';
+import { kudosDetailFields } from '@/lib/kudos-metadata';
 import {
   createPublicClient,
   decodeAbiParameters,
@@ -58,46 +60,6 @@ export function isValidAddress(value: string): boolean {
 
 export function isValidTxHash(value: string): boolean {
   return TX_HASH_RE.test(value);
-}
-
-export function parseKudosMessage(feedbackURI: string): string | null {
-  try {
-    if (feedbackURI.startsWith('data:application/json;base64,')) {
-      const json = Buffer.from(
-        feedbackURI.replace('data:application/json;base64,', ''),
-        'base64'
-      ).toString('utf-8');
-      const payload = JSON.parse(json) as {
-        reasoning?: string;
-        message?: string;
-      };
-      return payload.reasoning || payload.message || null;
-    }
-    if (feedbackURI.startsWith('data:,')) {
-      const decoded = decodeURIComponent(feedbackURI.slice(6));
-      if (decoded.startsWith('{')) {
-        const payload = JSON.parse(decoded) as {
-          reasoning?: string;
-          message?: string;
-          category?: string;
-          from?: string;
-          source?: string;
-        };
-        return payload.reasoning || payload.message || null;
-      }
-      return decoded || null;
-    }
-    if (feedbackURI.startsWith('{')) {
-      const payload = JSON.parse(feedbackURI) as {
-        reasoning?: string;
-        message?: string;
-      };
-      return payload.reasoning || payload.message || null;
-    }
-  } catch {
-    // ignore malformed URIs
-  }
-  return null;
 }
 
 export interface KudosFeedItem {
@@ -184,7 +146,7 @@ export async function queryKudosFeed(
       tag1: e.tag1,
       tag2: e.tag2,
       category: e.tag2 || e.tag1,
-      message: parseKudosMessage(e.feedbackURI),
+      message: readFeedback(e.feedbackURI).message,
       feedbackURI: e.feedbackURI,
       blockNumber: e.blockNumber,
       chainId: e.chainId,
@@ -305,30 +267,6 @@ export async function queryKudosDetail(
     const tag2 = decoded[4] as string;
     const feedbackURI = decoded[6] as string;
 
-    let from = '';
-    let category = tag1 || '';
-    let message = '';
-    let source = '';
-
-    if (feedbackURI.startsWith('data:,')) {
-      try {
-        const json = JSON.parse(feedbackURI.slice(6)) as {
-          from?: string;
-          category?: string;
-          message?: string;
-          source?: string;
-        };
-        from = json.from || '';
-        category = json.category || category;
-        message = json.message || '';
-        source = json.source || '';
-      } catch {
-        // keep defaults
-      }
-    } else {
-      message = parseKudosMessage(feedbackURI) || '';
-    }
-
     const agentName = await getAgentName(agentId, chainId);
 
     return {
@@ -338,12 +276,8 @@ export async function queryKudosDetail(
         agentId,
         agentName,
         sender,
-        senderName: from.replace('twitter:@', '@'),
         value,
-        category,
-        message,
-        from: from.replace('twitter:', ''),
-        source,
+        ...kudosDetailFields(feedbackURI, tag1),
         tag1,
         tag2,
         timestamp: new Date(Number(block.timestamp) * 1000).toISOString(),

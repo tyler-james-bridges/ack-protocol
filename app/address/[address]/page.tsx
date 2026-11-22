@@ -171,22 +171,10 @@ function KudosHistoryCard({
   );
 }
 
-function parseFeedbackMessage(uri: string): string | null {
-  if (!uri.startsWith('data:,')) return null;
-  try {
-    const parsed = JSON.parse(uri.slice(6));
-    return typeof parsed.message === 'string' && parsed.message.length > 0
-      ? parsed.message
-      : null;
-  } catch {
-    return null;
-  }
-}
-
 function KudosReceivedCard({
   sender,
   category,
-  feedbackURI,
+  message,
   txHash,
   blockNumber,
   timestamp,
@@ -195,7 +183,7 @@ function KudosReceivedCard({
 }: {
   sender: `0x${string}`;
   category: string;
-  feedbackURI: string;
+  message: string | null;
   txHash: `0x${string}`;
   blockNumber: bigint;
   timestamp?: number;
@@ -209,7 +197,6 @@ function KudosReceivedCard({
   const parsedCategory = KUDOS_CATEGORIES.includes(category as KudosCategory)
     ? (category as KudosCategory)
     : null;
-  const message = parseFeedbackMessage(feedbackURI);
 
   return (
     <div className="border border-border rounded-lg p-4 bg-muted hover:border-border transition-colors overflow-hidden max-w-full">
@@ -772,7 +759,7 @@ export default function UserProfilePage() {
                         key={`${k.txHash}-${i}`}
                         sender={k.sender}
                         category={k.tag2}
-                        feedbackURI={k.feedbackURI}
+                        message={k.message}
                         txHash={k.txHash}
                         chainId={k.chainId}
                         blockNumber={k.blockNumber}

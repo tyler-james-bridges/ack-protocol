@@ -1,5 +1,6 @@
 'use client';
 
+import { readFeedback } from '@/packages/sdk/src/feedback-uri';
 import { useQuery } from '@tanstack/react-query';
 import type { Address, Hex } from 'viem';
 import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
@@ -11,33 +12,8 @@ export interface KudosGivenEvent {
   tag1: string;
   tag2: string;
   message: string | null;
-  feedbackURI: string;
   txHash: Hex;
   blockNumber: bigint;
-}
-
-function parseMessage(feedbackURI: string): string | null {
-  try {
-    if (feedbackURI.startsWith('data:application/json;base64,')) {
-      const json = decodeURIComponent(
-        escape(atob(feedbackURI.replace('data:application/json;base64,', '')))
-      );
-      const payload = JSON.parse(json);
-      return payload.reasoning || payload.message || null;
-    }
-    if (feedbackURI.startsWith('data:,')) {
-      const decoded = decodeURIComponent(feedbackURI.slice(6));
-      try {
-        const payload = JSON.parse(decoded);
-        return payload.reasoning || payload.message || null;
-      } catch {
-        return decoded || null;
-      }
-    }
-  } catch {
-    // ignore malformed URIs
-  }
-  return null;
 }
 
 async function fetchKudosGiven(address: Address): Promise<KudosGivenEvent[]> {
@@ -63,8 +39,7 @@ async function fetchKudosGiven(address: Address): Promise<KudosGivenEvent[]> {
       sender: e.sender || address.toLowerCase(),
       tag1: e.tag1,
       tag2: e.tag2,
-      message: parseMessage(e.feedbackURI),
-      feedbackURI: e.feedbackURI,
+      message: readFeedback(e.feedbackURI).message,
       txHash: e.txHash as Hex,
       blockNumber: BigInt(e.blockNumber),
     })

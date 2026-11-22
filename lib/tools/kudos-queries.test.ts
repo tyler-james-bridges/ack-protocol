@@ -1,3 +1,11 @@
+import {
+  encodeAbiParameters,
+  encodeEventTopics,
+  parseAbiParameters,
+  zeroHash,
+} from 'viem';
+import { REPUTATION_REGISTRY_ABI } from '@/config/abi';
+import { REPUTATION_REGISTRY_ADDRESS } from '@/config/contract';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mockGetAllFeedbackEvents = vi.fn();
@@ -76,23 +84,6 @@ describe('kudos-queries', () => {
     return import('./kudos-queries');
   }
 
-  describe('parseKudosMessage', () => {
-    it('reads reasoning from a base64 data URI', async () => {
-      const { parseKudosMessage } = await load();
-      const payload = Buffer.from(
-        JSON.stringify({ reasoning: 'Solid work' })
-      ).toString('base64');
-      expect(parseKudosMessage(`data:application/json;base64,${payload}`)).toBe(
-        'Solid work'
-      );
-    });
-
-    it('returns null for malformed URIs', async () => {
-      const { parseKudosMessage } = await load();
-      expect(parseKudosMessage('not-a-valid-uri')).toBeNull();
-    });
-  });
-
   describe('queryKudosFeed', () => {
     it('filters by agent, sender, and category then limits results', async () => {
       mockGetAllFeedbackEvents.mockResolvedValue([
@@ -152,6 +143,60 @@ describe('kudos-queries', () => {
         expect(result.status).toBe(400);
         expect(result.error).toContain('Invalid tx hash');
       }
+    });
+
+    it('returns the same attribution and message from REST and the tool for an encoded relay receipt', async () => {
+      const sender = '0x0000000000000000000000000000000000000001';
+      const fields = {
+        from: 'twitter:@ada',
+        category: 'speed',
+        message: '100% 💚',
+        source: 'x',
+      };
+      const feedbackURI = 'data:,' + encodeURIComponent(JSON.stringify(fields));
+      mockGetTransactionReceipt.mockResolvedValue({
+        status: 'success',
+        blockNumber: BigInt(1),
+        logs: [
+          {
+            address: REPUTATION_REGISTRY_ADDRESS,
+            topics: encodeEventTopics({
+              abi: REPUTATION_REGISTRY_ABI,
+              eventName: 'NewFeedback',
+              args: {
+                agentId: BigInt(1),
+                clientAddress: sender,
+                indexedTag1: 'kudos',
+              },
+            }),
+            data: encodeAbiParameters(
+              parseAbiParameters(
+                'uint64, int128, uint8, string, string, string, string, bytes32'
+              ),
+              [BigInt(1), BigInt(1), 0, 'kudos', '', '', feedbackURI, zeroHash]
+            ),
+          },
+        ],
+      });
+      mockGetBlock.mockResolvedValue({ timestamp: BigInt(1_700_000_000) });
+      vi.mocked(global.fetch).mockResolvedValue(Response.json({ items: [] }));
+      const { queryKudosDetail } = await load();
+      const { GET } = await import('@/app/api/kudos/[txHash]/route');
+      const { NextRequest } = await import('next/server');
+      const txHash = '0x' + 'a'.repeat(64);
+      const response = await GET(
+        new NextRequest('https://ack.test/api/kudos/' + txHash),
+        {
+          params: Promise.resolve({ txHash }),
+        }
+      );
+      const expected = { ...fields, from: '@ada', senderName: '@ada' };
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject(expected);
+      expect(await queryKudosDetail(txHash)).toMatchObject({
+        ok: true,
+        kudos: expected,
+      });
     });
 
     it('returns 404 when the receipt has no feedback event', async () => {

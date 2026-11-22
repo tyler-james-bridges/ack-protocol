@@ -5,6 +5,7 @@
  * so the page can be server-rendered with zero client API calls.
  */
 
+import { readFeedback } from '@/packages/sdk/src/feedback-uri';
 import { createPublicClient, http } from 'viem';
 import { DEFAULT_8004_CHAIN_ID, getChainConfig } from '@/config/chain';
 import {
@@ -25,7 +26,6 @@ export interface RecentKudosItem {
   tag1: string;
   tag2: string;
   message: string | null;
-  feedbackURI: string;
   txHash: string;
   blockNumber: string;
 }
@@ -47,34 +47,6 @@ export interface HomePageData {
   topStreakers: { address: string; streak: StreakData }[];
   activeStreakCount: number;
   feedError: boolean;
-}
-
-function parseMessage(feedbackURI: string): string | null {
-  try {
-    if (feedbackURI.startsWith('data:application/json;base64,')) {
-      const json = Buffer.from(
-        feedbackURI.replace('data:application/json;base64,', ''),
-        'base64'
-      ).toString('utf-8');
-      const payload = JSON.parse(json);
-      return payload.reasoning || payload.message || null;
-    }
-    if (feedbackURI.startsWith('data:,')) {
-      const decoded = decodeURIComponent(feedbackURI.slice(6));
-      if (decoded.startsWith('{')) {
-        const payload = JSON.parse(decoded);
-        return payload.reasoning || payload.message || null;
-      }
-      return decoded || null;
-    }
-    if (feedbackURI.startsWith('{')) {
-      const payload = JSON.parse(feedbackURI);
-      return payload.reasoning || payload.message || null;
-    }
-  } catch {
-    // ignore malformed URIs
-  }
-  return null;
 }
 
 async function loadChainFeedback(chainId: number): Promise<{
@@ -196,8 +168,7 @@ export async function getHomePageData(
     chainId: e.chainId,
     tag1: e.tag1,
     tag2: e.tag2,
-    message: parseMessage(e.feedbackURI),
-    feedbackURI: e.feedbackURI,
+    message: readFeedback(e.feedbackURI).message,
     txHash: e.txHash,
     blockNumber: e.blockNumber,
   }));

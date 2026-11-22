@@ -19,20 +19,19 @@ export interface TipInfo {
 
 export function useTipsForKudos(txHashes: string[]) {
   const [tips, setTips] = useState<Record<string, TipInfo>>({});
-  const key = txHashes.join(',');
+  const body = txHashes.length ? JSON.stringify({ txHashes }) : undefined;
 
   useEffect(() => {
-    if (txHashes.length === 0) return;
+    if (body === undefined) return;
     fetch('/api/tips/by-kudos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ txHashes }),
+      body,
     })
       .then((r) => (r.ok ? r.json() : { tips: {} }))
       .then((data) => setTips(data.tips || {}))
       .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [body]);
 
   return tips;
 }

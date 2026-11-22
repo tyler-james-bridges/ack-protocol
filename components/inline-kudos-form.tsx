@@ -69,7 +69,6 @@ export function InlineKudosForm({
 
   const canSubmit = !isLoading && !isSelfKudos && !isCrossChainFromAGW;
 
-  // After successful kudos, scroll to kudos feed and fire onSuccess callback
   useEffect(() => {
     if (status !== 'success') return;
     const timer = setTimeout(() => {
@@ -196,7 +195,6 @@ export function InlineKudosForm({
         {mode === 'kudos' ? 'Give Kudos' : 'Review'} {agentName}
       </p>
 
-      {/* Mode toggle */}
       <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
         {(['kudos', 'review'] as const).map((m) => (
           <button
@@ -215,7 +213,6 @@ export function InlineKudosForm({
         ))}
       </div>
 
-      {/* Review value selector */}
       {mode === 'review' && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
@@ -247,7 +244,6 @@ export function InlineKudosForm({
         </div>
       )}
 
-      {/* Category */}
       <div className="space-y-2">
         <p className="text-xs text-muted-foreground">
           Category <span className="text-muted-foreground">(optional)</span>
@@ -269,10 +265,8 @@ export function InlineKudosForm({
             </button>
           ))}
         </div>
-        {/* category is optional */}
       </div>
 
-      {/* Message */}
       <div className="space-y-1.5">
         <p className="text-xs text-muted-foreground">Message (optional)</p>
         <textarea
@@ -297,7 +291,6 @@ export function InlineKudosForm({
         </p>
       </div>
 
-      {/* Submit */}
       {isSelfKudos && (
         <p className="text-sm text-muted-foreground text-center">
           You own this agent - you can&apos;t give kudos to yourself.

@@ -56,7 +56,6 @@ export async function POST(
     transport: http(chainCfg.rpcUrl),
   });
 
-  // Fetch the transaction receipt from the tip chain
   let receipt;
   try {
     receipt = await client.getTransactionReceipt({ hash: txHash as Hex });
@@ -74,7 +73,6 @@ export async function POST(
     );
   }
 
-  // Look for a USDC Transfer event matching our expected recipient and amount
   const expectedTo = tip.toAddress.toLowerCase();
   const expectedAmount = tip.amountRaw;
   const usdcAddress = getUsdcAddress(tip.chainId).toLowerCase();

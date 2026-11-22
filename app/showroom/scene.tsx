@@ -49,7 +49,6 @@ function ExhibitPanel({ exhibit, index }: { exhibit: Exhibit; index: number }) {
       }}
       scale={hovered ? 1.06 : 1}
     >
-      {/* Frame: emissive border reads as the status light */}
       <mesh position={[0, 0, -0.03]}>
         <planeGeometry args={[2.35, 3.15]} />
         <meshStandardMaterial
@@ -60,7 +59,6 @@ function ExhibitPanel({ exhibit, index }: { exhibit: Exhibit; index: number }) {
           }
         />
       </mesh>
-      {/* Panel face */}
       <mesh>
         <planeGeometry args={[2.2, 3]} />
         <meshStandardMaterial color="#101412" roughness={0.85} />
@@ -218,7 +216,6 @@ export function ShowroomScene() {
         distance={14}
       />
 
-      {/* Floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <circleGeometry args={[16, 48]} />
         <meshStandardMaterial color="#0b0f0c" roughness={0.9} metalness={0.1} />

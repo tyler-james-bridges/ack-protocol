@@ -24,7 +24,6 @@ export function useAgentProfile(agentId: number | undefined) {
 
   const agentURI = uri.data as string | undefined;
 
-  // Fetch and parse the off-chain registration file
   useEffect(() => {
     if (!agentURI) {
       setRegistration(null);

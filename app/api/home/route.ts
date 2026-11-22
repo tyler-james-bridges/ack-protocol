@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getHomePageData } from '@/lib/home-data';
 import { warmupFeedbackCache } from '@/lib/feedback-cache';
 
-// Pre-warm the feedback cache on cold start
 warmupFeedbackCache();
 
 export async function GET() {

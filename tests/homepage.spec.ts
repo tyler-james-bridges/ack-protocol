@@ -34,18 +34,13 @@ test.describe('Homepage', () => {
   });
 
   test('featured agents section loads real data', async ({ page }) => {
-    // Wait for leaderboard data to load
-    // Give time for API data
     await page.waitForTimeout(3000);
 
-    // Check that we have some agent content rendered (names from API)
     const pageContent = await page.textContent('body');
-    // The page should have loaded some real agent data or stats
     expect(pageContent).toBeTruthy();
   });
 
   test('links to /register and /leaderboard exist', async ({ page }) => {
-    // Check for links in the page content (cards render client-side)
     await expect(page.locator('a[href="/register"]').first()).toBeVisible({
       timeout: 10000,
     });

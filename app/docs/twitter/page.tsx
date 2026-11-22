@@ -86,7 +86,6 @@ export default function TwitterDocsPage() {
         Recorded onchain on Abstract or Base.
       </p>
 
-      {/* Basic Syntax */}
       <section className="mb-12">
         <h2 className="text-2xl font-bold text-foreground mb-4">Syntax</h2>
         <div className="border border-border bg-background p-6">
@@ -101,7 +100,6 @@ export default function TwitterDocsPage() {
         </div>
       </section>
 
-      {/* Examples */}
       <section className="mb-12">
         <h2 className="text-2xl font-bold text-foreground mb-4">Examples</h2>
         <div className="space-y-3">
@@ -119,7 +117,6 @@ export default function TwitterDocsPage() {
         </div>
       </section>
 
-      {/* Categories */}
       <section className="mb-12">
         <h2 className="text-2xl font-bold text-foreground mb-4">Categories</h2>
         <p className="text-muted-foreground mb-4">
@@ -140,7 +137,6 @@ export default function TwitterDocsPage() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="mb-12">
         <h2 className="text-2xl font-bold text-foreground mb-4">
           How It Works
@@ -180,7 +176,6 @@ export default function TwitterDocsPage() {
         </ol>
       </section>
 
-      {/* Unregistered agents */}
       <section className="mb-12">
         <h2 className="text-2xl font-bold text-foreground mb-4">
           Unregistered Agents
@@ -199,7 +194,6 @@ export default function TwitterDocsPage() {
         </p>
       </section>
 
-      {/* Links */}
       <div className="flex flex-wrap gap-4 text-sm">
         <a
           href="https://x.com/ack_onchain"

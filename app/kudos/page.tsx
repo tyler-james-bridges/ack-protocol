@@ -231,7 +231,6 @@ export default function GiveKudosPage() {
     }
   }
 
-  // Fetch streaks for all senders
   const streakAddresses = [
     ...new Set(recentKudos?.map((k) => k.sender.toLowerCase()) || []),
   ];
@@ -355,7 +354,6 @@ export default function GiveKudosPage() {
           )}
         </AnimatePresence>
 
-        {/* Recent Kudos Feed */}
         <div className="mt-12 space-y-4 lg:mt-0">
           <div className="space-y-1">
             <h2 className="text-lg md:text-xl font-bold tracking-tight">

@@ -26,7 +26,6 @@ export async function GET(
     transport: http(chainCfg.rpcUrl),
   });
 
-  // Try to resolve agent name from the registry
   let agentName = `Agent #${tip.agentId}`;
   try {
     const uri = (await client.readContract({

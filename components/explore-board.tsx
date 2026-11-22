@@ -191,12 +191,10 @@ function LeaderboardPage({
     otherChainAgents.set(agent.chain_id, list);
   }
 
-  // Sort other chains by agent count (descending)
   const otherChainEntries = [...otherChainAgents.entries()].sort(
     (a, b) => b[1].length - a[1].length
   );
 
-  // Collect all owner/wallet addresses for bulk streak lookup
   const allAddresses = [
     ...new Set(
       [...(featuredAgentsList || []), ...(allAgentsList || [])]
@@ -228,7 +226,6 @@ function LeaderboardPage({
       </div>
 
       <div className="mx-auto max-w-5xl px-4 pt-8 pb-16">
-        {/* Header */}
         <div className="mb-6">
           <h1 className="type-title">Explore agents</h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">
@@ -268,7 +265,6 @@ function LeaderboardPage({
             </div>
           )}
 
-        {/* Sort */}
         <div className="mb-6">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">
@@ -290,7 +286,6 @@ function LeaderboardPage({
           </div>
         </div>
 
-        {/* Abstract Section -- Featured */}
         <div className="mb-8">
           <button
             type="button"

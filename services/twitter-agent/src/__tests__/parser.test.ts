@@ -7,8 +7,6 @@ import {
 } from '../parser';
 
 describe('parseAllKudos', () => {
-  // -- existing kudos behavior (no tips) --
-
   it('parses basic @handle ++', () => {
     const r = parseAllKudos('@ack_onchain @agent0 ++');
     expect(r).toHaveLength(1);
@@ -99,8 +97,6 @@ describe('parseAllKudos', () => {
     expect(r[0].sentiment).toBe('negative');
   });
 
-  // -- tip amount parsing --
-
   it('parses $5 tip', () => {
     const r = parseAllKudos('@ack_onchain @agent0 ++ $5');
     expect(r[0].tipAmountUsd).toBe(5);
@@ -151,23 +147,17 @@ describe('parseAllKudos', () => {
     expect(r[0].tipAmountUsd).toBe(2.5);
   });
 
-  // -- bare ++/-- (kudos to ACK itself) with tips --
-
   it('parses bare ++ $5 as tip to ack_onchain', () => {
     const r = parseAllKudos('@ack_onchain ++ $5');
     expect(r[0].targetHandle).toBe('ack_onchain');
     expect(r[0].tipAmountUsd).toBe(5);
   });
 
-  // -- reverse order with tips --
-
   it('parses reverse order ++ $3 @handle', () => {
     const r = parseAllKudos('@ack_onchain ++ $3 @agent0');
     expect(r[0].targetHandle).toBe('agent0');
     expect(r[0].tipAmountUsd).toBe(3);
   });
-
-  // -- natural language fallback has no tip --
 
   it('natural language fallback has no tip', () => {
     const r = parseAllKudos(
@@ -182,7 +172,6 @@ describe('parseAllKudos', () => {
     const r = parseAllKudos(
       '@ack_onchain after dark\n\nasked claude code to build the critical e2e flows. all passing on @AbstractChain.'
     );
-    // Natural language fallback may match, but isExplicit should be false
     for (const cmd of r) {
       expect(cmd.isExplicit).toBe(false);
     }

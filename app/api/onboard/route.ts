@@ -47,7 +47,6 @@ async function searchAgentsByAddress(
  * Requires: X-SIWA-Receipt header + ERC-8128 signed request.
  */
 export const POST = withSiwa(async (agent) => {
-  // Rate limit: 30 requests/hour per address
   const rateLimit = limiter.check(agent.address);
   if (!rateLimit.allowed) {
     return new Response(
@@ -68,7 +67,6 @@ export const POST = withSiwa(async (agent) => {
     );
   }
 
-  // Search 8004scan across all chains for this address
   let data: ScanAgentsResponse;
   try {
     data = await searchAgentsByAddress(agent.address);
@@ -79,7 +77,6 @@ export const POST = withSiwa(async (agent) => {
     );
   }
 
-  // Filter to agents where this address is owner, creator, or agent wallet
   const addr = agent.address.toLowerCase();
   const matches = (data.items || []).filter(
     (a) =>
@@ -89,10 +86,8 @@ export const POST = withSiwa(async (agent) => {
   );
 
   if (matches.length > 0) {
-    // Collect unique chains the agent is registered on
     const chains = [...new Set(matches.map((a) => a.chain_id))];
 
-    // Use the first match as the primary agent identity
     const primary = matches[0];
 
     return {
@@ -129,7 +124,6 @@ export const POST = withSiwa(async (agent) => {
   });
   const baseCalldata = appendBuilderCodeCalldata(registerCalldata, base.id);
 
-  // Check for pending vouches — incentivizes registration
   const pending = getVouches(agent.address);
 
   return {

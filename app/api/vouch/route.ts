@@ -51,7 +51,6 @@ export const POST = withSiwa(async (agent, req) => {
   const body = await req.json();
   const { targetAddress, message, category: rawCategory } = body;
 
-  // --- Validate targetAddress ---
   if (
     !targetAddress ||
     typeof targetAddress !== 'string' ||
@@ -65,7 +64,6 @@ export const POST = withSiwa(async (agent, req) => {
     );
   }
 
-  // --- Validate message ---
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return new Response(
       JSON.stringify({ error: 'Non-empty message required' }),
@@ -80,7 +78,6 @@ export const POST = withSiwa(async (agent, req) => {
     );
   }
 
-  // --- Prevent self-vouch ---
   if (agent.address.toLowerCase() === targetAddress.toLowerCase()) {
     return new Response(
       JSON.stringify({ error: 'Cannot vouch for yourself' }),
@@ -88,7 +85,6 @@ export const POST = withSiwa(async (agent, req) => {
     );
   }
 
-  // --- Rate limit: 5 vouches/hour per agent ---
   const rateLimit = limiter.check(agent.address);
   if (!rateLimit.allowed) {
     return new Response(
@@ -107,7 +103,6 @@ export const POST = withSiwa(async (agent, req) => {
     );
   }
 
-  // --- Check if target is already registered ---
   let targetRegistered: boolean;
   try {
     targetRegistered = await isRegistered(targetAddress);
@@ -126,13 +121,11 @@ export const POST = withSiwa(async (agent, req) => {
     });
   }
 
-  // --- Resolve category ---
   const category: KudosCategory =
     rawCategory && KUDOS_CATEGORIES.includes(rawCategory)
       ? rawCategory
       : 'reliability';
 
-  // --- Store pending vouch ---
   const result = addVouch(targetAddress, {
     from: agent.address,
     category,

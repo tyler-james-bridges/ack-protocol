@@ -201,10 +201,8 @@ export default function AgentProfilePage({
 
       <div className="mx-auto max-w-5xl px-4 pt-6 pb-16">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
-          {/* LEFT COLUMN - Profile Sidebar */}
           <aside className="w-full lg:w-80 shrink-0 space-y-4">
             <div className="space-y-4 rounded-xl border border-border bg-card p-5">
-              {/* Identity header */}
               <div className="flex items-start gap-3.5">
                 <AgentAvatar
                   name={agent.name}
@@ -262,7 +260,6 @@ export default function AgentProfilePage({
                 </p>
               )}
 
-              {/* Social Links */}
               {(() => {
                 const links: { type: string; url: string }[] = [];
                 const svc = agent.services || {};
@@ -328,7 +325,6 @@ export default function AgentProfilePage({
                 );
               })()}
 
-              {/* Score + Stats */}
               <div className="rounded-xl border border-border bg-muted/60 p-4">
                 <div className="flex items-center gap-4">
                   <div className="shrink-0 text-center">
@@ -398,7 +394,6 @@ export default function AgentProfilePage({
                 </div>
               </div>
 
-              {/* Category Badges */}
               {sortedCategories.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">
@@ -416,7 +411,6 @@ export default function AgentProfilePage({
                 </div>
               )}
 
-              {/* Tip with USDC */}
               {agent.owner_address && (
                 <TipAgent
                   agentName={agent.name}
@@ -426,7 +420,6 @@ export default function AgentProfilePage({
                 />
               )}
 
-              {/* Give Kudos CTAs */}
               <div className="flex gap-2">
                 <Button
                   className="flex-1"
@@ -477,7 +470,6 @@ export default function AgentProfilePage({
                 </a>
               </div>
 
-              {/* On-Chain Info */}
               <details
                 open
                 className="group border border-border overflow-hidden"
@@ -515,7 +507,6 @@ export default function AgentProfilePage({
                 </div>
               </details>
 
-              {/* Protocols & Tags */}
               {((agent?.supported_protocols?.length ?? 0) > 0 ||
                 (agent?.tags?.length ?? 0) > 0) && (
                 <details
@@ -580,7 +571,6 @@ export default function AgentProfilePage({
                 </details>
               )}
 
-              {/* 8004scan link */}
               <a
                 href={`https://www.8004scan.io/agents/${getChainSlug(agent.chain_id)}/${agent.token_id}`}
                 target="_blank"
@@ -605,7 +595,6 @@ export default function AgentProfilePage({
             </div>
           </aside>
 
-          {/* RIGHT COLUMN - Kudos Feed + Form */}
           <main className="flex-1 min-w-0 space-y-6">
             {agent.agent_wallet ? (
               <CrossChainRep agentAddress={agent.agent_wallet} />

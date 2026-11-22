@@ -125,7 +125,6 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
 
-    // Handle initialize requests (MCP protocol handshake)
     if (body.method === 'initialize') {
       return NextResponse.json({
         jsonrpc: '2.0',
@@ -154,7 +153,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Handle ping
     if (body.method === 'ping') {
       return NextResponse.json({
         jsonrpc: '2.0',
@@ -163,7 +161,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Handle prompts/list requests
     if (body.method === 'prompts/list') {
       return NextResponse.json({
         jsonrpc: '2.0',
@@ -211,7 +208,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Handle resources/list requests
     if (body.method === 'resources/list') {
       return NextResponse.json({
         jsonrpc: '2.0',
@@ -237,7 +233,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Handle tools/list requests
     if (body.method === 'tools/list') {
       return NextResponse.json({
         jsonrpc: '2.0',
@@ -361,7 +356,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Handle tools/call requests
     if (body.method === 'tools/call') {
       const { name, arguments: args } = body.params;
 
@@ -441,7 +435,6 @@ export async function POST(request: NextRequest) {
             `agents/${chain_id}/${token_id}`
           );
 
-          // Extract and format reputation/scoring data
           const reputation = {
             agent_id: `${chain_id}:${token_id}`,
             name: data.name,

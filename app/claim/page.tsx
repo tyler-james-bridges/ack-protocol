@@ -67,7 +67,6 @@ export default function ClaimPage() {
     }
   }
 
-  // Poll for claim status
   useEffect(() => {
     if (status !== 'pending' || !handle) return;
 
@@ -120,7 +119,6 @@ export default function ClaimPage() {
           </p>
         </div>
 
-        {/* Step indicators */}
         <div className="flex items-center justify-center gap-2 mb-8">
           {(['handle', 'agent', 'post'] as const).map((s, i) => (
             <div key={s} className="flex items-center gap-2">
@@ -175,7 +173,6 @@ export default function ClaimPage() {
           </div>
         ) : (
           <div className="border border-border bg-background p-6 space-y-5 card-glow">
-            {/* Step 1: Handle + Wallet */}
             <div>
               <label className="block text-sm font-medium mb-1.5">
                 X Handle <span className="text-red-400">*</span>
@@ -197,7 +194,6 @@ export default function ClaimPage() {
               </div>
             </div>
 
-            {/* Wallet connection */}
             {!isConnected ? (
               <Button
                 onClick={() => openConnectModal?.()}
@@ -217,7 +213,6 @@ export default function ClaimPage() {
                   </div>
                 </div>
 
-                {/* Step 2: Select Agent */}
                 {step !== 'post' && (
                   <div>
                     <label className="block text-sm font-medium mb-1.5">
@@ -236,7 +231,6 @@ export default function ClaimPage() {
                   </div>
                 )}
 
-                {/* Step 3: Post Challenge */}
                 {step === 'post' && challenge && (
                   <div className="space-y-3">
                     <p className="text-sm text-muted-foreground">
@@ -283,14 +277,12 @@ export default function ClaimPage() {
                   </div>
                 )}
 
-                {/* Error */}
                 {error && (
                   <div className="rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-400">
                     {error}
                   </div>
                 )}
 
-                {/* Submit button (steps 1+2) */}
                 {step !== 'post' && (
                   <Button
                     onClick={() => {
@@ -321,7 +313,6 @@ export default function ClaimPage() {
           </div>
         )}
 
-        {/* Info box */}
         <div className="mt-8 border border-border bg-muted p-4 space-y-2">
           <p className="text-xs font-medium text-muted-foreground ">
             How it works

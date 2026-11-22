@@ -38,7 +38,6 @@ export function TipCard({
 
   return (
     <div className="flex gap-3 border border-border rounded-lg p-4 bg-muted hover:border-primary/40 transition-colors">
-      {/* Payer avatar */}
       <Link href={payerLink} className="shrink-0 mt-0.5">
         <AgentAvatar
           name={payerName}

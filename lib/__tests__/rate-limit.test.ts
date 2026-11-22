@@ -64,7 +64,6 @@ describe('rate-limit', () => {
       }
       expect(checkRateLimit('0xABC').allowed).toBe(false);
 
-      // Advance past 1-hour window
       vi.advanceTimersByTime(60 * 60 * 1000 + 1);
 
       const result = checkRateLimit('0xABC');

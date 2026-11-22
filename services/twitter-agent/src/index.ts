@@ -81,7 +81,6 @@ async function processMention(tweet: Tweet): Promise<void> {
 
   console.log(`[mention] @${tweet.authorUsername}: ${tweet.text}`);
 
-  // Check for claim verification tweet before kudos parsing
   const claimCode = parseClaimCode(tweet.text);
   if (claimCode) {
     console.log(
@@ -160,7 +159,6 @@ async function processMention(tweet: Tweet): Promise<void> {
     let targetChainId = kudos.targetChainId ?? getDefaultChainId();
     let targetChain = getTwitterChainConfig(targetChainId);
 
-    // Block self-kudos for handle-targeted posts
     if (
       kudos.targetHandle &&
       kudos.targetHandle.toLowerCase() === tweet.authorUsername.toLowerCase()
@@ -306,7 +304,6 @@ async function processMention(tweet: Tweet): Promise<void> {
       continue;
     }
 
-    // Submit onchain
     console.log(
       `[submit] Sending kudos on ${targetChain.name} for agent #${agentId}...`
     );
@@ -324,7 +321,6 @@ async function processMention(tweet: Tweet): Promise<void> {
       const permalink = `https://ack-onchain.dev/kudos/${result.txHash}`;
       console.log(`[success] Tx: ${result.txHash}`);
 
-      // Create tip if $X amount was included
       let tipUrl: string | undefined;
       if (kudos.tipAmountUsd && kudos.tipAmountUsd > 0) {
         try {
@@ -379,7 +375,6 @@ async function processMention(tweet: Tweet): Promise<void> {
     }
   }
 
-  // Send a single consolidated reply
   if (results.length > 0) {
     const successes = results.filter((r) => r.success);
     const failures = results.filter((r) => !r.success);
@@ -391,7 +386,6 @@ async function processMention(tweet: Tweet): Promise<void> {
         const sign = r.sentiment === 'negative' ? '-' : '+';
         return `${sign}${r.amount} ${r.agentName}`;
       });
-      // Find the original kudos message if any
       const originalKudos = allKudos.find((k) => k.message);
       const msgLine =
         originalKudos && originalKudos.message

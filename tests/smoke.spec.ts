@@ -16,7 +16,6 @@ test.describe('Smoke Tests', () => {
     await expect(
       page.getByRole('button', { name: /connect/i }).first()
     ).toBeVisible();
-    // Nav links present
     await expect(
       page.getByRole('link', { name: 'Explore' }).first()
     ).toBeVisible();
@@ -56,9 +55,7 @@ test.describe('Smoke Tests', () => {
 
   test('kudos feed does not show raw JSON', async ({ page }) => {
     await page.goto('/kudos');
-    // Wait for feed to load
     await page.waitForTimeout(5000);
-    // No raw JSON blobs should be visible as kudos messages
     const cards = page.locator('text=/"agentId"/');
     expect(await cards.count()).toBe(0);
   });

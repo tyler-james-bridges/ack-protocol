@@ -84,7 +84,6 @@ export function RecentReviews() {
 
   return (
     <div className="border border-border dark:border-neutral-800 bg-card">
-      {/* Live indicator */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800/30">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
@@ -102,7 +101,6 @@ export function RecentReviews() {
         )}
       </div>
 
-      {/* Table header */}
       <div className="grid grid-cols-[1fr_80px_60px_100px] sm:grid-cols-[1fr_100px_70px_140px] gap-2 px-4 py-2.5 border-b border-border dark:border-neutral-800 text-[10px] font-bold tracking-wider text-muted-foreground">
         <span>AGENT</span>
         <span>CHAIN</span>
@@ -110,7 +108,6 @@ export function RecentReviews() {
         <span className="text-right">TX PROOF</span>
       </div>
 
-      {/* Rows */}
       {shown.map((r, i) => (
         <div
           key={r.txHash}
@@ -118,10 +115,8 @@ export function RecentReviews() {
             i < shown.length - 1 ? 'border-b border-neutral-800/50' : ''
           } hover:bg-muted/20 transition-colors`}
         >
-          {/* Agent name */}
           <div className="truncate font-medium">{r.name}</div>
 
-          {/* Chain badge */}
           <div className="flex items-center gap-1.5">
             <span
               className="w-2 h-2 inline-block shrink-0"
@@ -135,12 +130,10 @@ export function RecentReviews() {
             </span>
           </div>
 
-          {/* Rating */}
           <div className="text-right text-emerald-500 font-bold">
             {r.rating}/100
           </div>
 
-          {/* TX link */}
           <div className="text-right">
             <a
               href={r.explorerUrl}
@@ -169,7 +162,6 @@ export function RecentReviews() {
         </div>
       ))}
 
-      {/* Show more / less */}
       {reviews.length > 8 && (
         <button
           onClick={() => setExpanded(!expanded)}

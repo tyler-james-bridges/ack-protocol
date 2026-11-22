@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
   const sql = getDb();
 
   try {
-    // Tips received by this agent
     const received = agentId
       ? await sql`
           SELECT id, amount_usd, from_address, completed_at, payment_tx_hash
@@ -37,7 +36,6 @@ export async function GET(request: NextRequest) {
         `
       : [];
 
-    // Tips given by this wallet
     const given = wallet
       ? await sql`
           SELECT id, agent_id, amount_usd, completed_at, payment_tx_hash, kudos_tx_hash

@@ -131,9 +131,7 @@ export function LiveKudosFeed() {
     sortBy: 'total_score',
   });
 
-  // Build agent lookup: tokenId → ScanAgent
   const agentMap = new Map<number, ScanAgent>();
-  // Build sender lookup: lowercase address → ScanAgent
   const senderMap = new Map<string, ScanAgent>();
   if (agents) {
     for (const agent of agents) {
@@ -151,7 +149,6 @@ export function LiveKudosFeed() {
   const blockNumbers = recent?.map((k) => k.blockNumber) || [];
   const { data: timestamps } = useBlockTimestamps(blockNumbers);
 
-  // Fetch streaks for all recent senders
   const senderAddresses = [
     ...new Set(recent?.map((k) => k.sender.toLowerCase()) || []),
   ];
@@ -159,7 +156,6 @@ export function LiveKudosFeed() {
 
   return (
     <div className="rounded-lg border border-border overflow-hidden bg-background/80 flex flex-col">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
@@ -176,7 +172,6 @@ export function LiveKudosFeed() {
         </Link>
       </div>
 
-      {/* Feed list */}
       <div>
         {isLoading ? (
           <div className="space-y-0">

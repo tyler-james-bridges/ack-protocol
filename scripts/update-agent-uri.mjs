@@ -62,7 +62,6 @@ async function main() {
     transport: http(),
   });
 
-  // Fetch current onchain URI
   const currentURI = await publicClient.readContract({
     address: IDENTITY_REGISTRY,
     abi,
@@ -70,7 +69,6 @@ async function main() {
     args: [AGENT_ID],
   });
 
-  // Decode current data URI
   const b64 = currentURI.split(',')[1];
   const current = JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'));
   console.log('Current keys:', Object.keys(current));
@@ -95,7 +93,6 @@ async function main() {
     }
   }
 
-  // Remove agentWallet from off-chain metadata if present
   if (current.agentWallet) {
     console.log('Removing agentWallet from off-chain metadata...');
     delete current.agentWallet;
@@ -107,12 +104,10 @@ async function main() {
     return;
   }
 
-  // Re-encode
   const newJSON = JSON.stringify(current);
   const newURI = `data:application/json;base64,${Buffer.from(newJSON).toString('base64')}`;
   console.log('New URI length:', newURI.length);
 
-  // Submit tx
   console.log('Sending setAgentURI tx...');
   const hash = await walletClient.writeContract({
     address: IDENTITY_REGISTRY,
@@ -124,7 +119,6 @@ async function main() {
   console.log('Tx hash:', hash);
   console.log('Abscan:', `https://abscan.org/tx/${hash}`);
 
-  // Wait for confirmation
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   console.log('Confirmed in block:', receipt.blockNumber.toString());
   console.log('Done. Onchain agentURI updated.');

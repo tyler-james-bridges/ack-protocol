@@ -58,7 +58,6 @@ export default function KudosTxPage({
           setData(json);
           setError(null);
 
-          // Fetch tip data for this kudos
           fetch('/api/tips/by-kudos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

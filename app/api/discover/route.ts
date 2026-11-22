@@ -6,7 +6,6 @@ import { getFeedbackByAgentId, type FeedbackEvent } from '@/lib/feedback-cache';
 
 const API_BASE = 'https://www.8004scan.io/api/v1';
 
-// 30 requests/minute per IP
 const limiter = new RateLimiter({ windowMs: 60_000, maxRequests: 30 });
 
 // Cache discovered results for 2 minutes keyed by query string
@@ -57,7 +56,6 @@ const MAX_LIMIT = 50;
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
 
-  // Rate limit by IP
   const ip = clientIp(request);
   const rl = limiter.check(ip);
   if (!rl.allowed) {
@@ -74,7 +72,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Parse and validate query params
   const category = searchParams.get('category') || undefined;
   const chain = searchParams.get('chain');
   const limitParam = parseInt(searchParams.get('limit') || '20', 10);
@@ -100,7 +97,6 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(Math.max(1, limitParam), MAX_LIMIT);
   const offset = Math.max(0, offsetParam);
 
-  // Check cache
   const cacheKey = `${chain || 'all'}:${category || 'all'}:${minScore}:${limit}:${offset}`;
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
@@ -132,8 +128,6 @@ export async function GET(request: NextRequest) {
       (a) => !a.is_testnet && a.total_score >= minScore
     );
 
-    // If category filter is set, we need feedback data to filter by kudos category.
-    // Fetch feedback for candidate agents in parallel.
     const enriched: DiscoverAgent[] = [];
 
     if (category) {
@@ -147,7 +141,6 @@ export async function GET(request: NextRequest) {
         )
       );
 
-      // Filter to agents that have kudos in the requested category
       for (const agent of withFeedback) {
         if (agent.categories[category as KudosCategory] > 0) {
           enriched.push(agent);
@@ -167,7 +160,6 @@ export async function GET(request: NextRequest) {
       enriched.push(...withFeedback);
     }
 
-    // Apply pagination (for category-filtered results where we fetched all first)
     const paginatedAgents = category
       ? enriched.slice(offset, offset + limit)
       : enriched;

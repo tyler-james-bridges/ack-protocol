@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
   const sql = getDb();
 
   try {
-    // Return completed standalone tips (no kudos link) for this agent
     const rows = await sql`
       SELECT id, chain_id, agent_id, amount_usd, from_address, to_address,
              payment_tx_hash, completed_at, kudos_tx_hash
@@ -35,7 +34,6 @@ export async function GET(request: NextRequest) {
       LIMIT ${limit}
     `;
 
-    // Resolve payer agent info via 8004scan
     const items = await Promise.all(
       rows.map(async (row: Record<string, unknown>) => {
         const fromAddress = String(row.from_address);

@@ -17,7 +17,6 @@ import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
 const API_BASE = 'https://www.8004scan.io/api/v1';
 const API_KEY = process.env.EIGHTOOSCAN_API_KEY;
 
-// In-memory task store
 interface A2ATask {
   id: string;
   status: 'completed' | 'failed';
@@ -70,11 +69,9 @@ function generateTaskId(): string {
 async function processTaskMessage(text: string): Promise<any> {
   const lower = text.toLowerCase();
 
-  // Extract agent/token IDs from text (e.g., "agent 606", "token 42", "#606")
   const idMatch = lower.match(/(?:agent|token|#)\s*(\d+)/);
   const tokenId = idMatch ? parseInt(idMatch[1], 10) : null;
 
-  // Extract chain ID if specified. Default is Base.
   const chainMatch = lower.match(/(?:chain|chainid|chain_id)\s*(\d+)/);
   let chainId = chainMatch
     ? parseInt(chainMatch[1], 10)
@@ -85,7 +82,6 @@ async function processTaskMessage(text: string): Promise<any> {
     else if (/\b(?:ethereum|mainnet)\b/.test(lower)) chainId = 1;
   }
 
-  // Route: feedback/kudos queries
   if (
     tokenId &&
     (lower.includes('feedback') ||
@@ -103,7 +99,6 @@ async function processTaskMessage(text: string): Promise<any> {
     };
   }
 
-  // Route: reputation queries
   if (
     tokenId &&
     (lower.includes('reputation') ||
@@ -123,7 +118,6 @@ async function processTaskMessage(text: string): Promise<any> {
     };
   }
 
-  // Route: specific agent lookup
   if (tokenId) {
     const data = await apiRequest(`agents/${chainId}/${tokenId}`);
     return {
@@ -132,7 +126,6 @@ async function processTaskMessage(text: string): Promise<any> {
     };
   }
 
-  // Route: leaderboard queries
   if (
     lower.includes('leaderboard') ||
     lower.includes('top agents') ||
@@ -160,7 +153,6 @@ async function processTaskMessage(text: string): Promise<any> {
     };
   }
 
-  // Route: search queries (default)
   const searchQuery = text.trim();
   const params = new URLSearchParams({
     search: searchQuery,

@@ -105,7 +105,6 @@ export function TipAgent({
         const signerAddress =
           walletClient.account?.address ?? (address as `0x${string}`);
 
-        // 1. Create tip record
         const tipRes = await fetch('/api/tips', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -124,7 +123,6 @@ export function TipAgent({
         }
         const { tipId } = await tipRes.json();
 
-        // 2. Pay via x402 facilitator
         const { wrapFetchWithPaymentFromConfig } = await import('@x402/fetch');
         const { ExactEvmScheme } = await import('@x402/evm/exact/client');
 
@@ -294,7 +292,6 @@ export function TipAgent({
         </span>
       </div>
 
-      {/* Token toggle */}
       <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
         {tokenOptions.map((t) => (
           <button
@@ -323,7 +320,6 @@ export function TipAgent({
           : `Send PENGU to ${agentName}'s owner wallet. Direct transfer on Abstract.`}
       </p>
 
-      {/* Amount presets + custom input */}
       <div className="flex gap-2">
         {TIP_PRESETS.map((preset) => (
           <button
@@ -374,7 +370,6 @@ export function TipAgent({
         </span>
       </div>
 
-      {/* Send button */}
       {isSelf ? (
         <p className="text-xs text-muted-foreground text-center">
           You own this agent.

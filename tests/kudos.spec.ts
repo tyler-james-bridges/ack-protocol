@@ -8,7 +8,6 @@ test.describe('Kudos Page', () => {
 
   test('shows connect wallet prompt when not connected', async ({ page }) => {
     await page.goto('/kudos');
-    // When not connected, should show connect button or wallet prompt
     const connectBtn = page.getByRole('button', { name: /connect/i });
     await expect(connectBtn.first()).toBeVisible();
   });

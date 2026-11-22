@@ -58,8 +58,6 @@ export function useAckMetadata(agentId: number | undefined) {
   const enabled = agentId !== undefined;
   const agentIdBigInt = enabled ? BigInt(agentId) : BigInt(0);
 
-  // --- Reads ---
-
   const { data: rawScore, refetch: refetchScore } = useReadContract({
     address: IDENTITY_REGISTRY_ADDRESS,
     abi: IDENTITY_REGISTRY_ABI,
@@ -101,8 +99,6 @@ export function useAckMetadata(agentId: number | undefined) {
     refetchKudosCount();
     refetchTopCategory();
   }, [refetchScore, refetchKudosCount, refetchTopCategory]);
-
-  // --- Write (gasless) ---
 
   const [writeStatus, setWriteStatus] = useState<WriteStatus>('idle');
   const [writeError, setWriteError] = useState<Error | null>(null);

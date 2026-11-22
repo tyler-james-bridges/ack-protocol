@@ -101,7 +101,6 @@ describe('vouch-store', () => {
       addVouch('0xTarget', makeVouch());
       expect(getVouches('0xTarget').count).toBe(1);
 
-      // Advance 31 days
       vi.advanceTimersByTime(31 * 24 * 60 * 60 * 1000);
 
       expect(getVouches('0xTarget').count).toBe(0);
@@ -111,7 +110,6 @@ describe('vouch-store', () => {
       const { addVouch, getVouches } = await getModule();
       addVouch('0xTarget', makeVouch());
 
-      // Advance 29 days
       vi.advanceTimersByTime(29 * 24 * 60 * 60 * 1000);
 
       expect(getVouches('0xTarget').count).toBe(1);

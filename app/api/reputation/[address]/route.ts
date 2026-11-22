@@ -10,10 +10,8 @@ import {
 
 const API_BASE = 'https://www.8004scan.io/api/v1';
 
-// 60 requests/minute per IP
 const limiter = new RateLimiter({ windowMs: 60_000, maxRequests: 60 });
 
-// Simple in-memory cache — 5 minute TTL
 const cache = new Map<string, { data: ReputationResponse; ts: number }>();
 const CACHE_TTL = 5 * 60_000;
 
@@ -49,7 +47,6 @@ export async function GET(
 ) {
   const { address } = await params;
 
-  // Validate Ethereum address
   if (!ETH_ADDRESS.test(address)) {
     return NextResponse.json(
       { error: 'Invalid Ethereum address' },
@@ -57,7 +54,6 @@ export async function GET(
     );
   }
 
-  // Rate limit by IP
   const ip = clientIp(request);
   const rl = limiter.check(ip);
   if (!rl.allowed) {
@@ -74,7 +70,6 @@ export async function GET(
     );
   }
 
-  // Check cache
   const cacheKey = address.toLowerCase();
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
@@ -88,7 +83,6 @@ export async function GET(
   }
 
   try {
-    // Fetch agents owned by this address — paginate to get up to 200
     const agentsOwned = await fetchAgentsByOwner(address);
 
     if (agentsOwned.length === 0) {
@@ -110,7 +104,6 @@ export async function GET(
       });
     }
 
-    // Fetch feedback for each agent from shared cache
     const feedbackResults = await Promise.all(
       agentsOwned.map((agent) =>
         getFeedbackByAgentId(Number(agent.token_id), agent.chain_id).then(
@@ -122,13 +115,11 @@ export async function GET(
       )
     );
 
-    // Aggregate
     const categories = emptyCategoryCounts();
     let totalKudos = 0;
     const agents: AgentReputation[] = [];
 
     for (const { agent, feedbacks } of feedbackResults) {
-      // Count kudos from feedbacks where tag1 === "kudos"
       const kudosFeedbacks = feedbacks.filter((f) => f.tag1 === 'kudos');
       totalKudos += kudosFeedbacks.length;
 
@@ -147,10 +138,7 @@ export async function GET(
       });
     }
 
-    // Include proxy kudos for handles linked to these agents.
     // Proxy kudos are stored as tag1==='proxy', tag2==='x:<handle>' on agent #606.
-    // We scan all feedback events for proxy entries where the handle is linked
-    // to one of the user's agents (linkedAgentId matches).
     try {
       const allEvents = await getAllFeedbackEvents();
       const agentIdSet = new Set(agents.map((a) => a.agentId));
@@ -158,14 +146,6 @@ export async function GET(
         (e) => e.tag1 === 'proxy' && e.tag2.startsWith('x:')
       );
 
-      // For each proxy event, check if the handle maps to one of this user's agents.
-      // We do a lightweight check: look for any proxy feedback where the linked agent
-      // is in our set. Since we can't query HandleRegistry here efficiently, we use
-      // the feedback-cache approach: count proxy events on agent #606 where the handle
-      // is linked to the user's agents. We check by scanning for any feedback on the
-      // user's agents that would indicate a link. For MVP, we use a simpler approach:
-      // fetch linked handles via the HandleRegistry for each agent.
-      // Since this is a cached endpoint, the cost is acceptable.
       if (proxyEvents.length > 0) {
         const { createPublicClient: createClient, http: httpTransport } =
           await import('viem');
@@ -213,12 +193,10 @@ export async function GET(
           },
         ] as const;
 
-        // Collect unique handles from proxy events
         const uniqueHandles = [
           ...new Set(proxyEvents.map((e) => e.tag2.replace('x:', ''))),
         ];
 
-        // Check which handles are linked to user's agents
         for (const handle of uniqueHandles) {
           try {
             const hash = await rpcClient.readContract({
@@ -249,7 +227,6 @@ export async function GET(
       // Proxy kudos lookup is best-effort — don't fail the whole request
     }
 
-    // Aggregated score: average of all agent scores (weighted equally)
     const aggregatedScore =
       agents.length > 0
         ? Math.round(
@@ -258,7 +235,6 @@ export async function GET(
           ) / 10
         : 0;
 
-    // Top category: the one with the most kudos
     const topCategory =
       totalKudos > 0
         ? (Object.entries(categories).sort(
@@ -299,13 +275,11 @@ async function fetchAgentsByOwner(ownerAddress: string): Promise<ScanAgent[]> {
   const pageSize = 100;
   const results: ScanAgent[] = [];
 
-  // Fetch first page to get total count
   const first = await scanFetch<ScanAgentsResponse>(
     `agents?owner_address=${ownerAddress}&limit=${pageSize}&offset=0`
   );
   results.push(...(first.items || []));
 
-  // If there are more, fetch remaining pages in parallel
   if (first.total > pageSize) {
     const remaining = Math.min(Math.ceil(first.total / pageSize), 3) - 1;
     const pages = await Promise.all(
@@ -320,7 +294,6 @@ async function fetchAgentsByOwner(ownerAddress: string): Promise<ScanAgent[]> {
     }
   }
 
-  // Filter out testnets, dedupe by id
   const seen = new Set<string>();
   return results.filter((a) => {
     if (a.is_testnet || seen.has(a.id)) return false;

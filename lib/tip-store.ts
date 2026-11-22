@@ -86,7 +86,6 @@ export async function resolveAgentByWallet(
   }
 
   try {
-    // Search 8004scan for agents matching this wallet
     const baseUrl = 'https://www.8004scan.io/api/v1';
     const res = await fetch(`${baseUrl}/agents?search=${addressKey}&limit=50`);
     if (!res.ok) {

@@ -73,7 +73,6 @@ export default function RegisterPage() {
     chainId: selectedChainId,
   });
 
-  // Check if wallet already has an agent on selected chain
   const { data: existingBalance } = useReadContract({
     address: IDENTITY_REGISTRY_ADDRESS,
     abi: [
@@ -94,7 +93,6 @@ export default function RegisterPage() {
     ? Number(existingBalance) > 0
     : false;
 
-  // Persist registration data for profile page preview
   useEffect(() => {
     if (txConfirmed && name && address) {
       localStorage.setItem(
@@ -160,7 +158,6 @@ export default function RegisterPage() {
     setStatus('uploading');
 
     try {
-      // Build spec-compliant metadata
       const validServices = services.filter((s) => s.endpoint.trim());
 
       const metadata: Record<string, unknown> = {
@@ -174,7 +171,6 @@ export default function RegisterPage() {
         metadata.image = imageUrl.trim();
       }
 
-      // Services array
       const allServices = validServices.map((s) => ({
         name: s.protocol,
         endpoint: s.endpoint.trim(),
@@ -184,7 +180,6 @@ export default function RegisterPage() {
         metadata.services = allServices;
       }
 
-      // Encode as base64 data URI
       const encoded = btoa(
         unescape(encodeURIComponent(JSON.stringify(metadata)))
       );
@@ -227,7 +222,6 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Value Proposition */}
         <div className="mb-8 space-y-3 rounded-xl border border-border bg-card p-5">
           <div className="flex items-start gap-3">
             <span
@@ -309,7 +303,6 @@ export default function RegisterPage() {
               </Button>
             </div>
 
-            {/* Preview of registration form */}
             <div className="border border-border bg-background p-6 space-y-5 opacity-50 pointer-events-none">
               <div>
                 <label className="block text-sm font-medium mb-1.5">
@@ -420,7 +413,6 @@ export default function RegisterPage() {
           </div>
         ) : (
           <div className="border border-border bg-background p-6 space-y-5 ">
-            {/* Name */}
             <div>
               <label className="block text-sm font-medium mb-1.5">
                 Agent Name <span className="text-foreground">*</span>
@@ -439,7 +431,6 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Description */}
             <div>
               <label className="block text-sm font-medium mb-1.5">
                 Description <span className="text-foreground">*</span>
@@ -458,7 +449,6 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Network selector */}
             <div>
               <label className="block text-sm font-medium mb-1.5">
                 Network
@@ -483,7 +473,6 @@ export default function RegisterPage() {
               )}
             </div>
 
-            {/* Wallet (auto) */}
             <div>
               <label className="block text-sm font-medium mb-1.5">
                 Owner Wallet
@@ -493,7 +482,6 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Advanced toggle */}
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
@@ -509,7 +497,6 @@ export default function RegisterPage() {
 
             {showAdvanced && (
               <div className="space-y-5 border-t border-border pt-4">
-                {/* Image URL */}
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
                     Image URL
@@ -527,7 +514,6 @@ export default function RegisterPage() {
                   </p>
                 </div>
 
-                {/* Services */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-sm font-medium">
@@ -598,7 +584,6 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Already registered warning */}
             {alreadyRegistered && (
               <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-3 py-2 text-sm text-foreground">
                 This wallet already has an agent registered on{' '}
@@ -606,14 +591,12 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Error */}
             {finalStatus === 'error' && error && (
               <div className="border border-border px-3 py-2 text-sm text-foreground">
                 {error}
               </div>
             )}
 
-            {/* Submit */}
             <Button
               onClick={handleRegister}
               disabled={

@@ -62,7 +62,6 @@ export default function ReviewsPage() {
           </div>
         </div>
 
-        {/* Activity Heatmap — GitHub contribution style hero */}
         <section className="mb-10">
           <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             REVIEW ACTIVITY
@@ -75,7 +74,6 @@ export default function ReviewsPage() {
           />
         </section>
 
-        {/* Recent Reviews — live on-chain proof, polls every 30s */}
         <section className="mb-10">
           <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             RECENT REVIEWS
@@ -84,7 +82,6 @@ export default function ReviewsPage() {
           <RecentReviews />
         </section>
 
-        {/* Chain Distribution */}
         <section className="mb-10">
           <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             CHAIN DISTRIBUTION
@@ -93,7 +90,6 @@ export default function ReviewsPage() {
           <ChainBars chains={data.chains} />
         </section>
 
-        {/* Cumulative Timeline */}
         <section className="mb-10">
           <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             CUMULATIVE REVIEWS
@@ -102,7 +98,6 @@ export default function ReviewsPage() {
           <TimelineChart byDate={data.byDate} />
         </section>
 
-        {/* Network Graph */}
         <section className="mb-10">
           <h2 className="text-sm font-bold tracking-wider mb-3 flex items-center gap-3">
             REVIEW NETWORK
@@ -111,7 +106,6 @@ export default function ReviewsPage() {
           <NetworkGraph chains={data.chains} total={data.total} />
         </section>
 
-        {/* Footer */}
         <div className="text-center pt-8 border-t border-border dark:border-neutral-800">
           <p className="text-xs text-muted-foreground">
             ACK — on-chain agent feedback via{' '}

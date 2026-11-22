@@ -35,7 +35,6 @@ async function main(): Promise<void> {
   agent.on('entry', async (session: JobSession, entry: JobRoomEntry) => {
     if (!session.roles.includes('provider')) return;
 
-    // Set budget when requirement message arrives.
     if (entry.kind === 'message' && entry.contentType === 'requirement') {
       if (budgetSet.has(session.jobId)) return;
       const req = parseRequirement(entry.content);
@@ -60,7 +59,6 @@ async function main(): Promise<void> {
       return;
     }
 
-    // Submit deliverable once funded.
     if (
       entry.kind === 'system' &&
       (entry as SystemEntry).event.type === 'job.funded'

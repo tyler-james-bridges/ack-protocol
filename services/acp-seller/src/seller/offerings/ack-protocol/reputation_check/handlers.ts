@@ -39,13 +39,11 @@ export async function executeJob(request: any): Promise<ExecuteJobResult> {
 
   let agent: any = null;
 
-  // Try chain:id format
   const colonMatch = agentQuery.match(/^(\d+):(\d+)$/);
   if (colonMatch) {
     agent = await fetchAgent(Number(colonMatch[1]), colonMatch[2]);
   }
 
-  // Try pure numeric (token ID) with optional chain filter
   if (!agent && /^\d+$/.test(agentQuery)) {
     const chains =
       chainFilter && CHAIN_MAP[chainFilter]
@@ -57,7 +55,6 @@ export async function executeJob(request: any): Promise<ExecuteJobResult> {
     }
   }
 
-  // Try search by name
   if (!agent) {
     const results = await searchAgent(agentQuery);
     if (results.length > 0) {

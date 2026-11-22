@@ -13,7 +13,6 @@ test.describe('Registry / Leaderboard', () => {
 
   test('network stats section visible', async ({ page }) => {
     await page.waitForTimeout(3000);
-    // Stats show AGENTS (ALL CHAINS), TOTAL FEEDBACK, CHAINS
     await expect(page.locator('text=AGENTS').first()).toBeVisible();
   });
 
@@ -26,7 +25,6 @@ test.describe('Registry / Leaderboard', () => {
         return;
       }
     }
-    // At least one sort button should exist
     expect(true).toBe(true);
   });
 
@@ -65,7 +63,6 @@ test.describe('Registry / Leaderboard', () => {
 
   test('agent card has link to profile', async ({ page }) => {
     await page.waitForTimeout(3000);
-    // Verify agent cards exist and contain expected structure
     const cards = page.locator('[class*="cursor-pointer"]');
     expect(await cards.count()).toBeGreaterThan(0);
   });

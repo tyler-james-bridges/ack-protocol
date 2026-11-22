@@ -25,7 +25,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ tips: {} });
     }
 
-    // Limit to 50 lookups per request
     const limited = txHashes.slice(0, 50);
     const tips: Record<string, TipResult> = {};
 
@@ -41,7 +40,6 @@ export async function POST(req: Request) {
             fromAgentId: json.fromAgentId,
           };
 
-          // Resolve agent info from 8004scan if we have an agentId
           if (json.fromAgentId) {
             try {
               const scanRes = await fetch(

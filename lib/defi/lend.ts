@@ -87,7 +87,6 @@ export async function executeLend(params: LendParams): Promise<LendResult> {
     case 'supply': {
       const wethAmount = parseEther(params.amount);
 
-      // Wrap ETH to WETH
       const wrapTx = await agw.writeContract({
         address: WETH,
         abi: WETH_ABI,
@@ -96,7 +95,6 @@ export async function executeLend(params: LendParams): Promise<LendResult> {
       });
       await pub.waitForTransactionReceipt({ hash: wrapTx });
 
-      // Approve WETH for Morpho
       const approveTx = await agw.writeContract({
         address: WETH,
         abi: ERC20_ABI,
@@ -105,7 +103,6 @@ export async function executeLend(params: LendParams): Promise<LendResult> {
       });
       await pub.waitForTransactionReceipt({ hash: approveTx });
 
-      // Supply collateral
       txHash = await agw.writeContract({
         address: MORPHO,
         abi: MORPHO_ABI,
@@ -131,7 +128,6 @@ export async function executeLend(params: LendParams): Promise<LendResult> {
     case 'repay': {
       const usdcAmount = parseUnits(params.amount, 6);
 
-      // Approve USDC for Morpho
       const approveTx = await agw.writeContract({
         address: USDC_E,
         abi: ERC20_ABI,

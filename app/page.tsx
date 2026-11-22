@@ -45,7 +45,6 @@ export default async function Home({
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
 
-      {/* Hero */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 pt-16 pb-16">
           <h1 className="type-display">ACK</h1>
@@ -59,7 +58,6 @@ export default async function Home({
         </div>
       </section>
 
-      {/* Two-column: Top Agents + Recent Kudos */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2">
           <div className="lg:border-r lg:border-border">
@@ -122,7 +120,6 @@ export default async function Home({
             ))}
           </div>
 
-          {/* Recent Kudos */}
           <div>
             <ServerKudosFeed
               kudos={data.recentKudos}
@@ -137,7 +134,6 @@ export default async function Home({
         </div>
       </section>
 
-      {/* Value Props */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl grid grid-cols-1 sm:grid-cols-3">
           {[
@@ -167,7 +163,6 @@ export default async function Home({
         </div>
       </section>
 
-      {/* Code snippet */}
       <section className="border-b border-border">
         <div className="mx-auto min-w-0 max-w-6xl px-4 py-12">
           <h2 className="type-kicker mb-4 text-muted-foreground">
@@ -199,7 +194,6 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
         </div>
       </section>
 
-      {/* How It Works */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 py-12">
           <h2 className="type-kicker mb-6 text-muted-foreground">
@@ -278,7 +272,6 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
         </div>
       </section>
 
-      {/* Open Standards */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl grid grid-cols-1 sm:grid-cols-2">
           <a
@@ -311,7 +304,6 @@ await ack.kudos(606, { category: 'reliability' });`}</code>
         </div>
       </section>
 
-      {/* Top Streakers */}
       {data.topStreakers.length >= 3 && (
         <section className="border-b border-border">
           <div className="mx-auto max-w-6xl px-4 py-8">

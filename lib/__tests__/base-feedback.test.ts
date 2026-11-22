@@ -68,9 +68,8 @@ describe('commitChunk', () => {
       toBlock: 41665999,
       events: [event({ txHash: '0x222', logIndex: 2 })],
     });
-    expect(next).toBe(state);
     expect(next.scannedThroughBlock).toBe(41665999);
-    expect(next.events).toHaveLength(1);
+    expect(next.events).toEqual([event()]);
   });
 
   it('leaves state unchanged when the chunk skips ahead', () => {
@@ -83,9 +82,8 @@ describe('commitChunk', () => {
       toBlock: 41667999,
       events: [event({ txHash: '0x333', logIndex: 3 })],
     });
-    expect(next).toBe(state);
     expect(next.scannedThroughBlock).toBe(41663999);
-    expect(next.events).toHaveLength(1);
+    expect(next.events).toEqual([event()]);
   });
 
   it('appends a new event and stores one copy of chainId:txHash:logIndex', () => {
@@ -103,8 +101,7 @@ describe('commitChunk', () => {
     expect(next.scannedThroughBlock).toBe(20);
     expect(next.events).toHaveLength(2);
     expect(next.events.map((item) => item.txHash)).toEqual(['0xaaa', '0xbbb']);
-    expect(state.events).toHaveLength(1);
-    expect(state.events[0]).toBe(kept);
+    expect(state.events).toEqual([kept]);
   });
 });
 

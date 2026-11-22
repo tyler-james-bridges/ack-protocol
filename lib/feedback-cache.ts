@@ -1,17 +1,3 @@
-/**
- * Shared feedback cache module (multi-chain).
- *
- * Centralizes all on-chain feedback event fetching behind per-chain in-memory
- * caches so that multiple API routes (feedback, discover, reputation) share
- * the same data without redundant RPC calls.
- *
- * Each live chain maintains its own cache and client instance.
- *
- * SERVERLESS CAVEAT: The in-memory caches reset on every cold start in
- * serverless environments. Vercel Pro's function persistence reduces cold
- * starts but does not eliminate them.
- */
-
 import {
   createPublicClient,
   http,
@@ -50,27 +36,18 @@ export interface FeedbackEvent {
 
 interface ChainCache {
   events: FeedbackEvent[];
-  ts: number;
-  toBlock: number;
+  refreshedAt: number;
+  scannedThrough: number;
 }
 
-const CACHE_TTL = 120_000; // 2 minutes
-
-// Per-chain clients and caches
-const clients: Record<number, PublicClient> = {};
-const caches: Record<number, ChainCache | null> = {};
-
-function getClient(chainId: number): PublicClient {
-  if (!clients[chainId]) {
-    const cfg = SUPPORTED_8004_CHAINS[chainId];
-    if (!cfg) throw new Error(`Unsupported chain: ${chainId}`);
-    clients[chainId] = createPublicClient({
-      chain: (cfg as ChainConfig).chain,
-      transport: http((cfg as ChainConfig).rpcUrl),
-    });
-  }
-  return clients[chainId];
+interface ChainReader {
+  client: PublicClient;
+  cache?: ChainCache;
+  refreshing?: Promise<FeedbackEvent[]>;
 }
+
+const CACHE_TTL = 120_000;
+const readers = new Map<number, ChainReader>();
 
 type RawLog = {
   topics: Hex[];
@@ -115,45 +92,60 @@ function parseLogs(rawLogs: RawLog[], chainId: number): FeedbackEvent[] {
         chainId,
       });
     } catch {
-      // skip malformed events
+      continue;
     }
   }
   return events;
 }
 
-/**
- * Fetch all NewFeedback events from a single chain.
- * Results are cached in memory and incrementally updated per chain.
- */
 async function fetchChainFeedback(chainId: number): Promise<FeedbackEvent[]> {
-  if (chainId === 8453) return [];
-  const now = Date.now();
-  const cached = caches[chainId];
-  if (cached && now - cached.ts < CACHE_TTL) {
-    return cached.events;
+  const cfg = SUPPORTED_8004_CHAINS[chainId];
+  if (chainId === 8453 || !cfg) return [];
+
+  let reader = readers.get(chainId);
+  if (!reader) {
+    reader = {
+      client: createPublicClient({
+        chain: cfg.chain,
+        transport: http(cfg.rpcUrl),
+      }),
+    };
+    readers.set(chainId, reader);
   }
 
-  const cfg = SUPPORTED_8004_CHAINS[chainId];
-  if (!cfg) return [];
+  if (reader.cache && Date.now() - reader.cache.refreshedAt < CACHE_TTL) {
+    return reader.cache.events;
+  }
+  if (reader.refreshing) return reader.refreshing;
+  reader.refreshing = scanChain(chainId, cfg, reader);
+  try {
+    return await reader.refreshing;
+  } finally {
+    delete reader.refreshing;
+  }
+}
 
-  const client = getClient(chainId);
-  const deployBlock = (cfg as ChainConfig).deployBlock;
-  const fromBlock = cached ? cached.toBlock + 1 : deployBlock;
-
+async function scanChain(
+  chainId: number,
+  cfg: ChainConfig,
+  reader: ChainReader
+): Promise<FeedbackEvent[]> {
+  const { client, cache } = reader;
   const latestHex = (await client.request({
     method: 'eth_blockNumber',
   })) as Hex;
   const latestBlock = Number(BigInt(latestHex));
-  const CHUNK = (cfg as ChainConfig).maxLogRange;
-  const narrowWindow = 24 * CHUNK;
-  const scanFrom =
-    !cached && CHUNK <= 10_000
-      ? Math.max(deployBlock, latestBlock - narrowWindow + 1)
-      : fromBlock;
+  const chunkSize = cfg.maxLogRange;
+  const coldStart =
+    chunkSize <= 10_000 ? latestBlock - 24 * chunkSize + 1 : cfg.deployBlock;
+  const scanFrom = Math.max(
+    cfg.deployBlock,
+    cache ? cache.scannedThrough + 1 : coldStart
+  );
 
   const rawLogs: RawLog[] = [];
-  for (let start = scanFrom; start <= latestBlock; start += CHUNK) {
-    const end = Math.min(start + CHUNK - 1, latestBlock);
+  for (let start = scanFrom; start <= latestBlock; start += chunkSize) {
+    const end = Math.min(start + chunkSize - 1, latestBlock);
     const logs = await client.request({
       method: 'eth_getLogs',
       params: [
@@ -169,42 +161,32 @@ async function fetchChainFeedback(chainId: number): Promise<FeedbackEvent[]> {
   }
 
   const newEvents = parseLogs(rawLogs, chainId);
-  let maxBlock = scanFrom;
-  for (const log of rawLogs) {
-    const bn = Number(BigInt(log.blockNumber));
-    if (bn > maxBlock) maxBlock = bn;
-  }
-
-  let merged: FeedbackEvent[];
-  if (cached && newEvents.length > 0) {
-    const seen = new Set(
-      cached.events.map((e) => `${e.txHash}:${e.feedbackIndex}`)
+  const previous = cache?.events ?? [];
+  let events = previous;
+  if (newEvents.length) {
+    const eventKey = (event: FeedbackEvent) =>
+      [event.txHash, event.agentId, event.sender, event.feedbackIndex].join(
+        ':'
+      );
+    const seen = new Set(previous.map(eventKey));
+    events = previous.concat(
+      newEvents.filter((event) => !seen.has(eventKey(event)))
     );
-    const unique = newEvents.filter(
-      (e) => !seen.has(`${e.txHash}:${e.feedbackIndex}`)
-    );
-    merged = [...cached.events, ...unique];
-  } else {
-    merged = cached ? cached.events : newEvents;
   }
-
-  caches[chainId] = { events: merged, ts: now, toBlock: maxBlock };
-  return merged;
+  reader.cache = {
+    events,
+    refreshedAt: Date.now(),
+    scannedThrough: Math.max(latestBlock, cache?.scannedThrough ?? 0),
+  };
+  return events;
 }
 
-/**
- * Fetch feedback events for a specific chain.
- */
 export async function getAllFeedbackEventsForChain(
   chainId: number
 ): Promise<FeedbackEvent[]> {
   return fetchChainFeedback(chainId);
 }
 
-/**
- * Fetch NewFeedback events for the default chains.
- * Pass chainId to scan one chain.
- */
 export async function getAllFeedbackEvents(
   chainId?: number
 ): Promise<FeedbackEvent[]> {
@@ -223,10 +205,6 @@ export async function getAllFeedbackEvents(
   return merged;
 }
 
-/**
- * Fire-and-forget cache warmup -- call at module scope to pre-populate
- * the feedback cache on cold start without blocking the request.
- */
 export function warmupFeedbackCache(): void {
   const chainIds = Object.keys(SUPPORTED_8004_CHAINS).map(Number);
   for (const cid of chainIds) {
@@ -235,9 +213,6 @@ export function warmupFeedbackCache(): void {
   }
 }
 
-/**
- * Get feedback events filtered by agent token ID.
- */
 export async function getFeedbackByAgentId(
   agentId: number,
   chainId?: number
@@ -253,9 +228,6 @@ export async function getFeedbackByAgentId(
   return all.filter((e) => e.agentId === agentId);
 }
 
-/**
- * Get a map of agentId -> feedback count for all agents.
- */
 export async function getFeedbackCounts(
   chainId?: number
 ): Promise<Record<number, number>> {

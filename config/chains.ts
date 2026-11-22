@@ -1,5 +1,6 @@
 import { createPublicClient, http, type Chain, type PublicClient } from 'viem';
 import {
+  abstract,
   mainnet,
   base,
   bsc,
@@ -13,7 +14,6 @@ import {
   linea,
   taiko,
 } from 'viem/chains';
-import { abstract } from 'viem/chains';
 
 export const xlayer: Chain = {
   id: 196,
@@ -46,11 +46,26 @@ export interface ChainMeta {
   explorerUrl: string;
 }
 
-const chainMetas: ChainMeta[] = [
+export const SUPPORTED_CHAINS = [
   { chain: base, color: '#0052FF', explorerUrl: 'https://basescan.org' },
   { chain: abstract, color: '#00FF94', explorerUrl: 'https://abscan.org' },
   { chain: bsc, color: '#F0B90B', explorerUrl: 'https://bscscan.com' },
-  { chain: mainnet, color: '#627EEA', explorerUrl: 'https://etherscan.io' },
+  {
+    chain: {
+      ...mainnet,
+      rpcUrls: {
+        ...mainnet.rpcUrls,
+        default: {
+          http: [
+            process.env.NEXT_PUBLIC_ETH_RPC_URL ||
+              'https://ethereum-rpc.publicnode.com',
+          ],
+        },
+      },
+    },
+    color: '#627EEA',
+    explorerUrl: 'https://etherscan.io',
+  },
   { chain: celo, color: '#FCFF52', explorerUrl: 'https://celoscan.io' },
   { chain: gnosis, color: '#04795B', explorerUrl: 'https://gnosisscan.io' },
   { chain: arbitrum, color: '#28A0F0', explorerUrl: 'https://arbiscan.io' },
@@ -70,9 +85,7 @@ const chainMetas: ChainMeta[] = [
     color: '#CCFF00',
     explorerUrl: 'https://robinhoodchain.blockscout.com',
   },
-];
-
-export const SUPPORTED_CHAINS = chainMetas;
+] satisfies [ChainMeta & { chain: typeof base }, ...ChainMeta[]];
 
 const clients = new Map<number, PublicClient>();
 
@@ -80,7 +93,9 @@ export function getPublicClient(chainId: number): PublicClient {
   const existing = clients.get(chainId);
   if (existing) return existing;
 
-  const meta = chainMetas.find((m) => m.chain.id === chainId);
+  const meta: ChainMeta | undefined = SUPPORTED_CHAINS.find(
+    (m) => m.chain.id === chainId
+  );
   if (!meta) throw new Error(`Unsupported chain: ${chainId}`);
 
   const client = createPublicClient({

@@ -78,7 +78,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -99,7 +99,7 @@ jobs:
           EIGHTOOSCAN_API_KEY: ci-placeholder
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps --only-shell chromium
 
       - name: Check wallet messages and payment analytics in Chromium
         run: npx playwright test tests/kudos-messages.spec.ts tests/payment-analytics.spec.ts --project=chromium

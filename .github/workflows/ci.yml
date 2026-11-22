@@ -72,6 +72,9 @@ jobs:
       - name: Run regression tests
         run: npm test
 
+      - name: Model overlapping feedback reads and retries
+        run: node --test tests/model/feedback-refresh.mjs
+
   build:
     name: Build
     runs-on: ubuntu-latest

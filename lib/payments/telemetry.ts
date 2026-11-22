@@ -1,10 +1,4 @@
-/**
- * Payment telemetry for ACK Protocol.
- *
- * Lightweight event tracking for payment method selection and outcomes.
- * Hooks into Vercel Analytics when available, falls back to console in dev.
- */
-
+import { track } from '@vercel/analytics';
 import type { PaymentMethodId } from './discovery';
 
 export type PaymentEvent =
@@ -21,39 +15,21 @@ export interface PaymentEventData {
   durationMs?: number;
 }
 
-/**
- * Track a payment event. Uses Vercel Analytics `track()` when available,
- * otherwise logs to console in development.
- */
 export function trackPaymentEvent(
   event: PaymentEvent,
   data: PaymentEventData
 ): void {
-  const payload = {
-    event,
-    ...data,
-    timestamp: Date.now(),
-  };
+  if (typeof window !== 'undefined') track(event, { method: data.method });
 
-  // Vercel Analytics custom events
-  if (typeof window !== 'undefined' && 'va' in window) {
-    try {
-      // @ts-expect-error Vercel Analytics global
-      window.va?.track(event, payload);
-    } catch {
-      // Silently fail if VA not initialized
-    }
-  }
-
-  // Dev logging
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[payment-telemetry] ${event}`, payload);
+    console.log(`[payment-telemetry] ${event}`, {
+      event,
+      ...data,
+      timestamp: Date.now(),
+    });
   }
 }
 
-/**
- * Create a timer for measuring payment duration.
- */
 export function createPaymentTimer(): { elapsed: () => number } {
   const start = Date.now();
   return {

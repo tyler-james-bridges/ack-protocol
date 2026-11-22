@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Analytics } from '@vercel/analytics/react';
+import { SiteAnalytics } from '@/components/site-analytics';
 import { NextAbstractWalletProvider } from '@/components/agw-provider';
 import { Footer } from '@/components/footer';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -73,7 +73,7 @@ export default function RootLayout({
               <Footer />
             </div>
             <Toaster />
-            <Analytics />
+            <SiteAnalytics />
           </NextAbstractWalletProvider>
         </ThemeProvider>
       </body>

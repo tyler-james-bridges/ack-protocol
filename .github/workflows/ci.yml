@@ -101,5 +101,5 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Read historical kudos in the browser
-        run: npx playwright test tests/kudos-messages.spec.ts --project=chromium
+      - name: Check wallet messages and payment analytics in Chromium
+        run: npx playwright test tests/kudos-messages.spec.ts tests/payment-analytics.spec.ts --project=chromium

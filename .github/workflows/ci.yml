@@ -72,6 +72,9 @@ jobs:
       - name: TypeScript type check
         run: npx tsc --noEmit
 
+      - name: Run regression tests
+        run: npm test
+
   build:
     name: Build
     runs-on: ubuntu-latest

@@ -17,6 +17,7 @@ import {
 import type { StoredFeedback } from '../lib/base-feedback';
 
 const BASE_CHAIN_ID = 8453;
+const BASE_ARCHIVE_RPC_URL = 'https://base-rpc.publicnode.com';
 const REQUEST_GAP_MS = 300;
 const RATE_LIMIT_BACKOFF_MS = [1_000, 2_000, 4_000, 8_000, 16_000];
 const REPUTATION_REGISTRY =
@@ -69,12 +70,41 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function rpcErrorMessage(error: unknown): string {
+  if (!isRecord(error)) return '';
+  if (typeof error.details === 'string') return error.details;
+  if (error.cause) return rpcErrorMessage(error.cause);
+  return typeof error.message === 'string' ? error.message.split('\n')[0] : '';
+}
+
+function smallerLogRange(error: unknown, rejectedWidth: number): number | null {
+  if (rejectedWidth <= 1) return null;
+  const message = rpcErrorMessage(error);
+  const patterns = [
+    /eth_getLogs is limited to (?:a )?([\d,]+) (?:blocks? )?range/i,
+    /exceed(?:s|ed)? (?:the )?maximum block range:\s*([\d,]+)/i,
+    /ranges over ([\d,]+) blocks are not supported/i,
+  ];
+  for (const pattern of patterns) {
+    const match = message.match(pattern);
+    if (!match) continue;
+    const limit = Number(match[1].replaceAll(',', ''));
+    if (limit > 0 && limit < rejectedWidth) return limit;
+    return Math.floor(rejectedWidth / 2);
+  }
+  if (/\bblock range (?:is )?too (?:large|wide)\b/i.test(message)) {
+    return Math.floor(rejectedWidth / 2);
+  }
+  return null;
+}
+
 function isRateLimitError(error: unknown): boolean {
   if (!isRecord(error)) return false;
   if (error.status === 429) return true;
   if ('cause' in error && isRateLimitError(error.cause)) return true;
-  const message = typeof error.message === 'string' ? error.message : '';
-  return /\b429\b/.test(message) || /rate limit/i.test(message);
+  return /rate limit|too many requests|request limit reached|\bHTTP 429\b/i.test(
+    rpcErrorMessage(error)
+  );
 }
 
 function publicError(error: unknown): string {
@@ -177,48 +207,72 @@ async function readLogs(
   });
 }
 
-async function main(): Promise<number> {
+export async function backfillBaseFeedback(maxChunks: number): Promise<void> {
   if (process.env.GITHUB_ACTIONS === 'true' && !process.env.DATABASE_URL) {
-    console.error('DATABASE_URL is unset');
-    return 1;
+    throw new Error('DATABASE_URL is unset');
   }
-  const maxChunks = readMaxChunks(process.argv.slice(2));
+  if (maxChunks === 0) return;
   const cfg = SUPPORTED_8004_CHAINS[BASE_CHAIN_ID];
   const client = createPublicClient({
     chain: cfg.chain,
-    transport: http(process.env.BASE_RPC_URL || cfg.rpcUrl),
+    transport: http(process.env.BASE_RPC_URL || BASE_ARCHIVE_RPC_URL),
   });
+  const start = await readScannedThrough();
+  let scannedThrough = start;
+  let head = await withBackoff(() => readHead(client));
+  let maxLogRange = cfg.maxLogRange;
+  let completed = 0;
 
-  for (let completed = 0; completed < maxChunks; completed += 1) {
-    const head = await withBackoff(() => readHead(client));
-    const scannedThrough = await readScannedThrough();
-    const planned = planNextChunk(scannedThrough, head, cfg.maxLogRange);
-    if (!planned) return 0;
+  while (completed < maxChunks) {
+    const planned = planNextChunk(scannedThrough, head, maxLogRange);
+    if (!planned) break;
     await sleep(REQUEST_GAP_MS);
-    const logs = await withBackoff(() => readLogs(client, planned));
+    let logs: unknown;
+    try {
+      logs = await withBackoff(() => readLogs(client, planned));
+    } catch (error) {
+      const width = planned.toBlock - planned.fromBlock + 1;
+      const smaller = smallerLogRange(error, width);
+      if (smaller === null) throw error;
+      maxLogRange = smaller;
+      console.info(
+        `RPC rejected ${width} blocks. Retrying from ${planned.fromBlock} with ${smaller} blocks.`
+      );
+      continue;
+    }
     const events = decodeFeedbackLogs(logs);
     await commitChunkToStore({
-      fromBlock: planned.fromBlock,
-      toBlock: planned.toBlock,
+      ...planned,
       events,
       observedHeadBlock: head,
     });
-    if (planNextChunk(planned.toBlock, head, cfg.maxLogRange) === null)
-      return 0;
-    if (completed + 1 < maxChunks) await sleep(REQUEST_GAP_MS);
+    scannedThrough = await readScannedThrough();
+    if (scannedThrough < planned.toBlock) {
+      throw new Error(
+        `Base feedback cursor is ${scannedThrough} after committing through ${planned.toBlock}`
+      );
+    }
+    completed += 1;
+    if (scannedThrough >= head || completed === maxChunks) break;
+    await sleep(REQUEST_GAP_MS);
+    head = await withBackoff(() => readHead(client));
   }
-  return 0;
+  console.info(
+    `Base feedback scanned through ${start} -> ${scannedThrough}, observed head ${head}, committed chunks ${completed}`
+  );
 }
 
-main()
-  .then((code) => {
-    process.exit(code);
-  })
-  .catch((error: unknown) => {
-    if (isRateLimitError(error)) {
-      console.error('Base feedback backfill rate limited');
-    } else {
-      console.error(publicError(error));
-    }
+async function main(): Promise<void> {
+  await backfillBaseFeedback(readMaxChunks(process.argv.slice(2)));
+}
+
+if (typeof require !== 'undefined' && require.main === module) {
+  main().catch((error: unknown) => {
+    console.error(
+      isRateLimitError(error)
+        ? 'Base feedback backfill rate limited'
+        : publicError(error)
+    );
     process.exit(1);
   });
+}

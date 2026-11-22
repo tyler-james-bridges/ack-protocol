@@ -10,6 +10,7 @@
  *   - recentLimit: max recent reviews to return (default 20)
  */
 
+import { getAgentDisplayName } from '@/lib/tool-queries';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getAllFeedbackEventsForChain,
@@ -40,40 +41,6 @@ const CHAIN_META: Record<
 
 // All chains we want review data from
 const REVIEW_CHAIN_IDS = [1, 2741, 8453, 42220];
-
-interface AgentInfo {
-  name: string;
-  tokenId: number;
-}
-
-// Simple in-memory agent name cache (survives within a single serverless invocation)
-const agentNameCache = new Map<string, { name: string; ts: number }>();
-const NAME_CACHE_TTL = 300_000; // 5 minutes
-
-async function resolveAgentName(
-  agentId: number,
-  chainId: number
-): Promise<string> {
-  const key = `${chainId}:${agentId}`;
-  const cached = agentNameCache.get(key);
-  if (cached && Date.now() - cached.ts < NAME_CACHE_TTL) return cached.name;
-
-  try {
-    const res = await fetch(
-      `https://8004scan.io/api/v1/public/agents/${agentId}/identity?chainId=${chainId}`,
-      { signal: AbortSignal.timeout(5000) }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      const name = data?.name || data?.handle || `Agent #${agentId}`;
-      agentNameCache.set(key, { name, ts: Date.now() });
-      return name;
-    }
-  } catch {
-    // Fall through to default
-  }
-  return `Agent #${agentId}`;
-}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -159,7 +126,7 @@ export async function GET(request: NextRequest) {
     const recentSlice = sorted.slice(0, recentLimit);
     const recentReviews = await Promise.all(
       recentSlice.map(async (e) => {
-        const name = await resolveAgentName(e.agentId, e.chainId);
+        const name = await getAgentDisplayName(e);
         const rating = parseInt(e.value) || 0;
         const explorer = CHAIN_META[e.chainId]?.explorer ?? '';
         return {

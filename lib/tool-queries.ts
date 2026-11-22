@@ -116,9 +116,15 @@ export function isKudosCategory(value: string): value is KudosCategory {
   return (KUDOS_CATEGORIES as readonly string[]).includes(value);
 }
 
-export async function scanFetch<T>(path: string): Promise<T> {
+export async function scanFetch<T>(
+  path: string,
+  options?: Pick<RequestInit, 'signal' | 'headers'>
+): Promise<T> {
+  const headers = new Headers(options?.headers);
+  headers.set('Accept', 'application/json');
   const response = await fetch(`${SCAN_API_BASE}/${path}`, {
-    headers: { Accept: 'application/json' },
+    headers,
+    signal: options?.signal,
     next: { revalidate: 30 },
   });
   if (!response.ok) {
@@ -420,21 +426,45 @@ function toFeedbackHistoryItem(event: FeedbackEvent): FeedbackHistoryItem {
   };
 }
 
-export async function getAgentById(
-  chainId: number,
-  agentId: number
+type AgentRef = Pick<AgentInfo, 'chainId' | 'agentId'>;
+
+async function getAgentById(
+  { chainId, agentId }: AgentRef,
+  signal?: AbortSignal
 ): Promise<ScanAgent | null> {
   try {
-    const agent = await scanFetch<ScanAgent>(`agents/${chainId}/${agentId}`);
-    if (!agent || typeof agent !== 'object') return null;
-    if (!('token_id' in agent) && !('name' in agent)) return null;
-    return agent;
+    const key = process.env.EIGHTOOSCAN_API_KEY;
+    const agent = await scanFetch<ScanAgent>(`agents/${chainId}/${agentId}`, {
+      headers: key ? { 'x-api-key': key } : undefined,
+      signal,
+    });
+    return agent?.chain_id === chainId &&
+      String(agent.token_id) === String(agentId)
+      ? agent
+      : null;
   } catch (error) {
     if (error instanceof Error && error.message.includes('404')) {
       return null;
     }
     throw error;
   }
+}
+
+export async function getAgentDisplayName(
+  reference: AgentRef
+): Promise<string> {
+  const agent = await getAgentById(reference, AbortSignal.timeout(5000)).catch(
+    () => null
+  );
+  if (agent?.name) return agent.name;
+  if (
+    agent &&
+    'handle' in agent &&
+    typeof agent.handle === 'string' &&
+    agent.handle
+  )
+    return agent.handle;
+  return `Agent #${reference.agentId}`;
 }
 
 export function toAgentInfo(agent: ScanAgent): AgentInfo {
@@ -455,10 +485,9 @@ export function toAgentInfo(agent: ScanAgent): AgentInfo {
   };
 }
 
-export async function getAgentInfo(options: {
-  chainId: number;
-  agentId: number;
-}): Promise<AgentInfo | null> {
-  const agent = await getAgentById(options.chainId, options.agentId);
+export async function getAgentInfo(
+  reference: AgentRef
+): Promise<AgentInfo | null> {
+  const agent = await getAgentById(reference);
   return agent ? toAgentInfo(agent) : null;
 }

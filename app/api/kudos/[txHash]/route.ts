@@ -1,3 +1,4 @@
+import { getAgentDisplayName } from '@/lib/tool-queries';
 import { kudosDetailFields } from '@/lib/kudos-metadata';
 import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, decodeAbiParameters, type Hex } from 'viem';
@@ -11,32 +12,6 @@ const REPUTATION_REGISTRY =
   '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63' as const;
 const NEW_FEEDBACK_TOPIC =
   '0x6a4a61743519c9d648a14e6493f47dbe3ff1aa29e7785c96c8326a205e58febc' as const;
-
-const agentNames: Record<string, string> = {};
-
-async function getAgentName(agentId: number, chainId: number): Promise<string> {
-  const key = `${chainId}:${agentId}`;
-  if (agentNames[key]) return agentNames[key];
-
-  try {
-    const apiKey = process.env.EIGHTOOSCAN_API_KEY;
-    const headers: Record<string, string> = { Accept: 'application/json' };
-    if (apiKey) headers['x-api-key'] = apiKey;
-
-    const res = await fetch(
-      `https://api.8004scan.io/api/v1/agents?chainId=${chainId}&search=&limit=100`,
-      { headers }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      for (const agent of data.items || []) {
-        agentNames[`${chainId}:${Number(agent.token_id)}`] = agent.name;
-      }
-    }
-  } catch {}
-
-  return agentNames[key] || `Agent #${agentId}`;
-}
 
 async function findReceipt(txHash: Hex) {
   const chainIds = [
@@ -129,7 +104,7 @@ export async function GET(
     const tag2 = decoded[4] as string;
     const feedbackURI = decoded[6] as string;
 
-    const agentName = await getAgentName(agentId, chainId);
+    const agentName = await getAgentDisplayName({ chainId, agentId });
 
     return NextResponse.json({
       txHash,

@@ -2,9 +2,6 @@ name: CI
 
 on:
   pull_request:
-    branches:
-      - main
-      - develop
   push:
     branches:
       - main
@@ -72,6 +69,9 @@ jobs:
       - name: TypeScript type check
         run: npx tsc --noEmit
 
+      - name: Run regression tests
+        run: npm test
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -91,6 +91,5 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SIWA_NONCE_SECRET: ci-placeholder
           EIGHTOOSCAN_API_KEY: ci-placeholder

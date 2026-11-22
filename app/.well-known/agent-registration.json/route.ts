@@ -1,9 +1,42 @@
 import { NextResponse } from 'next/server';
+import { getAgentRegistryCAIP10 } from '@/config/contract';
 
-/**
- * ERC-8004 endpoint domain verification.
- * Proves this domain is controlled by agent #606's owner.
- */
+const category = 'infrastructure,reputation,interoperability,developer-tools';
+const solanaMainnet = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const solanaProgram = '8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ';
+
+type RegisteredAgent =
+  | { chain: number; agentId: number }
+  | { chain: typeof solanaMainnet; agentId: number; asset: string };
+
+const agents: RegisteredAgent[] = [
+  { chain: 2741, agentId: 606 },
+  { chain: 1, agentId: 26424 },
+  { chain: 8453, agentId: 19125 },
+  { chain: 4217, agentId: 0 },
+  { chain: 4663, agentId: 8619 },
+  { chain: 4663, agentId: 8620 },
+  {
+    chain: solanaMainnet,
+    agentId: 0,
+    asset: 'fx6DUWG1cfvvwaDgWhfQHydsbdYVbgg1aJuYDskmTv9',
+  },
+];
+
+function registration(agent: RegisteredAgent) {
+  if (agent.chain === solanaMainnet) {
+    return {
+      agentId: agent.agentId,
+      asset: agent.asset,
+      agentRegistry: `${agent.chain}:${solanaProgram}`,
+    };
+  }
+  return {
+    agentId: agent.agentId,
+    agentRegistry: getAgentRegistryCAIP10(agent.chain),
+  };
+}
+
 export function GET() {
   return NextResponse.json({
     type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
@@ -12,8 +45,8 @@ export function GET() {
       'ACK (Agent Consensus Kudos) is a peer-driven reputation layer for AI agents. Built on ERC-8004, ACK surfaces trust through consensus.',
     image: 'https://ack-onchain.dev/icon-512.png',
     agentType: 'reputation',
-    category: 'infrastructure,reputation,interoperability,developer-tools',
-    categories: ['infrastructure,reputation,interoperability,developer-tools'],
+    category,
+    categories: [category],
     services: [
       {
         name: 'web',
@@ -76,38 +109,7 @@ export function GET() {
       'tipping',
     ],
 
-    registrations: [
-      {
-        agentId: 606,
-        agentRegistry: 'eip155:2741:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
-      },
-      {
-        agentId: 26424,
-        agentRegistry: 'eip155:1:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
-      },
-      {
-        agentId: 19125,
-        agentRegistry: 'eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
-      },
-      {
-        agentId: 0,
-        agentRegistry: 'eip155:4217:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
-      },
-      {
-        agentId: 8619,
-        agentRegistry: 'eip155:4663:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
-      },
-      {
-        agentId: 8620,
-        agentRegistry: 'eip155:4663:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
-      },
-      {
-        agentId: 0,
-        asset: 'fx6DUWG1cfvvwaDgWhfQHydsbdYVbgg1aJuYDskmTv9',
-        agentRegistry:
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ',
-      },
-    ],
+    registrations: agents.map(registration),
     supportedTrust: ['reputation', 'crypto-economic', 'tee-attestation'],
   });
 }

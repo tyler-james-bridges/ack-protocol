@@ -8,6 +8,7 @@ describe('trackPaymentEvent', () => {
 
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
   });
 
   it('logs event in development', () => {
@@ -55,9 +56,10 @@ describe('trackPaymentEvent', () => {
     consoleSpy.mockRestore();
   });
 
-  it('tracks all payment event types', () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
+  it('sends only the payment method with each browser analytics event', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const receive = vi.fn();
+    vi.stubGlobal('window', { va: receive });
     const events = [
       'payment_method_selected',
       'payment_attempted',
@@ -66,11 +68,22 @@ describe('trackPaymentEvent', () => {
     ] as const;
 
     for (const event of events) {
-      trackPaymentEvent(event, { method: 'x402', tipId: 'test' });
+      trackPaymentEvent(event, {
+        method: 'x402',
+        tipId: 'private-tip',
+        amountUsd: 1.5,
+        error: 'wallet returned identifying transaction details',
+        durationMs: 3200,
+      });
+      expect(receive).toHaveBeenLastCalledWith(
+        'event',
+        expect.objectContaining({
+          name: event,
+          data: { method: 'x402' },
+        })
+      );
     }
-
-    expect(consoleSpy).toHaveBeenCalledTimes(4);
-    consoleSpy.mockRestore();
+    expect(receive).toHaveBeenCalledTimes(events.length);
   });
 });
 
@@ -78,7 +91,6 @@ describe('createPaymentTimer', () => {
   it('returns elapsed time', async () => {
     const timer = createPaymentTimer();
 
-    // Wait a small amount
     await new Promise((r) => setTimeout(r, 50));
 
     const elapsed = timer.elapsed();

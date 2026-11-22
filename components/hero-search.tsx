@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -15,18 +15,11 @@ export function HeroSearch() {
   const searchRef = useRef<HTMLDivElement>(null);
   const { data: searchData, isLoading: searchLoading } = useAgentSearch(query);
 
-  const goToAgent = (agent: ScanAgent) =>
+  function handleSelect(agent: ScanAgent) {
+    setQuery('');
+    setDropdownOpen(false);
     router.push(`/agent/${agent.chain_id}/${agent.token_id}`);
-
-  const handleSelect = useCallback(
-    (agent: ScanAgent) => {
-      setQuery('');
-      setDropdownOpen(false);
-      goToAgent(agent);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

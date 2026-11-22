@@ -173,10 +173,6 @@ export class ACK {
     return new ACK(publicClient, walletClient, resolved);
   }
 
-  // ---------------------------------------------------------------------------
-  // Read methods
-  // ---------------------------------------------------------------------------
-
   /**
    * Get agent information by ID
    */
@@ -426,17 +422,12 @@ export class ACK {
         args: [BigInt(agentId), key],
       })) as Hex;
       if (result === '0x' || result.length <= 2) return null;
-      // Decode bytes to UTF-8 string
       const bytes = Buffer.from(result.slice(2), 'hex');
       return bytes.toString('utf-8');
     } catch {
       return null;
     }
   }
-
-  // ---------------------------------------------------------------------------
-  // Write methods (require wallet)
-  // ---------------------------------------------------------------------------
 
   /**
    * Register a new agent.
@@ -646,10 +637,6 @@ export class ACK {
     };
   }
 
-  // ---------------------------------------------------------------------------
-  // Tipped Kudos (x402)
-  // ---------------------------------------------------------------------------
-
   /**
    * Get x402 payment discovery information.
    * Returns accepted payment methods, pricing, and API endpoints.
@@ -733,10 +720,6 @@ export class ACK {
     return res.json();
   }
 
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async apiCall(endpoint: string): Promise<any> {
     if (!this.apiKey) {
@@ -818,7 +801,6 @@ export class ACK {
     const sumScores = feedbacks.reduce((sum, f) => sum + f.score, 0);
     const averageRating = sumScores / totalFeedbacks;
 
-    // Build category breakdown
     const catMap = new Map<
       FeedbackCategory,
       { total: number; count: number }
@@ -917,7 +899,7 @@ export class ACK {
           transactionHash: log.transactionHash as Hash,
         });
       } catch {
-        // skip malformed events
+        continue;
       }
     }
 

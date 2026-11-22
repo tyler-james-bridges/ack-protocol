@@ -49,7 +49,6 @@ export function buildFeedback(
 
   const jsonStr = JSON.stringify(feedbackFile);
 
-  // Platform-agnostic base64 encoding
   const base64 =
     typeof Buffer !== 'undefined'
       ? Buffer.from(jsonStr).toString('base64')

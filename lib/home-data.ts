@@ -1,10 +1,3 @@
-/**
- * Server-side data aggregation for the home page.
- *
- * Fetches all home page data in parallel, returning a single object
- * so the page can be server-rendered with zero client API calls.
- */
-
 import { readFeedback } from '@/packages/sdk/src/feedback-uri';
 import { createPublicClient, http } from 'viem';
 import { DEFAULT_8004_CHAIN_ID, getChainConfig } from '@/config/chain';
@@ -88,16 +81,16 @@ async function loadChainFeedback(chainId: number): Promise<{
   }
 }
 
-async function fetchScanAgents(
-  params: Record<string, string | number>
-): Promise<{
+async function fetchRankedAgents(chainId: number): Promise<{
   items: ScanAgent[];
   total: number;
 }> {
-  const searchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    searchParams.set(key, String(value));
-  }
+  const searchParams = new URLSearchParams({
+    chainId: String(chainId),
+    sortBy: 'total_score',
+    sortOrder: 'desc',
+    limit: '20',
+  });
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
@@ -126,12 +119,7 @@ export async function getHomePageData(
     transport: http(getChainConfig(chainId).rpcUrl),
   });
   const [chainAgentsRes, feedback, allStreaks] = await Promise.all([
-    fetchScanAgents({
-      chainId,
-      sortBy: 'total_score',
-      sortOrder: 'desc',
-      limit: 20,
-    }),
+    fetchRankedAgents(chainId),
     loadChainFeedback(chainId),
     getAllStreaks(chainId),
   ]);
@@ -139,8 +127,6 @@ export async function getHomePageData(
   const feedError = feedback.error;
   const feedbackCounts = feedback.counts;
 
-  // Enrich with local kudos counts for display; dedupe by chain:token_id.
-  // Do NOT re-sort — 8004scan's total_score ordering is the source of truth.
   const seenAgents = new Set<string>();
   const leaderboard = (chainAgentsRes.items || [])
     .filter((a) => !a.is_testnet)
@@ -150,11 +136,11 @@ export async function getHomePageData(
       seenAgents.add(key);
       return true;
     })
+    .slice(0, 10)
     .map((agent) => ({
       ...agent,
       kudos: feedbackCounts[Number(agent.token_id)] || 0,
-    }))
-    .slice(0, 10);
+    }));
 
   const sortedEvents = [...feedbackEvents].sort(
     (a, b) => parseInt(b.blockNumber) - parseInt(a.blockNumber)
@@ -173,7 +159,6 @@ export async function getHomePageData(
     blockNumber: e.blockNumber,
   }));
 
-  // Stats (global from 8004scan + Abstract-specific)
   let globalAgents = 0;
   let globalFeedbacks = 0;
   let globalChains = 0;
@@ -191,9 +176,7 @@ export async function getHomePageData(
             !c.is_testnet && c.enabled
         ).length || 0;
     }
-  } catch {
-    // fallback to 0, template handles it
-  }
+  } catch {}
   const topScore = leaderboard.length > 0 ? leaderboard[0].total_score : 0;
   const uniqueGivers = new Set(
     feedbackEvents.map((e) => e.sender.toLowerCase())
@@ -207,7 +190,6 @@ export async function getHomePageData(
     unique_givers: uniqueGivers,
   };
 
-  // Wave 2: Resolve block timestamps for the 5 recent kudos
   const blockNumbers = [...new Set(recentKudos.map((k) => k.blockNumber))];
   const timestamps: Record<string, number> = {};
   if (blockNumbers.length > 0) {
@@ -218,21 +200,17 @@ export async function getHomePageData(
             blockNumber: BigInt(bn),
           });
           timestamps[bn] = Number(block.timestamp);
-        } catch {
-          // skip failed lookups
-        }
+        } catch {}
       })
     );
   }
 
-  // Top streakers for homepage section
   const topStreakers = await getTopStreakers(5, chainId);
   let activeStreakCount = 0;
   for (const [, s] of allStreaks) {
     if (s.currentStreak > 0) activeStreakCount++;
   }
 
-  // Collect relevant streaks for leaderboard agents and recent kudos senders
   const relevantAddresses = new Set<string>();
   for (const agent of leaderboard) {
     if (agent.owner_address)

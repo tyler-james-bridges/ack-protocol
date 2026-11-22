@@ -18,9 +18,10 @@ vi.mock('viem/chains', () => ({
   mainnet: { id: 1, name: 'Ethereum' },
 }));
 
-vi.mock('../feedback-cache', () => ({
-  getAllFeedbackEventsForChain: vi.fn().mockResolvedValue([]),
-}));
+vi.mock('../feedback-cache', () => {
+  const read = vi.fn().mockResolvedValue([]);
+  return { getAllFeedbackEventsForChain: read, getAllFeedbackEvents: read };
+});
 
 vi.mock('../streaks', () => ({
   getAllStreaks: vi.fn().mockResolvedValue(new Map()),
@@ -40,6 +41,60 @@ describe('home-data', () => {
   async function getModule() {
     return import('../home-data');
   }
+
+  it('preserves the 8004scan leaderboard rank when a lower-ranked agent has more local kudos', async () => {
+    const { getAllFeedbackEventsForChain } = await import('../feedback-cache');
+    vi.mocked(getAllFeedbackEventsForChain).mockResolvedValue([
+      {
+        agentId: 2,
+        chainId: 2741,
+        sender: '0xabc',
+        feedbackIndex: '0',
+        value: '5',
+        tag1: 'kudos',
+        tag2: '',
+        feedbackURI: '',
+        feedbackHash: '0x0',
+        txHash: '0x1',
+        blockNumber: '100',
+      },
+    ]);
+    const first = { chain_id: 2741, token_id: '1', total_score: 100 };
+    const second = { chain_id: 2741, token_id: '2', total_score: 99 };
+    const ranked = [
+      { ...first, is_testnet: true, token_id: '3' },
+      first,
+      second,
+      second,
+    ];
+    const requests: URL[] = [];
+    vi.mocked(global.fetch).mockImplementation(async (input) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/stats')) return Response.json({ data: {} });
+      requests.push(url);
+      return url.pathname === '/api/v1/agents'
+        ? Response.json({ items: ranked })
+        : Response.json({ data: ranked });
+    });
+
+    const { getHomePageData } = await getModule();
+    const home = await getHomePageData(2741);
+    expect(
+      home.leaderboard.map(({ token_id, kudos }) => [token_id, kudos])
+    ).toEqual([
+      ['1', 0],
+      ['2', 1],
+    ]);
+    expect(home.stats.top_score).toBe(100);
+    expect(requests.map((url) => url.origin + url.pathname)).toEqual([
+      'https://8004scan.io/api/v1/public/agents',
+    ]);
+    expect(Object.fromEntries(requests[0].searchParams)).toMatchObject({
+      chainId: '2741',
+      sortBy: 'total_score',
+      sortOrder: 'desc',
+    });
+  });
 
   it('keeps absent feedback distinct from a message in the server feed', async () => {
     const { getAllFeedbackEventsForChain } = await import('../feedback-cache');

@@ -30,10 +30,10 @@ function event(overrides: Partial<StoredFeedback> = {}): StoredFeedback {
 }
 
 describe('planNextChunk', () => {
-  it('starts at the deploy block and stays inside a 2000 block range', () => {
+  it('starts at the deploy block and requests 500 blocks inclusively', () => {
     expect(planNextChunk(41663999, 50_000_000, maxLogRange)).toEqual({
       fromBlock: 41664000,
-      toBlock: 41665999,
+      toBlock: 41664499,
     });
   });
 

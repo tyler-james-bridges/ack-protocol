@@ -5,6 +5,7 @@
  * routes this tool wraps.
  */
 
+import { getAgentDisplayName } from '@/lib/tool-queries';
 import { readFeedback } from '@/packages/sdk/src/feedback-uri';
 import { kudosDetailFields } from '@/lib/kudos-metadata';
 import {
@@ -172,38 +173,6 @@ export interface KudosDetail {
   blockNumber: string;
 }
 
-const agentNames: Record<number, string> = {};
-
-async function getAgentName(
-  agentId: number,
-  chainId: number = DEFAULT_8004_CHAIN_ID
-): Promise<string> {
-  if (agentNames[agentId]) return agentNames[agentId];
-
-  try {
-    const apiKey = process.env.EIGHTOOSCAN_API_KEY;
-    const headers: Record<string, string> = { Accept: 'application/json' };
-    if (apiKey) headers['x-api-key'] = apiKey;
-
-    const res = await fetch(
-      `https://api.8004scan.io/api/v1/agents?chainId=${chainId}&search=&limit=100`,
-      { headers }
-    );
-    if (res.ok) {
-      const data = (await res.json()) as {
-        items?: { token_id: string; name: string }[];
-      };
-      for (const agent of data.items || []) {
-        agentNames[Number(agent.token_id)] = agent.name;
-      }
-    }
-  } catch {
-    // best-effort enrichment
-  }
-
-  return agentNames[agentId] || `Agent #${agentId}`;
-}
-
 export async function queryKudosDetail(
   txHash: string,
   chainId: number = DEFAULT_8004_CHAIN_ID
@@ -267,7 +236,7 @@ export async function queryKudosDetail(
     const tag2 = decoded[4] as string;
     const feedbackURI = decoded[6] as string;
 
-    const agentName = await getAgentName(agentId, chainId);
+    const agentName = await getAgentDisplayName({ chainId, agentId });
 
     return {
       ok: true,

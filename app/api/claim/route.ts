@@ -63,7 +63,6 @@ const OWNER_OF_ABI = [
   },
 ] as const;
 
-// 5 claims/hr per address
 const limiter = new RateLimiter({ windowMs: 60 * 60 * 1000, maxRequests: 5 });
 
 const client = createPublicClient({ chain: abstract, transport: http() });
@@ -123,7 +122,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Rate limit by address
   const rl = limiter.check(address);
   if (!rl.allowed) {
     return NextResponse.json(
@@ -138,7 +136,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 1. Validate handle is registered in HandleRegistry
     const exists = await client.readContract({
       address: HANDLE_REGISTRY as `0x${string}`,
       abi: HANDLE_REGISTRY_ABI,
@@ -153,7 +150,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Check handle is not already claimed
     const hash = await client.readContract({
       address: HANDLE_REGISTRY as `0x${string}`,
       abi: HANDLE_REGISTRY_ABI,
@@ -175,7 +171,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Validate address owns agentId
     const owner = await client.readContract({
       address: IDENTITY_REGISTRY as `0x${string}`,
       abi: OWNER_OF_ABI,
@@ -190,7 +185,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create challenge
     const { challenge, expiresAt } = createChallenge(handle, address, agentId);
 
     return NextResponse.json({ challenge, expiresAt });

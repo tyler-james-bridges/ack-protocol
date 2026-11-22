@@ -303,7 +303,6 @@ function createWalletClients(
 const REPUTATION_REGISTRY = '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
 const IDENTITY_REGISTRY = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
 
-// giveFeedback ABI (value is int128)
 const GIVE_FEEDBACK_ABI = [
   {
     name: 'giveFeedback',
@@ -323,7 +322,6 @@ const GIVE_FEEDBACK_ABI = [
   },
 ] as const;
 
-// tokenURI to look up agent names
 const TOKEN_URI_ABI = [
   {
     name: 'tokenURI',
@@ -344,7 +342,6 @@ const OWNER_OF_ABI = [
   },
 ] as const;
 
-// HandleRegistry ABI
 const HANDLE_REGISTRY_ABI = [
   {
     name: 'exists',
@@ -446,7 +443,6 @@ export async function ensureHandleRegistered(
 
     const lowerHandle = handle.toLowerCase();
 
-    // Check if already registered
     const alreadyExists = await publicClient.readContract({
       address: handleRegistry,
       abi: HANDLE_REGISTRY_ABI,
@@ -507,7 +503,6 @@ export async function submitClaim(
 
     const lowerHandle = handle.toLowerCase();
 
-    // Get the handle hash
     const hash = await publicClient.readContract({
       address: handleRegistry,
       abi: HANDLE_REGISTRY_ABI,
@@ -515,7 +510,6 @@ export async function submitClaim(
       args: ['x', lowerHandle],
     });
 
-    // claimHandle(hash, owner)
     const claimTx = await walletClient.writeContract({
       address: handleRegistry,
       abi: HANDLE_REGISTRY_ABI,
@@ -524,7 +518,6 @@ export async function submitClaim(
     });
     await publicClient.waitForTransactionReceipt({ hash: claimTx });
 
-    // linkAgent(hash, agentId)
     const linkTx = await walletClient.writeContract({
       address: handleRegistry,
       abi: HANDLE_REGISTRY_ABI,
@@ -580,7 +573,6 @@ export async function submitKudos(
       submission.chainId
     );
 
-    // Build feedbackURI
     const feedbackData: Record<string, unknown> = {
       from: `twitter:@${submission.from}`,
       category: submission.category,
@@ -629,7 +621,6 @@ export async function submitKudos(
       data,
     });
 
-    // Wait for confirmation
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
     return {
@@ -721,7 +712,6 @@ export async function resolveHandleToAgentId(
     try {
       const client = createPublicClientForChain(targetChainId);
 
-      // Get the handle hash, then look up the full handle record
       const hash = await client.readContract({
         address: handleRegistry,
         abi: HANDLE_REGISTRY_ABI,
@@ -760,7 +750,6 @@ export async function resolveHandleToAgentId(
     console.error('[resolve-handle] 8004scan search failed:', error);
   }
 
-  // Fall back to hardcoded map
   return knownAgents[targetChainId]?.[lowerHandle] || null;
 }
 
@@ -870,7 +859,6 @@ async function autoLinkHandle(
 
     const lowerHandle = handle.toLowerCase();
 
-    // Check if already registered
     const alreadyExists = await publicClient.readContract({
       address: handleRegistry,
       abi: HANDLE_REGISTRY_ABI,
@@ -880,7 +868,6 @@ async function autoLinkHandle(
 
     let hash: `0x${string}`;
     if (!alreadyExists) {
-      // Register the handle first
       const regHash = await walletClient.writeContract({
         address: handleRegistry,
         abi: HANDLE_REGISTRY_ABI,
@@ -903,7 +890,6 @@ async function autoLinkHandle(
         args: ['x', lowerHandle],
       });
 
-      // Check if already linked
       const handleData = await publicClient.readContract({
         address: handleRegistry,
         abi: HANDLE_REGISTRY_ABI,
@@ -915,7 +901,6 @@ async function autoLinkHandle(
       }
     }
 
-    // Link the agent
     const linkTx = await walletClient.writeContract({
       address: handleRegistry,
       abi: HANDLE_REGISTRY_ABI,

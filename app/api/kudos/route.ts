@@ -37,13 +37,11 @@ export const POST = withSiwa(async (agent, req) => {
     chainId: chainIdParam,
   } = body;
 
-  // Resolve target chain (default: Base)
   const targetChainId =
     resolveChainId(chainParam ?? chainIdParam) ?? DEFAULT_8004_CHAIN_ID;
   const chainCfg = SUPPORTED_8004_CHAINS[targetChainId];
   const normalizedMessage = typeof message === 'string' ? message.trim() : '';
 
-  // Validate required fields
   if (
     !agentId ||
     typeof agentId !== 'number' ||
@@ -56,7 +54,6 @@ export const POST = withSiwa(async (agent, req) => {
     );
   }
 
-  // Prevent self-kudos
   if (
     agent.agentId !== undefined &&
     String(agent.agentId) === String(agentId)
@@ -72,7 +69,6 @@ export const POST = withSiwa(async (agent, req) => {
       ? rawCategory
       : 'reliability';
 
-  // Rate limit per agent
   const rateLimit = checkRateLimit(agent.address);
   if (!rateLimit.allowed) {
     return new Response(
@@ -91,7 +87,6 @@ export const POST = withSiwa(async (agent, req) => {
     );
   }
 
-  // Build ERC-8004 compliant feedback file via shared utility
   const { feedbackURI, feedbackHash } = buildFeedback({
     agentId,
     clientAddress: agent.address,
@@ -101,7 +96,6 @@ export const POST = withSiwa(async (agent, req) => {
     chainId: targetChainId,
   });
 
-  // Encode giveFeedback transaction
   const txData = appendBuilderCodeCalldata(
     encodeFunctionData({
       abi: REPUTATION_REGISTRY_ABI,

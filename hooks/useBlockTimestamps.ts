@@ -33,5 +33,4 @@ export function useBlockTimestamps(blockNumbers: bigint[], chainId?: number) {
   });
 }
 
-// Re-export from shared utils so existing imports still work
 export { formatRelativeTime } from '@/lib/utils';

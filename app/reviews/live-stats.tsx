@@ -64,13 +64,11 @@ export function LiveStats({
 
   return (
     <>
-      {/* Subtitle with live count */}
       <p className="text-muted-foreground text-sm mt-2">
         {total} on-chain reviews across {chainCount} chains — every one
         verifiable
       </p>
 
-      {/* Stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 mb-10">
         {statItems.map((s) => (
           <div

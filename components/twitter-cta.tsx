@@ -41,7 +41,6 @@ export function TwitterCTA() {
         </div>
       </div>
 
-      {/* Dry-run preview */}
       {parsed.length > 0 ? (
         <div className="mt-3 space-y-1.5">
           {parsed.map((k, i) => (

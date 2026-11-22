@@ -46,7 +46,6 @@ export function NetworkGraph({ chains, total }: Props) {
       };
     });
 
-    // Pre-compute agent dots
     const agentNodes: {
       x: number;
       y: number;
@@ -79,7 +78,6 @@ export function NetworkGraph({ chains, total }: Props) {
       ctx.clearRect(0, 0, W, H);
       frame++;
 
-      // Connection lines
       chainNodes.forEach((cn) => {
         ctx.beginPath();
         ctx.moveTo(cx, cy);
@@ -89,7 +87,6 @@ export function NetworkGraph({ chains, total }: Props) {
         ctx.stroke();
       });
 
-      // Agent dots
       agentNodes.forEach((an) => {
         const pulse = Math.sin(frame * 0.015 + an.seed * 0.2) * 0.3 + 0.7;
         ctx.beginPath();
@@ -101,9 +98,7 @@ export function NetworkGraph({ chains, total }: Props) {
         ctx.fill();
       });
 
-      // Chain nodes
       chainNodes.forEach((cn) => {
-        // Glow
         const glow = ctx.createRadialGradient(
           cn.x,
           cn.y,
@@ -119,13 +114,11 @@ export function NetworkGraph({ chains, total }: Props) {
         ctx.fillStyle = glow;
         ctx.fill();
 
-        // Node
         ctx.beginPath();
         ctx.arc(cn.x, cn.y, cn.r, 0, Math.PI * 2);
         ctx.fillStyle = cn.chain.color;
         ctx.fill();
 
-        // Label
         ctx.fillStyle = '#f5f5f5';
         ctx.font = '600 10px ui-monospace, SFMono-Regular, Menlo, monospace';
         ctx.textAlign = 'center';
@@ -135,7 +128,6 @@ export function NetworkGraph({ chains, total }: Props) {
         ctx.fillText(String(cn.chain.count), cn.x, cn.y + cn.r + 28);
       });
 
-      // Center ACK node
       const glow = ctx.createRadialGradient(
         cx,
         cy,

@@ -68,7 +68,6 @@ for (const log of receipt.logs) {
     console.log('  endpoint:', decoded.args.endpoint);
     console.log('  feedbackURI:', decoded.args.feedbackURI);
 
-    // Parse feedbackURI data
     if (decoded.args.feedbackURI.startsWith('data:,')) {
       const json = JSON.parse(decoded.args.feedbackURI.slice(6));
       console.log('  parsed:', json);

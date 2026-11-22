@@ -69,7 +69,6 @@ export async function listMarkets(): Promise<Market[]> {
 
   if (!allIds.length) return [];
 
-  // Check last 50 markets for open ones
   const checkIds = allIds.slice(-50);
 
   const dataResults = await pub.multicall({
@@ -182,7 +181,6 @@ export async function placeBet(params: BetParams): Promise<BetResult> {
   const mid = BigInt(params.marketId);
   const oid = BigInt(params.outcomeIndex);
 
-  // Verify market is open
   const marketData = await pub.readContract({
     address: MYRIAD_PM,
     abi: MYRIAD_PM_ABI,
@@ -196,7 +194,6 @@ export async function placeBet(params: BetParams): Promise<BetResult> {
     );
   }
 
-  // Get token info
   const altData = await pub.readContract({
     address: MYRIAD_PM,
     abi: MYRIAD_PM_ABI,
@@ -222,7 +219,6 @@ export async function placeBet(params: BetParams): Promise<BetResult> {
   });
   const minShares = (minSharesExact * BigInt(99)) / BigInt(100);
 
-  // Approve if needed
   const allowance = await pub.readContract({
     address: tokenAddr,
     abi: ERC20_ABI,
@@ -241,7 +237,6 @@ export async function placeBet(params: BetParams): Promise<BetResult> {
     await pub.waitForTransactionReceipt({ hash: approveTx });
   }
 
-  // Place bet
   const txHash = await agw.writeContract({
     address: MYRIAD_PM,
     abi: MYRIAD_PM_ABI,

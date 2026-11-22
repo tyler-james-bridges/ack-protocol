@@ -33,10 +33,8 @@ async function main() {
   const account = privateKeyToAccount(privateKey);
   console.log('Deployer:', account.address);
 
-  // Compile the contract with solc
   console.log('Compiling HandleRegistry...');
 
-  // Check if solc is available
   try {
     execSync('solc --version', { stdio: 'pipe' });
   } catch {
@@ -75,7 +73,6 @@ async function main() {
     transport: http(),
   });
 
-  // Encode constructor args: operator = deployer address
   const { encodeAbiParameters } = await import('viem');
   const constructorArgs = encodeAbiParameters(
     [{ type: 'address' }],

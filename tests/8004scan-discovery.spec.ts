@@ -64,10 +64,8 @@ test.describe('8004scan ACK Discovery', () => {
     }) => {
       await page.goto(`${BASE_URL}${agentPath(agent)}`);
 
-      // Page title should contain ACK
       await expect(page).toHaveTitle(/ACK/i, { timeout: 15_000 });
 
-      // Agent name should be visible on the page
       const agentName = page.getByText('ACK', { exact: true }).first();
       await expect(agentName).toBeVisible({ timeout: 15_000 });
     });

@@ -45,7 +45,6 @@ export function TimelineChart({ byDate }: Props) {
     const dates = byDate.map((d) => d.date).sort();
     const chainIds = ['1', '2741', '8453', '42220'];
 
-    // Accumulate
     const cumulative: Record<string, { date: string; value: number }[]> = {};
     const running: Record<string, number> = {};
     chainIds.forEach((id) => {
@@ -63,7 +62,6 @@ export function TimelineChart({ byDate }: Props) {
 
     const maxVal = Math.max(...chainIds.map((id) => running[id]));
 
-    // Axes
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -72,7 +70,6 @@ export function TimelineChart({ byDate }: Props) {
     ctx.lineTo(W - pad.right, H - pad.bottom);
     ctx.stroke();
 
-    // Y labels
     ctx.fillStyle = '#888';
     ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
     ctx.textAlign = 'right';
@@ -89,7 +86,6 @@ export function TimelineChart({ byDate }: Props) {
       }
     }
 
-    // Lines per chain
     chainIds.forEach((id) => {
       const points = cumulative[id];
       if (!points.length) return;
@@ -105,7 +101,6 @@ export function TimelineChart({ byDate }: Props) {
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Area
       const lastPt = points[points.length - 1];
       const lastX =
         pad.left + ((points.length - 1) / (points.length - 1)) * plotW;
@@ -117,7 +112,6 @@ export function TimelineChart({ byDate }: Props) {
       ctx.fill();
     });
 
-    // X labels
     ctx.fillStyle = '#888';
     ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
     ctx.textAlign = 'center';

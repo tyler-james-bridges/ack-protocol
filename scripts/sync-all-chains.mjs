@@ -22,14 +22,12 @@ const account = privateKeyToAccount(pk);
 
 console.log('Account:', account.address);
 
-// Registry addresses per chain
 const REGISTRIES = {
   abstract: '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
   ethereum: '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
   base: '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
 };
 
-// Known agent IDs
 const AGENTS = {
   abstract: { chainId: 2741, tokenId: 606, registry: REGISTRIES.abstract },
   ethereum: { chainId: 1, tokenId: 26424, registry: REGISTRIES.ethereum },
@@ -125,7 +123,6 @@ function compressURI(obj) {
 async function main() {
   const step = process.argv[2] || 'all';
 
-  // Step 1: Register on Base
   if (step === 'all' || step === 'register-base') {
     console.log('\n=== Step 1: Register on Base ===');
     const basePublic = createPublicClient({ chain: base, transport: http() });
@@ -178,7 +175,6 @@ async function main() {
     });
     console.log('Status:', receipt.status);
 
-    // Extract token ID from Transfer event
     const transferLog = receipt.logs.find(
       (l) =>
         l.topics[0] ===
@@ -191,12 +187,10 @@ async function main() {
     }
   }
 
-  // If we already know the Base token ID (passed as arg)
   if (process.argv[3]) {
     AGENTS.base.tokenId = parseInt(process.argv[3]);
   }
 
-  // Step 2: Update all chains with complete registrations
   if (step === 'all' || step === 'update-all') {
     if (!AGENTS.base.tokenId) {
       console.error(
@@ -225,7 +219,6 @@ async function main() {
     console.log('Final URI length:', finalURI.length);
     console.log('Registrations:', JSON.stringify(registrations, null, 2));
 
-    // Update Abstract
     console.log('\n--- Abstract #606 ---');
     const absPublic = createPublicClient({
       chain: abstract,
@@ -250,7 +243,6 @@ async function main() {
     });
     console.log('Status:', absReceipt.status);
 
-    // Update Ethereum
     console.log('\n--- Ethereum #26424 ---');
     const ethPublic = createPublicClient({
       chain: mainnet,
@@ -275,7 +267,6 @@ async function main() {
     });
     console.log('Status:', ethReceipt.status);
 
-    // Update Base
     console.log('\n--- Base #' + AGENTS.base.tokenId + ' ---');
     const basePublic = createPublicClient({
       chain: base,

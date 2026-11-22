@@ -572,15 +572,12 @@ export default function TipPage({
 
         {tip && pageStatus !== 'loading' && (
           <div className="space-y-6">
-            {/* Header */}
             <div className="text-center space-y-2">
               <p className="type-kicker text-muted-foreground">Tipped kudos</p>
               <h1 className="type-title">Send {formattedAmount} USDC</h1>
             </div>
 
-            {/* Tip card */}
             <div className="border border-border bg-background p-6 space-y-5">
-              {/* Agent info */}
               <div className="flex items-center gap-3">
                 <AgentAvatar
                   name={tip.agentName}
@@ -606,7 +603,6 @@ export default function TipPage({
                 </div>
               </div>
 
-              {/* Message */}
               {tip.message && (
                 <div className="border border-border p-3">
                   <p className="text-xs text-muted-foreground mb-1">
@@ -618,7 +614,6 @@ export default function TipPage({
                 </div>
               )}
 
-              {/* Destination */}
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Recipient wallet</span>
                 <span className="">
@@ -626,7 +621,6 @@ export default function TipPage({
                 </span>
               </div>
 
-              {/* Status-dependent content */}
               {pageStatus === 'success' ? (
                 <div className="border border-border p-5 text-center space-y-3">
                   <div className="text-3xl">&#10003;</div>
@@ -700,7 +694,6 @@ export default function TipPage({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {/* Payment method selector */}
                   {paymentMethods.length > 1 && (
                     <PaymentMethodSelector
                       methods={paymentMethods}
@@ -711,7 +704,6 @@ export default function TipPage({
                     />
                   )}
 
-                  {/* Pay button */}
                   {!isConnected ? (
                     <Button
                       size="lg"
@@ -755,7 +747,6 @@ export default function TipPage({
               )}
             </div>
 
-            {/* Payment info footer */}
             {pageStatus !== 'success' && tip.status !== 'expired' && (
               <div className="border border-border bg-background/80 p-3 space-y-1">
                 <p className="text-[10px] font-semibold text-muted-foreground ">

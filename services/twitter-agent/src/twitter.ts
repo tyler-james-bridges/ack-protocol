@@ -35,7 +35,6 @@ function oauthHeader(
     oauth_version: '1.0',
   };
 
-  // Combine all params for signature
   const allParams = { ...oauthParams, ...params };
   const paramString = Object.keys(allParams)
     .sort()
@@ -68,7 +67,6 @@ function oauthHeader(
 export async function fetchMentions(
   sinceId: string | null
 ): Promise<{ tweets: Tweet[]; newestId: string | null }> {
-  // Get our user ID (cached after first call)
   const userId = ACCESS_TOKEN.split('-')[0];
 
   const baseUrl = `https://api.x.com/2/users/${userId}/mentions`;
@@ -106,7 +104,6 @@ export async function fetchMentions(
     return { tweets: [], newestId: null };
   }
 
-  // Build author lookup
   const authorMap: Record<string, string> = {};
   if (data.includes?.users) {
     for (const user of data.includes.users) {

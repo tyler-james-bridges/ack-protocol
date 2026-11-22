@@ -234,7 +234,6 @@ async function getAgentPool(): Promise<ScanAgent[]> {
     return agentPoolCache.agents;
   }
 
-  // Fetch 5 pages in parallel (500 agents)
   const pageSize = 100;
   const pages = [0, 1, 2, 3, 4];
   const results = await Promise.all(
@@ -251,7 +250,6 @@ async function getAgentPool(): Promise<ScanAgent[]> {
   const all = results
     .flatMap((r) => r.items || [])
     .filter((a) => !a.is_testnet);
-  // Dedupe by id
   const seen = new Set<string>();
   const deduped = all.filter((a) => {
     if (seen.has(a.id)) return false;
@@ -298,7 +296,6 @@ export async function fetchLeaderboard(
     return sortAgents(agents, sortBy);
   }
 
-  // For "All Chains", use the cached global pool
   const pool = await getAgentPool();
   return sortAgents(pool, sortBy).slice(0, displayLimit);
 }

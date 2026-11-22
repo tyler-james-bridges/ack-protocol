@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock the feedback-cache dependency
 vi.mock('../feedback-cache', () => ({
   getAllFeedbackEvents: vi.fn().mockResolvedValue([]),
 }));
@@ -39,8 +38,6 @@ describe('streaks', () => {
     vi.setSystemTime(now);
     const currentTimestamp = Math.floor(now.getTime() / 1000);
 
-    // Simulate events from today, yesterday, and day before
-    // Block numbers: higher = more recent
     const { feedbackCache, streaks } = await getModules();
     const events = [
       {
@@ -84,7 +81,6 @@ describe('streaks', () => {
     vi.setSystemTime(new Date('2025-06-15T12:00:00Z'));
     const { feedbackCache, streaks } = await getModules();
 
-    // Create events for two senders with different activity levels
     const events = [
       {
         sender: '0xaaa',
@@ -119,7 +115,6 @@ describe('streaks', () => {
     );
 
     const top = await streaks.getTopStreakers(10);
-    // Should return streakers sorted by current streak descending
     for (let i = 1; i < top.length; i++) {
       expect(top[i - 1].streak.currentStreak).toBeGreaterThanOrEqual(
         top[i].streak.currentStreak

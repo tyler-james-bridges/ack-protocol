@@ -18,7 +18,6 @@ export async function executeJob(request: any): Promise<ExecuteJobResult> {
   const category = input.category || 'reliability';
   const message = input.message || '';
 
-  // Call ACK's kudos API endpoint
   const res = await fetch('https://ack-onchain.dev/api/kudos', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -51,8 +51,6 @@ export function buildMppChallenge(config?: MppConfig): MppChallenge {
   };
 }
 
-// --- mppx server singleton ---
-
 type MppChargeResult =
   | { status: 402; challenge: Response }
   | { status: 200; withReceipt: (response: Response) => Response };
@@ -136,7 +134,6 @@ export async function buildMppChallengeResponse(options: {
     currency: config.asset,
   });
 
-  // Send a request with no credential to get the 402 challenge
   const request = new Request(`https://${config.realm}/mpp-challenge`, {
     method: 'GET',
   });
@@ -223,8 +220,6 @@ export async function verifyMppCredential(
 
   return { ok: true, receiptId };
 }
-
-// --- internal helpers ---
 
 function extractCredential(authHeader: string | null): string | null {
   if (!authHeader) return null;

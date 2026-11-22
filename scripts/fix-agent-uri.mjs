@@ -21,7 +21,6 @@ const AGENT_ID = 606n;
 const PRIVATE_KEY = process.env.AGENT_PRIVATE_KEY;
 
 if (!PRIVATE_KEY) {
-  // Try .env.local
   const fs = await import('fs');
   const envPath = new URL('../.env.local', import.meta.url).pathname;
   const envContent = fs.readFileSync(envPath, 'utf-8');
@@ -72,7 +71,6 @@ async function main() {
     transport: http(),
   });
 
-  // Read current URI
   const currentURI = await publicClient.readContract({
     address: IDENTITY_REGISTRY,
     abi,
@@ -87,14 +85,12 @@ async function main() {
 
   console.log('\n=== Current issues ===');
 
-  // Fix 1: supportedTrusts → supportedTrust
   if (data.supportedTrusts) {
     console.log('FIX: supportedTrusts → supportedTrust');
     data.supportedTrust = data.supportedTrusts;
     delete data.supportedTrusts;
   }
 
-  // Fix 2: Add registrations
   if (!data.registrations || data.registrations.length === 0) {
     console.log('FIX: Adding registrations array');
     data.registrations = [
@@ -105,7 +101,6 @@ async function main() {
     ];
   }
 
-  // Fix 3: x402support → x402Support
   if ('x402support' in data && !('x402Support' in data)) {
     console.log('FIX: x402support → x402Support');
     data.x402Support = data.x402support;
@@ -158,7 +153,6 @@ async function main() {
   console.log('OASF skills count:', oasfService?.skills?.length);
   console.log('A2A skills count:', a2aService?.a2aSkills?.length);
 
-  // Compress and encode
   const compressed = gzipSync(Buffer.from(newJSON), { level: 6 });
   const newURI = `data:application/json;enc=gzip;level=6;base64,${compressed.toString('base64')}`;
   console.log('\nNew URI length:', newURI.length);

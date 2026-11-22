@@ -18,8 +18,6 @@ import {
   parseXPaymentProofId,
 } from '../replay';
 
-// --- mpp config ---
-
 describe('mppEnabled', () => {
   const origEnv = { ...process.env };
 
@@ -126,8 +124,6 @@ describe('buildMppChallenge', () => {
   });
 });
 
-// --- config-invalid: MPP_SECRET_KEY missing ---
-
 describe('getMppxServer config-invalid', () => {
   const origEnv = { ...process.env };
 
@@ -151,8 +147,6 @@ describe('getMppxServer config-invalid', () => {
   });
 });
 
-// --- verifyMppCredential auth header validation ---
-
 describe('verifyMppCredential auth header validation', () => {
   it('returns ok:false when no auth header is provided', async () => {
     const result = await verifyMppCredential(null, { amount: '1.00' });
@@ -166,8 +160,6 @@ describe('verifyMppCredential auth header validation', () => {
     expect(result.ok).toBe(false);
   });
 });
-
-// --- toRawUnits ---
 
 describe('toRawUnits', () => {
   it('converts "1.00" to 1000000', () => {
@@ -190,8 +182,6 @@ describe('toRawUnits', () => {
     expect(toRawUnits('1.123456789')).toBe('1123456');
   });
 });
-
-// --- mpp-errors ---
 
 describe('mapMppError', () => {
   it('maps "account not found" to MPP_ACCOUNT_NOT_FOUND', () => {
@@ -266,8 +256,6 @@ describe('mapMppError', () => {
   });
 });
 
-// --- mapMppErrorToUiMessage ---
-
 describe('mapMppErrorToUiMessage', () => {
   it('prefers problem+json detail field when present', () => {
     const apiError = {
@@ -299,8 +287,6 @@ describe('mapMppErrorToUiMessage', () => {
     expect(msg).toContain('MPP payment failed');
   });
 });
-
-// --- replay ---
 
 describe('replay protection', () => {
   it('detects replayed proof ids', () => {

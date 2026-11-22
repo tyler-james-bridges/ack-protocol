@@ -11,7 +11,6 @@ import {
 
 const ERC_8021_MARKER = '8021'.repeat(8);
 
-// Mock wallet provider
 const mockWalletProvider = {
   getAddress: vi.fn().mockReturnValue('0xTestAddress'),
   getNetwork: vi.fn().mockResolvedValue({

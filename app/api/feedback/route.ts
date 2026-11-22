@@ -173,7 +173,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Sort newest first
     filtered = filtered
       .sort((a, b) => parseInt(b.blockNumber) - parseInt(a.blockNumber))
       .slice(0, limitParam);

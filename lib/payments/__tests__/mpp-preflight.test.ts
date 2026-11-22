@@ -39,7 +39,6 @@ describe('checkMppPreflight', () => {
 
     const result = await checkMppPreflight(walletClient);
     expect(result.viable).toBe(true);
-    // Should NOT have attempted a chain switch since already on Tempo
     expect(walletClient.request).not.toHaveBeenCalled();
   });
 
@@ -93,7 +92,6 @@ describe('checkMppPreflight', () => {
 
     const result = await checkMppPreflight(walletClient);
     expect(result.viable).toBe(true);
-    // Should have called switch twice: to Tempo, then back to original
     expect(walletClient.request).toHaveBeenCalledTimes(2);
     expect(calls[0]).toContain('0xeeee2'); // Tempo chainId in hex
     expect(calls[1]).toContain('0x1'); // Original chain back

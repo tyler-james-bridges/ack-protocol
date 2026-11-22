@@ -46,21 +46,17 @@ function computeStreak(dates: string[]): StreakData {
     };
   }
 
-  // Sort dates descending (most recent first)
   const sorted = [...new Set(dates)].sort().reverse();
   const today = toUTCDateString(Math.floor(Date.now() / 1000));
 
   const isActiveToday = sorted[0] === today;
 
-  // Compute current streak: walk backwards from today/yesterday
   let currentStreak = 0;
   let checkDate = today;
 
-  // If not active today, check if active yesterday to still count streak
   if (!isActiveToday) {
     const yesterday = toUTCDateString(Math.floor(Date.now() / 1000) - 86400);
     if (sorted[0] !== yesterday) {
-      // Streak is broken — last activity was more than 1 day ago
       return {
         currentStreak: 0,
         longestStreak: computeLongestStreak(sorted),
@@ -75,7 +71,6 @@ function computeStreak(dates: string[]): StreakData {
   const dateSet = new Set(sorted);
   while (dateSet.has(checkDate)) {
     currentStreak++;
-    // Go back one day
     const ts = new Date(checkDate + 'T00:00:00Z').getTime() / 1000 - 86400;
     checkDate = toUTCDateString(ts);
   }
@@ -92,7 +87,6 @@ function computeStreak(dates: string[]): StreakData {
 function computeLongestStreak(sortedDatesDesc: string[]): number {
   if (sortedDatesDesc.length === 0) return 0;
 
-  // Process in ascending order
   const asc = [...sortedDatesDesc].reverse();
   let longest = 1;
   let current = 1;
@@ -134,7 +128,6 @@ export async function getAllStreaks(
     0
   );
 
-  // Group events by sender, convert block numbers to dates
   const senderDates = new Map<string, string[]>();
 
   for (const event of events) {
@@ -148,7 +141,6 @@ export async function getAllStreaks(
     senderDates.set(sender, dates);
   }
 
-  // Compute streaks for each sender
   const streaks = new Map<string, StreakData>();
   for (const [sender, dates] of senderDates) {
     streaks.set(sender, computeStreak(dates));

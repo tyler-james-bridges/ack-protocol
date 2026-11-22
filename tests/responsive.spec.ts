@@ -9,7 +9,6 @@ test.describe('Responsive - Mobile Viewport', () => {
   for (const path of PAGES) {
     test(`${path} - nav collapses to hamburger`, async ({ page }) => {
       await page.goto(path);
-      // Hamburger should be visible
       const hamburger = page.getByLabel('Toggle menu');
       await expect(hamburger).toBeVisible();
     });
@@ -34,7 +33,6 @@ test.describe('Responsive - Mobile Viewport', () => {
     await page.goto('/');
     await page.waitForTimeout(2000);
 
-    // The page should render without horizontal scroll
     const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
     expect(bodyWidth).toBeLessThanOrEqual(MOBILE.width + 5);
   });

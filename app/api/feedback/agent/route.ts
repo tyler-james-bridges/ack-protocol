@@ -45,7 +45,6 @@ function clientIp(request: NextRequest): string {
 }
 
 export async function POST(request: NextRequest) {
-  // Rate limit by IP
   const ip = clientIp(request);
   const rl = limiter.check(ip);
   if (!rl.allowed) {
@@ -88,7 +87,6 @@ export async function POST(request: NextRequest) {
   const targetChainId =
     resolveChainId(chainId ?? chain) ?? DEFAULT_8004_CHAIN_ID;
 
-  // Validate targetAgentId
   if (
     typeof targetAgentId !== 'number' ||
     !Number.isInteger(targetAgentId) ||
@@ -100,7 +98,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate value (1-5 scale)
   if (
     typeof value !== 'number' ||
     !Number.isInteger(value) ||
@@ -115,7 +112,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate callerAddress
   if (typeof callerAddress !== 'string' || !isAddress(callerAddress)) {
     return NextResponse.json(
       { error: 'callerAddress must be a valid Ethereum address' },
@@ -123,18 +119,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate optional category
   const resolvedCategory: KudosCategory | '' =
     typeof category === 'string' &&
     KUDOS_CATEGORIES.includes(category as KudosCategory)
       ? (category as KudosCategory)
       : '';
 
-  // Validate optional reasoning
   const resolvedReasoning =
     typeof reasoning === 'string' ? reasoning.trim().slice(0, 512) : '';
 
-  // Build feedback file
   const { feedbackURI, feedbackHash } = buildFeedback({
     agentId: targetAgentId,
     clientAddress: callerAddress,

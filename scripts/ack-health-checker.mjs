@@ -16,7 +16,6 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 
-// --- Chain Config ---
 export const CHAINS = {
   abstract: {
     name: 'Abstract',
@@ -41,7 +40,6 @@ export const CHAINS = {
   },
 };
 
-// --- Config ---
 const REPUTATION_REGISTRY = '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
 const SCAN_API = 'https://www.8004scan.io/api/v1/public';
 const STATE_FILE = new URL('../memory/ack-health-state.json', import.meta.url)
@@ -53,7 +51,6 @@ const RECHECK_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MAX_AGENTS_PER_RUN = 5;
 const PROTOCOLS_TO_CHECK = new Set(['WEB', 'A2A', 'MCP']);
 
-// --- Args ---
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 const limitIdx = args.indexOf('--limit');
@@ -77,7 +74,6 @@ if (!CHAINS[chainKey]) {
 
 const chain = CHAINS[chainKey];
 
-// --- State ---
 function loadState() {
   if (!existsSync(STATE_FILE)) {
     return { checked: {}, lastRun: null, totalChecks: 0 };
@@ -91,7 +87,6 @@ function saveState(state) {
   writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
 }
 
-// --- 8004scan API ---
 function getScanApiKey() {
   if (process.env.SCAN_API_KEY) return process.env.SCAN_API_KEY;
   try {
@@ -146,7 +141,6 @@ async function fetchChainAgents(fetchLimit = 100, apiKey) {
 }
 
 async function fetchAgentDetail(tokenId, apiKey) {
-  // Try 8004scan API first
   try {
     const detail = await fetchScanJson(
       `/agents/${chain.chainId}/${tokenId}`,
@@ -157,7 +151,6 @@ async function fetchAgentDetail(tokenId, apiKey) {
     /* fall through */
   }
 
-  // Fallback: read onchain tokenURI for service endpoints
   try {
     const raw = execSync(
       `cast call 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432 'tokenURI(uint256)(string)' ${tokenId} --rpc-url ${chain.rpc}`,
@@ -183,7 +176,6 @@ async function fetchAgentDetail(tokenId, apiKey) {
   }
 }
 
-// --- Service Parsing ---
 function normalizeProtocol(value) {
   return String(value || '')
     .trim()
@@ -419,7 +411,6 @@ export async function runHealthChecks(endpoints) {
   return results;
 }
 
-// --- Review Generation ---
 export function scoreHealthResults(results) {
   const declared = Object.keys(results).length;
   const successes = Object.values(results).filter(
@@ -507,7 +498,6 @@ function shouldCheckAgent(agent, state, seenThisRun) {
   return true;
 }
 
-// --- Onchain Submission ---
 function submitFeedback(agentId, value, tag2, endpoint, review) {
   const feedbackURI = `data:,${review}`;
   const feedbackHash = '0x' + createHash('sha256').update(review).digest('hex');
@@ -552,7 +542,6 @@ function submitFeedback(agentId, value, tag2, endpoint, review) {
   }
 }
 
-// --- Main ---
 export async function main() {
   console.log(`\n=== ACK Health Checker ===`);
   console.log(`Chain: ${chain.name} (${chain.chainId})`);

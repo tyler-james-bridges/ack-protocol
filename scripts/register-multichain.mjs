@@ -62,7 +62,6 @@ async function main() {
     dataSuffix: dataSuffixForChain(selectedChain),
   });
 
-  // Check balance
   const balance = await publicClient.getBalance({ address: account.address });
   console.log('Balance:', (Number(balance) / 1e18).toFixed(6), 'ETH');
 
@@ -143,14 +142,12 @@ async function main() {
     x402Support: true,
   };
 
-  // Compress and encode
   const compressed = gzipSync(Buffer.from(JSON.stringify(agentData)), {
     level: 6,
   });
   const agentURI = `data:application/json;enc=gzip;level=6;base64,${compressed.toString('base64')}`;
   console.log('URI length:', agentURI.length);
 
-  // Estimate cost with 2M gas
   const gasPrice = await publicClient.getGasPrice();
   const costWei = 2_000_000n * gasPrice;
   console.log('Max cost (2M gas):', (Number(costWei) / 1e18).toFixed(6), 'ETH');
@@ -170,7 +167,6 @@ async function main() {
   console.log('Status:', receipt.status);
   console.log('Block:', receipt.blockNumber.toString());
 
-  // Parse the token ID from Transfer event
   const transferTopic =
     '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
   const transferLog = receipt.logs.find((l) => l.topics[0] === transferTopic);

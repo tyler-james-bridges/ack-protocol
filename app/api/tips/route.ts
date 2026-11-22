@@ -45,7 +45,6 @@ export async function POST(req: Request) {
     transport: http(chainCfg.rpcUrl),
   });
 
-  // Validate required fields
   if (
     typeof agentId !== 'number' ||
     !Number.isInteger(agentId) ||
@@ -78,7 +77,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Resolve agent owner address from the identity registry
   let ownerAddress: string;
   try {
     ownerAddress = await client.readContract({

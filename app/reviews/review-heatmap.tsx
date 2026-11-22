@@ -82,7 +82,6 @@ export function ReviewHeatmap({ byDate, firstDate, lastDate }: Props) {
 
   return (
     <div className="border border-border dark:border-neutral-800 bg-card p-4 sm:p-6 overflow-x-auto relative">
-      {/* Month labels */}
       <div className="flex mb-2 pl-8 relative h-5">
         {months.map((m, i) => (
           <span
@@ -96,7 +95,6 @@ export function ReviewHeatmap({ byDate, firstDate, lastDate }: Props) {
       </div>
 
       <div className="flex">
-        {/* Day labels */}
         <div className="flex flex-col gap-[3px] mr-2 text-[10px] text-muted-foreground">
           <span className="h-[14px]">&nbsp;</span>
           <span className="h-[14px] flex items-center">MON</span>
@@ -107,7 +105,6 @@ export function ReviewHeatmap({ byDate, firstDate, lastDate }: Props) {
           <span className="h-[14px]">&nbsp;</span>
         </div>
 
-        {/* Grid */}
         <div className="flex gap-[3px]">
           {weeks.map((week, wi) => (
             <div key={wi} className="flex flex-col gap-[3px]">
@@ -135,7 +132,6 @@ export function ReviewHeatmap({ byDate, firstDate, lastDate }: Props) {
         </div>
       </div>
 
-      {/* Legend */}
       <div className="flex items-center gap-1.5 mt-4 justify-end text-[10px] text-muted-foreground">
         <span>LESS</span>
         <div className="w-[14px] h-[14px] bg-muted/50" />
@@ -146,7 +142,6 @@ export function ReviewHeatmap({ byDate, firstDate, lastDate }: Props) {
         <span>MORE</span>
       </div>
 
-      {/* Tooltip */}
       {tooltip && (
         <div
           className="fixed z-50 bg-popover border border-border dark:border-neutral-700 px-3 py-2 text-xs pointer-events-none"

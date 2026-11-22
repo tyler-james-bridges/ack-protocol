@@ -74,7 +74,6 @@ export async function executeSwap(params: SwapParams): Promise<SwapResult> {
   const pub = getPublicClient();
   const { agw, address } = await getAgwClient();
 
-  // Get quote
   const amounts = await pub.readContract({
     address: ABOREAN_ROUTER,
     abi: ABOREAN_ROUTER_ABI,
@@ -96,7 +95,6 @@ export async function executeSwap(params: SwapParams): Promise<SwapResult> {
       value: swapAmount,
     });
   } else {
-    // Approve token spend
     await approveIfNeeded(
       agw,
       pub,

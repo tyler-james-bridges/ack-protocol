@@ -13,7 +13,6 @@ import {
   type KudosSubmission,
 } from '../onchain';
 
-// Mock viem modules
 vi.mock('viem', async () => {
   const actual = await vi.importActual('viem');
   return {
@@ -36,7 +35,6 @@ vi.mock('viem/accounts', () => ({
   })),
 }));
 
-// Mock implementations
 const mockReadContract = vi.fn();
 const mockWriteContract = vi.fn();
 const mockSendTransaction = vi.fn();
@@ -78,7 +76,6 @@ beforeEach(async () => {
   createPublicClient.mockReturnValue(mockPublicClient);
   createWalletClient.mockReturnValue(mockWalletClient);
 
-  // Reset environment
   delete process.env.AGENT_PRIVATE_KEY;
 });
 
@@ -344,7 +341,6 @@ describe('submitClaim', () => {
       txHash: '0xlinktx',
     });
 
-    // Check claimHandle call
     expect(mockWriteContract).toHaveBeenCalledWith({
       address: expect.any(String),
       abi: expect.any(Array),
@@ -352,7 +348,6 @@ describe('submitClaim', () => {
       args: ['0xhash123', '0xowner'],
     });
 
-    // Check linkAgent call
     expect(mockWriteContract).toHaveBeenCalledWith({
       address: expect.any(String),
       abi: expect.any(Array),
@@ -458,7 +453,6 @@ describe('resolveHandleToAgentId', () => {
     mockReadContract
       .mockResolvedValueOnce('0xhash123') // handleHash
       .mockResolvedValueOnce({
-        // getHandle
         platform: 'x',
         handle: 'testhandle',
         claimedBy: '0xowner',

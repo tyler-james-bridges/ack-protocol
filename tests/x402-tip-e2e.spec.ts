@@ -14,13 +14,10 @@ const AGENT_NAME = 'Saucaiii';
 // Wallet signing + onchain confirmation can be slow
 test.setTimeout(120_000);
 
-// ─── Helpers ──────────────────────────────────────────────
-
 async function ensureConnected(page: import('@playwright/test').Page) {
   // Wait for hydration to settle — wagmi may auto-connect via EIP-6963
   await page.waitForTimeout(3_000);
 
-  // Check if already connected (no Connect button visible)
   const connectBtn = page.getByRole('button', { name: /connect/i }).first();
   const needsConnect = await connectBtn
     .isVisible({ timeout: 2_000 })
@@ -30,16 +27,12 @@ async function ensureConnected(page: import('@playwright/test').Page) {
 
   await connectBtn.click();
 
-  // Click "Browser Wallet" — our injected EIP-6963 provider
   const browserWallet = page.getByText('Browser Wallet').first();
   await browserWallet.click({ timeout: 5_000 });
 
-  // Wait for modal to close
   await expect(connectBtn).toBeHidden({ timeout: 15_000 });
   await page.waitForTimeout(1_000);
 }
-
-// ─── Test 1: Give Kudos ───────────────────────────────────
 
 test.describe('Kudos flow', () => {
   test('give kudos and verify it appears in the feed', async ({ page }) => {
@@ -54,13 +47,11 @@ test.describe('Kudos flow', () => {
     const kudosForm = page.locator('#give-kudos').first();
     await kudosForm.scrollIntoViewIfNeeded();
 
-    // Pick a category
     const categories = kudosForm.locator('button').filter({
       hasText: /Reliable|Accurate|Helpful|Innovative|Trustworthy/,
     });
     await categories.first().click();
 
-    // Type a message
     const messages = [
       'Solid agent, always delivers',
       'Great work on the community vibes',
@@ -70,17 +61,14 @@ test.describe('Kudos flow', () => {
     const testMessage = messages[Date.now() % messages.length];
     await kudosForm.locator('textarea').fill(testMessage);
 
-    // Submit
     const sendBtn = kudosForm.getByRole('button', { name: /send kudos/i });
     await expect(sendBtn).toBeEnabled();
     await sendBtn.click();
 
-    // Wait for onchain confirmation + success state
     await expect(page.locator(`text=Kudos sent to ${AGENT_NAME}`)).toBeVisible({
       timeout: 90_000,
     });
 
-    // Verify tx link
     const txLink = page.locator('a:has-text("View transaction")');
     await expect(txLink).toBeVisible();
     const txHref = await txLink.getAttribute('href');
@@ -115,8 +103,6 @@ test.describe('Kudos flow', () => {
   });
 });
 
-// ─── Test 2: x402 USDC Tip ───────────────────────────────
-
 test.describe('x402 Tip flow', () => {
   test('tip $1 USDC and verify transaction', async ({ page }) => {
     await page.goto(AGENT_PATH, { waitUntil: 'domcontentloaded' });
@@ -126,27 +112,21 @@ test.describe('x402 Tip flow', () => {
 
     await ensureConnected(page);
 
-    // Verify tip component exists with USDC default
     await expect(page.locator('text=Tip with USDC')).toBeVisible();
 
-    // Select $1 preset
     await page.locator('button:has-text("$1")').first().click();
 
-    // Send
     const sendBtn = page.getByRole('button', { name: /send \$1 usdc/i });
     await expect(sendBtn).toBeEnabled();
     await sendBtn.click();
 
-    // Wait for onchain confirmation
     await expect(page.locator('text=sent to')).toBeVisible({ timeout: 90_000 });
 
-    // Verify tx link
     const txLink = page.locator('a:has-text("View transaction")');
     await expect(txLink).toBeVisible();
     const txHref = await txLink.getAttribute('href');
     expect(txHref).toMatch(/abscan\.org\/tx\/0x[a-fA-F0-9]+/);
 
-    // Verify share button present
     await expect(page.locator('a:has-text("Share")')).toBeVisible();
   });
 
@@ -158,10 +138,8 @@ test.describe('x402 Tip flow', () => {
 
     await ensureConnected(page);
 
-    // Enter custom amount
     await page.locator('input[placeholder="Custom amount"]').fill('0.50');
 
-    // Send
     const sendBtn = page.getByRole('button', { name: /send \$0\.5 usdc/i });
     await expect(sendBtn).toBeEnabled();
     await sendBtn.click();
@@ -177,14 +155,12 @@ test.describe('x402 Tip flow', () => {
 
     await ensureConnected(page);
 
-    // Switch to PENGU
     await page.locator('button:has-text("PENGU")').first().click();
     await expect(page.locator('text=Tip with PENGU')).toBeVisible();
 
     // Use custom input to avoid ambiguous preset buttons
     await page.locator('input[placeholder="Custom amount"]').fill('1');
 
-    // Send
     const sendBtn = page.getByRole('button', { name: /send 1 pengu/i });
     await expect(sendBtn).toBeEnabled({ timeout: 5_000 });
     await sendBtn.click();
@@ -193,7 +169,6 @@ test.describe('x402 Tip flow', () => {
       timeout: 90_000,
     });
 
-    // Verify tx link
     const txLink = page.locator('a:has-text("View transaction")');
     await expect(txLink).toBeVisible();
   });

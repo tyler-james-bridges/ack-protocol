@@ -61,16 +61,13 @@ test.describe('Navigation', () => {
     const hamburger = page.getByLabel('Toggle menu');
     await expect(hamburger).toBeVisible();
 
-    // Open mobile menu
     await hamburger.click();
 
-    // Verify links in mobile menu
     const mobileExplore = page
       .locator('.fixed')
       .getByRole('link', { name: 'Discover' });
     await expect(mobileExplore).toBeVisible({ timeout: 5000 });
 
-    // Close menu via the X button inside the panel header
     await page.locator('.fixed button').first().click();
     await expect(mobileExplore).not.toBeVisible({ timeout: 5000 });
   });

@@ -97,7 +97,6 @@ describe('ClaimStore', () => {
 
       createChallenge('testhandle', '0x123abc', 42);
 
-      // Advance time past 15 minute TTL
       const fifteenMinutesPlus = 15 * 60 * 1000 + 1000;
       vi.advanceTimersByTime(fifteenMinutesPlus);
 
@@ -111,7 +110,6 @@ describe('ClaimStore', () => {
 
       createChallenge('testhandle', '0x123abc', 42);
 
-      // Advance time to just before expiry
       const fourteenMinutes = 14 * 60 * 1000;
       vi.advanceTimersByTime(fourteenMinutes);
 
@@ -127,7 +125,6 @@ describe('ClaimStore', () => {
       createChallenge('testhandle', '0x123abc', 42);
       markClaimed('testhandle', '0xdeadbeef');
 
-      // Advance time past 15 minute TTL
       const fifteenMinutesPlus = 15 * 60 * 1000 + 1000;
       vi.advanceTimersByTime(fifteenMinutesPlus);
 
@@ -179,11 +176,9 @@ describe('ClaimStore', () => {
       createChallenge('handle1', '0x123abc', 42);
       createChallenge('handle2', '0x456def', 99);
 
-      // Advance time past TTL
       const sixteenMinutes = 16 * 60 * 1000;
       vi.advanceTimersByTime(sixteenMinutes);
 
-      // Creating new challenge should prune expired ones
       createChallenge('handle3', '0x789ghi', 77);
 
       expect(getChallenge('handle1')).toBeNull();
@@ -197,14 +192,11 @@ describe('ClaimStore', () => {
 
       createChallenge('testhandle', '0x123abc', 42);
 
-      // Advance time past TTL
       const sixteenMinutes = 16 * 60 * 1000;
       vi.advanceTimersByTime(sixteenMinutes);
 
-      // First call to getChallenge should trigger pruning
       expect(getChallenge('testhandle')).toBeNull();
 
-      // Second call should still return null (entry was pruned)
       expect(getChallenge('testhandle')).toBeNull();
     });
 
@@ -214,14 +206,11 @@ describe('ClaimStore', () => {
 
       createChallenge('expired', '0x123abc', 42);
 
-      // Advance time past TTL for first entry
       const sixteenMinutes = 16 * 60 * 1000;
       vi.advanceTimersByTime(sixteenMinutes);
 
-      // Create a fresh entry that won't be expired
       createChallenge('active', '0x456def', 99);
 
-      // Mark active as claimed - this should prune expired entry
       markClaimed('active', '0xdeadbeef');
 
       expect(getChallenge('expired')).toBeNull();

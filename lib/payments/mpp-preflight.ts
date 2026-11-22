@@ -29,7 +29,6 @@ export async function checkMppPreflight(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   walletClient: any
 ): Promise<MppPreflightResult> {
-  // No wallet connected
   if (!walletClient) {
     return {
       viable: false,
@@ -38,7 +37,6 @@ export async function checkMppPreflight(
     };
   }
 
-  // No account on the wallet client
   const account = walletClient.account;
   if (!account) {
     return {
@@ -58,8 +56,6 @@ export async function checkMppPreflight(
       const tempoChainId = 978658;
       const currentChainId = walletClient.chain?.id;
 
-      // If the wallet is on a different chain, try switching to Tempo.
-      // This is just a probe — we don't actually force a switch.
       if (currentChainId !== tempoChainId) {
         try {
           await walletClient.request({
@@ -118,7 +114,6 @@ export async function checkMppPreflight(
         }
       }
 
-      // If we got here, the wallet can talk to Tempo
       return { viable: true };
     } catch {
       return {

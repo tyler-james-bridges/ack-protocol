@@ -55,7 +55,6 @@ export const test = base.extend({
       transport: http(ABSTRACT_RPC),
     });
 
-    // Expose RPC handler to the browser
     await page.exposeFunction(
       '__testWalletRequest',
       async (method: string, params: unknown[]) => {
@@ -113,7 +112,6 @@ export const test = base.extend({
           case 'eth_getBlockByNumber':
           case 'eth_getCode':
           case 'eth_getLogs': {
-            // Forward to RPC
             const res = await fetch(ABSTRACT_RPC, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -135,7 +133,6 @@ export const test = base.extend({
       }
     );
 
-    // Inject window.ethereum before any page JS runs
     await page.addInitScript((addr: string) => {
       const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
 

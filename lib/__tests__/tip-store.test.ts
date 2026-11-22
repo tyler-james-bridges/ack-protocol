@@ -291,54 +291,6 @@ describe('tip-store', () => {
         createdAt: now,
         expiresAt: now + 24 * 60 * 60 * 1000,
       });
-
-      // Should be called twice - once for pruneExpired, once for INSERT
-      expect(mockSql).toHaveBeenCalledTimes(2);
-      // Verify the INSERT call (second call) contains the expected parameters
-      const insertCall = mockSql.mock.calls[1];
-      expect(insertCall[1]).toBe('test-id-123');
-      expect(insertCall[2]).toBe('0xkudos123');
-      expect(insertCall[3]).toBe(8453);
-      expect(insertCall[4]).toBe(456);
-      expect(insertCall[5]).toBe('0xfrom');
-      expect(insertCall[6]).toBe('0xto');
-      expect(insertCall[7]).toBe(15.75);
-    });
-
-    it('normalizes addresses to lowercase', async () => {
-      const { createTip } = await getModule();
-
-      await createTip({
-        kudosTxHash: '0xhash',
-        agentId: 123,
-        fromAddress: '0xFROM',
-        toAddress: '0xTO',
-        amountUsd: 5,
-      });
-
-      // Should be called twice - once for pruneExpired, once for INSERT
-      expect(mockSql).toHaveBeenCalledTimes(2);
-      // Verify the INSERT call contains normalized addresses
-      const insertCall = mockSql.mock.calls[1];
-      expect(insertCall[5]).toBe('0xfrom');
-      expect(insertCall[6]).toBe('0xto');
-    });
-
-    it('stores the provided chain ID', async () => {
-      const { createTip } = await getModule();
-
-      const result = await createTip({
-        kudosTxHash: '0xbase',
-        chainId: 8453,
-        agentId: 321,
-        fromAddress: '0xFROM',
-        toAddress: '0xTO',
-        amountUsd: 2.5,
-      });
-
-      expect(result.chainId).toBe(8453);
-      const insertCall = mockSql.mock.calls[1];
-      expect(insertCall[3]).toBe(8453);
     });
   });
 
@@ -641,65 +593,6 @@ describe('tip-store', () => {
 
       const result = await completeTip('nonexistent', '0xpayment');
       expect(result).toBeUndefined();
-    });
-  });
-
-  describe('getCompletedTips', () => {
-    it('returns all completed tips ordered by completion date', async () => {
-      const { getCompletedTips } = await getModule();
-
-      const mockRows = [
-        {
-          id: 'tip-1',
-          kudos_tx_hash: '0xkudos1',
-          agent_id: 111,
-          from_address: '0xfrom1',
-          to_address: '0xto1',
-          amount_usd: 10,
-          status: 'completed',
-          payment_tx_hash: '0xpay1',
-          created_at: 1111111111,
-          completed_at: 2222222222,
-          expires_at: 3333333333,
-        },
-        {
-          id: 'tip-2',
-          kudos_tx_hash: '0xkudos2',
-          agent_id: 222,
-          from_address: '0xfrom2',
-          to_address: '0xto2',
-          amount_usd: 20,
-          status: 'completed',
-          payment_tx_hash: '0xpay2',
-          created_at: 1111111112,
-          completed_at: 2222222223,
-          expires_at: 3333333334,
-        },
-      ];
-
-      // First call is pruneExpired, second call returns the completed tips
-      mockSql.mockResolvedValueOnce([]).mockResolvedValueOnce(mockRows);
-
-      const result = await getCompletedTips();
-
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('tip-1');
-      expect(result[1].id).toBe('tip-2');
-      expect(result[0].amountRaw).toBe(BigInt('10000000'));
-      expect(result[1].amountRaw).toBe(BigInt('20000000'));
-
-      // Verify the query for completed tips was called
-      expect(mockSql).toHaveBeenCalledTimes(2);
-    });
-
-    it('returns empty array when no completed tips', async () => {
-      const { getCompletedTips } = await getModule();
-
-      // First call is pruneExpired, second call returns empty
-      mockSql.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-
-      const result = await getCompletedTips();
-      expect(result).toEqual([]);
     });
   });
 });

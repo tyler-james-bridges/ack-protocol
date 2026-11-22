@@ -45,7 +45,7 @@ export const SUPPORTED_8004_CHAINS: Record<number, ChainConfig> = {
     rpcUrl: 'https://mainnet.base.org',
     deployBlock: 41_664_000,
     explorer: 'https://basescan.org',
-    maxLogRange: 2_000,
+    maxLogRange: 500,
   },
   1: {
     chain: mainnet,

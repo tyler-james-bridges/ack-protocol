@@ -10,7 +10,8 @@ import {
   WETH_ABI,
 } from './constants';
 
-export type LendAction = 'supply' | 'borrow' | 'repay' | 'withdraw';
+const VALID_ACTIONS = ['supply', 'borrow', 'repay', 'withdraw'] as const;
+export type LendAction = (typeof VALID_ACTIONS)[number];
 
 export interface LendParams {
   action: LendAction;
@@ -31,13 +32,11 @@ interface MarketParams {
   lltv: bigint;
 }
 
-const VALID_ACTIONS: LendAction[] = ['supply', 'borrow', 'repay', 'withdraw'];
-
-/**
- * Validate lending parameters.
- */
-export function validateLendParams(params: LendParams): string | null {
-  if (!VALID_ACTIONS.includes(params.action))
+export function validateLendParams(params: {
+  action: string;
+  amount: string;
+}): string | null {
+  if (!VALID_ACTIONS.some((action) => action === params.action))
     return `Invalid action: ${params.action}. Must be one of: ${VALID_ACTIONS.join(', ')}`;
 
   const amount = parseFloat(params.amount);

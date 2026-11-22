@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { validateLendParams } from '../lend';
+import { validateBetParams } from '../markets';
+import { validateSwapParams } from '../swap';
 import {
   TOKEN_MAP,
   ABOREAN_ROUTER,
@@ -9,10 +12,6 @@ import {
   KONA,
   AGW_ADDRESS,
 } from '../constants';
-
-// Import validation functions directly to avoid pulling in AGW client
-// via the swap/lend/markets modules that import client.ts
-// The validation functions are pure logic with no side effects.
 
 describe('defi constants', () => {
   it('has valid token addresses', () => {
@@ -47,27 +46,6 @@ describe('defi constants', () => {
 });
 
 describe('swap param validation', () => {
-  // Inline validation logic to avoid AGW client import chain
-  function validateSwapParams(params: {
-    from: string;
-    to: string;
-    amount: string;
-    slippagePct?: number;
-  }): string | null {
-    const fromKey = params.from.toUpperCase();
-    const toKey = params.to.toUpperCase();
-    if (!TOKEN_MAP[fromKey]) return `Unknown token: ${params.from}`;
-    if (!TOKEN_MAP[toKey]) return `Unknown token: ${params.to}`;
-    if (fromKey === toKey) return 'Cannot swap token to itself';
-    const amount = parseFloat(params.amount);
-    if (isNaN(amount) || amount <= 0) return 'Amount must be a positive number';
-    if (params.slippagePct !== undefined) {
-      if (params.slippagePct < 0.1 || params.slippagePct > 50)
-        return 'Slippage must be between 0.1% and 50%';
-    }
-    return null;
-  }
-
   it('accepts valid params', () => {
     expect(
       validateSwapParams({ from: 'ETH', to: 'USDC', amount: '0.01' })
@@ -84,6 +62,19 @@ describe('swap param validation', () => {
       })
     ).toBeNull();
   });
+
+  for (const [from, source] of Object.entries(TOKEN_MAP)) {
+    for (const [to, destination] of Object.entries(TOKEN_MAP)) {
+      it(`resolves the router pair for ${from} to ${to}`, () => {
+        const error = validateSwapParams({ from, to, amount: '1' });
+        if (source.address === destination.address) {
+          expect(error).toBe('Cannot swap token to itself');
+        } else {
+          expect(error).toBeNull();
+        }
+      });
+    }
+  }
 
   it('rejects unknown from token', () => {
     expect(
@@ -145,19 +136,6 @@ describe('swap param validation', () => {
 });
 
 describe('lend param validation', () => {
-  const VALID_ACTIONS = ['supply', 'borrow', 'repay', 'withdraw'];
-
-  function validateLendParams(params: {
-    action: string;
-    amount: string;
-  }): string | null {
-    if (!VALID_ACTIONS.includes(params.action))
-      return `Invalid action: ${params.action}. Must be one of: ${VALID_ACTIONS.join(', ')}`;
-    const amount = parseFloat(params.amount);
-    if (isNaN(amount) || amount <= 0) return 'Amount must be a positive number';
-    return null;
-  }
-
   it('accepts valid supply', () => {
     expect(validateLendParams({ action: 'supply', amount: '0.01' })).toBeNull();
   });
@@ -196,21 +174,6 @@ describe('lend param validation', () => {
 });
 
 describe('bet param validation', () => {
-  function validateBetParams(params: {
-    marketId: string;
-    outcomeIndex: number;
-    amount: string;
-  }): string | null {
-    const marketId = parseInt(params.marketId, 10);
-    if (isNaN(marketId) || marketId < 0)
-      return 'marketId must be a non-negative integer';
-    if (params.outcomeIndex < 0 || params.outcomeIndex > 10)
-      return 'outcomeIndex must be between 0 and 10';
-    const amount = parseFloat(params.amount);
-    if (isNaN(amount) || amount <= 0) return 'amount must be a positive number';
-    return null;
-  }
-
   it('accepts valid params', () => {
     expect(
       validateBetParams({ marketId: '164', outcomeIndex: 0, amount: '1' })

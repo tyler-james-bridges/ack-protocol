@@ -1,3 +1,4 @@
+import { kudosDetailFields } from '@/lib/kudos-metadata';
 import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, decodeAbiParameters, type Hex } from 'viem';
 import {
@@ -128,22 +129,6 @@ export async function GET(
     const tag2 = decoded[4] as string;
     const feedbackURI = decoded[6] as string;
 
-    // Parse feedbackURI for metadata
-    let from = '';
-    let category = tag1 || '';
-    let message = '';
-    let source = '';
-
-    if (feedbackURI.startsWith('data:,')) {
-      try {
-        const json = JSON.parse(feedbackURI.slice(6));
-        from = json.from || '';
-        category = json.category || category;
-        message = json.message || '';
-        source = json.source || '';
-      } catch {}
-    }
-
     const agentName = await getAgentName(agentId, chainId);
 
     return NextResponse.json({
@@ -152,12 +137,8 @@ export async function GET(
       agentId,
       agentName,
       sender,
-      senderName: from.replace('twitter:@', '@'),
       value,
-      category,
-      message,
-      from: from.replace('twitter:', ''),
-      source,
+      ...kudosDetailFields(feedbackURI, tag1),
       tag1,
       tag2,
       timestamp: new Date(Number(block.timestamp) * 1000).toISOString(),

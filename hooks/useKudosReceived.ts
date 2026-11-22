@@ -1,5 +1,6 @@
 'use client';
 
+import { readFeedback } from '@/packages/sdk/src/feedback-uri';
 import { useQuery } from '@tanstack/react-query';
 import type { Address, Hex } from 'viem';
 import { DEFAULT_8004_CHAIN_ID } from '@/config/chain';
@@ -13,7 +14,7 @@ export interface KudosEvent {
   value: bigint;
   tag1: string;
   tag2: string;
-  feedbackURI: string;
+  message: string | null;
   feedbackHash: Hex;
   blockNumber: bigint;
   txHash: Hex;
@@ -38,7 +39,7 @@ function mapEvent(e: {
     value: BigInt(e.value),
     tag1: e.tag1,
     tag2: e.tag2,
-    feedbackURI: e.feedbackURI,
+    message: readFeedback(e.feedbackURI).message,
     feedbackHash: e.feedbackHash as Hex,
     blockNumber: BigInt(e.blockNumber),
     txHash: e.txHash as Hex,

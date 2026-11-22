@@ -66,6 +66,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify SDK feedback metadata compatibility
+        working-directory: packages/sdk
+        run: ../../node_modules/.bin/vitest run src/__tests__/utils.test.ts
+
       - name: TypeScript type check
         run: npx tsc --noEmit
 
@@ -74,7 +78,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -93,3 +97,9 @@ jobs:
         env:
           SIWA_NONCE_SECRET: ci-placeholder
           EIGHTOOSCAN_API_KEY: ci-placeholder
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps --only-shell chromium
+
+      - name: Read historical kudos in the browser
+        run: npx playwright test tests/kudos-messages.spec.ts --project=chromium

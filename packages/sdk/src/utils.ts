@@ -1,3 +1,4 @@
+import { readFeedback } from './feedback-uri.js';
 import { keccak256, toBytes } from 'viem';
 import { CONTRACT_ADDRESSES } from './contracts.js';
 import {
@@ -60,28 +61,8 @@ export function buildFeedback(
   return { feedbackURI, feedbackHash };
 }
 
-/**
- * Parse a feedback data URI (base64 or plain text) into a JSON object.
- * Returns null if the URI cannot be parsed.
- */
 export function parseFeedbackURI(uri: string): Record<string, unknown> | null {
-  try {
-    if (uri.startsWith('data:application/json;base64,')) {
-      const base64 = uri.slice('data:application/json;base64,'.length);
-      const jsonStr =
-        typeof Buffer !== 'undefined'
-          ? Buffer.from(base64, 'base64').toString()
-          : decodeURIComponent(escape(atob(base64)));
-      return JSON.parse(jsonStr) as Record<string, unknown>;
-    }
-    if (uri.startsWith('data:,')) {
-      const raw = decodeURIComponent(uri.slice(6));
-      return JSON.parse(raw) as Record<string, unknown>;
-    }
-    return null;
-  } catch {
-    return null;
-  }
+  return readFeedback(uri).metadata;
 }
 
 /**

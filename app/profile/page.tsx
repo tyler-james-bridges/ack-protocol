@@ -414,7 +414,7 @@ export default function ProfilePage() {
                         agentId={null}
                         chainId={k.chainId}
                         tag2={k.tag2}
-                        message={parseMessage(k.feedbackURI)}
+                        message={k.message}
                         txHash={k.txHash}
                         blockNumber={k.blockNumber}
                         tipInfo={tipMap[k.txHash.toLowerCase()]}
@@ -653,24 +653,6 @@ function UpdateAgentURI({ agent }: { agent: ScanAgent | null | undefined }) {
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-}
-
-function parseMessage(feedbackURI: string): string | null {
-  try {
-    if (feedbackURI.startsWith('data:application/json;base64,')) {
-      const json = decodeURIComponent(
-        escape(atob(feedbackURI.replace('data:application/json;base64,', '')))
-      );
-      const payload = JSON.parse(json);
-      return payload.reasoning || payload.message || null;
-    }
-    if (feedbackURI.startsWith('data:,')) {
-      return decodeURIComponent(feedbackURI.slice(6)) || null;
-    }
-  } catch {
-    // ignore malformed URIs
-  }
-  return null;
 }
 
 function KudosCard({
